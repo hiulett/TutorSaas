@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dungeon Roadmap</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=Inter:wght@400&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-dim": "#11131b",
+                        "error": "#ffb4ab",
+                        "surface": "#11131b",
+                        "on-secondary-fixed": "#251a00",
+                        "primary-container": "#00e5ff",
+                        "outline": "#849396",
+                        "surface-container-high": "#272a32",
+                        "on-primary-fixed-variant": "#004f58",
+                        "secondary-container": "#ffc703",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-container": "#00626e",
+                        "background": "#11131b",
+                        "on-surface-variant": "#bac9cc",
+                        "primary-fixed-dim": "#00daf3",
+                        "surface-bright": "#373942",
+                        "on-error": "#690005",
+                        "on-tertiary": "#4c007d",
+                        "surface-container": "#1d1f27",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "primary": "#c3f5ff",
+                        "error-container": "#93000a",
+                        "secondary": "#ffe9b9",
+                        "inverse-surface": "#e1e2ed",
+                        "tertiary-fixed": "#f2daff",
+                        "surface-container-lowest": "#0b0e16",
+                        "surface-container-low": "#191b23",
+                        "on-tertiary-container": "#7e2cbe",
+                        "on-primary-fixed": "#001f24",
+                        "surface-tint": "#00daf3",
+                        "on-secondary-fixed-variant": "#594400",
+                        "primary-fixed": "#9cf0ff",
+                        "on-secondary": "#3e2e00",
+                        "inverse-primary": "#006875",
+                        "on-secondary-container": "#6e5400",
+                        "outline-variant": "#3b494c",
+                        "on-primary": "#00363d",
+                        "tertiary": "#f8e7ff",
+                        "surface-variant": "#32343d",
+                        "on-background": "#e1e2ed",
+                        "on-surface": "#e1e2ed",
+                        "surface-container-highest": "#32343d",
+                        "inverse-on-surface": "#2e3039",
+                        "secondary-fixed": "#ffdf94",
+                        "tertiary-container": "#e6c3ff",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "on-tertiary-fixed": "#2e004e",
+                        "tertiary-fixed-dim": "#e0b6ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "gutter": "16px",
+                        "window-padding": "24px",
+                        "margin-desktop": "40px",
+                        "unit": "4px",
+                        "margin-mobile": "20px"
+                    },
+                    fontFamily: {
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "stat-value": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "display-title": ["Space Grotesk"]
+                    },
+                    fontSize: {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "stat-value": ["20px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #05070E;
+            background-image: radial-gradient(circle at 50% 20%, rgba(157, 78, 221, 0.15) 0%, transparent 60%);
+            background-attachment: fixed;
+        }
+        
+        /* Isekai System Window Styles */
+        .system-window {
+            background-color: rgba(17, 19, 27, 0.94);
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-window::before {
+            content: '⌘';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 10px;
+            color: #00E5FF;
+            opacity: 0.3;
+            animation: pulse-rune 2s infinite alternate;
+        }
+
+        .system-window-locked {
+            border-color: #3b494c;
+            box-shadow: none;
+        }
+        
+        .system-window-active {
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
+            border-width: 2px;
+        }
+
+        @keyframes pulse-rune {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Glowing Path */
+        .mana-path {
+            position: absolute;
+            width: 4px;
+            background: linear-gradient(to bottom, #00E676 0%, #00E5FF 50%, #3b494c 51%, #3b494c 100%);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+
+        /* Node Animations */
+        @keyframes active-pulse {
+            0% { box-shadow: 0 0 10px rgba(0, 229, 255, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(0, 229, 255, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(0, 229, 255, 0.4); }
+        }
+
+        .node-active {
+            animation: active-pulse 2s infinite;
+        }
+
+        .rank-badge {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface font-body-md h-screen flex flex-col relative overflow-x-hidden md:max-w-[600px] md:mx-auto">
+<!-- Background Nebulae Details (Decorative) -->
+<div class="fixed inset-0 pointer-events-none z-[-1] opacity-20">
+<div class="absolute top-1/4 left-1/4 w-64 h-64 bg-[#9D4EDD] rounded-full blur-[100px]"></div>
+<div class="absolute bottom-1/3 right-1/4 w-80 h-80 bg-[#00E5FF] rounded-full blur-[120px] opacity-50"></div>
+</div>
+<!-- TopAppBar from JSON -->
+<header class="bg-surface-dim/95 text-primary-container font-label-caps text-label-caps font-display-title text-headline-md text-primary-container tracking-tighter fixed top-0 w-full border-b border-primary-container shadow-[0_0_8px_rgba(0,229,255,0.3)] shadow-[0_0_12px_rgba(0,229,255,0.2)] transition-all duration-300 ease-out active:scale-95 flex justify-between items-center px-window-padding py-unit z-50 backdrop-blur-md md:max-w-[600px] md:left-1/2 md:-translate-x-1/2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="account_circle" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+<span>SYSTEM STATUS</span>
+</div>
+<div class="text-secondary-container font-stat-value text-stat-value flex items-center gap-1">
+<span>45%</span>
+<span class="text-[10px] text-on-surface-variant">CEFR</span>
+</div>
+</header>
+<!-- Main Content Area: Dungeon Map -->
+<main class="flex-1 mt-[60px] mb-[80px] p-margin-mobile relative z-10 flex flex-col items-center justify-end min-h-[800px]">
+<!-- Connecting Path -->
+<div class="mana-path top-0 bottom-0"></div>
+<!-- Node Layout Container (Bottom to Top Flow) -->
+<div class="w-full flex flex-col-reverse gap-[100px] relative z-10 py-10">
+<!-- Node 1: Cleared (Gate E) -->
+<div class="system-window w-full p-4 rounded-lg flex items-center gap-4 relative ml-8 mr-2">
+<div class="absolute -left-[40px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#00E676] border-2 border-surface flex items-center justify-center z-20 shadow-[0_0_15px_rgba(0,230,118,0.6)]">
+<span class="material-symbols-outlined text-surface text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="font-label-caps text-label-caps text-[#00E676]">GATE E • CLEARED</span>
+<span class="rank-badge text-secondary-container">E</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">A1 Greetings</h3>
+<p class="text-on-surface-variant text-sm mt-1">Basic social protocols established.</p>
+</div>
+</div>
+<!-- Node 2: Active (Gate D) -->
+<div class="system-window system-window-active w-full p-4 rounded-lg flex items-center gap-4 relative mr-8 ml-2 node-active backdrop-blur-sm bg-surface-dim/80">
+<div class="absolute -right-[40px] top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary-container border-4 border-surface flex items-center justify-center z-20 shadow-[0_0_20px_rgba(0,229,255,0.8)]">
+<span class="material-symbols-outlined text-surface text-[24px]" style="font-variation-settings: 'FILL' 1;">swords</span>
+</div>
+<div class="flex-1 text-right">
+<div class="flex justify-between items-start mb-1 flex-row-reverse">
+<span class="font-label-caps text-label-caps text-primary-container animate-pulse">ACTIVE QUEST</span>
+<span class="rank-badge text-secondary-container text-lg">D</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary">Hotel Check-in Boss</h3>
+<div class="w-full bg-surface-variant h-2 mt-3 mb-1 rounded-full overflow-hidden flex">
+<div class="h-full bg-[#00E5FF] w-[60%] border-r border-surface"></div>
+<div class="h-full bg-transparent w-[40%]"></div>
+</div>
+<span class="text-[10px] text-primary-container font-stat-value text-stat-value block">PROGRESS: 60%</span>
+</div>
+</div>
+<!-- Node 3: Locked (Gate C) -->
+<div class="system-window system-window-locked w-full p-4 rounded-lg flex items-center gap-4 relative ml-8 mr-2 opacity-60">
+<div class="absolute -left-[40px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-variant border-2 border-outline-variant flex items-center justify-center z-20">
+<span class="material-symbols-outlined text-[#FF1744] text-[16px]">lock</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="font-label-caps text-label-caps text-outline">GATE C • LOCKED</span>
+<span class="rank-badge text-outline">C</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-outline">B2 Job Interview</h3>
+<p class="text-outline-variant text-sm mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                        Requires D-Rank Clearance
+                    </p>
+</div>
+</div>
+<!-- Node 4: Locked (Gate B) -->
+<div class="system-window system-window-locked w-full p-4 rounded-lg flex items-center gap-4 relative mr-8 ml-2 opacity-40">
+<div class="absolute -right-[40px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-variant border-2 border-outline-variant flex items-center justify-center z-20">
+<span class="material-symbols-outlined text-[#FF1744] text-[16px]">lock</span>
+</div>
+<div class="flex-1 text-right">
+<div class="flex justify-between items-start mb-1 flex-row-reverse">
+<span class="font-label-caps text-label-caps text-outline">GATE B • LOCKED</span>
+<span class="rank-badge text-outline">B</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-outline">Corporate Diplomacy</h3>
+<p class="text-outline-variant text-sm mt-1 justify-end flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                        Unknown Threat Level
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar from JSON -->
+<nav class="bg-surface-container-lowest/90 font-label-caps text-label-caps font-headline-md text-primary-container fixed bottom-0 w-full border-t-2 border-primary-container shadow-[0_-4px_10px_rgba(0,229,255,0.4)] shadow-[0_-2px_15px_rgba(0,229,255,0.2)] transition-transform duration-200 active:scale-90 fixed bottom-0 left-0 w-full z-50 flex justify-around items-stretch h-16 bg-surface-dim md:hidden">
+<!-- Tab 1: DUNGEONS (Active) -->
+<a class="flex flex-col items-center justify-center text-primary-container bg-primary-container/20 border-t-4 border-primary-container px-gutter py-2 flex-1 text-center hover:bg-primary-container/10 hover:opacity-100" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">swords</span>
+<span>DUNGEONS</span>
+</a>
+<!-- Tab 2: GUILD (Inactive) -->
+<a class="flex flex-col items-center justify-center text-outline opacity-70 px-gutter py-2 flex-1 text-center hover:bg-primary-container/10 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1">group</span>
+<span>GUILD</span>
+</a>
+<!-- Tab 3: STATUS (Inactive) -->
+<a class="flex flex-col items-center justify-center text-outline opacity-70 px-gutter py-2 flex-1 text-center hover:bg-primary-container/10 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1">fitbit_push_ups</span>
+<span>STATUS</span>
+</a>
+</nav>
+<script>
+        // Optional: Add simple interaction for the nodes to simulate system feedback
+        document.querySelectorAll('.system-window').forEach(window => {
+            window.addEventListener('click', () => {
+                if(window.classList.contains('system-window-locked')) {
+                    // Visual feedback for locked
+                    window.style.transform = 'translateX(5px)';
+                    setTimeout(() => window.style.transform = 'translateX(-5px)', 50);
+                    setTimeout(() => window.style.transform = 'translateX(5px)', 100);
+                    setTimeout(() => window.style.transform = 'translateX(0)', 150);
+                }
+            });
+        });
+    </script>
+</body></html>

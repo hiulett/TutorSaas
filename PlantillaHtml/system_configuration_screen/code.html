@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUNTER SYSTEM CONFIGURATION</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container": "#1d1f27",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-container": "#00626e",
+                        "tertiary-container": "#e6c3ff",
+                        "surface-tint": "#00daf3",
+                        "outline-variant": "#3b494c",
+                        "on-secondary-fixed-variant": "#594400",
+                        "on-primary-fixed-variant": "#004f58",
+                        "surface-container-highest": "#32343d",
+                        "on-primary": "#00363d",
+                        "secondary-container": "#ffc703",
+                        "inverse-surface": "#e1e2ed",
+                        "primary-fixed-dim": "#00daf3",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "surface-container-low": "#191b23",
+                        "surface-bright": "#373942",
+                        "on-background": "#e1e2ed",
+                        "on-tertiary": "#4c007d",
+                        "tertiary-fixed": "#f2daff",
+                        "primary-container": "#00e5ff",
+                        "on-surface-variant": "#bac9cc",
+                        "on-primary-fixed": "#001f24",
+                        "on-error": "#690005",
+                        "outline": "#849396",
+                        "background": "#11131b",
+                        "tertiary-fixed-dim": "#e0b6ff",
+                        "surface-variant": "#32343d",
+                        "surface-container-high": "#272a32",
+                        "tertiary": "#f8e7ff",
+                        "inverse-on-surface": "#2e3039",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "on-secondary-container": "#6e5400",
+                        "secondary-fixed": "#ffdf94",
+                        "on-surface": "#e1e2ed",
+                        "surface-dim": "#11131b",
+                        "on-tertiary-container": "#7e2cbe",
+                        "surface-container-lowest": "#0b0e16",
+                        "secondary": "#ffe9b9",
+                        "on-secondary": "#3e2e00",
+                        "error": "#ffb4ab",
+                        "primary": "#c3f5ff",
+                        "surface": "#11131b",
+                        "inverse-primary": "#006875",
+                        "on-tertiary-fixed": "#2e004e",
+                        "on-secondary-fixed": "#251a00",
+                        "primary-fixed": "#9cf0ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "margin-desktop": "40px",
+                        "gutter": "16px",
+                        "window-padding": "24px",
+                        "unit": "4px",
+                        "margin-mobile": "20px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Space Grotesk", "sans-serif"],
+                        "display-title": ["Space Grotesk", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "stat-value": ["JetBrains Mono", "monospace"],
+                        "label-caps": ["JetBrains Mono", "monospace"],
+                        "headline-md": ["Space Grotesk", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"]
+                    },
+                    fontSize: {
+                        "headline-lg": ["32px", { lineHeight: "1.2", fontWeight: "600" }],
+                        "display-title": ["48px", { lineHeight: "1.1", letterSpacing: "-0.04em", fontWeight: "700" }],
+                        "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+                        "stat-value": ["20px", { lineHeight: "1.0", letterSpacing: "0.05em", fontWeight: "700" }],
+                        "label-caps": ["12px", { lineHeight: "1.0", letterSpacing: "0.1em", fontWeight: "600" }],
+                        "headline-md": ["24px", { lineHeight: "1.3", fontWeight: "500" }],
+                        "body-md": ["16px", { lineHeight: "1.5", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom UI Elements for System Theme */
+        body {
+            background-color: #05070E;
+            color: #e1e2ed;
+        }
+        
+        .system-window {
+            background-color: rgba(17, 19, 27, 0.94);
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .system-window::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(0,229,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        /* Runic Corner Accents */
+        .rune-corner {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            opacity: 0.8;
+            animation: pulse-rune 2s infinite alternate;
+        }
+        .rune-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .rune-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+        .rune-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+        .rune-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+        
+        @keyframes pulse-rune {
+            from { box-shadow: 0 0 2px #00E5FF; }
+            to { box-shadow: 0 0 8px #00E5FF; }
+        }
+        
+        /* Tech Toggle */
+        .tech-toggle-input:checked + .tech-toggle-slider {
+            background-color: #00E5FF;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+        }
+        .tech-toggle-input:checked + .tech-toggle-slider::before {
+            transform: translateX(100%);
+            background-color: #05070E;
+        }
+        .tech-toggle-slider {
+            background-color: #32343d;
+            border: 1px solid #3b494c;
+            transition: all 0.3s ease;
+        }
+        .tech-toggle-slider::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background-color: #bac9cc;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+        
+        /* Rank Badge */
+        .rank-badge {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: #ffe9b9; /* secondary/gold */
+            text-shadow: 0 0 5px rgba(255, 233, 185, 0.5);
+            border: 1px solid #ffdf94;
+            padding: 2px 6px;
+            background: rgba(255, 233, 185, 0.1);
+        }
+        .rank-badge-s { color: #ffb4ab; border-color: #ffb4ab; background: rgba(255, 180, 171, 0.1); text-shadow: 0 0 8px rgba(255, 180, 171, 0.8); }
+        
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 0;
+            background: #ffe9b9;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 8px rgba(255, 233, 185, 0.8);
+            transform: rotate(45deg);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #3b494c;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/94 backdrop-blur-md border-b border-primary shadow-[0_0_8px_rgba(0,229,255,0.3)]">
+<div class="flex justify-between items-center px-window-padding h-20 w-full">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded border border-primary flex items-center justify-center bg-surface-container overflow-hidden">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">manage_accounts</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-primary tracking-tighter">HUNTER SYSTEM CONFIGURATION</h1>
+</div>
+<button class="text-on-surface-variant hover:text-primary-container transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-28 px-margin-mobile flex flex-col gap-6 max-w-[600px] mx-auto w-full">
+<!-- Correction Style Selector -->
+<section class="system-window rounded p-6">
+<div class="rune-tl rune-corner"></div>
+<div class="rune-tr rune-corner"></div>
+<div class="rune-bl rune-corner"></div>
+<div class="rune-br rune-corner"></div>
+<header class="flex items-center gap-3 mb-6 border-b border-outline-variant pb-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">track_changes</span>
+<h2 class="font-headline-md text-headline-md text-on-surface uppercase tracking-wider">Correction Protocol</h2>
+</header>
+<div class="flex flex-col gap-4">
+<label class="group relative flex items-center p-4 border border-outline-variant hover:border-primary bg-surface-container-low cursor-pointer transition-colors">
+<input checked="" class="hidden" name="correction_style" type="radio"/>
+<div class="w-5 h-5 border border-primary rounded-sm mr-4 flex items-center justify-center group-has-[:checked]:bg-primary group-has-[:checked]:shadow-[0_0_8px_rgba(0,229,255,0.6)] transition-all">
+<span class="material-symbols-outlined text-surface-container text-[14px] opacity-0 group-has-[:checked]:opacity-100 font-bold">check</span>
+</div>
+<div class="flex-1">
+<span class="font-body-lg text-body-lg text-on-surface block">Gentle</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Forgiving error margin. Minimal penalties.</span>
+</div>
+<div class="rank-badge text-[12px] ml-auto">E-RANK</div>
+</label>
+<label class="group relative flex items-center p-4 border border-outline-variant hover:border-primary bg-surface-container-low cursor-pointer transition-colors">
+<input class="hidden" name="correction_style" type="radio"/>
+<div class="w-5 h-5 border border-primary rounded-sm mr-4 flex items-center justify-center group-has-[:checked]:bg-primary group-has-[:checked]:shadow-[0_0_8px_rgba(0,229,255,0.6)] transition-all">
+<span class="material-symbols-outlined text-surface-container text-[14px] opacity-0 group-has-[:checked]:opacity-100 font-bold">check</span>
+</div>
+<div class="flex-1">
+<span class="font-body-lg text-body-lg text-on-surface block">Balanced</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Standard progression rate. Moderate pressure.</span>
+</div>
+<div class="rank-badge text-[12px] ml-auto">B-RANK</div>
+</label>
+<label class="group relative flex items-center p-4 border border-outline-variant hover:border-error bg-surface-container-low cursor-pointer transition-colors">
+<input class="hidden" name="correction_style" type="radio"/>
+<div class="w-5 h-5 border border-error rounded-sm mr-4 flex items-center justify-center group-has-[:checked]:bg-error group-has-[:checked]:shadow-[0_0_8px_rgba(255,180,171,0.6)] transition-all">
+<span class="material-symbols-outlined text-surface-container text-[14px] opacity-0 group-has-[:checked]:opacity-100 font-bold">check</span>
+</div>
+<div class="flex-1">
+<span class="font-body-lg text-body-lg text-on-error block">Strict / No Mercy</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Lethal error margin. Maximum stat growth.</span>
+</div>
+<div class="rank-badge rank-badge-s text-[12px] ml-auto">S-RANK</div>
+</label>
+</div>
+</section>
+<!-- AI Tutor Persona -->
+<section class="system-window rounded p-6">
+<div class="rune-tl rune-corner"></div>
+<div class="rune-tr rune-corner"></div>
+<div class="rune-bl rune-corner"></div>
+<div class="rune-br rune-corner"></div>
+<header class="flex items-center gap-3 mb-6 border-b border-outline-variant pb-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<h2 class="font-headline-md text-headline-md text-on-surface uppercase tracking-wider">Tutor Persona</h2>
+</header>
+<div class="relative">
+<select class="w-full bg-surface-container border-b-2 border-primary border-t-0 border-l-0 border-r-0 text-on-surface font-stat-value text-stat-value py-3 px-4 appearance-none focus:ring-0 focus:border-primary-container focus:shadow-[0_2px_8px_rgba(0,229,255,0.4)] transition-shadow">
+<option value="master">MASTER AI [DEFAULT]</option>
+<option value="commander">STRICT GUILD COMMANDER</option>
+<option value="empathetic">EMPATHETIC COMPANION</option>
+</select>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</section>
+<!-- Daily Training Goal -->
+<section class="system-window rounded p-6">
+<div class="rune-tl rune-corner"></div>
+<div class="rune-tr rune-corner"></div>
+<div class="rune-bl rune-corner"></div>
+<div class="rune-br rune-corner"></div>
+<header class="flex items-center gap-3 mb-6 border-b border-outline-variant pb-3 justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">timer</span>
+<h2 class="font-headline-md text-headline-md text-on-surface uppercase tracking-wider">Daily Quota</h2>
+</div>
+<div class="font-stat-value text-stat-value text-secondary drop-shadow-[0_0_5px_rgba(255,233,185,0.5)]">
+<span id="quota-value">15</span> MIN
+                </div>
+</header>
+<div class="py-6 px-2">
+<div class="relative mb-8 w-full">
+<div class="absolute top-1/2 left-0 w-full h-[1px] bg-outline-variant -z-10 -translate-y-1/2"></div>
+<div class="absolute top-1/2 left-0 w-[25%] h-[2px] bg-secondary shadow-[0_0_5px_rgba(255,233,185,0.5)] -z-10 -translate-y-1/2"></div>
+<!-- Gold Markers -->
+<div class="absolute top-1/2 left-[0%] w-1 h-3 bg-secondary -translate-y-1/2 -translate-x-1/2"></div>
+<div class="absolute top-1/2 left-[25%] w-1 h-3 bg-secondary shadow-[0_0_5px_rgba(255,233,185,0.8)] -translate-y-1/2 -translate-x-1/2"></div>
+<div class="absolute top-1/2 left-[50%] w-1 h-3 bg-outline-variant -translate-y-1/2 -translate-x-1/2"></div>
+<div class="absolute top-1/2 left-[75%] w-1 h-3 bg-outline-variant -translate-y-1/2 -translate-x-1/2"></div>
+<div class="absolute top-1/2 left-[100%] w-1 h-3 bg-outline-variant -translate-y-1/2 -translate-x-1/2"></div>
+<input class="w-full relative z-10" id="quota-slider" max="60" min="5" step="5" type="range" value="15"/>
+</div>
+<div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant">
+<span>5m</span>
+<span>60m</span>
+</div>
+</div>
+<script>
+                document.getElementById('quota-slider').addEventListener('input', function(e) {
+                    document.getElementById('quota-value').textContent = e.target.value;
+                });
+            </script>
+</section>
+<!-- System Alerts & Feedback -->
+<section class="system-window rounded p-6">
+<div class="rune-tl rune-corner"></div>
+<div class="rune-tr rune-corner"></div>
+<div class="rune-bl rune-corner"></div>
+<div class="rune-br rune-corner"></div>
+<header class="flex items-center gap-3 mb-6 border-b border-outline-variant pb-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+<h2 class="font-headline-md text-headline-md text-on-surface uppercase tracking-wider">System Override</h2>
+</header>
+<div class="flex flex-col gap-6">
+<!-- Haptic Toggle -->
+<div class="flex items-center justify-between">
+<div>
+<div class="font-stat-value text-[16px] text-on-surface uppercase mb-1">System Haptic Feedback</div>
+<div class="font-body-md text-[14px] text-on-surface-variant">Physical stimulus upon task completion.</div>
+</div>
+<label class="relative inline-block w-12 h-6 cursor-pointer">
+<input checked="" class="tech-toggle-input hidden" type="checkbox"/>
+<span class="tech-toggle-slider absolute inset-0 rounded-sm"></span>
+</label>
+</div>
+<div class="h-[1px] w-full bg-outline-variant/50"></div>
+<!-- Guild Alerts Toggle -->
+<div class="flex items-center justify-between">
+<div>
+<div class="font-stat-value text-[16px] text-on-surface uppercase mb-1">Guild Alerts (Urgent)</div>
+<div class="font-body-md text-[14px] text-on-surface-variant">Bypass silent mode for raid notifications.</div>
+</div>
+<label class="relative inline-block w-12 h-6 cursor-pointer">
+<input class="tech-toggle-input hidden" type="checkbox"/>
+<span class="tech-toggle-slider absolute inset-0 rounded-sm"></span>
+</label>
+</div>
+</div>
+</section>
+<!-- Save Action -->
+<button class="mt-4 mb-8 w-full border border-primary text-primary font-stat-value text-stat-value py-4 hover:bg-primary hover:text-surface-container hover:shadow-[0_0_15px_rgba(0,229,255,0.8)] transition-all duration-300 relative overflow-hidden group">
+<span class="relative z-10">INITIALIZE CONFIGURATION</span>
+<div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity"></div>
+</button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-4 mx-margin-mobile rounded-xl w-[calc(100%-40px)] bg-surface-container-low/95 border border-primary/50 shadow-[0_0_20px_rgba(0,229,255,0.4)] z-50 flex justify-around items-center px-4 py-4 md:hidden backdrop-blur-md">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:bg-primary/10 p-2 rounded transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]">fort</span>
+<span class="font-label-caps text-[10px]">DUNGEONS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:bg-primary/10 p-2 rounded transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]">group</span>
+<span class="font-label-caps text-[10px]">GUILD</span>
+</a>
+<!-- Active Tab: STATUS matches "Configuration/Settings" closest in intent -->
+<a class="flex flex-col items-center justify-center text-primary font-bold drop-shadow-[0_0_5px_rgba(0,225,255,0.8)] hover:bg-primary/10 p-2 rounded transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-caps text-[10px]">STATUS</span>
+</a>
+</nav>
+</body></html>

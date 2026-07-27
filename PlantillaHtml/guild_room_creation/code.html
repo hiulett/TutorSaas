@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Room Creation Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#e1e2ed",
+                        "surface-container-low": "#191b23",
+                        "primary": "#c3f5ff",
+                        "background": "#11131b",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "on-tertiary-container": "#7e2cbe",
+                        "surface-container-high": "#272a32",
+                        "on-primary-fixed": "#001f24",
+                        "surface-dim": "#11131b",
+                        "primary-fixed-dim": "#00daf3",
+                        "on-tertiary": "#4c007d",
+                        "inverse-surface": "#e1e2ed",
+                        "primary-fixed": "#9cf0ff",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "on-surface": "#e1e2ed",
+                        "on-secondary": "#3e2e00",
+                        "on-primary": "#00363d",
+                        "surface-variant": "#32343d",
+                        "on-secondary-fixed": "#251a00",
+                        "surface-tint": "#00daf3",
+                        "secondary": "#ffe9b9",
+                        "on-primary-container": "#00626e",
+                        "surface-container-highest": "#32343d",
+                        "on-secondary-container": "#6e5400",
+                        "surface-container": "#1d1f27",
+                        "primary-container": "#00e5ff",
+                        "inverse-primary": "#006875",
+                        "tertiary-container": "#e6c3ff",
+                        "tertiary-fixed": "#f2daff",
+                        "tertiary": "#f8e7ff",
+                        "on-surface-variant": "#bac9cc",
+                        "on-primary-fixed-variant": "#004f58",
+                        "outline": "#849396",
+                        "on-tertiary-fixed": "#2e004e",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "surface": "#11131b",
+                        "on-secondary-fixed-variant": "#594400",
+                        "surface-container-lowest": "#0b0e16",
+                        "secondary-container": "#ffc703",
+                        "inverse-on-surface": "#2e3039",
+                        "tertiary-fixed-dim": "#e0b6ff",
+                        "on-error": "#690005",
+                        "surface-bright": "#373942",
+                        "secondary-fixed": "#ffdf94",
+                        "error-container": "#93000a",
+                        "outline-variant": "#3b494c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "margin-mobile": "20px",
+                        "window-padding": "24px",
+                        "unit": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-title": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "stat-value": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "stat-value": ["20px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #05070E;
+            color: #e1e2ed;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .system-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 7, 14, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: flex-end; /* Mobile bottom sheet style */
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .system-modal-backdrop {
+                align-items: center;
+            }
+        }
+
+        .system-window {
+            background-color: rgba(12, 17, 29, 0.94);
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), inset 0 0 20px rgba(0, 229, 255, 0.05);
+            border-radius: 0; /* No rounded shapes */
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @media (min-width: 768px) {
+            .system-window {
+                transform: scale(0.95);
+                animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+        }
+
+        @keyframes slideUp {
+            to { transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            to { transform: scale(1); }
+        }
+
+        /* Scanline effect */
+        .system-window::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 229, 255, 0) 50%,
+                rgba(0, 229, 255, 0.02) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Corner Runes */
+        .rune-corner {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 1px solid #00E5FF;
+            opacity: 0.5;
+            animation: pulseRune 2s infinite alternate;
+            z-index: 2;
+        }
+        .rune-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .rune-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+        .rune-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+        .rune-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+        @keyframes pulseRune {
+            0% { opacity: 0.3; box-shadow: none; }
+            100% { opacity: 1; box-shadow: 0 0 8px rgba(0, 229, 255, 0.8); }
+        }
+
+        /* Inputs */
+        .sys-input {
+            background: rgba(0, 229, 255, 0.03);
+            border: none;
+            border-bottom: 2px solid #00E5FF;
+            border-radius: 0;
+            color: #e1e2ed;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 12px 16px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .sys-input:focus {
+            outline: none;
+            background: rgba(0, 229, 255, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 229, 255, 0.15);
+        }
+        .sys-input::placeholder {
+            color: rgba(186, 201, 204, 0.5);
+        }
+        select.sys-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2300E5FF' stroke-linecap='square' stroke-linejoin='miter' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+        select.sys-input option {
+            background-color: #0c111d;
+            color: #00E5FF;
+        }
+
+        /* Chips */
+        .sys-chip {
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            background: transparent;
+            color: #bac9cc;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 0;
+        }
+        .sys-chip.active {
+            border-color: #00E5FF;
+            background: rgba(0, 229, 255, 0.1);
+            color: #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+        }
+
+        /* Toggle */
+        .sys-toggle-container {
+            display: flex;
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .sys-toggle-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #bac9cc;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+        }
+        .sys-toggle-btn.active {
+            background: rgba(0, 229, 255, 0.15);
+            color: #00E5FF;
+            text-shadow: 0 0 4px rgba(0, 229, 255, 0.5);
+            border-bottom: 2px solid #00E5FF;
+        }
+
+        /* CTA Button */
+        .sys-cta {
+            background: transparent;
+            border: 2px solid #9D4EDD;
+            color: #e6c3ff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 16px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0;
+            box-shadow: 0 0 10px rgba(157, 78, 221, 0.2);
+        }
+        .sys-cta::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(157, 78, 221, 0.4), transparent);
+            transition: left 0.5s;
+        }
+        .sys-cta:hover {
+            background: #9D4EDD;
+            color: #05070E;
+            box-shadow: 0 0 20px rgba(157, 78, 221, 0.6), inset 0 0 10px rgba(0,0,0,0.5);
+            text-shadow: none;
+        }
+        .sys-cta:hover::before {
+            left: 100%;
+        }
+
+        /* Label styling */
+        .sys-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #00E5FF;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            display: block;
+            opacity: 0.8;
+        }
+
+        /* Decorative background runic glyph */
+        .bg-rune {
+            position: absolute;
+            font-family: 'Material Symbols Outlined';
+            font-size: 200px;
+            color: #00E5FF;
+            opacity: 0.02;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 229, 255, 0.3); }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 229, 255, 0.6); }
+
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased">
+<!-- Top App Bar - Using generic structure mapped to intent (Room Creation context) -->
+<header class="flex justify-between items-center w-full px-margin-mobile py-unit h-16 bg-surface/90 backdrop-blur-md border-b border-primary shadow-[0_0_8px_rgba(0,229,255,0.3)] shadow-[0_0_10px_rgba(0,229,255,0.2)] fixed top-0 z-40">
+<div class="flex items-center gap-4">
+<button class="text-primary hover:bg-primary/20 hover:text-primary transition-all duration-300 scale-95 duration-150 active:shadow-[0_0_15px_rgba(0,229,255,0.5)] p-2 rounded-none">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md uppercase tracking-widest text-primary">SYSTEM HUB</h1>
+</div>
+<div class="flex items-center">
+<span class="font-display-title text-display-title text-primary drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] text-[24px]">LV.1</span>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pt-20 pb-safe px-margin-mobile h-screen flex flex-col items-center justify-center relative">
+<!-- Background Ambient Effect -->
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.1) 0%, transparent 70%);"></div>
+<!-- The Modal Sheet Overlay (Triggered State) -->
+<div class="system-modal-backdrop" id="modal-backdrop">
+<!-- Modal Content Window -->
+<div aria-modal="true" class="system-window p-6 md:p-window-padding flex flex-col gap-6" role="dialog">
+<!-- Runic Corners -->
+<div class="rune-corner rune-tl"></div>
+<div class="rune-corner rune-tr"></div>
+<div class="rune-corner rune-bl"></div>
+<div class="rune-corner rune-br"></div>
+<!-- Decorative Background Glyph -->
+<div class="bg-rune">language</div>
+<!-- Header -->
+<div class="relative z-10 flex justify-between items-start border-b border-primary/30 pb-4 mb-2">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-background uppercase tracking-wider">Initialize Domain</h2>
+<p class="font-label-caps text-label-caps text-primary/60 mt-1">[SYS_REQ: CONFIGURE_INSTANCE]</p>
+</div>
+<div class="text-secondary-container font-stat-value text-stat-value border border-secondary-container px-2 py-1 shadow-[0_0_8px_rgba(255,199,3,0.3)]">
+                        RANK S
+                    </div>
+</div>
+<!-- Content Area -->
+<div class="relative z-10 flex flex-col gap-6 flex-grow">
+<!-- Room Name -->
+<div class="flex flex-col gap-2">
+<label class="sys-label">Domain Designation</label>
+<input class="sys-input" placeholder="[SYSTEM ENTRY: Input Room Title...]" type="text"/>
+</div>
+<!-- Topic Selector -->
+<div class="flex flex-col gap-2">
+<label class="sys-label">Objective Archetype</label>
+<select class="sys-input">
+<option disabled="" hidden="" selected="" value="">[SELECT ARCHETYPE]</option>
+<option value="travel">Travel Gate</option>
+<option value="raid">Business Raid</option>
+<option value="free">Free Conversation</option>
+</select>
+</div>
+<!-- CEFR Level Chips -->
+<div class="flex flex-col gap-3">
+<label class="sys-label">Required Proficiency Tier</label>
+<div class="flex flex-wrap gap-2">
+<button class="sys-chip active" onclick="toggleChip(this)">A1</button>
+<button class="sys-chip" onclick="toggleChip(this)">A2</button>
+<button class="sys-chip" onclick="toggleChip(this)">B1</button>
+<button class="sys-chip" onclick="toggleChip(this)">B2</button>
+<button class="sys-chip" onclick="toggleChip(this)">C1</button>
+</div>
+</div>
+<!-- Mode Toggle -->
+<div class="flex flex-col gap-2 mt-2">
+<label class="sys-label">Engagement Protocol</label>
+<div class="sys-toggle-container">
+<button class="sys-toggle-btn active" onclick="toggleMode(this, 'text')">
+<span class="material-symbols-outlined align-middle mr-1 text-[16px]">mic</span>
+                                VOICE COMBAT
+                            </button>
+<button class="sys-toggle-btn" onclick="toggleMode(this, 'voice')">
+<span class="material-symbols-outlined align-middle mr-1 text-[16px]">terminal</span>
+                                TEXT SYSTEM
+                            </button>
+</div>
+</div>
+</div>
+<!-- Footer / CTA -->
+<div class="relative z-10 mt-4 pt-4 border-t border-primary/20">
+<button class="sys-cta flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">bolt</span>
+                        EXECUTE ROOM CREATION
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Nav Bar - Suppressed due to task-focused modal flow (The "Destination" Rule / "Dead End") -->
+<!-- Not rendering bottom nav to prioritize the modal canvas -->
+<script>
+        // Simple interactions for the UI
+        function toggleChip(element) {
+            // Single select logic for chips in this context
+            const chips = element.parentElement.querySelectorAll('.sys-chip');
+            chips.forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function toggleMode(element, mode) {
+            const btns = element.parentElement.querySelectorAll('.sys-toggle-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+</body></html>

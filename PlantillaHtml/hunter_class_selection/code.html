@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hunter Class System - Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#006875",
+                        "surface-tint": "#00daf3",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#e0b6ff",
+                        "tertiary-fixed": "#f2daff",
+                        "on-secondary-container": "#6e5400",
+                        "on-primary-fixed-variant": "#004f58",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "surface-bright": "#373942",
+                        "on-secondary-fixed-variant": "#594400",
+                        "secondary-container": "#ffc703",
+                        "secondary-fixed": "#ffdf94",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#32343d",
+                        "primary-fixed-dim": "#00daf3",
+                        "tertiary": "#f8e7ff",
+                        "on-secondary": "#3e2e00",
+                        "on-surface": "#e1e2ed",
+                        "inverse-on-surface": "#2e3039",
+                        "surface-container-high": "#272a32",
+                        "on-secondary-fixed": "#251a00",
+                        "background": "#11131b",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "tertiary-container": "#e6c3ff",
+                        "secondary": "#ffe9b9",
+                        "inverse-surface": "#e1e2ed",
+                        "on-error": "#690005",
+                        "surface-dim": "#11131b",
+                        "on-tertiary-fixed": "#2e004e",
+                        "outline-variant": "#3b494c",
+                        "surface-variant": "#32343d",
+                        "primary": "#c3f5ff",
+                        "on-tertiary": "#4c007d",
+                        "primary-container": "#00e5ff",
+                        "surface-container-lowest": "#0b0e16",
+                        "error-container": "#93000a",
+                        "outline": "#849396",
+                        "on-primary": "#00363d",
+                        "on-surface-variant": "#bac9cc",
+                        "on-background": "#e1e2ed",
+                        "on-tertiary-container": "#7e2cbe",
+                        "on-primary-fixed": "#001f24",
+                        "surface-container-low": "#191b23",
+                        "surface": "#11131b",
+                        "on-primary-container": "#00626e",
+                        "surface-container": "#1d1f27",
+                        "primary-fixed": "#9cf0ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "window-padding": "24px",
+                        "margin-desktop": "40px",
+                        "unit": "4px",
+                        "margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Space Grotesk", "sans-serif"],
+                        "display-title": ["Space Grotesk", "sans-serif"],
+                        "label-caps": ["JetBrains Mono", "monospace"],
+                        "stat-value": ["JetBrains Mono", "monospace"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "headline-lg": ["Space Grotesk", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "display-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "stat-value": ["20px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=JetBrains+Mono:wght@600;700&amp;family=Inter:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .system-window {
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            background: rgba(17, 19, 27, 0.94);
+        }
+        .system-window-inactive {
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            box-shadow: 0 0 4px rgba(0, 229, 255, 0.15);
+            background: rgba(17, 19, 27, 0.7);
+        }
+        .rune-bg {
+            background-image: radial-gradient(circle at center, rgba(126, 44, 190, 0.15) 0%, transparent 70%);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#05070E] text-on-surface h-screen w-full overflow-hidden flex flex-col font-body-md relative selection:bg-primary-container selection:text-on-primary-container">
+<!-- Ambient Dimensional Mist -->
+<div class="absolute inset-0 z-0 pointer-events-none opacity-40">
+<div class="absolute inset-0 bg-gradient-to-t from-[#05070E] via-transparent to-transparent z-10"></div>
+<img class="w-full h-full object-cover blur-sm opacity-60" data-alt="A dark fantasy dimensional void with swirling, ethereal purple mist and faint cyan glowing mana particles drifting upward. High-stakes Isekai aesthetic, moody and atmospheric, deep #05070E black background with luminous #7e2cbe accents. Magical, arcane, and lethal vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxa099kcLnAx23wzm0duIhiG4pQgtWutJAQW3PoiPfFmgJTXJYjoh0qCoqWz3cQb1AzEm1NWK8gubraXI3u-CR-1Xg8UGcNR5Y-N-fgulWyqTl_L8kV14kXyCXeFzPAcUNjA4L5EF0MoP6be6dYgKWOpTZ16kOlrPVOxt_TC_pmRnEsbbUduVNGb2x_k2Ik--BKw6Lv5ryPF6NmFrdmZ24MDQIFojwmYUSksa7SoOUBfYwoqMamEiN2LlnFX1PCj4yVTwSC0XqjsZw"/>
+</div>
+<!-- Top App Bar (System Header) -->
+<header class="fixed top-0 w-full bg-surface/90 backdrop-blur-md border-b border-primary/30 shadow-[0_0_8px_rgba(0,229,255,0.3)] z-50 flex justify-between items-center px-window-padding h-16 w-full">
+<div class="flex items-center gap-2 cursor-pointer hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-95 p-2 rounded">
+<span class="material-symbols-outlined text-primary text-[24px]" style="font-variation-settings: 'FILL' 0;">token</span>
+<span class="font-display-title text-headline-md uppercase tracking-widest text-primary">HUNTER SYSTEM</span>
+</div>
+<div class="text-on-surface-variant cursor-pointer hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-95 p-2 rounded">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto z-10 mt-16 mb-24 relative p-margin-mobile md:p-margin-desktop flex flex-col items-center">
+<!-- Header Text -->
+<div class="w-full max-w-[600px] mb-6 text-center">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2 shadow-[0_0_12px_rgba(0,229,255,0.2)] drop-shadow-md">CLASS SELECTION</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Analyze potential paths. Choose your awakening.</p>
+</div>
+<!-- Class Cards Grid -->
+<div class="w-full max-w-[600px] grid grid-cols-2 gap-4 md:gap-gutter">
+<!-- Berserker (Active Selection) -->
+<button class="system-window relative rounded p-4 flex flex-col items-center justify-center gap-3 transition-transform hover:scale-[1.02] active:scale-95 group text-left overflow-hidden ring-2 ring-primary ring-offset-2 ring-offset-background">
+<div class="absolute inset-0 rune-bg opacity-50 z-0"></div>
+<div class="absolute top-2 right-2 text-primary/30 group-hover:text-primary/50 transition-colors z-0">
+<span class="material-symbols-outlined text-[32px]">swords</span>
+</div>
+<div class="z-10 relative flex flex-col items-center">
+<span class="material-symbols-outlined text-[48px] text-primary mb-2 shadow-[0_0_15px_rgba(0,229,255,0.6)] drop-shadow-[0_0_8px_rgba(0,229,255,1)]">record_voice_over</span>
+<h2 class="font-headline-md text-headline-md-mobile md:text-headline-md text-on-surface mb-1 text-center">Berserker</h2>
+<span class="font-label-caps text-label-caps text-secondary-container bg-secondary-container/10 px-2 py-1 rounded-sm border border-secondary-container/30">+20% Speech Speed</span>
+<p class="font-label-caps text-[10px] text-on-surface-variant mt-3 text-center opacity-80">Speaking Focus</p>
+</div>
+</button>
+<!-- Spellcaster -->
+<button class="system-window-inactive relative rounded p-4 flex flex-col items-center justify-center gap-3 transition-transform hover:scale-[1.02] active:scale-95 hover:border-primary/80 group text-left overflow-hidden">
+<div class="absolute top-2 right-2 text-primary/10 group-hover:text-primary/30 transition-colors z-0">
+<span class="material-symbols-outlined text-[32px]">auto_awesome</span>
+</div>
+<div class="z-10 relative flex flex-col items-center">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant group-hover:text-primary transition-colors mb-2">menu_book</span>
+<h2 class="font-headline-md text-headline-md-mobile md:text-headline-md text-on-surface-variant group-hover:text-on-surface transition-colors mb-1 text-center">Spellcaster</h2>
+<span class="font-label-caps text-label-caps text-secondary-container/70 bg-secondary-container/5 px-2 py-1 rounded-sm border border-secondary-container/20 group-hover:text-secondary-container transition-colors">+15% Syntax Logic</span>
+<p class="font-label-caps text-[10px] text-on-surface-variant/50 mt-3 text-center">Grammar Constructs</p>
+</div>
+</button>
+<!-- Shadow Ranger -->
+<button class="system-window-inactive relative rounded p-4 flex flex-col items-center justify-center gap-3 transition-transform hover:scale-[1.02] active:scale-95 hover:border-primary/80 group text-left overflow-hidden">
+<div class="absolute top-2 right-2 text-primary/10 group-hover:text-primary/30 transition-colors z-0">
+<span class="material-symbols-outlined text-[32px]">my_location</span>
+</div>
+<div class="z-10 relative flex flex-col items-center">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant group-hover:text-primary transition-colors mb-2">library_add</span>
+<h2 class="font-headline-md text-headline-md-mobile md:text-headline-md text-on-surface-variant group-hover:text-on-surface transition-colors mb-1 text-center">Shadow Ranger</h2>
+<span class="font-label-caps text-label-caps text-secondary-container/70 bg-secondary-container/5 px-2 py-1 rounded-sm border border-secondary-container/20 group-hover:text-secondary-container transition-colors">+25% Word Recall</span>
+<p class="font-label-caps text-[10px] text-on-surface-variant/50 mt-3 text-center">Vocabulary Expansion</p>
+</div>
+</button>
+<!-- Guild Strategist -->
+<button class="system-window-inactive relative rounded p-4 flex flex-col items-center justify-center gap-3 transition-transform hover:scale-[1.02] active:scale-95 hover:border-primary/80 group text-left overflow-hidden">
+<div class="absolute top-2 right-2 text-primary/10 group-hover:text-primary/30 transition-colors z-0">
+<span class="material-symbols-outlined text-[32px]">chess</span>
+</div>
+<div class="z-10 relative flex flex-col items-center">
+<span class="material-symbols-outlined text-[48px] text-on-surface-variant group-hover:text-primary transition-colors mb-2">psychology</span>
+<h2 class="font-headline-md text-headline-md-mobile md:text-headline-md text-on-surface-variant group-hover:text-on-surface transition-colors mb-1 text-center">Guild Strategist</h2>
+<span class="font-label-caps text-label-caps text-secondary-container/70 bg-secondary-container/5 px-2 py-1 rounded-sm border border-secondary-container/20 group-hover:text-secondary-container transition-colors">+10% All Stats</span>
+<p class="font-label-caps text-[10px] text-on-surface-variant/50 mt-3 text-center">Balanced CEFR Mastery</p>
+</div>
+</button>
+</div>
+</main>
+<!-- Bottom Status & CTA Panel (Anchored) -->
+<div class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-highest/95 backdrop-blur-xl border-t border-on-tertiary-container/30 shadow-[0_-4px_20px_rgba(126,44,190,0.3)] px-margin-mobile py-4 md:px-margin-desktop md:py-6 flex flex-col items-center">
+<div class="w-full max-w-[600px] flex justify-between items-center mb-4">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">SELECTED CLASS</span>
+<span class="font-stat-value text-stat-value text-primary drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]">BERSERKER</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">PROJECTED RANK</span>
+<span class="font-stat-value text-stat-value text-secondary-container drop-shadow-[0_0_5px_rgba(255,199,3,0.8)]">C-CLASS</span>
+</div>
+</div>
+<button class="w-full max-w-[600px] bg-on-tertiary-container text-white font-headline-md text-[18px] py-4 rounded border border-tertiary-container shadow-[0_0_15px_rgba(126,44,190,0.6)] hover:bg-on-tertiary hover:shadow-[0_0_25px_rgba(126,44,190,0.9)] hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 tracking-wide">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            CLAIM HUNTER CLASS
+        </button>
+</div>
+</body></html>

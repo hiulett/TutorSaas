@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manhwa System HUD - Topic Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#2e004e",
+                        "on-surface": "#e1e2ed",
+                        "on-secondary-fixed-variant": "#594400",
+                        "on-primary-container": "#00626e",
+                        "on-tertiary-container": "#7e2cbe",
+                        "on-secondary-container": "#6e5400",
+                        "primary": "#c3f5ff",
+                        "surface-container-high": "#272a32",
+                        "surface-container": "#1d1f27",
+                        "surface-tint": "#00daf3",
+                        "surface-bright": "#373942",
+                        "inverse-primary": "#006875",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "tertiary": "#f8e7ff",
+                        "surface-container-highest": "#32343d",
+                        "inverse-surface": "#e1e2ed",
+                        "background": "#11131b",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "surface-dim": "#11131b",
+                        "surface": "#11131b",
+                        "tertiary-container": "#e6c3ff",
+                        "tertiary-fixed-dim": "#e0b6ff",
+                        "on-background": "#e1e2ed",
+                        "secondary": "#ffe9b9",
+                        "on-primary-fixed-variant": "#004f58",
+                        "tertiary-fixed": "#f2daff",
+                        "inverse-on-surface": "#2e3039",
+                        "secondary-container": "#ffc703",
+                        "outline": "#849396",
+                        "surface-container-low": "#191b23",
+                        "primary-container": "#00e5ff",
+                        "on-primary": "#00363d",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "surface-variant": "#32343d",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "surface-container-lowest": "#0b0e16",
+                        "secondary-fixed": "#ffdf94",
+                        "on-tertiary": "#4c007d",
+                        "on-surface-variant": "#bac9cc",
+                        "on-secondary": "#3e2e00",
+                        "primary-fixed": "#9cf0ff",
+                        "on-secondary-fixed": "#251a00",
+                        "outline-variant": "#3b494c",
+                        "on-primary-fixed": "#001f24",
+                        "primary-fixed-dim": "#00daf3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px",
+                        "window-padding": "24px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "display-title": ["Space Grotesk"],
+                        "body-lg": ["Inter"],
+                        "stat-value": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "stat-value": ["20px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #05070E; /* Abyssal Night */
+        }
+        .system-window {
+            background-color: rgba(17, 19, 27, 0.94); /* surface color with opacity */
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+        }
+        .rune-pulse {
+            animation: pulse-rune 2s infinite alternate;
+        }
+        @keyframes pulse-rune {
+            0% { opacity: 0.2; transform: scale(0.95); }
+            100% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .system-input {
+            border-bottom: 2px solid #00E5FF;
+        }
+        .rank-badge {
+            color: #ffdf94; /* secondary-fixed / Royal Gold approximation */
+        }
+        .system-btn:hover {
+            background-color: #00E5FF;
+            color: #05070E;
+            box-shadow: 0 0 10px #00E5FF;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop overflow-hidden relative">
+<!-- Ambient background glows -->
+<div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+<div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-container rounded-full blur-[100px]"></div>
+<div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-tertiary-container rounded-full blur-[100px]"></div>
+</div>
+<!-- Main System Overlay Drawer (Mobile optimized, max-width on desktop) -->
+<div class="system-window w-full max-w-[600px] h-[751px] md:h-auto md:max-h-[800px] rounded-lg relative flex flex-col overflow-hidden z-10">
+<!-- Runic Corner Accents -->
+<div class="absolute top-2 left-2 text-primary opacity-20 rune-pulse pointer-events-none">
+<span class="material-symbols-outlined text-[16px]">change_history</span>
+</div>
+<div class="absolute top-2 right-2 text-primary opacity-20 rune-pulse pointer-events-none">
+<span class="material-symbols-outlined text-[16px]">details</span>
+</div>
+<div class="absolute bottom-2 left-2 text-primary opacity-20 rune-pulse pointer-events-none">
+<span class="material-symbols-outlined text-[16px]">network_node</span>
+</div>
+<div class="absolute bottom-2 right-2 text-primary opacity-20 rune-pulse pointer-events-none">
+<span class="material-symbols-outlined text-[16px]">hive</span>
+</div>
+<!-- Header -->
+<div class="p-window-padding border-b border-primary/30 shrink-0">
+<h1 class="font-headline-lg text-headline-lg text-primary text-center mb-4 tracking-wider uppercase">
+                [SELECT CONVERSATIONAL TACTIC]
+            </h1>
+<div class="relative mt-6">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-primary">search</span>
+<input class="system-input w-full bg-transparent border-t-0 border-l-0 border-r-0 pl-10 pr-4 py-2 text-on-surface font-label-caps text-label-caps focus:ring-0 focus:border-primary focus:outline-none placeholder:text-outline-variant transition-colors" placeholder="[Filter System Topics...]" type="text"/>
+</div>
+</div>
+<!-- Topics Grid -->
+<div class="p-window-padding overflow-y-auto flex-1 custom-scrollbar">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Topic Card 1 -->
+<div class="bg-surface-container-high/50 border border-outline-variant hover:border-primary/70 rounded p-4 relative group transition-all duration-300">
+<div class="absolute top-3 right-3 font-headline-md text-headline-md rank-badge">B2</div>
+<div class="mb-6">
+<span class="material-symbols-outlined text-primary mb-2 opacity-70">smart_toy</span>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 pr-8">Tech &amp; AI Revolutions</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Analyze systemic impact.</p>
+</div>
+<button class="system-btn w-full border border-primary text-primary font-label-caps text-label-caps py-2 rounded uppercase tracking-widest transition-all duration-200">
+                        START TOPIC
+                    </button>
+</div>
+<!-- Topic Card 2 -->
+<div class="bg-surface-container-high/50 border border-outline-variant hover:border-tertiary-fixed-dim/70 rounded p-4 relative group transition-all duration-300">
+<div class="absolute top-3 right-3 font-headline-md text-headline-md rank-badge">C1</div>
+<div class="mb-6">
+<span class="material-symbols-outlined text-tertiary-fixed-dim mb-2 opacity-70">shield_person</span>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 pr-8">Job Interview Defense</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Corporate infiltration prep.</p>
+</div>
+<button class="system-btn w-full border border-tertiary-fixed-dim text-tertiary-fixed-dim font-label-caps text-label-caps py-2 rounded uppercase tracking-widest transition-all duration-200 hover:!bg-tertiary-fixed-dim hover:!text-surface-container-lowest hover:!shadow-[0_0_10px_#e0b6ff]">
+                        START TOPIC
+                    </button>
+</div>
+<!-- Topic Card 3 -->
+<div class="bg-surface-container-high/50 border border-outline-variant hover:border-primary/70 rounded p-4 relative group transition-all duration-300">
+<div class="absolute top-3 right-3 font-headline-md text-headline-md rank-badge text-outline">A2</div>
+<div class="mb-6">
+<span class="material-symbols-outlined text-primary mb-2 opacity-70">local_cafe</span>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 pr-8">Casual Coffee Chat</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Low-tier social interaction.</p>
+</div>
+<button class="system-btn w-full border border-primary text-primary font-label-caps text-label-caps py-2 rounded uppercase tracking-widest transition-all duration-200">
+                        START TOPIC
+                    </button>
+</div>
+<!-- Topic Card 4 -->
+<div class="bg-surface-container-high/50 border border-outline-variant hover:border-primary/70 rounded p-4 relative group transition-all duration-300">
+<div class="absolute top-3 right-3 font-headline-md text-headline-md rank-badge text-secondary">B1</div>
+<div class="mb-6">
+<span class="material-symbols-outlined text-primary mb-2 opacity-70">flight_takeoff</span>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 pr-8">Travel &amp; Customs</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Border checkpoint protocols.</p>
+</div>
+<button class="system-btn w-full border border-primary text-primary font-label-caps text-label-caps py-2 rounded uppercase tracking-widest transition-all duration-200">
+                        START TOPIC
+                    </button>
+</div>
+</div>
+</div>
+<!-- Footer / Progress -->
+<div class="p-4 border-t border-primary/20 shrink-0 bg-surface-container/50 flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">SYS_READY</span>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse" style="animation-delay: 0.2s"></div>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse" style="animation-delay: 0.4s"></div>
+</div>
+</div>
+</div>
+</body></html>
