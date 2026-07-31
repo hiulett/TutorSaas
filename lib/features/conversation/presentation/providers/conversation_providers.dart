@@ -13,6 +13,7 @@ import '../../domain/repositories/conversation_repository.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/utils/text_diff_utils.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Providers
@@ -46,6 +47,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   bool _hasProcessedThisTurn = false;
   String? _conversationId;
   String? _userId;
+  DateTime? _recordingStartTimestamp;
 
   ConversationNotifier(this._repository, this._ref)
       : super(ConversationState.initial()) {
@@ -164,10 +166,26 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         return;
       }
 
+      if (_userId != null && !_userId!.startsWith('guest_')) {
+        try {
+          final quota = await _repository.checkAiAudioQuota(_userId!);
+          final isAllowed = quota['is_allowed'] as bool? ?? true;
+          if (!isAllowed) {
+            state = state.copyWith(
+              isRecording: false,
+              isProcessing: false,
+              errorMessage: 'Has agotado tu límite de audio mensual. Adquiere el plan Premium para continuar.',
+            );
+            return;
+          }
+        } catch (_) {}
+      }
+
       final tempDir = await getTemporaryDirectory();
       final recordingPath =
           '${tempDir.path}/rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
+      _recordingStartTimestamp = DateTime.now();
       await _audioRecorder.start(
         path: recordingPath,
         encoder: AudioEncoder.aacLc,
@@ -205,6 +223,16 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
       final audioPath = await _audioRecorder.stop();
       debugPrint('Groq STT: Recording stopped. File path: $audioPath');
+
+      final recordingStart = _recordingStartTimestamp;
+      if (recordingStart != null) {
+        final durationSec = DateTime.now().difference(recordingStart).inSeconds;
+        if (_userId != null && !_userId!.startsWith('guest_') && durationSec > 0) {
+          try {
+            await _repository.trackAiAudioTime(_userId!, durationSec);
+          } catch (_) {}
+        }
+      }
 
       if (audioPath != null && audioPath.isNotEmpty) {
         final file = File(audioPath);
@@ -426,9 +454,16 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
         if (lesson != null && lesson.usefulPhrases.isNotEmpty) {
           for (final phrase in lesson.usefulPhrases) {
-            final firstWord = phrase.phrase.toLowerCase().split(' ').first;
-            if (userText.toLowerCase().contains(firstWord)) {
-              _repository.saveCompletedPhrase(userId, state.activeScenarioId!, conversationId, phrase.id, phrase.phrase, accuracy: 95);
+            final double similarity = TextDiffUtils.calculateSimilarity(phrase.phrase, userText);
+            if (similarity >= 50.0) {
+              await _repository.saveCompletedPhrase(
+                userId,
+                state.activeScenarioId!,
+                conversationId,
+                phrase.id,
+                phrase.phrase,
+                accuracy: similarity.round(),
+              );
             }
           }
         }

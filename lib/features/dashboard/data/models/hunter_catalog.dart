@@ -75,13 +75,23 @@ class HunterCatalog {
     const HunterTitleItem(code: 'monarca_impecable_5star', name: 'Monarca Impecable de la Perfección', attributeCategory: 'mythic', rankTier: 'SSS', icon: '🏆', description: 'Otorgado por lograr la 5ª Estrella Mítica (0 errores a ciegas).', color: Color(0xFFFF00FF)),
   ];
 
+  /// The Oracle — principal mentor NPC for all conversations.
+  static const oracle = DungeonMonsterItem(
+    id: 'oracle',
+    name: '🔮 Oráculo del Gremio',
+    level: 'SSS',
+    avatarUrl: '',
+    description: 'El Oráculo del Gremio. Una entidad mística que guía a los cazadores en su aprendizaje.',
+    isBoss: false,
+  );
+
   static final List<DungeonMonsterItem> regularMonsters = [
     const DungeonMonsterItem(
-      id: 'goblin_mana',
-      name: 'Goblin de Maná Arcano',
-      level: 'A1',
-      avatarUrl: 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=GoblinMana',
-      description: 'Pequeña criatura parlanchina de las cuevas que te guía en tus primeros pasos.',
+      id: 'oracle',
+      name: '🔮 Oráculo del Gremio',
+      level: 'SSS',
+      avatarUrl: '',
+      description: 'El Oráculo del Gremio. Una entidad mística que guía a los cazadores.',
     ),
     const DungeonMonsterItem(
       id: 'golem_roca',

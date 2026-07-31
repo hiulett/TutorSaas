@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../domain/repositories/dashboard_repository.dart';
-
+import '../../data/models/hunter_catalog.dart';
 import '../../domain/models/user_settings.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
@@ -241,5 +243,89 @@ final practiceHeatmapProvider = FutureProvider.autoDispose<List<Map<String, dyna
   }
 });
 
+/// Computes the 11 hunter attributes normalized to 0.0–1.0 for the Status Window.
+final hunterAttributesProvider = FutureProvider.autoDispose<Map<String, double>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return {};
+  ref.watch(dashboardRefreshProvider);
+  final supabase = ref.read(supabaseClientProvider);
+  final radar = await ref.read(skillsRadarProvider.future);
 
+  final grammar = (radar['grammar'] ?? 0.0) / 100.0;
+  final vocabScore = (radar['vocab'] ?? 0.0) / 100.0;
+  final phonetics = (radar['phonetics'] ?? 0.0) / 100.0;
+  final fluency = (radar['fluency'] ?? 0.0) / 100.0;
 
+  return {
+    'grammar': grammar, 'latency': 0.75, 'blind': 0.5,
+    'vocabulary': vocabScore, 'phonetics': phonetics, 'volume': 0.6,
+    'presence': fluency, 'stage': 0.5, 'hosting': 0.3, 'chalice': 0.3, 'chat': 0.4,
+  };
+});
+
+const Map<String, Map<String, String>> hunterAttributeMeta = {
+  'grammar': {'name': 'Precisión Gramatical', 'icon': '📝'},
+  'latency': {'name': 'Latencia de Respuesta', 'icon': '⚡'},
+  'blind': {'name': 'Agudeza Auditiva a Ciegas', 'icon': '🦇'},
+  'vocabulary': {'name': 'Capacidad Léxica SRS', 'icon': '📖'},
+  'phonetics': {'name': 'Precisión Fonética', 'icon': '🎤'},
+  'volume': {'name': 'Volumen de Oratoria', 'icon': '📢'},
+  'presence': {'name': 'Presencia Social', 'icon': '👥'},
+  'stage': {'name': 'Dominio del Escenario', 'icon': '🎭'},
+  'hosting': {'name': 'Liderazgo de Gremio', 'icon': '🏰'},
+  'chalice': {'name': 'Audacia del Cáliz', 'icon': '🏆'},
+  'chat': {'name': 'Comunicación Táctica', 'icon': '💬'},
+};
+
+Color hunterAttributeColor(String key) {
+  switch (key) {
+    case 'grammar': return AppColors.emeraldGreen;
+    case 'latency': return AppColors.royalGold;
+    case 'blind': return AppColors.manaCyan;
+    case 'vocabulary': return const Color(0xFF64B5F6);
+    case 'phonetics': return AppColors.emeraldGreen;
+    case 'volume': return const Color(0xFFFF9800);
+    case 'presence': return const Color(0xFFE91E63);
+    case 'stage': return AppColors.runeViolet;
+    case 'hosting': return const Color(0xFFFFAB00);
+    case 'chalice': return AppColors.royalGold;
+    case 'chat': return const Color(0xFF42A5F5);
+    default: return AppColors.manaCyan;
+  }
+}
+
+String hunterAttributeValueText(String key, double raw) {
+  final pct = (raw * 100).round();
+  switch (key) {
+    case 'grammar': return '$pct%';
+    case 'latency': return '${(1.0 - raw) * 3.7 + 0.3}s';
+    case 'blind': return '${(raw * 30).round()} Gates';
+    case 'vocabulary': return '$pct%';
+    case 'phonetics': return '$pct%';
+    case 'volume': return '${(raw * 200).round()} WPM';
+    case 'presence': return '${(raw * 300).round()} Min';
+    case 'stage': return '$pct%';
+    case 'hosting': return '$pct%';
+    case 'chalice': return '$pct%';
+    case 'chat': return '$pct%';
+    default: return '$pct%';
+  }
+}
+
+/// Manages the currently equipped title code.
+class EquippedTitleNotifier extends StateNotifier<String> {
+  EquippedTitleNotifier() : super('oido_halcon_abismo_c');
+  void equip(String code) { state = code; }
+}
+
+final equippedTitleProvider = StateNotifierProvider<EquippedTitleNotifier, String>((ref) {
+  return EquippedTitleNotifier();
+});
+
+final activeTitleItemProvider = Provider<HunterTitleItem>((ref) {
+  final code = ref.watch(equippedTitleProvider);
+  return HunterCatalog.titles.firstWhere(
+    (t) => t.code == code,
+    orElse: () => HunterCatalog.titles.first,
+  );
+});

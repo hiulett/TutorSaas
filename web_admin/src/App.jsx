@@ -7,9 +7,13 @@ import CefrLevelsManager from './pages/CefrLevelsManager';
 import UserBiometricsManager from './pages/UserBiometricsManager';
 import SubscriptionPlansManager from './pages/SubscriptionPlansManager';
 import AiSettings from './pages/AiSettings';
+import Login from './pages/Login';
+import { supabase } from './lib/supabaseClient';
 import { adminService } from './services/adminService';
 
 export default function App() {
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [lessons, setLessons] = useState([]);
   const [cefrLevels, setCefrLevels] = useState([]);
@@ -18,6 +22,19 @@ export default function App() {
   const [overviewMetrics, setOverviewMetrics] = useState(null);
   const [aiSettings, setAiSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+
+    return () => subscription?.unsubscribe();
+  }, []);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -45,8 +62,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadAllData();
-  }, []);
+    if (session) {
+      loadAllData();
+    }
+  }, [session]);
 
   const handleSaveLesson = async (newLesson) => {
     setLessons((prev) => {
@@ -111,21 +130,34 @@ export default function App() {
     }
   };
 
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-deep-space)' }}>
+        <div className="space-bg">
+          <div className="orb orb-purple" />
+          <div className="orb orb-teal" />
+        </div>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '3px solid rgba(168, 85, 247, 0.2)', borderTopColor: 'var(--primary-purple)', animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Login onLogin={(s) => setSession(s)} />;
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
-      {/* Background Ambient Glow */}
       <div className="space-bg">
         <div className="orb orb-purple" />
         <div className="orb orb-teal" />
         <div className="orb orb-blue" />
       </div>
 
-      {/* Left Navigation Sidebar */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} session={session} />
 
-      {/* Main Command Deck Body */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Navbar onRefresh={loadAllData} />
+        <Navbar onRefresh={loadAllData} session={session} />
 
         <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
           {loading ? (
@@ -137,38 +169,20 @@ export default function App() {
           ) : (
             <>
               {activeTab === 'overview' && (
-                <AdminOverview
-                  lessons={lessons}
-                  cefrLevels={cefrLevels}
-                  users={users}
-                  metrics={overviewMetrics}
-                />
+                <AdminOverview lessons={lessons} cefrLevels={cefrLevels} users={users} metrics={overviewMetrics} />
               )}
-
               {activeTab === 'lessons' && (
-                <LessonManager
-                  lessons={lessons}
-                  cefrLevels={cefrLevels}
-                  onSaveLesson={handleSaveLesson}
-                  onDeleteLesson={handleDeleteLesson}
-                />
+                <LessonManager lessons={lessons} cefrLevels={cefrLevels} onSaveLesson={handleSaveLesson} onDeleteLesson={handleDeleteLesson} />
               )}
-
               {activeTab === 'cefr' && (
-                <CefrLevelsManager
-                  cefrLevels={cefrLevels}
-                  onAddLevel={handleAddLevel}
-                />
+                <CefrLevelsManager cefrLevels={cefrLevels} onAddLevel={handleAddLevel} />
               )}
-
               {activeTab === 'users' && (
                 <UserBiometricsManager users={users} onSaveUser={handleSaveUser} />
               )}
-
               {activeTab === 'plans' && (
                 <SubscriptionPlansManager plans={plans} onSavePlan={handleSavePlan} />
               )}
-
               {activeTab === 'ai-settings' && (
                 <AiSettings settings={aiSettings} onSave={handleSaveAiSettings} />
               )}

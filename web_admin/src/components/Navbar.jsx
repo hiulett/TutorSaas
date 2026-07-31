@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search, Bell, Activity, RefreshCw } from 'lucide-react';
 
-export default function Navbar({ onRefresh }) {
+export default function Navbar({ onRefresh, session }) {
   return (
     <header style={{
       height: '70px',
@@ -73,7 +73,7 @@ export default function Navbar({ onRefresh }) {
           color: '#fff',
           boxShadow: '0 0 12px rgba(168, 85, 247, 0.3)',
         }}>
-          AD
+          {(session?.user?.email?.[0] || 'A').toUpperCase()}
         </div>
       </div>
     </header>

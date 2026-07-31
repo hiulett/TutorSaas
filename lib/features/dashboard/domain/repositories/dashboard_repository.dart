@@ -11,5 +11,5 @@ abstract class DashboardRepository {
   Future<void> logPracticeSession(String userId, int minutes);
   Future<void> saveVocabularyFromSession(String userId, List<String> userTexts);
   Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore);
-  Future<void> updateUserProfile(String userId, {String? displayName, String? avatarUrl, String? nativeLanguage});
+  Future<void> updateUserProfile(String userId, {String? displayName, String? avatarUrl, String? nativeLanguage, String? bio});
 }

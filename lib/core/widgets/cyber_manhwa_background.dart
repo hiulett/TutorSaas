@@ -84,8 +84,8 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
           color: i % 3 == 0
               ? baseColor.withValues(alpha: _random.nextDouble() * 0.7 + 0.3)
               : (i % 2 == 0
-                  ? AppColors.tertiaryTeal.withValues(alpha: _random.nextDouble() * 0.6 + 0.2)
-                  : AppColors.primaryPurple.withValues(alpha: _random.nextDouble() * 0.6 + 0.2)),
+                  ? AppColors.manaCyan.withValues(alpha: _random.nextDouble() * 0.6 + 0.2)
+                  : AppColors.runeViolet.withValues(alpha: _random.nextDouble() * 0.6 + 0.2)),
         ),
       );
     }
@@ -96,7 +96,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
     switch (widget.bgMode) {
       case CyberBgMode.dashboardGate:
       case CyberBgMode.hunterStatus:
-        return AppColors.tertiaryTeal;
+        return AppColors.manaCyan;
       case CyberBgMode.guildHall:
       case CyberBgMode.guildTable:
         return Colors.amberAccent;
@@ -110,7 +110,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
           case 'B2': return const Color(0xFF8B5CF6);
           case 'C1': return const Color(0xFFEC4899);
           case 'C2': return const Color(0xFFFF4500);
-          default: return AppColors.primaryPurple;
+          default: return AppColors.runeViolet;
         }
     }
   }

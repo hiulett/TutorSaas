@@ -652,4 +652,29 @@ No markdown, no explanation, no code blocks.
       debugPrint('Error logging fluency metrics: $e');
     }
   }
+
+  @override
+  Future<Map<String, dynamic>> checkAiAudioQuota(String userId) async {
+    try {
+      final res = await _client.rpc('check_ai_audio_quota', params: {'p_user_id': userId});
+      return Map<String, dynamic>.from(res as Map);
+    } catch (e) {
+      debugPrint('Error checking AI audio quota: $e');
+      return {'is_allowed': true};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> trackAiAudioTime(String userId, int durationSeconds) async {
+    try {
+      final res = await _client.rpc('track_ai_audio_time', params: {
+        'p_user_id': userId,
+        'p_duration_seconds': durationSeconds,
+      });
+      return Map<String, dynamic>.from(res as Map);
+    } catch (e) {
+      debugPrint('Error tracking AI audio time: $e');
+      return {'is_allowed': true};
+    }
+  }
 }

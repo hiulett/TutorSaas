@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/glass_card.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 
 class LiveGoalsTrackerBar extends StatelessWidget {
@@ -14,45 +16,24 @@ class LiveGoalsTrackerBar extends StatelessWidget {
     required this.onTapCompass,
   });
 
-  static const Color accentGreen = Color(0xFF10B981);
-
   @override
   Widget build(BuildContext context) {
-    if (goals.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (goals.isEmpty) return const SizedBox.shrink();
 
     final completedCount = goals.where((g) => goalEvaluationResults[g.id] == true).length;
     final totalCount = goals.length;
 
     return GestureDetector(
       onTap: onTapCompass,
-      child: Container(
+      child: GlassCard(
+        blur: 4, opacity: 0.08,
+        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.primaryPurple.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
         child: Row(
           children: [
-            const Icon(
-              Icons.flag_rounded,
-              color: AppColors.tertiaryTeal,
-              size: 16,
-            ),
+            const Icon(Icons.flag_rounded, color: AppColors.emeraldGreen, size: 16),
             const SizedBox(width: 8),
-            Text(
-              'Metas: $completedCount/$totalCount',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: Colors.white,
-              ),
-            ),
+            Text('$completedCount/$totalCount', style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(width: 10),
             Expanded(
               child: SingleChildScrollView(
@@ -63,50 +44,95 @@ class LiveGoalsTrackerBar extends StatelessWidget {
                     final idx = entry.key + 1;
                     final g = entry.value;
                     final isDone = goalEvaluationResults[g.id] == true;
-
-                    return Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: isDone
-                            ? accentGreen.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: isDone ? accentGreen : Colors.white12,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                            size: 12,
-                            color: isDone ? accentGreen : Colors.white38,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'M$idx',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: isDone ? accentGreen : Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
+                    return _GoalChip(index: idx, isDone: isDone);
                   }).toList(),
                 ),
               ),
             ),
-            const Icon(
-              Icons.explore_rounded,
-              color: AppColors.primaryPurpleDim,
-              size: 18,
-            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.explore_rounded, color: AppColors.manaCyanDim, size: 18),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _GoalChip extends StatefulWidget {
+  final int index;
+  final bool isDone;
+
+  const _GoalChip({required this.index, required this.isDone});
+
+  @override
+  State<_GoalChip> createState() => _GoalChipState();
+}
+
+class _GoalChipState extends State<_GoalChip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _glowAnim;
+  bool _wasDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _scaleAnim = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeOutBack)),
+    );
+    _glowAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.3, 1.0, curve: Curves.easeOut)),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_GoalChip old) {
+    super.didUpdateWidget(old);
+    if (widget.isDone && !old.isDone) {
+      _wasDone = true;
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDone = widget.isDone;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final scale = _wasDone ? _scaleAnim.value : 1.0;
+        final glow = _wasDone ? _glowAnim.value : (isDone ? 1.0 : 0.0);
+        return Container(
+          margin: const EdgeInsets.only(right: 6),
+          child: Transform.scale(
+            scale: scale,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: isDone ? AppColors.emeraldGreen.withValues(alpha: 0.2 + glow * 0.3) : Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: isDone ? AppColors.emeraldGreen.withValues(alpha: 0.5 + glow * 0.5) : Colors.white12),
+                boxShadow: isDone && glow > 0 ? [BoxShadow(color: AppColors.emeraldGreen.withValues(alpha: glow * 0.4), blurRadius: 8 * glow)] : null,
+              ),
+              child: Row(
+                children: [
+                  Icon(isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, size: 12, color: isDone ? AppColors.emeraldGreen : Colors.white38),
+                  const SizedBox(width: 4),
+                  Text('M${widget.index}', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDone ? AppColors.emeraldGreen : Colors.white70)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -27,7 +27,7 @@ class SessionSummaryScreen extends ConsumerWidget {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.06),
+                color: AppColors.runeViolet.withValues(alpha: 0.06),
               ),
             ),
           ),
@@ -39,7 +39,7 @@ class SessionSummaryScreen extends ConsumerWidget {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.tertiaryTeal.withValues(alpha: 0.06),
+                color: AppColors.manaCyan.withValues(alpha: 0.06),
               ),
             ),
           ),
@@ -93,10 +93,10 @@ class SessionSummaryScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryPurple.withValues(alpha: 0.15),
+                        color: AppColors.runeViolet.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: AppColors.primaryPurple.withValues(alpha: 0.3),
+                          color: AppColors.runeViolet.withValues(alpha: 0.3),
                           width: 1.0,
                         ),
                       ),
@@ -105,14 +105,14 @@ class SessionSummaryScreen extends ConsumerWidget {
                         children: [
                           Icon(
                             Icons.verified_rounded,
-                            color: AppColors.primaryPurpleDim,
+                            color: AppColors.runeViolet,
                             size: 16,
                           ),
                           SizedBox(width: 6),
                           Text(
                             '¡SESIÓN COMPLETADA!',
                             style: TextStyle(
-                              color: AppColors.primaryPurpleDim,
+                              color: AppColors.runeViolet,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                               letterSpacing: 1.5,
@@ -187,7 +187,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                       size: const Size(100, 100),
                                       painter: NeonProgressPainter(
                                         progress: fluencyVal,
-                                        color: AppColors.tertiaryTeal,
+                                        color: AppColors.manaCyan,
                                       ),
                                       child: SizedBox(
                                         width: 100,
@@ -196,7 +196,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                           child: Text(
                                             '$fluencyPct%',
                                             style: const TextStyle(
-                                              color: AppColors.tertiaryTeal,
+                                              color: AppColors.manaCyan,
                                               fontSize: 22,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -242,7 +242,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                       size: const Size(100, 100),
                                       painter: NeonProgressPainter(
                                         progress: pronVal,
-                                        color: AppColors.primaryPurple,
+                                        color: AppColors.runeViolet,
                                       ),
                                       child: SizedBox(
                                         width: 100,
@@ -251,7 +251,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                           child: Text(
                                             '$pronPct%',
                                             style: const TextStyle(
-                                              color: AppColors.primaryPurpleDim,
+                                              color: AppColors.runeViolet,
                                               fontSize: 22,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -283,7 +283,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                           children: [
                             Icon(
                               Icons.error_outline_rounded,
-                              color: AppColors.errorRedDim,
+                              color: AppColors.errorRed,
                               size: 20,
                             ),
                             SizedBox(width: 8),
@@ -305,7 +305,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                             correctedText: userMsgs.isEmpty ? 'Habla con el tutor IA para obtener retroalimentación.' : 'No se registraron errores de gramática o fonética.',
                             category: 'Desempeño',
                             tag: 'Excelente',
-                            accentColor: AppColors.tertiaryTeal,
+                            accentColor: AppColors.manaCyan,
                           )
                         else
                           ...corrections.take(3).map((c) => Padding(
@@ -315,7 +315,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   correctedText: c.text,
                                   category: 'Corrección',
                                   tag: c.correctionExplanation ?? 'Grammar',
-                                  accentColor: AppColors.primaryPurple,
+                                  accentColor: AppColors.runeViolet,
                                 ),
                               )),
                         const SizedBox(height: 32),
@@ -342,11 +342,11 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   height: 44,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: AppColors.primaryPurple.withValues(alpha: 0.15),
+                                    color: AppColors.runeViolet.withValues(alpha: 0.15),
                                   ),
                                   child: const Icon(
                                     Icons.star_rounded,
-                                    color: AppColors.primaryPurple,
+                                    color: AppColors.runeViolet,
                                     size: 24,
                                   ),
                                 ),
@@ -432,9 +432,9 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.primaryPurpleDim,
+                                  foregroundColor: AppColors.runeViolet,
                                   side: BorderSide(
-                                    color: AppColors.primaryPurple.withValues(alpha: 0.3),
+                                    color: AppColors.runeViolet.withValues(alpha: 0.3),
                                   ),
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
@@ -452,7 +452,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   context.go('/home');
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryPurple,
+                                  backgroundColor: AppColors.runeViolet,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
@@ -526,12 +526,12 @@ class SessionSummaryScreen extends ConsumerWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.tertiaryTeal.withValues(alpha: 0.15),
+                  color: AppColors.manaCyan.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.arrow_forward_rounded,
-                  color: AppColors.tertiaryTeal,
+                  color: AppColors.manaCyan,
                   size: 18,
                 ),
               ),

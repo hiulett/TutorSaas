@@ -26,4 +26,8 @@ abstract class ConversationRepository {
 
   // Fluency & Response Latency Logging
   Future<void> logFluencyMetrics(String userId, String? scenarioId, double latencySeconds, int speakingWpm);
+
+  // Audio Quota & Limits Checking
+  Future<Map<String, dynamic>> checkAiAudioQuota(String userId);
+  Future<Map<String, dynamic>> trackAiAudioTime(String userId, int durationSeconds);
 }

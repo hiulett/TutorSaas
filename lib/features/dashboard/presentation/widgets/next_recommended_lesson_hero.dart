@@ -51,7 +51,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
       blur: 25,
       opacity: 0.12,
       border: Border.all(
-        color: AppColors.primaryPurple.withValues(alpha: 0.4),
+        color: AppColors.runeViolet.withValues(alpha: 0.4),
         width: 1.5,
       ),
       padding: const EdgeInsets.all(20),
@@ -66,11 +66,12 @@ class NextRecommendedLessonHero extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                constraints: const BoxConstraints(maxWidth: 240),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                  color: AppColors.runeViolet.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.primaryPurple.withValues(alpha: 0.5),
+                    color: AppColors.runeViolet.withValues(alpha: 0.5),
                     width: 1,
                   ),
                 ),
@@ -79,17 +80,21 @@ class NextRecommendedLessonHero extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.auto_awesome_rounded,
-                      color: AppColors.tertiaryTeal,
+                      color: AppColors.manaCyan,
                       size: 14,
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      'SIGUIENTE PASO • ETAPA ${lesson.level}',
-                      style: GoogleFonts.hankenGrotesk(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.tertiaryTeal,
-                        letterSpacing: 0.8,
+                    Flexible(
+                      child: Text(
+                        'SIGUIENTE PASO • ETAPA ${lesson.level}',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: GoogleFonts.hankenGrotesk(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.manaCyan,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
                   ],
@@ -124,8 +129,8 @@ class NextRecommendedLessonHero extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryPurple.withValues(alpha: 0.4),
-                      AppColors.secondaryBlue.withValues(alpha: 0.3),
+                      AppColors.runeViolet.withValues(alpha: 0.4),
+                      AppColors.manaCyan.withValues(alpha: 0.3),
                     ],
                   ),
                   border: Border.all(
@@ -173,24 +178,23 @@ class NextRecommendedLessonHero extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          InkWell(
+          GestureDetector(
             onTap: () => _showObjectivesModal(context, lesson),
-            borderRadius: BorderRadius.circular(10),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.primaryPurple.withValues(alpha: 0.1),
+                color: AppColors.runeViolet.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: AppColors.primaryPurple.withValues(alpha: 0.3),
+                  color: AppColors.runeViolet.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.center_focus_strong_rounded,
-                    color: AppColors.tertiaryTeal,
+                    color: AppColors.manaCyan,
                     size: 14,
                   ),
                   const SizedBox(width: 8),
@@ -209,7 +213,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                   const SizedBox(width: 6),
                   const Icon(
                     Icons.info_outline_rounded,
-                    color: AppColors.tertiaryTeal,
+                    color: AppColors.manaCyan,
                     size: 14,
                   ),
                 ],
@@ -229,13 +233,13 @@ class NextRecommendedLessonHero extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
+                backgroundColor: AppColors.runeViolet,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
                 elevation: 4,
-                shadowColor: AppColors.primaryPurple.withValues(alpha: 0.5),
+                shadowColor: AppColors.runeViolet.withValues(alpha: 0.5),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -294,7 +298,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const Icon(Icons.center_focus_strong_rounded, color: AppColors.tertiaryTeal, size: 24),
+                  const Icon(Icons.center_focus_strong_rounded, color: AppColors.manaCyan, size: 24),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -313,9 +317,9 @@ class NextRecommendedLessonHero extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPurple.withValues(alpha: 0.15),
+                  color: AppColors.runeViolet.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   '🎯 ${lesson.mainObjective}',
@@ -325,7 +329,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 '📋 Metas Comunicativas (1 Estrella ⭐ para Aprobar):',
-                style: const TextStyle(color: AppColors.tertiaryTeal, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(color: AppColors.manaCyan, fontWeight: FontWeight.bold, fontSize: 13),
               ),
               const SizedBox(height: 8),
               if (lesson.goals.isEmpty)
@@ -337,7 +341,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.check_circle_outline_rounded, color: AppColors.tertiaryTeal, size: 16),
+                        const Icon(Icons.check_circle_outline_rounded, color: AppColors.manaCyan, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(g.text, style: const TextStyle(color: Colors.white70, fontSize: 12)),
@@ -385,7 +389,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
+                    backgroundColor: AppColors.runeViolet,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),

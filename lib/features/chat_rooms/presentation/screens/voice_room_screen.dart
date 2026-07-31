@@ -9,6 +9,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/chat_rooms_providers.dart';
+import '../../../../core/widgets/rpg_avatar.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../../core/widgets/mana_meter_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 
@@ -34,10 +36,10 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
   late AnimationController _pulseController;
 
   final List<String> _aiTips = [
-    '💡 Consejo del Tutor IA: Usa conectores como "However" o "In addition" para enriquecer tu frase.',
-    '🎯 Meta del Grupo: Lograr 3 intercambios sin pausas largas.',
-    '✨ Tip Fonético: Presta atención a la intonación al hacer preguntas.',
-    '🗣️ Vocabulario Clave: Intenta incorporar el término "Collaborate".',
+    'ADVISOR TIP: Use conjunctions like "However" or "In addition" to enrich your sentences.',
+    'RAID GOAL: Achieve 3 conversation turns without long pauses.',
+    'PHONETIC TIP: Pay close attention to rising intonation during questions.',
+    'KEY VOCABULARY: Try incorporating the term "Collaborate" in your speech.',
   ];
   int _currentTipIndex = 0;
   Timer? _tipTimer;
@@ -129,7 +131,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('¡Te has unido al Escenario en el Slot $slot!'),
+            content: Text('SUCCESSFULLY MOUNTED GUILD STAGE SLOT $slot!'),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
           ),
@@ -194,7 +196,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
               height: 340,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.15),
+                color: AppColors.runeViolet.withValues(alpha: 0.15),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
@@ -210,7 +212,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
               height: 360,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.tertiaryTeal.withValues(alpha: 0.1),
+                color: AppColors.manaCyan.withValues(alpha: 0.1),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 140, sigmaY: 140),
@@ -241,9 +243,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                               Row(
                                 children: [
                                   Text(
-                                    'Sala de Voz B2',
-                                    style: GoogleFonts.hankenGrotesk(
-                                      fontSize: 20,
+                                    'GUILD VOICE CHAMBER',
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
@@ -253,21 +255,21 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: Colors.redAccent.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(4),
                                       border: Border.all(color: Colors.redAccent),
                                     ),
                                     child: const Row(
                                       children: [
                                         Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 8),
-                                        SizedBox(width: 4),
-                                        Text('EN VIVO', style: TextStyle(color: Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+                                        const SizedBox(width: 4),
+                                        Text('LIVE', style: TextStyle(color: Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                   ),
                                 ],
                               ),
                               const Text(
-                                'Moderado por Tutor IA en Tiempo Real',
+                                'Moderated by AI Tutor in Real Time',
                                 style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
                               ),
                             ],
@@ -295,11 +297,11 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                   child: GlassCard(
                     blur: 20,
                     opacity: 0.08,
-                    border: Border.all(color: AppColors.tertiaryTeal.withValues(alpha: 0.3)),
+                    border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     child: Row(
                       children: [
-                        const Icon(Icons.psychology_rounded, color: AppColors.tertiaryTeal, size: 20),
+                        const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 20),
                         const SizedBox(width: 10),
                         Expanded(
                           child: AnimatedSwitcher(
@@ -399,7 +401,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                     blur: 20,
                                     opacity: isSpeaking ? 0.15 : 0.06,
                                     border: Border.all(
-                                      color: isSpeaking ? AppColors.tertiaryTeal : Colors.white24,
+                                      color: isSpeaking ? AppColors.manaCyan : Colors.white24,
                                       width: isSpeaking ? 2 : 1,
                                     ),
                                     padding: const EdgeInsets.all(8),
@@ -417,36 +419,38 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                                     width: 58 + (_pulseController.value * 12),
                                                     height: 58 + (_pulseController.value * 12),
                                                     decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
+                                                      borderRadius: BorderRadius.circular(4),
                                                       border: Border.all(
-                                                        color: AppColors.tertiaryTeal.withValues(alpha: 1.0 - _pulseController.value),
+                                                        color: AppColors.manaCyan.withValues(alpha: 1.0 - _pulseController.value),
                                                         width: 2,
                                                       ),
                                                     ),
                                                   );
                                                 },
                                               ),
-                                            CircleAvatar(
-                                              radius: 24,
-                                              backgroundColor: isSelf ? AppColors.primaryPurple : AppColors.secondaryBlue,
-                                              child: Text(
-                                                isSelf ? 'TÚ' : 'EST',
-                                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                              ),
+                                            RpgAvatar(
+                                              avatarUrl: isSelf
+                                                  ? (ref.read(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior')
+                                                  : ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][speakerUserId.hashCode % 5],
+                                              initials: isSelf ? 'ME' : 'H$slotNum',
+                                              size: 48,
+                                              hunterClass: isSelf
+                                                  ? 'assassin'
+                                                  : ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][speakerUserId.hashCode % 5],
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          isSelf ? 'Tú (Estudiante)' : 'Hablante $slotNum',
-                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                          isSelf ? 'YOU' : 'HUNTER $slotNum',
+                                          style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          isSpeaking ? '🔊 Hablando...' : '🎙️ En vivo',
-                                          style: TextStyle(
-                                            color: isSpeaking ? AppColors.tertiaryTeal : AppColors.onSurfaceVariant,
+                                          isSpeaking ? 'SPEAKING...' : 'LIVE',
+                                          style: GoogleFonts.jetBrainsMono(
+                                            color: isSpeaking ? AppColors.manaCyan : AppColors.onSurfaceVariant,
                                             fontSize: 9,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -471,8 +475,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                   const Icon(Icons.people_alt_rounded, color: AppColors.onSurfaceVariant, size: 18),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Gradas (${audience.length}):',
-                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    'GUILD BENCH (${audience.length}):',
+                                    style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -488,13 +492,11 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
 
                                           return Container(
                                             margin: const EdgeInsets.only(right: 6),
-                                            child: CircleAvatar(
-                                              radius: 16,
-                                              backgroundColor: Colors.white12,
-                                              child: Text(
-                                                initials,
-                                                style: const TextStyle(color: Colors.white70, fontSize: 10),
-                                              ),
+                                            child: RpgAvatar(
+                                              avatarUrl: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
+                                              initials: initials,
+                                              size: 32,
+                                              hunterClass: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
                                             ),
                                           );
                                         },
@@ -524,11 +526,11 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                   children: [
                                     Row(
                                       children: [
-                                        const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.tertiaryTeal, size: 18),
+                                        const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.manaCyan, size: 18),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'Chat de Texto de la Sala (${messagesAsync.value?.length ?? 0})',
-                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                          'Chamber Text Chat (${messagesAsync.value?.length ?? 0})',
+                                          style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                                         ),
                                       ],
                                     ),
@@ -550,7 +552,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF0F172A),
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(4),
                                   border: Border.all(color: Colors.white12),
                                 ),
                                 child: Column(
@@ -559,8 +561,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                       child: messagesAsync.when(
                                         data: (messages) {
                                           if (messages.isEmpty) {
-                                            return const Center(
-                                              child: Text('No hay mensajes aún.', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                            return Center(
+                                              child: Text('No messages in this chamber yet.', style: GoogleFonts.jetBrainsMono(color: Colors.white38, fontSize: 12)),
                                             );
                                           }
                                           return ListView.builder(
@@ -579,8 +581,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                                       decoration: BoxDecoration(
-                                                        color: isSelf ? AppColors.primaryPurple.withValues(alpha: 0.3) : Colors.white10,
-                                                        borderRadius: BorderRadius.circular(12),
+                                                        color: isSelf ? AppColors.runeViolet.withValues(alpha: 0.3) : Colors.white10,
+                                                        borderRadius: BorderRadius.circular(4),
                                                       ),
                                                       child: Text(
                                                         msg['message_text'] as String? ?? '',
@@ -593,7 +595,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                             },
                                           );
                                         },
-                                        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+                                        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
                                         error: (_, __) => const SizedBox.shrink(),
                                       ),
                                     ),
@@ -605,18 +607,18 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                             controller: _messageController,
                                             style: const TextStyle(color: Colors.white, fontSize: 13),
                                             decoration: InputDecoration(
-                                              hintText: 'Escribe un mensaje...',
+                                              hintText: 'Type a message...',
                                               hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
                                               filled: true,
                                               fillColor: Colors.white.withValues(alpha: 0.05),
                                               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(4), borderSide: BorderSide.none),
                                             ),
                                           ),
                                         ),
                                         const SizedBox(width: 8),
                                         IconButton(
-                                          icon: const Icon(Icons.send_rounded, color: AppColors.tertiaryTeal),
+                                          icon: const Icon(Icons.send_rounded, color: AppColors.manaCyan),
                                           onPressed: _sendMessage,
                                         ),
                                       ],
@@ -628,7 +630,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                         ],
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+                    loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
                     error: (err, _) => Center(child: Text('Error en sala: $err', style: const TextStyle(color: AppColors.errorRed))),
                   ),
                 ),
@@ -639,7 +641,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                   child: GlassCard(
                     blur: 30,
                     opacity: 0.1,
-                    border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.3), width: 1.5),
+                    border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.3), width: 1.5),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -657,7 +659,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                             });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(_isMuted ? 'Micrófono silenciado' : 'Micrófono activado'),
+                                content: Text(_isMuted ? 'MICROPHONE MUTED' : 'MICROPHONE ACTIVATED'),
                                 duration: const Duration(seconds: 1),
                               ),
                             );
@@ -673,21 +675,21 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                             });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(_isHandRaised ? '✋ Has levantado la mano para hablar' : 'Mano bajada'),
-                                backgroundColor: AppColors.primaryPurple,
+                                content: Text(_isHandRaised ? 'REQUEST SENT TO GUILD' : 'HAND LOWERED'),
+                                backgroundColor: AppColors.runeViolet,
                                 duration: const Duration(seconds: 1),
                               ),
                             );
                           },
-                          icon: Text(_isHandRaised ? '✋' : '🖐️', style: const TextStyle(fontSize: 16)),
+                          icon: Icon(_isHandRaised ? Icons.back_hand : Icons.back_hand_outlined, size: 16),
                           label: Text(
-                            _isHandRaised ? 'Solicitado' : 'Pedir Hablar',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            _isHandRaised ? 'REQUESTED' : 'ASK TO SPEAK',
+                            style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _isHandRaised ? AppColors.primaryPurple : Colors.white10,
+                            backgroundColor: _isHandRaised ? AppColors.runeViolet : Colors.white10,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                           ),
                         ),
 
@@ -735,19 +737,19 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
               ),
               const CircleAvatar(
                 radius: 22,
-                backgroundColor: AppColors.primaryPurple,
+                backgroundColor: AppColors.runeViolet,
                 child: Icon(Icons.smart_toy_rounded, color: Color(0xFFFFD700), size: 24),
               ),
             ],
           ),
           const SizedBox(height: 8),
           const Text(
-            'Tutor IA',
+            'AI TUTOR',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
           ),
           const SizedBox(height: 2),
           const Text(
-            '🤖 Moderando',
+            'AI MODERATOR',
             style: TextStyle(color: Color(0xFFFFD700), fontSize: 9, fontWeight: FontWeight.bold),
           ),
         ],

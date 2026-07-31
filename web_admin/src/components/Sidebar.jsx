@@ -10,16 +10,21 @@ import {
   ShieldCheck,
   CreditCard,
 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
-export default function Sidebar({ activeTab, setActiveTab }) {
+export default function Sidebar({ activeTab, setActiveTab, session }) {
   const navItems = [
     { id: 'overview', label: 'Panel Principal', icon: LayoutDashboard },
     { id: 'lessons', label: 'Lecciones y Escenarios', icon: BookOpen },
-    { id: 'levels', label: 'Niveles CEFR', icon: Layers },
+    { id: 'cefr', label: 'Niveles CEFR', icon: Layers },
     { id: 'users', label: 'Usuarios y Progreso', icon: Users },
     { id: 'plans', label: 'Planes y Membresías', icon: CreditCard },
     { id: 'ai-settings', label: 'Ajustes de IA', icon: Sliders },
   ];
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <aside style={{ width: '260px', flexShrink: 0, padding: '24px 16px', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-glass)' }}>
@@ -81,22 +86,17 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         })}
       </nav>
 
-      {/* Footer System Status */}
-      <div style={{
-        marginTop: 'auto',
-        padding: '12px',
-        borderRadius: '12px',
-        background: 'rgba(255, 255, 255, 0.03)',
-        border: '1px solid var(--border-glass)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-      }}>
-        <ShieldCheck style={{ width: '20px', height: '20px', color: 'var(--secondary-teal)' }} />
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Supabase Cloud DB</div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Estado: Operacional</div>
-        </div>
+      {/* Session Info + Logout */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
+        {session?.user && (
+          <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-glass)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{session.user.email}</div>
+          </div>
+        )}
+        <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.08)', color: '#fca5a5', fontWeight: '600', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s ease', textAlign: 'left' }}>
+          <LogOut style={{ width: '16px', height: '16px' }} />
+          <span>Cerrar Sesión</span>
+        </button>
       </div>
     </aside>
   );

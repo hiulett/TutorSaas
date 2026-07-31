@@ -69,7 +69,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
         decoration: const BoxDecoration(
           color: Color(0xFF060A14),
           border: Border(
-            top: BorderSide(color: AppColors.tertiaryTeal, width: 2),
+            top: BorderSide(color: AppColors.manaCyan, width: 2),
           ),
         ),
         child: CyberManhwaBackground(
@@ -126,11 +126,11 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: const LinearGradient(
-                              colors: [AppColors.primaryPurple, AppColors.tertiaryTeal],
+                              colors: [AppColors.runeViolet, AppColors.manaCyan],
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primaryPurple.withValues(alpha: 0.5),
+                                color: AppColors.runeViolet.withValues(alpha: 0.5),
                                 blurRadius: 15,
                               ),
                             ],
@@ -156,7 +156,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                 style: GoogleFonts.orbitron(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.tertiaryTeal,
+                                  color: AppColors.manaCyan,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -173,7 +173,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                 children: [
                                   Text(
                                     '🔮 ${widget.manaBalance} Maná',
-                                    style: const TextStyle(fontSize: 11, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(fontSize: 11, color: AppColors.runeViolet, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
@@ -201,9 +201,9 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                   const SizedBox(height: 10),
 
                   // Attributes Grid
-                  _buildAttributeRow('✍️ Precisión Gramatical', '88%', 0.88, AppColors.tertiaryTeal),
+                  _buildAttributeRow('✍️ Precisión Gramatical', '88%', 0.88, AppColors.manaCyan),
                   _buildAttributeRow('⚡ Latencia de Respuesta', '1.4s (Rango A)', 0.90, Colors.amber),
-                  _buildAttributeRow('🎧 Agudeza Auditiva A Ciegas', '4 Lecciones', 0.60, AppColors.primaryPurple),
+                  _buildAttributeRow('🎧 Agudeza Auditiva A Ciegas', '4 Lecciones', 0.60, AppColors.runeViolet),
                   _buildAttributeRow('📚 Capacidad Léxica SRS', '142 Palabras', 0.70, Colors.lightBlueAccent),
                   _buildAttributeRow('🎙️ Precisión Fonética', '91%', 0.91, Colors.greenAccent),
                   _buildAttributeRow('🌪️ Volumen de Oratoria', '1,840 Palabras', 0.65, Colors.orangeAccent),
@@ -228,11 +228,11 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
                         color: isEquipped
-                            ? AppColors.primaryPurple.withValues(alpha: 0.25)
+                            ? AppColors.runeViolet.withValues(alpha: 0.25)
                             : Colors.white.withValues(alpha: 0.04),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isEquipped ? AppColors.primaryPurple : Colors.white12,
+                          color: isEquipped ? AppColors.runeViolet : Colors.white12,
                         ),
                       ),
                       child: Row(
@@ -291,7 +291,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isEquipped ? Colors.white12 : AppColors.primaryPurple,
+                              backgroundColor: isEquipped ? Colors.white12 : AppColors.runeViolet,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               minimumSize: const Size(60, 30),

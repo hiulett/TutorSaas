@@ -75,7 +75,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.15),
+                color: AppColors.runeViolet.withValues(alpha: 0.15),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
@@ -91,7 +91,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.secondaryBlue.withValues(alpha: 0.12),
+                color: AppColors.manaCyan.withValues(alpha: 0.12),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 140, sigmaY: 140),
@@ -112,17 +112,18 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(
-                        Icons.translate_rounded,
-                        color: AppColors.primaryPurpleDim,
+                        Icons.auto_awesome,
+                        color: AppColors.runeViolet,
                         size: 24,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'TutorSaaS',
+                        'DUNGEON OF ENGLISH',
                         style: theme.textTheme.labelLarge?.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.primaryPurpleDim,
+                          color: AppColors.runeViolet,
+                          letterSpacing: 2.0,
                         ),
                       ),
                     ],
@@ -154,22 +155,21 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             GlassCard(
               opacity: 0.04,
               blur: 25.0,
-              borderRadius: 24.0,
+              borderRadius: 4.0,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Iniciar Sesión',
+                    'INICIAR RAIDS',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1.0,
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Inicia sesión con tu cuenta de Google para continuar con tus clases de idiomas.',
+                    'Ingresa tus credenciales de Hunter via Google para reanudar tus desafíos lingüísticos.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontSize: 15,
@@ -184,16 +184,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             // Login with Google Button
             DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryPurple.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
+                    color: AppColors.runeViolet.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: () async {
                   try {
                     await ref.read(authRepositoryProvider).signInWithGoogle();
@@ -205,16 +205,36 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     }
                   }
                 },
-                icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
-                label: const Text('Iniciar sesión con Google'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPurple,
+                  backgroundColor: AppColors.runeViolet,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4.0)),
                   ),
                   elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 1.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(
+                        'G',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text('INGRESAR CON GOOGLE'),
+                  ],
                 ),
               ),
             ),
@@ -225,7 +245,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   _viewMode = 'initial';
                 });
               },
-              child: const Text('Volver atrás', style: TextStyle(color: AppColors.onSurfaceVariant)),
+              child: Text(
+                'RETROCEDER',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  letterSpacing: 1.5,
+                ),
+              ),
             ),
           ],
         );
@@ -238,22 +264,21 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             GlassCard(
               opacity: 0.04,
               blur: 25.0,
-              borderRadius: 24.0,
+              borderRadius: 4.0,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Crear Cuenta',
+                    'CREAR LICENCIA',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1.0,
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Regístrate con Google para personalizar tu tutor de idiomas con IA y medir tu progreso.',
+                    'Regístrate con tu cuenta para desbloquear el sistema de HUD personal, tu tutor de IA y medir tu progreso en tiempo real.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontSize: 15,
@@ -268,16 +293,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             // Register with Google Button
             DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryPurple.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
+                    color: AppColors.runeViolet.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: () async {
                   try {
                     await ref.read(authRepositoryProvider).signInWithGoogle();
@@ -289,16 +314,36 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     }
                   }
                 },
-                icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
-                label: const Text('Registrarse con Google'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPurple,
+                  backgroundColor: AppColors.runeViolet,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4.0)),
                   ),
                   elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 1.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(
+                        'G',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text('REGISTRARSE CON GOOGLE'),
+                  ],
                 ),
               ),
             ),
@@ -309,7 +354,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   _viewMode = 'initial';
                 });
               },
-              child: const Text('Volver atrás', style: TextStyle(color: AppColors.onSurfaceVariant)),
+              child: Text(
+                'RETROCEDER',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                  letterSpacing: 1.5,
+                ),
+              ),
             ),
           ],
         );
@@ -322,22 +373,21 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             GlassCard(
               opacity: 0.04,
               blur: 25.0,
-              borderRadius: 24.0,
+              borderRadius: 4.0,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Aprende hablando',
+                    'SOBREVIVE HABLANDO',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1.0,
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Tu tutor personal de idiomas con IA, disponible 24/7 para conversar de manera natural.',
+                    'Desciende a los Dungeons de idiomas. Tu tutor de IA está listo para interactuar en tiempo real.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontSize: 15,
@@ -352,12 +402,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             // Empezar Button
             DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(4),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryPurple.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
+                    color: AppColors.runeViolet.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -369,41 +419,55 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPurple,
+                  backgroundColor: AppColors.runeViolet,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4.0)),
                   ),
                   elevation: 0,
                 ),
-                child: Text(
-                  'Empezar',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: const Text('EMPEZAR RAID'),
               ),
             ),
             const SizedBox(height: 16),
             // Continuar con Google Button
-            OutlinedButton.icon(
+            OutlinedButton(
               onPressed: () {
                 ref.read(isRegisteringProvider.notifier).state = true;
                 setState(() {
                   _viewMode = 'register';
                 });
               },
-              icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
-              label: const Text('Continuar con Google'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.onBackground,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
                 ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.onBackground, width: 1.5),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: Text(
+                      'G',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: AppColors.onBackground,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('REGISTRAR NUEVO HUNTER'),
+                ],
               ),
             ),
           ],

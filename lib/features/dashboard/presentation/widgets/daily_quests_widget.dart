@@ -63,7 +63,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
               children: [
                 const Icon(
                   Icons.task_alt_rounded,
-                  color: AppColors.tertiaryTeal,
+                  color: AppColors.manaCyan,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -145,7 +145,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                             minHeight: 4,
                             backgroundColor: Colors.white10,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              isCompleted ? const Color(0xFF10B981) : AppColors.primaryPurple,
+                              isCompleted ? const Color(0xFF10B981) : AppColors.runeViolet,
                             ),
                           ),
                         ),

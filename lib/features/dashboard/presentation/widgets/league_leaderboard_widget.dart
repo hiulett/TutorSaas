@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/rpg_avatar.dart';
 
 class LeagueLeaderboardWidget extends StatelessWidget {
   final String activeLeague;
@@ -63,10 +64,10 @@ class LeagueLeaderboardWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                color: AppColors.runeViolet.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: AppColors.primaryPurple.withValues(alpha: 0.4),
+                  color: AppColors.runeViolet.withValues(alpha: 0.4),
                 ),
               ),
               child: Text(
@@ -74,7 +75,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.tertiaryTeal,
+                  color: AppColors.manaCyan,
                 ),
               ),
             ),
@@ -103,10 +104,10 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isUser ? AppColors.primaryPurple.withValues(alpha: 0.2) : Colors.transparent,
+                        color: isUser ? AppColors.runeViolet.withValues(alpha: 0.2) : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: isUser
-                            ? Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.5))
+                            ? Border.all(color: AppColors.runeViolet.withValues(alpha: 0.5))
                             : null,
                       ),
                       child: Row(
@@ -123,9 +124,11 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundImage: NetworkImage(student['avatar'] as String),
+                          RpgAvatar(
+                            avatarUrl: student['avatar'] as String?,
+                            initials: (student['name'] as String).substring(0, 1),
+                            size: 28,
+                            hunterClass: rank == 1 ? 'legendary' : (rank == 2 ? 'epic' : 'rare'),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -157,7 +160,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                             '${student['xp']} XP',
                             style: GoogleFonts.hankenGrotesk(
                               fontWeight: FontWeight.bold,
-                              color: AppColors.tertiaryTeal,
+                              color: AppColors.manaCyan,
                               fontSize: 12,
                             ),
                           ),
@@ -168,7 +171,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          const Expanded(child: Divider(color: AppColors.tertiaryTeal, thickness: 1)),
+                          const Expanded(child: Divider(color: AppColors.manaCyan, thickness: 1)),
                           Flexible(
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -178,12 +181,12 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                                 style: GoogleFonts.hankenGrotesk(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.tertiaryTeal,
+                                  color: AppColors.manaCyan,
                                 ),
                               ),
                             ),
                           ),
-                          const Expanded(child: Divider(color: AppColors.tertiaryTeal, thickness: 1)),
+                          const Expanded(child: Divider(color: AppColors.manaCyan, thickness: 1)),
                         ],
                       ),
                       const SizedBox(height: 6),

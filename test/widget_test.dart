@@ -15,7 +15,7 @@ void main() {
       ),
     );
 
-    // Verify that our welcome text is present.
-    expect(find.text('Aprende hablando'), findsOneWidget);
+    // Verify the Dungeon of English brand heading is rendered.
+    expect(find.text('DUNGEON OF ENGLISH'), findsOneWidget);
   });
 }

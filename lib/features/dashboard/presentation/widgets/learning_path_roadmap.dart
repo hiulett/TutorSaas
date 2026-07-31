@@ -109,7 +109,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
           children: [
             const Icon(
               Icons.map_rounded,
-              color: AppColors.primaryPurple,
+              color: AppColors.runeViolet,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -158,16 +158,16 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.primaryPurple
+                          ? AppColors.runeViolet
                           : isUserCurrentLevel
-                              ? AppColors.primaryPurple.withValues(alpha: 0.15)
+                              ? AppColors.runeViolet.withValues(alpha: 0.15)
                               : Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
-                            ? AppColors.primaryPurple
+                            ? AppColors.runeViolet
                             : isUserCurrentLevel
-                                ? AppColors.tertiaryTeal
+                                ? AppColors.manaCyan
                                 : Colors.white.withValues(alpha: 0.08),
                         width: isSelected || isUserCurrentLevel ? 1.5 : 1.0,
                       ),
@@ -189,7 +189,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
                             height: 6,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.tertiaryTeal,
+                              color: AppColors.manaCyan,
                             ),
                           ),
                         ],
@@ -210,7 +210,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
             value: stageProgress,
             minHeight: 4,
             backgroundColor: Colors.white.withValues(alpha: 0.06),
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.tertiaryTeal),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.manaCyan),
           ),
         ),
 
@@ -295,8 +295,8 @@ class _RoadmapNodeTile extends StatelessWidget {
       nodeColor = accentGreen.withValues(alpha: 0.2);
       borderColor = accentGreen;
     } else if (isNextLesson) {
-      nodeColor = AppColors.primaryPurple.withValues(alpha: 0.25);
-      borderColor = AppColors.tertiaryTeal;
+      nodeColor = AppColors.runeViolet.withValues(alpha: 0.25);
+      borderColor = AppColors.manaCyan;
     } else {
       nodeColor = Colors.white.withValues(alpha: 0.03);
       borderColor = Colors.white.withValues(alpha: 0.1);
@@ -321,7 +321,7 @@ class _RoadmapNodeTile extends StatelessWidget {
                   boxShadow: isNextLesson
                       ? [
                           BoxShadow(
-                            color: AppColors.primaryPurple.withValues(alpha: 0.4),
+                            color: AppColors.runeViolet.withValues(alpha: 0.4),
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
@@ -368,7 +368,7 @@ class _RoadmapNodeTile extends StatelessWidget {
                   opacity: isCompleted ? 0.08 : (isNextLesson ? 0.12 : 0.03),
                   border: Border.all(
                     color: isNextLesson
-                        ? AppColors.primaryPurple.withValues(alpha: 0.4)
+                        ? AppColors.runeViolet.withValues(alpha: 0.4)
                         : isCompleted
                             ? accentGreen.withValues(alpha: 0.2)
                             : Colors.white.withValues(alpha: 0.04),
@@ -390,7 +390,7 @@ class _RoadmapNodeTile extends StatelessWidget {
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: isNextLesson
-                                          ? AppColors.tertiaryTeal
+                                          ? AppColors.manaCyan
                                           : AppColors.onSurfaceVariant,
                                     ),
                                     maxLines: 1,
@@ -402,7 +402,7 @@ class _RoadmapNodeTile extends StatelessWidget {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: AppColors.tertiaryTeal.withValues(alpha: 0.2),
+                                      color: AppColors.manaCyan.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
@@ -410,7 +410,7 @@ class _RoadmapNodeTile extends StatelessWidget {
                                       style: GoogleFonts.hankenGrotesk(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w800,
-                                        color: AppColors.tertiaryTeal,
+                                        color: AppColors.manaCyan,
                                       ),
                                     ),
                                   ),
@@ -483,7 +483,7 @@ class _RoadmapNodeTile extends StatelessWidget {
                         IconButton(
                           icon: const Icon(
                             Icons.play_circle_fill_rounded,
-                            color: AppColors.primaryPurple,
+                            color: AppColors.runeViolet,
                             size: 32,
                           ),
                           onPressed: () {

@@ -24,11 +24,11 @@ class ManaMeterWidget extends StatelessWidget {
         color: const Color(0xFF0F172A).withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.primaryPurple.withValues(alpha: 0.5),
+          color: AppColors.runeViolet.withValues(alpha: 0.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryPurple.withValues(alpha: 0.2),
+            color: AppColors.runeViolet.withValues(alpha: 0.2),
             blurRadius: 10,
           ),
         ],
@@ -74,7 +74,7 @@ class ManaMeterWidget extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: percent,
                     backgroundColor: Colors.white10,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.runeViolet),
                   ),
                 ),
               ),

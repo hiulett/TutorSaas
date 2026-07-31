@@ -39,8 +39,8 @@ class _VoiceWaveformVisualizerState extends State<VoiceWaveformVisualizer>
   Widget build(BuildContext context) {
     final isActive = widget.isAiSpeaking || widget.isUserSpeaking;
     final waveColor = widget.isAiSpeaking
-        ? AppColors.primaryPurple
-        : (widget.isUserSpeaking ? AppColors.tertiaryTeal : Colors.white24);
+        ? AppColors.runeViolet
+        : (widget.isUserSpeaking ? AppColors.manaCyan : Colors.white24);
 
     return AnimatedBuilder(
       animation: _controller,

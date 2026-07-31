@@ -158,7 +158,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        const Icon(Icons.explore_rounded, color: AppColors.primaryPurple, size: 28),
+                        const Icon(Icons.explore_rounded, color: AppColors.runeViolet, size: 28),
                         const SizedBox(width: 10),
                         Text(
                           'Guía de Misión y Contexto',
@@ -255,7 +255,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             children: [
               Icon(
                 isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                color: isCompleted ? AppColors.tertiaryTeal : Colors.white38,
+                color: isCompleted ? AppColors.manaCyan : Colors.white38,
                 size: 20,
               ),
               const SizedBox(width: 10),
@@ -296,24 +296,24 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: isUsed 
-                ? AppColors.tertiaryTeal.withValues(alpha: 0.2)
-                : AppColors.primaryPurple.withValues(alpha: 0.15),
+                ? AppColors.manaCyan.withValues(alpha: 0.2)
+                : AppColors.runeViolet.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isUsed ? AppColors.tertiaryTeal : AppColors.primaryPurple.withValues(alpha: 0.3),
+              color: isUsed ? AppColors.manaCyan : AppColors.runeViolet.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (isUsed) ...[
-                const Icon(Icons.check_circle_rounded, color: AppColors.tertiaryTeal, size: 14),
+                const Icon(Icons.check_circle_rounded, color: AppColors.manaCyan, size: 14),
                 const SizedBox(width: 6),
               ],
               Text(
                 phrase,
                 style: TextStyle(
-                  color: isUsed ? AppColors.tertiaryTeal : Colors.white,
+                  color: isUsed ? AppColors.manaCyan : Colors.white,
                   fontSize: 12,
                   fontWeight: isUsed ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -445,7 +445,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Icon(Icons.fingerprint_rounded, color: AppColors.primaryPurple, size: 28),
+                    const Icon(Icons.fingerprint_rounded, color: AppColors.runeViolet, size: 28),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -463,9 +463,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildMetricCard('Claridad Fonética', phoneticClarityValue, Icons.graphic_eq_rounded, AppColors.tertiaryTeal)),
+                    Expanded(child: _buildMetricCard('Claridad Fonética', phoneticClarityValue, Icons.graphic_eq_rounded, AppColors.manaCyan)),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildMetricCard('Velocidad Habla', wpmText, Icons.speed_rounded, AppColors.secondaryBlue)),
+                    Expanded(child: _buildMetricCard('Velocidad Habla', wpmText, Icons.speed_rounded, AppColors.manaCyan)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -473,7 +473,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   children: [
                     Expanded(child: _buildMetricCard('Palabras Habladas', '$wordCount', Icons.chat_bubble_outline_rounded, const Color(0xFFFFD700))),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildMetricCard('Nivel CEFR', cefrText, Icons.auto_awesome_rounded, AppColors.primaryPurple)),
+                    Expanded(child: _buildMetricCard('Nivel CEFR', cefrText, Icons.auto_awesome_rounded, AppColors.runeViolet)),
                   ],
                 ),
                 const SizedBox(height: 18),
@@ -609,7 +609,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 height: 400,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primaryPurple.withValues(alpha: 0.15),
+                  color: AppColors.runeViolet.withValues(alpha: 0.15),
                 ),
               ),
             ),
@@ -752,11 +752,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: _isTypingMode
-                                        ? AppColors.tertiaryTeal.withValues(alpha: 0.2)
+                                        ? AppColors.manaCyan.withValues(alpha: 0.2)
                                         : Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: _isTypingMode ? AppColors.tertiaryTeal : Colors.white24,
+                                      color: _isTypingMode ? AppColors.manaCyan : Colors.white24,
                                     ),
                                   ),
                                   child: Row(
@@ -769,7 +769,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: _isTypingMode ? AppColors.tertiaryTeal : Colors.white70,
+                                          color: _isTypingMode ? AppColors.manaCyan : Colors.white70,
                                         ),
                                       ),
                                     ],
@@ -798,8 +798,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         final message = conversationState.messages[index];
                         final isUser = message.sender == 'user';
 
+                        Widget bubble;
                         if (!isUser) {
-                          return Padding(
+                          bubble = Padding(
                             padding: const EdgeInsets.only(bottom: 24.0),
                             child: Align(
                               alignment: Alignment.centerLeft,
@@ -812,7 +813,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             ),
                           );
                         } else {
-                          return Padding(
+                          bubble = Padding(
                             padding: const EdgeInsets.only(bottom: 24.0),
                             child: Align(
                               alignment: Alignment.centerRight,
@@ -825,6 +826,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             ),
                           );
                         }
+
+                        final isLatest = index == conversationState.messages.length - 1;
+                        if (isLatest && index > 0) return _AnimatedMessage(child: bubble);
+                        return bubble;
                       },
                     ),
                   ),
@@ -849,9 +854,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryPurple.withValues(alpha: 0.18),
+                                  color: AppColors.runeViolet.withValues(alpha: 0.18),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.4)),
+                                  border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.4)),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -898,7 +903,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: const Icon(Icons.send_rounded, color: AppColors.primaryPurple),
+                            icon: const Icon(Icons.send_rounded, color: AppColors.runeViolet),
                             onPressed: _submitTextMessage,
                           ),
                           IconButton(
@@ -930,7 +935,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         IconButton(
                           icon: Icon(
                             Icons.tag_rounded,
-                            color: _showTopicsBar ? AppColors.primaryPurple : Colors.white70,
+                            color: _showTopicsBar ? AppColors.runeViolet : Colors.white70,
                             size: 28,
                           ),
                           onPressed: () {
@@ -976,7 +981,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
                         // Icon 4: Fingerprint (Huella de Voz & Biometría)
                         IconButton(
-                          icon: const Icon(Icons.fingerprint_rounded, color: AppColors.primaryPurple, size: 28),
+                          icon: const Icon(Icons.fingerprint_rounded, color: AppColors.runeViolet, size: 28),
                           onPressed: () => _showSpeechDnaModal(context),
                         ),
 
@@ -984,7 +989,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         IconButton(
                           icon: Icon(
                             Icons.keyboard_rounded,
-                            color: _showKeyboardDrawer ? AppColors.primaryPurple : Colors.white70,
+                            color: _showKeyboardDrawer ? AppColors.runeViolet : Colors.white70,
                             size: 28,
                           ),
                           onPressed: () {
@@ -1033,7 +1038,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               height: 6,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple,
+                color: AppColors.runeViolet,
               ),
             );
           }),
@@ -1111,18 +1116,59 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.primaryPurple.withValues(alpha: 0.15),
+                color: AppColors.runeViolet.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.3)),
               ),
               child: Text(
                 message.correctionExplanation!,
-                style: const TextStyle(color: AppColors.primaryPurpleDim, fontSize: 12),
+                style: const TextStyle(color: AppColors.runeVioletText, fontSize: 12),
               ),
             ),
           ],
         ],
       ),
+    );
+  }
+}
+
+class _AnimatedMessage extends StatefulWidget {
+  final Widget child;
+  final int delay;
+  const _AnimatedMessage({required this.child, this.delay = 0});
+
+  @override
+  State<_AnimatedMessage> createState() => _AnimatedMessageState();
+}
+
+class _AnimatedMessageState extends State<_AnimatedMessage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    Future.delayed(Duration(milliseconds: widget.delay), () { if (mounted) _controller.forward(); });
+  }
+
+  @override
+  void dispose() { _controller.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnim.value,
+          child: Transform.translate(offset: Offset(0, _slideAnim.value.dy * 20), child: widget.child),
+        );
+      },
     );
   }
 }

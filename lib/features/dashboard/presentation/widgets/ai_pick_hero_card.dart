@@ -53,7 +53,7 @@ class AIPickHeroCard extends StatelessWidget {
       blur: 30,
       opacity: 0.14,
       border: Border.all(
-        color: AppColors.tertiaryTeal.withValues(alpha: 0.5),
+        color: AppColors.manaCyan.withValues(alpha: 0.5),
         width: 1.5,
       ),
       padding: const EdgeInsets.all(20),
@@ -72,13 +72,13 @@ class AIPickHeroCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryPurple.withValues(alpha: 0.3),
-                      AppColors.tertiaryTeal.withValues(alpha: 0.2),
+                      AppColors.runeViolet.withValues(alpha: 0.3),
+                      AppColors.manaCyan.withValues(alpha: 0.2),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.tertiaryTeal.withValues(alpha: 0.6),
+                    color: AppColors.manaCyan.withValues(alpha: 0.6),
                   ),
                 ),
                 child: Row(
@@ -86,7 +86,7 @@ class AIPickHeroCard extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.auto_awesome_rounded,
-                      color: AppColors.tertiaryTeal,
+                      color: AppColors.manaCyan,
                       size: 14,
                     ),
                     const SizedBox(width: 6),
@@ -95,7 +95,7 @@ class AIPickHeroCard extends StatelessWidget {
                       style: GoogleFonts.hankenGrotesk(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.tertiaryTeal,
+                        color: AppColors.manaCyan,
                         letterSpacing: 1.0,
                       ),
                     ),
@@ -133,9 +133,9 @@ class AIPickHeroCard extends StatelessWidget {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                  color: AppColors.runeViolet.withValues(alpha: 0.2),
                   border: Border.all(
-                    color: AppColors.primaryPurple.withValues(alpha: 0.4),
+                    color: AppColors.runeViolet.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Icon(
@@ -188,7 +188,7 @@ class AIPickHeroCard extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.psychology_rounded,
-                  color: AppColors.tertiaryTeal,
+                  color: AppColors.manaCyan,
                   size: 14,
                 ),
                 const SizedBox(width: 8),
@@ -217,7 +217,7 @@ class AIPickHeroCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onTapPreview,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
+                backgroundColor: AppColors.runeViolet,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

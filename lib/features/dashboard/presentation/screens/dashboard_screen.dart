@@ -19,6 +19,7 @@ import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
 import 'settings_screen.dart';
 import '../widgets/status_window_modal.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
+import '../../../../core/widgets/rpg_avatar.dart';
 
 
 
@@ -93,7 +94,7 @@ class DashboardScreen extends ConsumerWidget {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.12),
+                color: AppColors.runeViolet.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -105,7 +106,7 @@ class DashboardScreen extends ConsumerWidget {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.secondaryBlue.withValues(alpha: 0.08),
+                color: AppColors.manaCyan.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -120,24 +121,30 @@ class DashboardScreen extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.language_rounded,
-                            color: AppColors.primaryPurple,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'TutorSaaS',
-                            style: GoogleFonts.hankenGrotesk(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -0.5,
+                      Flexible(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.language_rounded,
+                              color: AppColors.runeViolet,
+                              size: 28,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'TutorSaaS',
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.hankenGrotesk(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.logout_rounded, color: AppColors.onSurfaceVariant),
@@ -151,10 +158,10 @@ class DashboardScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                // Body with 4 Tabs (0: Home, 1: Lecciones, 2: Progreso, 3: Ajustes)
+                // Body with 4 Tabs (0: Dungeons, 1: Guild→/chat-rooms, 2: Status, 3: Config)
                 Expanded(
                   child: currentTab == 1
-                      ? const RecommendedLessonsHub()
+                      ? const SizedBox.shrink()
                       : currentTab == 2
                           ? _ProgressTabView(profile: profile, progress: progress)
                           : currentTab == 3
@@ -176,26 +183,11 @@ class DashboardScreen extends ConsumerWidget {
                                           child: Row(
                                             children: [
                                               // Cyberpunk User Avatar
-                                              Container(
-                                                width: 60,
-                                                height: 60,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: AppColors.primaryPurple.withValues(alpha: 0.3),
-                                                    width: 2,
-                                                  ),
-                                                ),
-                                                padding: const EdgeInsets.all(3),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    image: DecorationImage(
-                                                      image: NetworkImage(userAvatarUrl),
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  ),
-                                                ),
+                                              RpgAvatar(
+                                                avatarUrl: userAvatarUrl,
+                                                initials: userName.isNotEmpty ? userName.substring(0, userName.length > 1 ? 2 : 1) : 'H',
+                                                size: 54,
+                                                hunterClass: 'mage',
                                               ),
                                               const SizedBox(width: 16),
                                               Expanded(
@@ -285,11 +277,11 @@ class DashboardScreen extends ConsumerWidget {
                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                                 decoration: BoxDecoration(
                                                   color: isPremium
-                                                      ? AppColors.tertiaryTeal.withValues(alpha: 0.15)
-                                                      : AppColors.primaryPurple.withValues(alpha: 0.15),
+                                                      ? AppColors.manaCyan.withValues(alpha: 0.15)
+                                                      : AppColors.runeViolet.withValues(alpha: 0.15),
                                                   borderRadius: BorderRadius.circular(20),
                                                   border: Border.all(
-                                                    color: isPremium ? AppColors.tertiaryTeal : AppColors.primaryPurple,
+                                                    color: isPremium ? AppColors.manaCyan : AppColors.runeViolet,
                                                     width: 1,
                                                   ),
                                                 ),
@@ -298,7 +290,7 @@ class DashboardScreen extends ConsumerWidget {
                                                   children: [
                                                     Icon(
                                                       isPremium ? Icons.workspace_premium_rounded : Icons.star_border_rounded,
-                                                      color: isPremium ? AppColors.tertiaryTeal : AppColors.primaryPurpleDim,
+                                                      color: isPremium ? AppColors.manaCyan : AppColors.runeViolet,
                                                       size: 16,
                                                     ),
                                                     const SizedBox(width: 4),
@@ -307,7 +299,7 @@ class DashboardScreen extends ConsumerWidget {
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 11,
-                                                        color: isPremium ? AppColors.tertiaryTeal : AppColors.primaryPurpleDim,
+                                                        color: isPremium ? AppColors.manaCyan : AppColors.runeViolet,
                                                       ),
                                                     ),
                                                   ],
@@ -334,24 +326,24 @@ class DashboardScreen extends ConsumerWidget {
                                       blur: 25,
                                       opacity: 0.1,
                                       border: Border.all(
-                                        color: AppColors.tertiaryTeal.withValues(alpha: 0.4),
+                                        color: AppColors.manaCyan.withValues(alpha: 0.4),
                                         width: 1.5,
                                       ),
                                       padding: const EdgeInsets.all(16),
-                                      child: InkWell(
+                                      child: GestureDetector(
                                         onTap: () => context.push('/chat-rooms'),
                                         child: Row(
                                           children: [
                                             Container(
                                               padding: const EdgeInsets.all(12),
                                               decoration: BoxDecoration(
-                                                color: AppColors.tertiaryTeal.withValues(alpha: 0.2),
+                                                color: AppColors.manaCyan.withValues(alpha: 0.2),
                                                 shape: BoxShape.circle,
-                                                border: Border.all(color: AppColors.tertiaryTeal),
+                                                border: Border.all(color: AppColors.manaCyan),
                                               ),
                                               child: const Icon(
                                                 Icons.groups_rounded,
-                                                color: AppColors.tertiaryTeal,
+                                                color: AppColors.manaCyan,
                                                 size: 26,
                                               ),
                                             ),
@@ -397,7 +389,7 @@ class DashboardScreen extends ConsumerWidget {
                                                 ],
                                               ),
                                             ),
-                                            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.tertiaryTeal, size: 18),
+                                            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.manaCyan, size: 18),
                                           ],
                                         ),
                                       ),
@@ -424,15 +416,18 @@ class DashboardScreen extends ConsumerWidget {
                                       children: [
                                         const Icon(
                                           Icons.workspace_premium_rounded,
-                                          color: AppColors.primaryPurple,
+                                          color: AppColors.runeViolet,
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          'Mis Logros y Estadísticas',
-                                          style: theme.textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                        Flexible(
+                                          child: Text(
+                                            'Mis Logros y Estadísticas',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -574,7 +569,7 @@ class DashboardScreen extends ConsumerWidget {
                                                                       value: progress.clamp(0.0, 1.0),
                                                                       backgroundColor: Colors.white.withValues(alpha: 0.05),
                                                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                                                        isUnlocked ? trophyColor : AppColors.primaryPurpleDim,
+                                                                        isUnlocked ? trophyColor : AppColors.runeViolet,
                                                                       ),
                                                                       minHeight: 3,
                                                                     ),
@@ -602,7 +597,7 @@ class DashboardScreen extends ConsumerWidget {
                                           );
                                         },
                                         loading: () => const Center(
-                                          child: CircularProgressIndicator(color: AppColors.primaryPurple),
+                                          child: CircularProgressIndicator(color: AppColors.runeViolet),
                                         ),
                                         error: (err, stack) => Center(
                                           child: Text(
@@ -620,15 +615,18 @@ class DashboardScreen extends ConsumerWidget {
                                       children: [
                                         const Icon(
                                           Icons.speed_rounded,
-                                          color: AppColors.tertiaryTeal,
+                                          color: AppColors.manaCyan,
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          'Fluidez & Tiempo de Expresión',
-                                          style: theme.textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                        Flexible(
+                                          child: Text(
+                                            'Fluidez & Tiempo de Expresión',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -652,13 +650,16 @@ class DashboardScreen extends ConsumerWidget {
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    const Row(
+                                                    Row(
                                                       children: [
-                                                        Icon(Icons.timer_outlined, color: AppColors.secondaryBlue, size: 16),
-                                                        SizedBox(width: 6),
-                                                        Text(
-                                                          'Respuesta',
-                                                          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                                        const Icon(Icons.timer_outlined, color: AppColors.manaCyan, size: 16),
+                                                        const SizedBox(width: 6),
+                                                        const Flexible(
+                                                          child: Text(
+                                                            'Respuesta',
+                                                            overflow: TextOverflow.ellipsis,
+                                                            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -674,7 +675,7 @@ class DashboardScreen extends ConsumerWidget {
                                                     const SizedBox(height: 4),
                                                     const Text(
                                                       '⚡ Latencia de duda',
-                                                      style: TextStyle(color: AppColors.tertiaryTeal, fontSize: 10, fontWeight: FontWeight.bold),
+                                                      style: TextStyle(color: AppColors.manaCyan, fontSize: 10, fontWeight: FontWeight.bold),
                                                     ),
                                                   ],
                                                 ),
@@ -690,13 +691,16 @@ class DashboardScreen extends ConsumerWidget {
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    const Row(
+                                                    Row(
                                                       children: [
-                                                        Icon(Icons.record_voice_over_rounded, color: AppColors.primaryPurple, size: 16),
-                                                        SizedBox(width: 6),
-                                                        Text(
-                                                          'Velocidad',
-                                                          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                                        const Icon(Icons.record_voice_over_rounded, color: AppColors.runeViolet, size: 16),
+                                                        const SizedBox(width: 6),
+                                                        const Flexible(
+                                                          child: Text(
+                                                            'Velocidad',
+                                                            overflow: TextOverflow.ellipsis,
+                                                            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -712,7 +716,7 @@ class DashboardScreen extends ConsumerWidget {
                                                     const SizedBox(height: 4),
                                                     Text(
                                                       '🗣️ Score Fluidez: $score%',
-                                                      style: const TextStyle(color: AppColors.primaryPurpleDim, fontSize: 10, fontWeight: FontWeight.bold),
+                                                      style: const TextStyle(color: AppColors.runeViolet, fontSize: 10, fontWeight: FontWeight.bold),
                                                     ),
                                                   ],
                                                 ),
@@ -744,13 +748,13 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
 
-          // Floating Bottom Navigation Bar (4 Items: Inicio, Lecciones, Progreso, Ajustes)
+          // Floating Bottom Navigation Bar (4 Items: Dungeons, Guild→/chat-rooms, Status, Config)
           Positioned(
             bottom: 24,
             left: 16,
             right: 16,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(4),
               child: GlassCard(
                 blur: 30.0,
                 opacity: 0.08,
@@ -759,36 +763,28 @@ class DashboardScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildNavItem(
-                      icon: Icons.fort_rounded,
-                      label: 'Santuario',
+                      icon: Icons.gps_fixed_rounded,
+                      label: 'MAZMORRAS',
                       isActive: currentTab == 0,
-                      onTap: () {
-                        ref.read(dashboardTabProvider.notifier).state = 0;
-                      },
+                      onTap: () => ref.read(dashboardTabProvider.notifier).state = 0,
                     ),
                     _buildNavItem(
-                      icon: Icons.auto_awesome_rounded,
-                      label: 'Mazmorras',
-                      isActive: currentTab == 1,
-                      onTap: () {
-                        ref.read(dashboardTabProvider.notifier).state = 1;
-                      },
+                      icon: Icons.shield_rounded,
+                      label: 'GUILD',
+                      isActive: false,
+                      onTap: () => context.push('/chat-rooms'),
                     ),
                     _buildNavItem(
-                      icon: Icons.military_tech_rounded,
-                      label: 'Estado Hunter',
+                      icon: Icons.person_rounded,
+                      label: 'ESTADO',
                       isActive: currentTab == 2,
-                      onTap: () {
-                        ref.read(dashboardTabProvider.notifier).state = 2;
-                      },
+                      onTap: () => ref.read(dashboardTabProvider.notifier).state = 2,
                     ),
                     _buildNavItem(
                       icon: Icons.settings_rounded,
-                      label: 'Ajustes',
+                      label: 'CONFIG',
                       isActive: currentTab == 3,
-                      onTap: () {
-                        ref.read(dashboardTabProvider.notifier).state = 3;
-                      },
+                      onTap: () => ref.read(dashboardTabProvider.notifier).state = 3,
                     ),
                   ],
                 ),
@@ -816,15 +812,15 @@ class DashboardScreen extends ConsumerWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.tertiaryTeal.withValues(alpha: 0.15) : Colors.transparent,
+              color: isActive ? AppColors.manaCyan.withValues(alpha: 0.15) : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
               border: isActive
-                  ? Border.all(color: AppColors.tertiaryTeal.withValues(alpha: 0.4), width: 1)
+                  ? Border.all(color: AppColors.manaCyan.withValues(alpha: 0.4), width: 1)
                   : null,
               boxShadow: isActive
                   ? [
                       BoxShadow(
-                        color: AppColors.tertiaryTeal.withValues(alpha: 0.25),
+                        color: AppColors.manaCyan.withValues(alpha: 0.25),
                         blurRadius: 10,
                       ),
                     ]
@@ -835,7 +831,7 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 Icon(
                   icon,
-                  color: isActive ? AppColors.tertiaryTeal : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+                  color: isActive ? AppColors.manaCyan : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
                   size: 24,
                 ),
                 const SizedBox(height: 3),
@@ -846,7 +842,7 @@ class DashboardScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                    color: isActive ? AppColors.tertiaryTeal : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+                    color: isActive ? AppColors.manaCyan : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
                     letterSpacing: 0.3,
                   ),
                 ),
@@ -898,20 +894,11 @@ class _ProgressTabView extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primaryPurple,
-                        width: 2.5,
-                      ),
-                      image: DecorationImage(
-                        image: NetworkImage(avatarUrl),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                  RpgAvatar(
+                    avatarUrl: avatarUrl,
+                    initials: displayName.isNotEmpty ? displayName.substring(0, displayName.length > 1 ? 2 : 1) : 'H',
+                    size: 64,
+                    hunterClass: 'assassin',
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -931,7 +918,7 @@ class _ProgressTabView extends ConsumerWidget {
                         Text(
                           '$langEmoji Aprendiendo $langName • Nivel $cefrCode ($cefrName)',
                           style: const TextStyle(
-                            color: AppColors.tertiaryTeal,
+                            color: AppColors.manaCyan,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -940,7 +927,7 @@ class _ProgressTabView extends ConsumerWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.edit_rounded, color: AppColors.primaryPurpleDim, size: 20),
+                    icon: const Icon(Icons.edit_rounded, color: AppColors.runeViolet, size: 20),
                     onPressed: () => context.push('/profile-edit'),
                   ),
                 ],
@@ -953,22 +940,22 @@ class _ProgressTabView extends ConsumerWidget {
             GlassCard(
               blur: 25,
               opacity: 0.15,
-              border: Border.all(color: AppColors.tertiaryTeal, width: 1.5),
+              border: Border.all(color: AppColors.manaCyan, width: 1.5),
               padding: const EdgeInsets.all(16),
-              child: InkWell(
+              child: GestureDetector(
                 onTap: () => StatusWindowModal.show(context),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.tertiaryTeal.withValues(alpha: 0.2),
+                        color: AppColors.manaCyan.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.tertiaryTeal),
+                        border: Border.all(color: AppColors.manaCyan),
                       ),
                       child: const Icon(
                         Icons.military_tech_rounded,
-                        color: AppColors.tertiaryTeal,
+                        color: AppColors.manaCyan,
                         size: 24,
                       ),
                     ),
@@ -997,7 +984,7 @@ class _ProgressTabView extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.open_in_full_rounded, color: AppColors.tertiaryTeal, size: 18),
+                    const Icon(Icons.open_in_full_rounded, color: AppColors.manaCyan, size: 18),
                   ],
                 ),
               ),
@@ -1053,7 +1040,7 @@ class _ProgressTabView extends ConsumerWidget {
                     padding: const EdgeInsets.all(14),
                     child: Column(
                       children: [
-                        const Icon(Icons.psychology_rounded, color: AppColors.tertiaryTeal, size: 22),
+                        const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 22),
                         const SizedBox(height: 6),
                         Text(
                           cefrCode,
@@ -1109,7 +1096,7 @@ class _ProgressTabView extends ConsumerWidget {
                             height: height > 6 ? height : 6,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [AppColors.primaryPurple, AppColors.tertiaryTeal],
+                                colors: [AppColors.runeViolet, AppColors.manaCyan],
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
                               ),
@@ -1135,7 +1122,7 @@ class _ProgressTabView extends ConsumerWidget {
                 blur: 20,
                 opacity: 0.04,
                 padding: EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+                child: Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
               ),
               error: (e, s) => const GlassCard(
                 blur: 20,
@@ -1208,7 +1195,7 @@ class _ProgressTabView extends ConsumerWidget {
                                 icon: const Icon(Icons.style_rounded, size: 14),
                                 label: const Text('Repaso SRS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryPurple,
+                                  backgroundColor: AppColors.runeViolet,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -1217,7 +1204,7 @@ class _ProgressTabView extends ConsumerWidget {
                             if (vocabList.isNotEmpty)
                               TextButton(
                                 onPressed: () => _showAllVocabModal(context, vocabList),
-                                child: const Text('VER TODO', style: TextStyle(color: AppColors.tertiaryTeal, fontSize: 12, fontWeight: FontWeight.bold)),
+                                child: const Text('VER TODO', style: TextStyle(color: AppColors.manaCyan, fontSize: 12, fontWeight: FontWeight.bold)),
                               ),
                           ],
                         ),
@@ -1275,13 +1262,13 @@ class _ProgressTabView extends ConsumerWidget {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                                      color: AppColors.runeViolet.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       item['category'] as String? ?? 'Vocabulario',
                                       style: const TextStyle(
-                                        color: AppColors.tertiaryTeal,
+                                        color: AppColors.manaCyan,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -1294,7 +1281,7 @@ class _ProgressTabView extends ConsumerWidget {
                   ],
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
               error: (_, __) => const SizedBox.shrink(),
             ),
 
@@ -1387,13 +1374,13 @@ class _ProgressTabView extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                                  color: AppColors.runeViolet.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   item['category'] as String? ?? 'Vocabulario',
                                   style: const TextStyle(
-                                    color: AppColors.tertiaryTeal,
+                                    color: AppColors.manaCyan,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -1463,7 +1450,7 @@ class _MicPulseButtonState extends State<MicPulseButton> with SingleTickerProvid
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.primaryPurple.withValues(alpha: 1.0 - _controller.value),
+                      color: AppColors.runeViolet.withValues(alpha: 1.0 - _controller.value),
                       width: 2,
                     ),
                   ),
@@ -1476,15 +1463,15 @@ class _MicPulseButtonState extends State<MicPulseButton> with SingleTickerProvid
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
                       colors: [
-                        AppColors.primaryPurple,
-                        AppColors.secondaryBlue,
+                        AppColors.runeViolet,
+                        AppColors.manaCyan,
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryPurple.withValues(alpha: 0.4),
+                        color: AppColors.runeViolet.withValues(alpha: 0.4),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -1704,25 +1691,30 @@ class _FluencyLatencyChart extends ConsumerWidget {
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              const Row(
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.show_chart_rounded, color: AppColors.tertiaryTeal, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Evolución de Fluidez & Latencia',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  const Icon(Icons.show_chart_rounded, color: AppColors.manaCyan, size: 20),
+                  const SizedBox(width: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 200),
+                    child: const Text(
+                      'Evolución de Fluidez & Latencia',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
                   ),
                 ],
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.tertiaryTeal, shape: BoxShape.circle)),
+                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.manaCyan, shape: BoxShape.circle)),
                   const SizedBox(width: 4),
                   const Text('WPM', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10)),
                   const SizedBox(width: 8),
-                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.secondaryBlue, shape: BoxShape.circle)),
+                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.manaCyan, shape: BoxShape.circle)),
                   const SizedBox(width: 4),
                   const Text('Latencia (s)', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10)),
                 ],
@@ -1769,19 +1761,19 @@ class _FluencyLatencyChart extends ConsumerWidget {
                       LineChartBarData(
                         spots: wpmSpots,
                         isCurved: true,
-                        color: AppColors.tertiaryTeal,
+                        color: AppColors.manaCyan,
                         barWidth: 3,
                         isStrokeCapRound: true,
                         dotData: const FlDotData(show: true),
                         belowBarData: BarAreaData(
                           show: true,
-                          color: AppColors.tertiaryTeal.withValues(alpha: 0.15),
+                          color: AppColors.manaCyan.withValues(alpha: 0.15),
                         ),
                       ),
                       LineChartBarData(
                         spots: latencySpots,
                         isCurved: true,
-                        color: AppColors.secondaryBlue,
+                        color: AppColors.manaCyan,
                         barWidth: 2,
                         isStrokeCapRound: true,
                         dotData: const FlDotData(show: false),
@@ -1790,7 +1782,7 @@ class _FluencyLatencyChart extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
               error: (_, __) => const SizedBox.shrink(),
             ),
           ),
@@ -1817,7 +1809,7 @@ class _SkillsRadarChart extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.radar_rounded, color: AppColors.primaryPurple, size: 20),
+              const Icon(Icons.radar_rounded, color: AppColors.runeViolet, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -1865,8 +1857,8 @@ class _SkillsRadarChart extends ConsumerWidget {
                     },
                     dataSets: [
                       RadarDataSet(
-                        fillColor: AppColors.primaryPurple.withValues(alpha: 0.25),
-                        borderColor: AppColors.primaryPurple,
+                        fillColor: AppColors.runeViolet.withValues(alpha: 0.25),
+                        borderColor: AppColors.runeViolet,
                         entryRadius: 3,
                         borderWidth: 2,
                         dataEntries: [
@@ -1881,7 +1873,7 @@ class _SkillsRadarChart extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
               error: (_, __) => const SizedBox.shrink(),
             ),
           ),
@@ -1946,11 +1938,11 @@ class _PracticeHeatmap extends ConsumerWidget {
                       if (minutes == 0) {
                         cellColor = Colors.white.withValues(alpha: 0.05);
                       } else if (minutes < 10) {
-                        cellColor = AppColors.primaryPurple.withValues(alpha: 0.3);
+                        cellColor = AppColors.runeViolet.withValues(alpha: 0.3);
                       } else if (minutes < 20) {
-                        cellColor = AppColors.primaryPurple;
+                        cellColor = AppColors.runeViolet;
                       } else {
-                        cellColor = AppColors.tertiaryTeal;
+                        cellColor = AppColors.manaCyan;
                       }
 
                       return Expanded(
@@ -1973,13 +1965,13 @@ class _PracticeHeatmap extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Hace 4 semanas', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10)),
-                      Text('Hoy', style: TextStyle(color: AppColors.tertiaryTeal, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text('Hoy', style: TextStyle(color: AppColors.manaCyan, fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
             error: (_, __) => const SizedBox.shrink(),
           ),
         ],

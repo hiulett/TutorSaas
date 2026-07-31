@@ -70,9 +70,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
           .maybeSingle();
 
       String levelCode = 'A1';
-      int? languageId;
+      int languageId = 1;
       if (profileResponse != null) {
-        languageId = profileResponse['language_id'] as int?;
+        languageId = profileResponse['language_id'] as int? ?? 1;
         final cefrMap = profileResponse['cefr_levels'] as Map<String, dynamic>?;
         levelCode = cefrMap?['code'] as String? ?? 'A1';
       }
@@ -90,15 +90,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // 3. Query Supabase public.scenarios matching language_id and difficulty_level
       List<Map<String, dynamic>> scenarios = [];
       try {
-        var query = _supabaseClient
+        final query = _supabaseClient
             .from('scenarios')
             .select('id, title, description, difficulty_level, category, estimated_minutes, main_objective, assistant_role, user_role, initial_assistant_message, goals, useful_phrases, language_id')
             .eq('difficulty_level', levelCode)
+            .eq('language_id', languageId)
             .eq('is_active', true);
-            
-        if (languageId != null) {
-          query = query.eq('language_id', languageId);
-        }
 
         final scenariosResponse = await query;
         scenarios = List<Map<String, dynamic>>.from(scenariosResponse);
@@ -776,11 +773,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<void> updateUserProfile(String userId, {String? displayName, String? avatarUrl, String? nativeLanguage}) async {
+  Future<void> updateUserProfile(String userId, {String? displayName, String? avatarUrl, String? nativeLanguage, String? bio}) async {
     final Map<String, dynamic> updates = {};
     if (displayName != null) updates['display_name'] = displayName;
     if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
     if (nativeLanguage != null) updates['native_language'] = nativeLanguage;
+    if (bio != null) updates['bio'] = bio;
     updates['updated_at'] = DateTime.now().toIso8601String();
 
     await _supabaseClient.from('users').update(updates).eq('id', userId);

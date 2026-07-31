@@ -38,7 +38,7 @@ class LessonPreviewSheet extends StatelessWidget {
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             border: Border(
               top: BorderSide(
-                color: AppColors.primaryPurple,
+                color: AppColors.runeViolet,
                 width: 1.5,
               ),
             ),
@@ -69,7 +69,7 @@ class LessonPreviewSheet extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                        color: AppColors.runeViolet.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -77,7 +77,7 @@ class LessonPreviewSheet extends StatelessWidget {
                         style: GoogleFonts.hankenGrotesk(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.tertiaryTeal,
+                          color: AppColors.manaCyan,
                         ),
                       ),
                     ),
@@ -158,7 +158,7 @@ class LessonPreviewSheet extends StatelessWidget {
                               lesson.assistantRole,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.tertiaryTeal,
+                                color: AppColors.manaCyan,
                                 fontSize: 13,
                               ),
                             ),
@@ -195,7 +195,7 @@ class LessonPreviewSheet extends StatelessWidget {
                           height: 20,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                            color: AppColors.runeViolet.withValues(alpha: 0.2),
                           ),
                           child: Center(
                             child: Text(
@@ -203,7 +203,7 @@ class LessonPreviewSheet extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryPurpleDim,
+                                color: AppColors.runeViolet,
                               ),
                             ),
                           ),
@@ -300,7 +300,7 @@ class LessonPreviewSheet extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryPurple,
+                      backgroundColor: AppColors.runeViolet,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),

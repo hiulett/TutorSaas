@@ -119,13 +119,13 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
                 },
                 icon: Icon(
                   _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                  color: AppColors.tertiaryTeal,
+                  color: AppColors.manaCyan,
                   size: 16,
                 ),
                 label: Text(
                   _isExpanded ? 'VER MENOS' : 'VER MÁS (${rawList.length})',
                   style: const TextStyle(
-                    color: AppColors.tertiaryTeal,
+                    color: AppColors.manaCyan,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -188,7 +188,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                        color: AppColors.runeViolet.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -196,7 +196,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.tertiaryTeal,
+                          color: AppColors.manaCyan,
                         ),
                       ),
                     ),
@@ -256,11 +256,10 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildMiniMetric('Pronunciación', '$pron%'),
-              _buildMiniMetric('Gramática', '$gram%'),
-              _buildMiniMetric('Fluidez', '$flue%'),
+              Expanded(child: _buildMiniMetric('Pronunciación', '$pron%')),
+              Expanded(child: _buildMiniMetric('Gramática', '$gram%')),
+              Expanded(child: _buildMiniMetric('Fluidez', '$flue%')),
             ],
           ),
         ],

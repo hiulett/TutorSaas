@@ -138,7 +138,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
               children: [
                 const Icon(
                   Icons.auto_awesome_rounded,
-                  color: AppColors.primaryPurple,
+                  color: AppColors.runeViolet,
                   size: 24,
                 ),
                 const SizedBox(width: 10),
@@ -156,7 +156,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                   icon: const Icon(Icons.groups_rounded, size: 16),
                   label: const Text('Salas de Voz', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.tertiaryTeal,
+                    backgroundColor: AppColors.manaCyan,
                     foregroundColor: const Color(0xFF0F172A),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -184,7 +184,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
               decoration: InputDecoration(
                 hintText: 'Buscar lección, rol o tema...',
                 hintStyle: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primaryPurple),
+                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.runeViolet),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear_rounded, color: Colors.white54, size: 18),
@@ -214,7 +214,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(
-                    color: AppColors.primaryPurple,
+                    color: AppColors.runeViolet,
                   ),
                 ),
               ),
@@ -246,11 +246,11 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 12,
                       ),
-                      selectedColor: AppColors.primaryPurple,
+                      selectedColor: AppColors.runeViolet,
                       backgroundColor: Colors.white.withValues(alpha: 0.04),
                       side: BorderSide(
                         color: isSelected
-                            ? AppColors.primaryPurple
+                            ? AppColors.runeViolet
                             : Colors.white.withValues(alpha: 0.08),
                       ),
                       shape: RoundedRectangleBorder(
@@ -283,14 +283,14 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                       },
                       label: Text(lvl == 'all' ? 'Todos Niveles' : 'Nivel $lvl'),
                       labelStyle: TextStyle(
-                        color: isSelected ? AppColors.tertiaryTeal : AppColors.onSurfaceVariant,
+                        color: isSelected ? AppColors.manaCyan : AppColors.onSurfaceVariant,
                         fontSize: 11,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
-                      selectedColor: AppColors.tertiaryTeal.withValues(alpha: 0.15),
+                      selectedColor: AppColors.manaCyan.withValues(alpha: 0.15),
                       backgroundColor: Colors.transparent,
                       side: BorderSide(
-                        color: isSelected ? AppColors.tertiaryTeal : Colors.transparent,
+                        color: isSelected ? AppColors.manaCyan : Colors.transparent,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -386,7 +386,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                                color: AppColors.runeViolet.withValues(alpha: 0.2),
                               ),
                               child: Icon(iconData, color: Colors.white, size: 20),
                             ),
@@ -401,7 +401,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                                          color: AppColors.runeViolet.withValues(alpha: 0.2),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
@@ -409,7 +409,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                           style: GoogleFonts.hankenGrotesk(
                                             fontSize: 9,
                                             fontWeight: FontWeight.w800,
-                                            color: AppColors.tertiaryTeal,
+                                            color: AppColors.manaCyan,
                                           ),
                                         ),
                                       ),
@@ -490,7 +490,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isLocked
                                       ? Colors.white12
-                                      : (isCompleted ? const Color(0xFF10B981) : AppColors.primaryPurple),
+                                      : (isCompleted ? const Color(0xFF10B981) : AppColors.runeViolet),
                                   foregroundColor: isLocked ? Colors.white38 : Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),

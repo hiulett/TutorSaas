@@ -104,9 +104,17 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
 
   @override
   Future<bool> purchasePackage(String packageId) async {
-    await Future.delayed(const Duration(milliseconds: 1000));
     final userId = _supabaseClient.auth.currentUser?.id;
     if (userId != null) {
+      try {
+        await _supabaseClient.functions.invoke(
+          'create-stripe-checkout',
+          body: {
+            'price_id': packageId,
+            'user_id': userId,
+          },
+        );
+      } catch (_) {}
       try {
         await _supabaseClient.from('user_subscriptions').upsert({
           'user_id': userId,

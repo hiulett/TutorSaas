@@ -35,7 +35,7 @@ class TextDiffUtils {
             TextSpan(
               text: '${correctedWords[i]} ',
               style: const TextStyle(
-                color: AppColors.tertiaryTealDim,
+                color: AppColors.manaCyanDim,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -58,7 +58,7 @@ class TextDiffUtils {
           TextSpan(
             text: '${correctedWords[i]} ',
             style: const TextStyle(
-              color: AppColors.tertiaryTealDim,
+              color: AppColors.manaCyanDim,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -68,5 +68,33 @@ class TextDiffUtils {
     }
 
     return spans;
+  }
+
+  /// Calculates percentage similarity between two strings using Levenshtein distance.
+  static double calculateSimilarity(String textA, String textB) {
+    final a = textA.toLowerCase().trim();
+    final b = textB.toLowerCase().trim();
+    if (a == b) return 100.0;
+    if (a.isEmpty || b.isEmpty) return 0.0;
+
+    final dp = List.generate(a.length + 1, (i) => List.filled(b.length + 1, 0));
+    for (int i = 0; i <= a.length; i++) dp[i][0] = i;
+    for (int j = 0; j <= b.length; j++) dp[0][j] = j;
+
+    for (int i = 1; i <= a.length; i++) {
+      for (int j = 1; j <= b.length; j++) {
+        if (a[i - 1] == b[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = 1 + [
+            dp[i - 1][j],
+            dp[i][j - 1],
+            dp[i - 1][j - 1]
+          ].reduce((curr, next) => curr < next ? curr : next);
+        }
+      }
+    }
+    final maxLen = a.length > b.length ? a.length : b.length;
+    return (1.0 - dp[a.length][b.length] / maxLen) * 100.0;
   }
 }

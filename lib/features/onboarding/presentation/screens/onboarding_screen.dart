@@ -40,35 +40,35 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // Options lists
   final List<Map<String, String>> _nativeLanguages = [
-    {'code': 'es', 'name': 'Spanish', 'native': 'Español', 'emoji': '🇪🇸'},
-    {'code': 'en', 'name': 'English', 'native': 'English', 'emoji': '🇺🇸'},
-    {'code': 'fr', 'name': 'French', 'native': 'Français', 'emoji': '🇫🇷'},
-    {'code': 'de', 'name': 'German', 'native': 'Deutsch', 'emoji': '🇩🇪'},
-    {'code': 'pt', 'name': 'Portuguese', 'native': 'Português', 'emoji': '🇵🇹'},
-    {'code': 'it', 'name': 'Italian', 'native': 'Italiano', 'emoji': '🇮🇹'},
-    {'code': 'zh', 'name': 'Chinese', 'native': '中文', 'emoji': '🇨🇳'},
-    {'code': 'ja', 'name': 'Japanese', 'native': '日本語', 'emoji': '🇯🇵'},
+    {'code': 'es', 'name': 'Spanish', 'native': 'Español'},
+    {'code': 'en', 'name': 'English', 'native': 'English'},
+    {'code': 'fr', 'name': 'French', 'native': 'Français'},
+    {'code': 'de', 'name': 'German', 'native': 'Deutsch'},
+    {'code': 'pt', 'name': 'Portuguese', 'native': 'Português'},
+    {'code': 'it', 'name': 'Italian', 'native': 'Italiano'},
+    {'code': 'zh', 'name': 'Chinese', 'native': '中文'},
+    {'code': 'ja', 'name': 'Japanese', 'native': '日本語'},
   ];
 
   final List<Map<String, String>> _countries = [
-    {'code': 'MX', 'name': 'México 🇲🇽'},
-    {'code': 'CO', 'name': 'Colombia 🇨🇴'},
-    {'code': 'ES', 'name': 'España 🇪🇸'},
-    {'code': 'US', 'name': 'United States 🇺🇸'},
-    {'code': 'AR', 'name': 'Argentina 🇦🇷'},
-    {'code': 'CL', 'name': 'Chile 🇨🇱'},
-    {'code': 'PE', 'name': 'Perú 🇵🇪'},
-    {'code': 'BR', 'name': 'Brasil 🇧🇷'},
-    {'code': 'FR', 'name': 'France 🇫🇷'},
-    {'code': 'DE', 'name': 'Germany 🇩🇪'},
-    {'code': 'IT', 'name': 'Italy 🇮🇹'},
+    {'code': 'MX', 'name': 'México'},
+    {'code': 'CO', 'name': 'Colombia'},
+    {'code': 'ES', 'name': 'España'},
+    {'code': 'US', 'name': 'United States'},
+    {'code': 'AR', 'name': 'Argentina'},
+    {'code': 'CL', 'name': 'Chile'},
+    {'code': 'PE', 'name': 'Perú'},
+    {'code': 'BR', 'name': 'Brasil'},
+    {'code': 'FR', 'name': 'France'},
+    {'code': 'DE', 'name': 'Germany'},
+    {'code': 'IT', 'name': 'Italy'},
   ];
 
   final List<Map<String, String>> _targetLanguages = [
-    {'code': 'en', 'name': 'English', 'native': 'English', 'emoji': '🇺🇸', 'desc': 'Global communication & professional growth'},
-    {'code': 'fr', 'name': 'French', 'native': 'Français', 'emoji': '🇫🇷', 'desc': 'Culture, gastronomy & international relations'},
-    {'code': 'de', 'name': 'German', 'native': 'Deutsch', 'emoji': '🇩🇪', 'desc': 'Engineering, science & European business'},
-    {'code': 'it', 'name': 'Italian', 'native': 'Italiano', 'emoji': '🇮🇹', 'desc': 'Art, design, music & tourism'},
+    {'code': 'en', 'name': 'English', 'native': 'English', 'desc': 'Global communication & professional growth'},
+    {'code': 'fr', 'name': 'French', 'native': 'Français', 'desc': 'Culture, gastronomy & international relations'},
+    {'code': 'de', 'name': 'German', 'native': 'Deutsch', 'desc': 'Engineering, science & European business'},
+    {'code': 'it', 'name': 'Italian', 'native': 'Italiano', 'desc': 'Art, design, music & tourism'},
   ];
 
   final List<Map<String, String>> _levels = [
@@ -87,29 +87,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     {'minutes': 45, 'title': 'Intense', 'desc': '45 min / day. Deep immersion and mastery.'},
   ];
 
-  final List<Map<String, String>> _interests = [
-    {'code': 'travel', 'name': 'Travel & Tourism', 'emoji': '✈️'},
-    {'code': 'business', 'name': 'Career & Business', 'emoji': '💼'},
-    {'code': 'technology', 'name': 'Technology & AI', 'emoji': '💻'},
-    {'code': 'art', 'name': 'Art & Design', 'emoji': '🎨'},
-    {'code': 'sports', 'name': 'Sports & Fitness', 'emoji': '⚽'},
-    {'code': 'music', 'name': 'Music & Movies', 'emoji': '🎵'},
-    {'code': 'science', 'name': 'Science & Innovation', 'emoji': '🔬'},
-    {'code': 'cooking', 'name': 'Food & Cooking', 'emoji': '🍳'},
-    {'code': 'history', 'name': 'Culture & History', 'emoji': '🏛️'},
+  final List<Map<String, dynamic>> _interests = [
+    {'code': 'travel', 'name': 'Travel & Tourism', 'icon': Icons.flight},
+    {'code': 'business', 'name': 'Career & Business', 'icon': Icons.business_center},
+    {'code': 'technology', 'name': 'Technology & AI', 'icon': Icons.computer},
+    {'code': 'art', 'name': 'Art & Design', 'icon': Icons.palette},
+    {'code': 'sports', 'name': 'Sports & Fitness', 'icon': Icons.sports_soccer},
+    {'code': 'music', 'name': 'Music & Movies', 'icon': Icons.music_note},
+    {'code': 'science', 'name': 'Science & Innovation', 'icon': Icons.science},
+    {'code': 'cooking', 'name': 'Food & Cooking', 'icon': Icons.restaurant},
+    {'code': 'history', 'name': 'Culture & History', 'icon': Icons.museum},
   ];
 
-  final List<Map<String, String>> _correctionStyles = [
-    {'code': 'strict', 'name': 'Strict', 'desc': 'Correct every grammar detail instantly.', 'emoji': '🎯'},
-    {'code': 'balanced', 'name': 'Balanced', 'desc': 'Correct key mistakes while maintaining natural flow.', 'emoji': '⚖️'},
-    {'code': 'conversational', 'name': 'Conversational', 'desc': 'Only correct mistakes that prevent understanding.', 'emoji': '🗣️'},
+  final List<Map<String, dynamic>> _correctionStyles = [
+    {'code': 'strict', 'name': 'Strict', 'desc': 'Correct every grammar detail instantly.', 'icon': Icons.gps_fixed},
+    {'code': 'balanced', 'name': 'Balanced', 'desc': 'Correct key mistakes while maintaining natural flow.', 'icon': Icons.balance},
+    {'code': 'conversational', 'name': 'Conversational', 'desc': 'Only correct mistakes that prevent understanding.', 'icon': Icons.record_voice_over},
   ];
 
-  final List<Map<String, String>> _obstacles = [
-    {'id': 'speaking_fluency', 'emoji': '🗣️', 'label': 'Speaking Fluency & Confidence'},
-    {'id': 'listening', 'emoji': '👂', 'label': 'Listening Comprehension'},
-    {'id': 'grammar_structure', 'emoji': '✍️', 'label': 'Grammar & Sentence Structure'},
-    {'id': 'pronunciation', 'emoji': '🎙️', 'label': 'Pronunciation & Accent'},
+  final List<Map<String, dynamic>> _obstacles = [
+    {'id': 'speaking_fluency', 'icon': Icons.record_voice_over, 'label': 'Speaking Fluency & Confidence'},
+    {'id': 'listening', 'icon': Icons.hearing, 'label': 'Listening Comprehension'},
+    {'id': 'grammar_structure', 'icon': Icons.edit, 'label': 'Grammar & Sentence Structure'},
+    {'id': 'pronunciation', 'icon': Icons.mic, 'label': 'Pronunciation & Accent'},
   ];
 
   @override
@@ -146,7 +146,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SnackBar(
             content: Text('Please select at least one interest to continue.'),
             duration: Duration(milliseconds: 1500),
-            backgroundColor: AppColors.primaryPurple,
+            backgroundColor: AppColors.runeViolet,
           ),
         );
         return;
@@ -265,7 +265,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.12),
+                color: AppColors.runeViolet.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -277,7 +277,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.secondaryBlue.withValues(alpha: 0.1),
+                color: AppColors.manaCyan.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -312,7 +312,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 height: 6,
                                 decoration: BoxDecoration(
                                   color: isActive
-                                      ? AppColors.primaryPurple
+                                      ? AppColors.runeViolet
                                       : Colors.white.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(3),
                                 ),
@@ -363,14 +363,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: (_currentPage == 6 && _selectedObstacle.isEmpty)
                           ? Colors.white12
-                          : AppColors.primaryPurple,
+                          : AppColors.runeViolet,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4.0)),
                       ),
                       elevation: 8,
-                      shadowColor: AppColors.primaryPurple.withValues(alpha: 0.3),
+                      shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
                     ),
                     child: _isSaving
                         ? const SizedBox(
@@ -429,7 +429,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // Native Language Selector
           Text(
             'Native Language',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.tertiaryTeal),
+            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
           ),
           const SizedBox(height: 8),
           ..._nativeLanguages.map((lang) {
@@ -443,13 +443,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.primaryPurple : Colors.white10),
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
                   opacity: isSelected ? 0.18 : 0.04,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
                       children: [
-                        Text(lang['emoji']!, style: const TextStyle(fontSize: 22)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.outlineVariant, width: 1),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: Text(
+                            lang['code']!.toUpperCase(),
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? AppColors.runeViolet : AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Text(
@@ -464,7 +478,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.primaryPurple, size: 20),
+                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 20),
                         ],
                       ],
                     ),
@@ -478,14 +492,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // Country Selector
           Text(
             'Country of Origin',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.tertiaryTeal),
+            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4),
               border: Border.all(color: Colors.white12),
             ),
             child: DropdownButtonHideUnderline(
@@ -514,13 +528,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 24),
           // App Interface Language Preference Switch Card
           GlassCard(
-            border: Border.all(color: _switchInterfaceToNative ? AppColors.tertiaryTeal : Colors.white10),
+            border: Border.all(color: _switchInterfaceToNative ? AppColors.manaCyan : Colors.white10),
             opacity: _switchInterfaceToNative ? 0.12 : 0.03,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  const Icon(Icons.language_rounded, color: AppColors.tertiaryTeal, size: 28),
+                  const Icon(Icons.language_rounded, color: AppColors.manaCyan, size: 28),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -543,7 +557,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   Switch(
                     value: _switchInterfaceToNative,
-                    activeThumbColor: AppColors.tertiaryTeal,
+                    activeThumbColor: AppColors.manaCyan,
                     onChanged: (val) {
                       setState(() {
                         _switchInterfaceToNative = val;
@@ -593,13 +607,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.primaryPurple : Colors.white10),
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
                   opacity: isSelected ? 0.2 : 0.04,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        Text(lang['emoji']!, style: const TextStyle(fontSize: 32)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.outlineVariant, width: 1.5),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: Text(
+                            lang['code']!.toUpperCase(),
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? AppColors.runeViolet : AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -610,7 +638,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected ? AppColors.primaryPurple : Colors.white,
+                                  color: isSelected ? AppColors.runeViolet : Colors.white,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -625,7 +653,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.primaryPurple, size: 24),
+                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 24),
                         ],
                       ],
                     ),
@@ -672,7 +700,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.primaryPurple : Colors.white10),
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
                   opacity: isSelected ? 0.2 : 0.04,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -681,7 +709,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.primaryPurple : Colors.white12,
+                            color: isSelected ? AppColors.runeViolet : Colors.white12,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -699,7 +727,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected ? AppColors.primaryPurple : Colors.white,
+                                  color: isSelected ? AppColors.runeViolet : Colors.white,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -714,7 +742,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.primaryPurple, size: 22),
+                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 22),
                         ],
                       ],
                     ),
@@ -761,13 +789,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.primaryPurple : Colors.white10),
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
                   opacity: isSelected ? 0.2 : 0.04,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        const Icon(Icons.timer_rounded, color: AppColors.tertiaryTeal, size: 24),
+                        const Icon(Icons.timer_rounded, color: AppColors.manaCyan, size: 24),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
@@ -778,7 +806,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected ? AppColors.primaryPurple : Colors.white,
+                                  color: isSelected ? AppColors.runeViolet : Colors.white,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -793,7 +821,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.primaryPurple, size: 24),
+                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 24),
                         ],
                       ],
                     ),
@@ -848,17 +876,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primaryPurple.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(20),
+                    color: isSelected ? AppColors.runeViolet.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                      color: isSelected ? AppColors.primaryPurple : Colors.white12,
+                      color: isSelected ? AppColors.runeViolet : Colors.white12,
                       width: isSelected ? 2 : 1,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(interest['emoji']!, style: const TextStyle(fontSize: 18)),
+                      Icon(
+                        interest['icon'] as IconData,
+                        size: 16,
+                        color: isSelected ? Colors.white : AppColors.manaCyan,
+                      ),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
@@ -907,7 +939,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // Correction Level
           Text(
             'Correction Intensity',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.tertiaryTeal),
+            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
           ),
           const SizedBox(height: 8),
           ..._correctionStyles.map((style) {
@@ -921,13 +953,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.primaryPurple : Colors.white10),
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
                   opacity: isSelected ? 0.2 : 0.04,
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Row(
                       children: [
-                        Text(style['emoji']!, style: const TextStyle(fontSize: 22)),
+                        Icon(
+                          style['icon'] as IconData,
+                          size: 22,
+                          color: isSelected ? Colors.white : AppColors.runeViolet,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -935,7 +971,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             children: [
                               Text(
                                 style['name']!,
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isSelected ? AppColors.primaryPurple : Colors.white),
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isSelected ? AppColors.runeViolet : Colors.white),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(style['desc']!, style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.6)), overflow: TextOverflow.ellipsis),
@@ -944,7 +980,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.primaryPurple, size: 20),
+                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 20),
                         ],
                       ],
                     ),
@@ -958,7 +994,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // NEW Selector: Correction Explanation Language
           Text(
             'Grammar Feedback Language',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.tertiaryTeal),
+            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
           ),
           const SizedBox(height: 8),
 
@@ -972,13 +1008,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     });
                   },
                   child: GlassCard(
-                    border: Border.all(color: _selectedCorrectionExplanationLanguage == 'native' ? AppColors.tertiaryTeal : Colors.white10),
+                    border: Border.all(color: _selectedCorrectionExplanationLanguage == 'native' ? AppColors.manaCyan : Colors.white10),
                     opacity: _selectedCorrectionExplanationLanguage == 'native' ? 0.2 : 0.04,
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(
                         children: [
-                          const Icon(Icons.translate_rounded, color: AppColors.tertiaryTeal, size: 24),
+                          const Icon(Icons.translate_rounded, color: AppColors.manaCyan, size: 24),
                           const SizedBox(height: 6),
                           Text(
                             'Native Language',
@@ -1008,13 +1044,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     });
                   },
                   child: GlassCard(
-                    border: Border.all(color: _selectedCorrectionExplanationLanguage == 'target' ? AppColors.primaryPurple : Colors.white10),
+                    border: Border.all(color: _selectedCorrectionExplanationLanguage == 'target' ? AppColors.runeViolet : Colors.white10),
                     opacity: _selectedCorrectionExplanationLanguage == 'target' ? 0.2 : 0.04,
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(
                         children: [
-                          const Icon(Icons.center_focus_strong_rounded, color: AppColors.primaryPurple, size: 24),
+                          const Icon(Icons.center_focus_strong_rounded, color: AppColors.runeViolet, size: 24),
                           const SizedBox(height: 6),
                           Text(
                             'Target Language',
@@ -1075,13 +1111,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.primaryPurple : Colors.white10),
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
                   opacity: isSelected ? 0.2 : 0.04,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        Text(obs['emoji']!, style: const TextStyle(fontSize: 28)),
+                        Icon(
+                          obs['icon'] as IconData,
+                          size: 28,
+                          color: isSelected ? Colors.white : AppColors.manaCyan,
+                        ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Text(
@@ -1089,14 +1129,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? AppColors.primaryPurple : Colors.white,
+                              color: isSelected ? AppColors.runeViolet : Colors.white,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.primaryPurple, size: 24),
+                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 24),
                         ],
                       ],
                     ),
@@ -1114,7 +1154,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildPaywallScreenPage(ThemeData theme) {
     if (_isLoadingPlans) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryPurple),
+        child: CircularProgressIndicator(color: AppColors.runeViolet),
       );
     }
 
@@ -1128,9 +1168,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                color: AppColors.runeViolet.withValues(alpha: 0.2),
               ),
-              child: const Icon(Icons.stars_rounded, color: AppColors.primaryPurple, size: 40),
+              child: const Icon(Icons.stars_rounded, color: AppColors.runeViolet, size: 40),
             ),
           ),
           const SizedBox(height: 12),
@@ -1173,7 +1213,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.primaryPurple : Colors.white10),
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
                   opacity: isSelected ? 0.2 : 0.04,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -1195,13 +1235,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryPurple.withValues(alpha: 0.3),
+                                  color: AppColors.runeViolet.withValues(alpha: 0.3),
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppColors.primaryPurple),
+                                  border: Border.all(color: AppColors.runeViolet),
                                 ),
                                 child: Text(
                                   tag,
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.runeViolet),
                                 ),
                               ),
                             ],
@@ -1229,12 +1269,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.timer_rounded, color: AppColors.tertiaryTeal, size: 16),
+                            const Icon(Icons.timer_rounded, color: AppColors.manaCyan, size: 16),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
                                 '$minutesLimit min/month AI Audio Practice',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.tertiaryTeal),
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),

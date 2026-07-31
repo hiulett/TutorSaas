@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import GlassCard from '../components/GlassCard';
-import { CreditCard, Edit3, Save, X, Plus, Clock, ShieldCheck, Zap, Sparkles, CheckCircle2, AlertCircle, ArrowUp, Hash } from 'lucide-react';
+import { CreditCard, Edit3, Save, X, Plus, Clock, ShieldCheck, Zap, Sparkles, CheckCircle2, AlertCircle, ArrowUp, Hash, RefreshCw } from 'lucide-react';
 
 export default function SubscriptionPlansManager({ plans, onSavePlan }) {
   const [editingPlan, setEditingPlan] = useState(null);
@@ -8,6 +8,7 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
     id: '',
     name: '',
     price: '',
+    billingCycle: 'monthly',
     monthlyAudioMinutesLimit: 300,
     orderIndex: 1,
     description: '',
@@ -23,6 +24,7 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
       id: plan.id,
       name: plan.name,
       price: plan.price,
+      billingCycle: plan.billingCycle || plan.billing_cycle || 'monthly',
       monthlyAudioMinutesLimit: plan.monthlyAudioMinutesLimit || 300,
       orderIndex: plan.orderIndex || 1,
       description: plan.description || '',
@@ -36,12 +38,13 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
     setFormData({
       id: `plan_${Date.now().toString().slice(-4)}`,
       name: '',
-      price: '$9.99',
+      price: '$1.99',
+      billingCycle: 'monthly',
       monthlyAudioMinutesLimit: 300,
       orderIndex: sortedPlans.length + 1,
       description: '',
       tag: '',
-      featuresStr: 'Conversaciones de audio con IA\nCorrección de pronunciación\nTutor disponible 24/7',
+      featuresStr: 'Conversaciones IA ilimitadas\nCorrección gramatical avanzada\nSpeech DNA completo',
     });
   };
 
@@ -52,6 +55,7 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
       id: formData.id.toLowerCase().replace(/\s+/g, '_'),
       name: formData.name.trim(),
       price: formData.price.trim(),
+      billingCycle: formData.billingCycle,
       monthlyAudioMinutesLimit: parseInt(formData.monthlyAudioMinutesLimit, 10) || 300,
       orderIndex: parseInt(formData.orderIndex, 10) || 1,
       description: formData.description.trim(),
@@ -142,12 +146,14 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff', fontFamily: 'var(--font-mono)' }}>
-                  {p.price}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                    {p.price}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {p.billingCycle || p.billing_cycle || 'monthly'} {p.billing ? `— ${p.billing}` : ''}
+                  </div>
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{p.billing}</div>
-              </div>
 
               {/* AI Time Limit Highlight */}
               <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '12px', padding: '12px', marginBottom: '16px' }}>
@@ -233,16 +239,29 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
                 <div>
                   <label className="form-label">Precio Mostrado</label>
                   <input
                     type="text"
                     value={formData.price}
-                    placeholder="Ej. $19.99"
+                    placeholder="Ej. $1.99"
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className="cyber-input"
                   />
+                </div>
+                <div>
+                  <label className="form-label">Ciclo Facturación</label>
+                  <select
+                    value={formData.billingCycle}
+                    onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value })}
+                    className="cyber-input"
+                    style={{ appearance: 'auto' }}
+                  >
+                    <option value="monthly">Mensual</option>
+                    <option value="annual">Anual</option>
+                    <option value="lifetime">Único (Lifetime)</option>
+                  </select>
                 </div>
                 <div>
                   <label className="form-label">Minutos IA / Mes</label>

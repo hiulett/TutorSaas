@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/placement_providers.dart';
 
@@ -38,18 +39,18 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
 
   // ── Data ───────────────────────────────────────────────────────────────────
 
-  final List<Map<String, String>> _goals = [
-    {'id': 'professional', 'emoji': '💼', 'label': 'Trabajo y Negocios'},
-    {'id': 'academic', 'emoji': '🎓', 'label': 'Estudios y Exámenes'},
-    {'id': 'social_travel', 'emoji': '✈️', 'label': 'Viajes y Socializar'},
-    {'id': 'personal', 'emoji': '🎉', 'label': 'Desarrollo Personal'},
+  final List<Map<String, dynamic>> _goals = [
+    {'id': 'professional', 'icon': Icons.business_center, 'label': 'WORK & CAREER'},
+    {'id': 'academic', 'icon': Icons.school, 'label': 'ACADEMICS & EXAMS'},
+    {'id': 'social_travel', 'icon': Icons.flight, 'label': 'TRAVEL & SOCIAL'},
+    {'id': 'personal', 'icon': Icons.emoji_events, 'label': 'PERSONAL GROWTH'},
   ];
 
-  final List<Map<String, String>> _obstacles = [
-    {'id': 'speaking_fluency', 'emoji': '🗣️', 'label': 'Fluidez / Hablar con confianza'},
-    {'id': 'listening', 'emoji': '👂', 'label': 'Entender cuando me hablan'},
-    {'id': 'grammar_structure', 'emoji': '✍️', 'label': 'Armar frases (Gramática)'},
-    {'id': 'pronunciation', 'emoji': '🎙️', 'label': 'Pronunciación y Acento'},
+  final List<Map<String, dynamic>> _obstacles = [
+    {'id': 'speaking_fluency', 'icon': Icons.record_voice_over, 'label': 'SPEAKING FLUENCY'},
+    {'id': 'listening', 'icon': Icons.hearing, 'label': 'UNDERSTANDING SPEECH'},
+    {'id': 'grammar_structure', 'icon': Icons.edit, 'label': 'GRAMMAR STRUCTURE'},
+    {'id': 'pronunciation', 'icon': Icons.mic, 'label': 'PRONUNCIATION & ACCENT'},
   ];
 
   /// Simple 3-question progressive quiz (A2 -> B1 -> B2)
@@ -123,15 +124,15 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
   void _next() {
     // Validation
     if (_currentStep == 0 && _selectedGoal.isEmpty) {
-      _showError('Por favor elige tu objetivo.');
+      _showError('PLEASE CHOOSE YOUR OBJECTIVE.');
       return;
     }
     if (_currentStep == 1 && _selectedObstacle.isEmpty) {
-      _showError('Por favor elige tu mayor obstáculo.');
+      _showError('PLEASE CHOOSE YOUR OBSTACLE.');
       return;
     }
     if (_currentStep == 2 && _quizAnswers.length < _quizQuestions.length) {
-      _showError('Responde todas las preguntas para continuar.');
+      _showError('COMPLETE ALL CHALLENGES TO CONTINUE.');
       return;
     }
 
@@ -167,10 +168,16 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
-        backgroundColor: AppColors.errorRed,
+        content: Text(
+          msg,
+          style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: AppColors.crimsonRed,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4.0)),
+          side: BorderSide(color: AppColors.bossRed, width: 1.0),
+        ),
       ),
     );
   }
@@ -193,7 +200,7 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        _showError('Error al guardar. Continúa de todas formas.');
+        _showError('ERROR SAVING LICENSE. CONTINUING ANYWAY.');
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) context.go('/home');
       }
@@ -207,63 +214,65 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceDim,
-      body: Stack(
-        children: [
-          // Background Glow Orbs matching onboarding
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.12),
+      body: CyberManhwaBackground(
+        bgMode: CyberBgMode.onboardingStep2,
+        child: Stack(
+          children: [
+            // Background Glow Orbs matching onboarding
+            Positioned(
+              top: -100,
+              left: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.runeViolet.withValues(alpha: 0.12),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.secondaryBlue.withValues(alpha: 0.1),
+            Positioned(
+              bottom: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.manaCyan.withValues(alpha: 0.1),
+                ),
               ),
             ),
-          ),
 
-          // Main Layout
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        _buildStepGoal(),
-                        _buildStepObstacle(),
-                        _buildStepQuiz(),
-                        _buildStepResult(),
-                      ],
+            // Main Layout
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 24),
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          _buildStepGoal(),
+                          _buildStepObstacle(),
+                          _buildStepQuiz(),
+                          _buildStepResult(),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildBottomNav(theme),
-                ],
+                    const SizedBox(height: 16),
+                    _buildBottomNav(theme),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -272,10 +281,10 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
 
   Widget _buildHeader() {
     final stepTitles = [
-      '¿Cuál es tu objetivo?',
-      '¿Cuál es tu mayor obstáculo?',
-      'Calibremos tu comprensión',
-      'Tu nivel estimado 🎉',
+      'CHOOSE YOUR TARGET GATE',
+      'CHOOSE YOUR OBSTACLE',
+      'CALIBRATING COMPREHENSION',
+      'HUNTER LEVEL ACQUIRED',
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,8 +311,8 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
                       height: 6,
                       decoration: BoxDecoration(
                         color: isActive
-                            ? AppColors.primaryPurple
-                            : Colors.white.withValues(alpha: 0.1),
+                            ? AppColors.runeViolet
+                             : Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -314,7 +323,7 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
             const SizedBox(width: 24),
             Text(
               '${_currentStep + 9}/12', // Continuation of 8 onboarding screens
-              style: const TextStyle(
+              style: GoogleFonts.jetBrainsMono(
                 color: AppColors.onSurfaceVariant,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
@@ -327,10 +336,11 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
           opacity: _fadeAnim,
           child: Text(
             stepTitles[_currentStep],
-            style: GoogleFonts.hankenGrotesk(
+            style: GoogleFonts.spaceGrotesk(
               color: Colors.white,
               fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
               height: 1.2,
             ),
           ),
@@ -364,11 +374,11 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
 
   Widget _buildStepQuiz() {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
         Text(
-          'Responde estas ${_quizQuestions.length} preguntas rápidas:',
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          'ANSWER THESE 3 QUICK CHALLENGES:',
+          style: GoogleFonts.jetBrainsMono(color: Colors.white70, fontSize: 12, letterSpacing: 0.5),
         ),
         const SizedBox(height: 20),
         ...List.generate(_quizQuestions.length, (qi) {
@@ -379,7 +389,7 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
             children: [
               Text(
                 '${qi + 1}. ${q['question']}',
-                style: const TextStyle(
+                style: GoogleFonts.spaceGrotesk(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w600),
@@ -394,15 +404,14 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
-
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(4),
                       color: selected
-                          ? AppColors.primaryPurple.withValues(alpha: 0.18)
+                          ? AppColors.runeViolet.withValues(alpha: 0.18)
                           : AppColors.surfaceContainerLow.withValues(alpha: 0.08),
                       border: Border.all(
                         color: selected
-                            ? AppColors.primaryPurple
+                            ? AppColors.runeViolet
                             : Colors.white.withValues(alpha: 0.07),
                         width: selected ? 1.5 : 1,
                       ),
@@ -434,9 +443,8 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
     final finalLevel = _computeLevel();
     final studyPlan = _buildStudyPlan(finalLevel);
 
-
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         children: [
           // Level badge
@@ -444,52 +452,54 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(4.0),
+              border: Border.all(color: AppColors.manaCyan, width: 2.0),
               gradient: const LinearGradient(
                 colors: [
-                  AppColors.primaryPurple,
-                  AppColors.secondaryBlue,
+                  AppColors.runeViolet,
+                  AppColors.manaCyan,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryPurple.withValues(alpha: 0.4),
-                  blurRadius: 30,
-                  spreadRadius: 4,
+                  color: AppColors.manaCyan.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  spreadRadius: 2,
                 ),
               ],
             ),
             child: Center(
               child: Text(
                 finalLevel,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.spaceGrotesk(
                   color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),
           ),
+          const SizedBox(height: 16),
           Text(
-            finalLevel == 'A1' ? 'Principiante (A1)' :
-            finalLevel == 'A2' ? 'Elemental (A2)' :
-            finalLevel == 'B1' ? 'Intermedio (B1)' : 'Intermedio Alto (B2)',
+            finalLevel == 'A1' ? 'Beginner (A1)' :
+            finalLevel == 'A2' ? 'Elementary (A2)' :
+            finalLevel == 'B1' ? 'Intermediate (B1)' : 'Upper Intermediate (B2)',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                color: Colors.white70, fontSize: 15, height: 1.4),
+            style: GoogleFonts.spaceGrotesk(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, height: 1.4),
           ),
 
           const SizedBox(height: 8),
           Text(
-            'Quiz: $_quizScore / ${_quizQuestions.length} correctas',
-            style: TextStyle(
+            'Score: $_quizScore / ${_quizQuestions.length} Correct',
+            style: GoogleFonts.jetBrainsMono(
               color: _quizScore >= 2
-                  ? AppColors.tertiaryTeal
-                  : AppColors.primaryPurple,
+                  ? AppColors.manaCyan
+                  : AppColors.runeViolet,
               fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 28),
@@ -498,11 +508,12 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '📋 Tu plan de estudio',
-                  style: GoogleFonts.inter(
+                  'YOUR STUDY PLAN',
+                  style: GoogleFonts.spaceGrotesk(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     fontSize: 16,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -514,11 +525,11 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
                       children: [
                         const Text('✦ ',
                             style: TextStyle(
-                                color: AppColors.primaryPurple, fontSize: 12)),
+                                color: AppColors.manaCyan, fontSize: 12)),
                         Expanded(
                           child: Text(
                             item,
-                            style: const TextStyle(
+                            style: GoogleFonts.inter(
                                 color: Colors.white70,
                                 fontSize: 13,
                                 height: 1.4),
@@ -536,9 +547,9 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
             const CircularProgressIndicator()
           else
             Text(
-              'Al continuar, tu tutor IA se adaptará a tu nivel $finalLevel.',
+              'UPON CONTINUING, THE AI TUTOR WILL CALIBRATE TO YOUR LEVEL ($finalLevel).',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54, fontSize: 12),
+              style: GoogleFonts.jetBrainsMono(color: Colors.white54, fontSize: 10),
             ),
         ],
       ),
@@ -548,34 +559,28 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
   List<String> _buildStudyPlan(String level) {
     const plans = {
       'A1': [
-        'Empezaremos con vocabulario básico del día a día.',
-        'Conversaciones simples de presentación y saludos.',
-        '10 minutos diarios de práctica de voz guiada.',
-        'Pronunciación de sonidos que no existen en español.',
+        'Start with basic everyday dungeon vocabulary.',
+        'Simple introduction raids and greeting templates.',
+        '10 minutes of guided daily practice sessions.',
+        'Learn specific English phonemes and sound mechanics.',
       ],
       'A2': [
-        'Frases útiles para situaciones cotidianas.',
-        'Práctica de preguntas y respuestas cortas.',
-        'Gramática básica: presente simple y continuo.',
-        'Roleplay en restaurantes y tiendas.',
+        'Useful commands and phrases for common situations.',
+        'Practice with rapid question & short-response tasks.',
+        'Grammar structure: present simple and continuous gates.',
+        'Simulated roleplay gates (shops, gate registry).',
       ],
       'B1': [
-        'Conversaciones sobre trabajo, viajes y rutinas.',
-        'Pasado simple y perfecto en contexto real.',
-        'Vocabulario temático: negocios, viajes, tecnología.',
-        'Corrección de errores comunes de hispanohablantes.',
+        'Engage in conversations on tasks, dungeons and work.',
+        'Past tense and present perfect context trials.',
+        'Thematic vocab: tech, business, and daily raids.',
+        'Address and repair common pronunciation obstacles.',
       ],
       'B2': [
-        'Debates y opiniones en inglés fluido.',
-        'Vocabulario avanzado: modismos y expresiones idiomáticas.',
-        'Presentaciones y comunicación profesional.',
-        'Pronunciación de acento neutro americano.',
-      ],
-      'C1': [
-        'Fluidez en temas complejos: política, ciencia, arte.',
-        'Escritura y discurso formal / informal.',
-        'Eliminación de interferencias del español.',
-        'Preparación para exámenes: IELTS, TOEFL, Cambridge.',
+        'Fluid debates and dynamic opinion allocation.',
+        'Advanced idiom modifiers and colloquial expressions.',
+        'Professional communications and command room briefs.',
+        'Neutral accent training and cadence modulation.',
       ],
     };
     return plans[level] ?? plans['B1']!;
@@ -584,17 +589,17 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
   // ── Option Grid (shared by steps 1 & 2) ────────────────────────────────────
 
   Widget _buildOptionGrid({
-    required List<Map<String, String>> items,
+    required List<Map<String, dynamic>> items,
     required String selected,
     required ValueChanged<String> onSelect,
   }) {
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.5,
+        childAspectRatio: 1.3,
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -605,13 +610,13 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4),
               color: isSelected
-                  ? AppColors.primaryPurple.withValues(alpha: 0.15)
+                  ? AppColors.runeViolet.withValues(alpha: 0.15)
                   : AppColors.surfaceContainerLow.withValues(alpha: 0.1),
               border: Border.all(
                 color: isSelected
-                    ? AppColors.primaryPurple
+                    ? AppColors.runeViolet
                     : Colors.white.withValues(alpha: 0.08),
                 width: isSelected ? 1.5 : 1,
               ),
@@ -619,18 +624,22 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(item['emoji']!, style: const TextStyle(fontSize: 28)),
+                Icon(
+                  item['icon'] as IconData,
+                  size: 28,
+                  color: isSelected ? Colors.white : AppColors.manaCyan,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   item['label']!,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: GoogleFonts.jetBrainsMono(
                     color: isSelected ? Colors.white : Colors.white70,
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ],
@@ -648,14 +657,14 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
     return ElevatedButton(
       onPressed: _isSaving ? null : _next,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryPurple,
+        backgroundColor: AppColors.runeViolet,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4.0)),
         ),
         elevation: 8,
-        shadowColor: AppColors.primaryPurple.withValues(alpha: 0.3),
+        shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
       ),
       child: _isSaving
           ? const SizedBox(
@@ -665,14 +674,13 @@ class _PlacementTestScreenState extends ConsumerState<PlacementTestScreen>
                   color: Colors.white, strokeWidth: 2.5),
             )
           : Text(
-              isLastStep ? 'Comenzar Aventura' : 'Siguiente',
-              style: GoogleFonts.hankenGrotesk(
-                fontSize: 18,
+              isLastStep ? 'ENTER DUNGEON' : 'CONTINUE',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
               ),
             ),
     );
   }
-
-
 }

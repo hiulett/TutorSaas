@@ -6,7 +6,6 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 
-
 class SrsFlashcardModal extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> vocabularyItems;
 
@@ -20,7 +19,7 @@ class SrsFlashcardModal extends ConsumerStatefulWidget {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
       ),
       isScrollControlled: true,
       builder: (context) => SrsFlashcardModal(vocabularyItems: items),
@@ -91,18 +90,19 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Repaso Espaciado (SRS)',
-                style: GoogleFonts.hankenGrotesk(
-                  fontSize: 18,
+                'SPACED REPETITION REVIEW (SRS)',
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
+                  letterSpacing: 0.5,
                 ),
               ),
               if (!isFinished)
                 Text(
                   '${_currentIndex + 1}/$total',
-                  style: const TextStyle(
-                    color: AppColors.tertiaryTeal,
+                  style: GoogleFonts.jetBrainsMono(
+                    color: AppColors.manaCyan,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -120,28 +120,29 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                     const Icon(Icons.stars_rounded, color: Color(0xFFFFD700), size: 64),
                     const SizedBox(height: 16),
                     Text(
-                      '¡Repaso Completado!',
-                      style: GoogleFonts.hankenGrotesk(
-                        fontSize: 22,
+                      'REVIEW WAVE CONQUERED!',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Has repasado $_reviewedCount palabras con éxito. Próximo repaso en 24 horas.',
+                      'Successfully completed $_reviewedCount reviews. Next cycle in 24 hours.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+                      style: GoogleFonts.inter(color: AppColors.onSurfaceVariant, fontSize: 13),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryPurple,
+                        backgroundColor: AppColors.runeViolet,
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: const Text('Cerrar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text('CLOSE', style: GoogleFonts.jetBrainsMono(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -159,7 +160,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                   blur: 30,
                   opacity: 0.1,
                   border: Border.all(
-                    color: AppColors.primaryPurple.withValues(alpha: 0.4),
+                    color: AppColors.runeViolet.withValues(alpha: 0.4),
                     width: 1.5,
                   ),
                   padding: const EdgeInsets.all(32),
@@ -176,14 +177,14 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                                   style: GoogleFonts.hankenGrotesk(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.tertiaryTeal,
+                                    color: AppColors.manaCyan,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Categoría: ${widget.vocabularyItems[_currentIndex]['category'] ?? 'Vocabulario'}',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  'PATH: ${(widget.vocabularyItems[_currentIndex]['category'] ?? 'Vocabularies').toUpperCase()}',
+                                  style: GoogleFonts.jetBrainsMono(color: Colors.white70, fontSize: 12),
                                 ),
                               ],
                             )
@@ -201,14 +202,14 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 16),
-                                const Row(
+                                Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.touch_app_rounded, color: AppColors.onSurfaceVariant, size: 16),
-                                    SizedBox(width: 6),
+                                    const Icon(Icons.touch_app_rounded, color: AppColors.onSurfaceVariant, size: 16),
+                                    const SizedBox(width: 6),
                                     Text(
-                                      'Toca para revelar traducción',
-                                      style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                                      'TAP CARD TO REVEAL',
+                                      style: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant, fontSize: 11),
                                     ),
                                   ],
                                 ),
@@ -230,9 +231,9 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.errorRed,
                         side: const BorderSide(color: AppColors.errorRed),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: const Text('Difícil 😅', style: TextStyle(fontSize: 12)),
+                      child: Text('HARD', style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -242,9 +243,9 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.amberAccent,
                         side: const BorderSide(color: Colors.amberAccent),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: const Text('Normal ⚖️', style: TextStyle(fontSize: 12)),
+                      child: Text('NORMAL', style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -254,9 +255,9 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF10B981),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: const Text('Fácil 😊', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text('EASY', style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],

@@ -38,9 +38,7 @@ final GoRouter appRouter = GoRouter(
       path: '/conversation',
       builder: (context, state) {
         final scenarioId = state.uri.queryParameters['scenarioId'];
-        final scenarioTitle = state.uri.queryParameters['scenarioTitle'] != null
-            ? Uri.decodeComponent(state.uri.queryParameters['scenarioTitle']!)
-            : null;
+        final scenarioTitle = state.uri.queryParameters['scenarioTitle'];
         return ConversationScreen(
           scenarioId: scenarioId,
           scenarioTitle: scenarioTitle,

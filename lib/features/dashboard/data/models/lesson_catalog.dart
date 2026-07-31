@@ -642,6 +642,76 @@ class LessonCatalog {
         UsefulPhraseItem(id: 'p10', phrase: 'To conclude, the work stands as a testament to...', translation: 'Para concluir, la obra es un testimonio de...'),
       ],
     ),
+
+    LessonData(
+      id: 'c2_corporate_crisis',
+      title: 'Boardroom Crisis Negotiation',
+      description: 'Negotiate a severe corporate crisis involving a hostile takeover and public relations fallout at a mastery level.',
+      level: 'C2',
+      category: 'business',
+      interest: 'business',
+      difficulty: 6,
+      iconKey: 'work',
+      mainObjective: 'Handle high-stakes boardroom arguments, diffuse tensions, and present a bulletproof strategic plan.',
+      scenarioContext: 'Emergency board of directors meeting',
+      assistantRole: 'Hostile Shareholder / Board Chairman',
+      userRole: 'Chief Executive Officer (CEO)',
+      initialAssistantMessage: 'Let\'s cut to the chase. Stock prices are in freefall, and the public is demanding accountability. Why should this board not vote to replace you immediately?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Justificar decisiones con vocabulario estratégico de alto nivel', keywords: ['mitigate', 'diversification', 'fiduciary', 'stakeholders'], examplePhrase: 'We must mitigate these risks immediately'),
+        ScenarioGoalItem(id: 'g2', text: 'Negociar concesiones y acuerdos bilaterales', keywords: ['compromise', 'concession', 'mutual', 'alignment'], examplePhrase: 'I propose a compromise that aligns with our goals'),
+        ScenarioGoalItem(id: 'g3', text: 'Desviar críticas y reencuadrar la narrativa corporativa', keywords: ['reframe', 'narrative', 'opportunity', 'long-term'], examplePhrase: 'Let us reframe this challenge as an opportunity'),
+        ScenarioGoalItem(id: 'g4', text: 'Usar retórica formal y diplomática para calmar tensiones', keywords: ['diplomatic', 'assure', 'collaborative', 'stability'], examplePhrase: 'I assure you we are taking decisive action'),
+        ScenarioGoalItem(id: 'g5', text: 'Sintetizar un plan de acción a corto y largo plazo', keywords: ['roadmap', 'milestones', 'objectives', 'execution'], examplePhrase: 'Our immediate roadmap focuses on stability'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'To mitigate any further damage to our brand reputation...', translation: 'Para mitigar cualquier daño adicional a la reputación de nuestra marca...'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Our fiduciary duty to our stakeholders dictates that...', translation: 'Nuestro deber fiduciario hacia nuestros grupos de interés dicta que...'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Allow me to reframe the narrative surrounding this incident...', translation: 'Permítanme reencuadrar la narrativa que rodea a este incidente...'),
+        UsefulPhraseItem(id: 'p4', phrase: 'I propose a collaborative roadmap with clear milestones...', translation: 'Propongo una hoja de ruta colaborativa con hitos claros...'),
+        UsefulPhraseItem(id: 'p5', phrase: 'This is not a setback, but rather a catalyst for...', translation: 'Esto no es un contratiempo, sino más bien un catalizador para...'),
+        UsefulPhraseItem(id: 'p6', phrase: 'I assure the board we are taking decisive action...', translation: 'Aseguro a la junta que estamos tomando medidas decisivas...'),
+        UsefulPhraseItem(id: 'p7', phrase: 'A hostile takeover would severely jeopardize our stability...', translation: 'Una adquisición hostil pondría en grave peligro nuestra estabilidad...'),
+        UsefulPhraseItem(id: 'p8', phrase: 'We must seek a mutually beneficial compromise...', translation: 'Debemos buscar un compromiso mutuamente beneficioso...'),
+        UsefulPhraseItem(id: 'p9', phrase: 'This strategy aligns perfectly with our long-term vision...', translation: 'Esta estrategia se alinea perfectamente con nuestra visión a largo plazo...'),
+        UsefulPhraseItem(id: 'p10', phrase: 'I welcome your input on these remedial measures...', translation: 'Agradezco sus comentarios sobre estas medidas correctivas...'),
+      ],
+    ),
+
+    LessonData(
+      id: 'c2_philosophical_discourse',
+      title: 'Ethical Frontiers: AI & Transhumanism',
+      description: 'Engage in a profound philosophical debate on technological ethics and human consciousness.',
+      level: 'C2',
+      category: 'social',
+      interest: 'philosophy',
+      difficulty: 6,
+      iconKey: 'psychology',
+      mainObjective: 'Explore and critique abstract theories on post-humanism and ethical boundaries of intelligence.',
+      scenarioContext: 'Philosophical symposium',
+      assistantRole: 'Bioethicist / Academic Chair',
+      userRole: 'Philosopher of Mind',
+      initialAssistantMessage: 'As cybernetic enhancements become indistinguishable from biological functions, we must ask: does transhumanism preserve humanity, or does it render the concept of human rights obsolete?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Analizar implicaciones éticas y filosóficas profundas', keywords: ['ethics', 'moral', 'imperative', 'philosophical', 'dilemma'], examplePhrase: 'This poses a significant ethical dilemma'),
+        ScenarioGoalItem(id: 'g2', text: 'Discutir teorías abstractas sobre la conciencia', keywords: ['consciousness', 'sentience', 'cognitive', 'existential'], examplePhrase: 'We must define the boundary of sentience'),
+        ScenarioGoalItem(id: 'g3', text: 'Argumentar sobre dilemas existenciales futuros', keywords: ['existential', 'post-human', 'transhumanism', 'obsolete'], examplePhrase: 'This could render human labor obsolete'),
+        ScenarioGoalItem(id: 'g4', text: 'Desafiar premisas lógicas de forma estructurada', keywords: ['premise', 'fallacy', 'validity', 'inconsistency'], examplePhrase: 'That premise relies on a logical fallacy'),
+        ScenarioGoalItem(id: 'g5', text: 'Sintetizar una postura ética unificada', keywords: ['harmonize', 'ethical framework', 'synthesis', 'human dignity'], examplePhrase: 'We need to synthesize an ethical framework'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'This poses a profound existential dilemma...', translation: 'Esto plantea un dilema existencial profundo...'),
+        UsefulPhraseItem(id: 'p2', phrase: 'We must critically examine the ethical boundaries of...', translation: 'Debemos examinar críticamente los límites éticos de...'),
+        UsefulPhraseItem(id: 'p3', phrase: 'That premise relies on what I perceive as a logical fallacy...', translation: 'Esa premisa se basa en lo que percibo como una falacia lógica...'),
+        UsefulPhraseItem(id: 'p4', phrase: 'If we are to preserve fundamental human dignity...', translation: 'Si queremos preservar la dignidad humana fundamental...'),
+        UsefulPhraseItem(id: 'p5', phrase: 'The distinction between biological and synthetic sentience...', translation: 'La distinción entre la sintiencia biológica y sintética...'),
+        UsefulPhraseItem(id: 'p6', phrase: 'I would posit that consciousness is not substrate-dependent...', translation: 'Sostendría que la conciencia no depende del sustrato...'),
+        UsefulPhraseItem(id: 'p7', phrase: 'This debate is reminiscent of classical Cartesian dualism...', translation: 'Este debate recuerda al dualismo cartesiano clásico...'),
+        UsefulPhraseItem(id: 'p8', phrase: 'Such an outcome would render the social contract obsolete...', translation: 'Tal resultado dejaría obsoleto el contrato social...'),
+        UsefulPhraseItem(id: 'p9', phrase: 'We must synthesize a robust, proactive regulatory framework...', translation: 'Debemos sintetizar un marco regulatorio robusto y proactivo...'),
+        UsefulPhraseItem(id: 'p10', phrase: 'By positing this, we inadvertently invite...', translation: 'Al plantear esto, invitamos inadvertidamente a...'),
+      ],
+    ),
   ];
 
   static final Map<String, LessonData> dynamicCatalogCache = {};
@@ -1007,9 +1077,9 @@ class LessonCatalog {
       }
     }
 
-    // If neither id nor title provided, return null
+    // If neither id nor title provided, return catalog.first as a safe fallback
     if ((cleanId == null || cleanId.isEmpty) && (cleanTitle == null || cleanTitle.isEmpty)) {
-      return null;
+      return catalog.first;
     }
 
     // 4. Dynamic LessonData fallback for custom/database scenarios so objective, goals and phrases always display

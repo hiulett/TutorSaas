@@ -7,6 +7,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/status_window_modal.dart';
+import '../../../../core/widgets/rpg_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -51,7 +52,7 @@ class ProfileScreen extends ConsumerWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.1),
+                color: AppColors.runeViolet.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -63,7 +64,7 @@ class ProfileScreen extends ConsumerWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.tertiaryTeal.withValues(alpha: 0.08),
+                color: AppColors.manaCyan.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -79,7 +80,7 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          const Text('📊', style: TextStyle(fontSize: 22)),
+                          const Icon(Icons.bar_chart_rounded, color: AppColors.manaCyan, size: 24),
                           const SizedBox(width: 8),
                           Text(
                             'PANEL DE ESTADO',
@@ -119,20 +120,11 @@ class ProfileScreen extends ConsumerWidget {
                             padding: const EdgeInsets.all(20),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 64,
-                                  height: 64,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: AppColors.primaryPurple.withValues(alpha: 0.3),
-                                      width: 2,
-                                    ),
-                                    image: DecorationImage(
-                                      image: NetworkImage(avatarUrl),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                                RpgAvatar(
+                                  avatarUrl: avatarUrl,
+                                  initials: displayName.isNotEmpty ? displayName.substring(0, displayName.length > 1 ? 2 : 1) : 'H',
+                                  size: 64,
+                                  hunterClass: 'shadow_monarch',
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -176,19 +168,19 @@ class ProfileScreen extends ConsumerWidget {
                         ElevatedButton(
                           onPressed: () => StatusWindowModal.show(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryPurple,
+                            backgroundColor: AppColors.runeViolet,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(4.0)),
                             ),
                             elevation: 8,
-                            shadowColor: AppColors.primaryPurple.withValues(alpha: 0.5),
+                            shadowColor: AppColors.runeViolet.withValues(alpha: 0.5),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('📊', style: TextStyle(fontSize: 16)),
+                              const Icon(Icons.bar_chart_rounded, size: 16, color: Colors.white),
                               const SizedBox(width: 8),
                               Text(
                                 'VENTANA DE ESTADO DEL CAZADOR',
@@ -214,7 +206,7 @@ class ProfileScreen extends ConsumerWidget {
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   children: [
-                                    const Icon(Icons.star_rounded, color: AppColors.primaryPurpleDim, size: 24),
+                                    const Icon(Icons.star_rounded, color: AppColors.runeViolet, size: 24),
                                     const SizedBox(height: 8),
                                     Text(
                                       '$xp',
@@ -260,7 +252,7 @@ class ProfileScreen extends ConsumerWidget {
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   children: [
-                                    const Icon(Icons.psychology_rounded, color: AppColors.tertiaryTeal, size: 24),
+                                    const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 24),
                                     const SizedBox(height: 8),
                                     Text(
                                       cefrCode,
@@ -318,7 +310,7 @@ class ProfileScreen extends ConsumerWidget {
                                         height: height,
                                         decoration: BoxDecoration(
                                           gradient: const LinearGradient(
-                                            colors: [AppColors.primaryPurple, AppColors.secondaryBlue],
+                                            colors: [AppColors.runeViolet, AppColors.manaCyan],
                                             begin: Alignment.bottomCenter,
                                             end: Alignment.topCenter,
                                           ),
@@ -344,7 +336,7 @@ class ProfileScreen extends ConsumerWidget {
                             blur: 20,
                             opacity: 0.04,
                             padding: EdgeInsets.symmetric(vertical: 40),
-                            child: Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+                            child: Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
                           ),
                           error: (e, s) => const GlassCard(
                             blur: 20,
@@ -380,7 +372,7 @@ class ProfileScreen extends ConsumerWidget {
                                     ),
                                     TextButton(
                                       onPressed: () => _showAllVocabularyDialog(context, vocabularyList),
-                                      child: const Text('VER TODO', style: TextStyle(color: AppColors.primaryPurpleDim, fontSize: 12)),
+                                      child: const Text('VER TODO', style: TextStyle(color: AppColors.runeViolet, fontSize: 12)),
                                     ),
                                   ],
                                 ),
@@ -447,7 +439,7 @@ class ProfileScreen extends ConsumerWidget {
                           },
                           loading: () => const Padding(
                             padding: EdgeInsets.symmetric(vertical: 32),
-                            child: Center(child: CircularProgressIndicator(color: AppColors.primaryPurple)),
+                            child: Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
                           ),
                           error: (e, s) => const Padding(
                             padding: EdgeInsets.symmetric(vertical: 32),
@@ -469,7 +461,7 @@ class ProfileScreen extends ConsumerWidget {
             left: 24,
             right: 24,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(4),
               child: GlassCard(
                 blur: 30.0,
                 opacity: 0.08,
@@ -521,7 +513,7 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             Icon(
               icon,
-              color: isActive ? AppColors.primaryPurple : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+              color: isActive ? AppColors.runeViolet : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
               size: 26,
             ),
             const SizedBox(height: 4),
@@ -530,7 +522,7 @@ class ProfileScreen extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? AppColors.primaryPurple : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+                color: isActive ? AppColors.runeViolet : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
                 letterSpacing: 0.5,
               ),
             ),
@@ -619,7 +611,7 @@ class ProfileScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cerrar', style: TextStyle(color: AppColors.primaryPurpleDim)),
+              child: const Text('Cerrar', style: TextStyle(color: AppColors.runeViolet)),
             ),
           ],
         );

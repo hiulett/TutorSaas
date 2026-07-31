@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -10,7 +11,6 @@ import '../../domain/models/user_settings.dart';
 import '../providers/dashboard_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../onboarding/presentation/providers/onboarding_providers.dart';
-
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -22,7 +22,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   UserSettings? _localSettings;
   bool _isSaving = false;
-  bool _soundEffectsEnabled = true;
   String _selectedTargetLanguage = 'en';
   String _selectedCefrLevel = 'B1';
 
@@ -40,129 +39,119 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       backgroundColor: Colors.transparent,
       body: CyberManhwaBackground(
         child: Stack(
-        children: [
-          // Glowing Background Orbs
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryPurple.withValues(alpha: 0.1),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
-                child: const SizedBox.expand(),
+          children: [
+            // Glowing Background Orbs
+            Positioned(
+              top: -100,
+              left: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.runeViolet.withValues(alpha: 0.1),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
+                  child: const SizedBox.expand(),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: -50,
-            right: -50,
-            child: Container(
-              width: 350,
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.secondaryBlue.withValues(alpha: 0.08),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 140, sigmaY: 140),
-                child: const SizedBox.expand(),
+            Positioned(
+              bottom: -50,
+              right: -50,
+              child: Container(
+                width: 350,
+                height: 350,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.manaCyan.withValues(alpha: 0.08),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 140, sigmaY: 140),
+                  child: const SizedBox.expand(),
+                ),
               ),
             ),
-          ),
 
-          // Content
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-                        onPressed: () {
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.go('/home');
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Ajustes',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
+            // Content
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/home');
+                            }
+                          },
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Settings List
-                Expanded(
-                  child: ListView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                    children: [
-                      const _SectionHeader(title: '🌐 Idioma y Nivel de Aprendizaje'),
-                      const SizedBox(height: 12),
-                      _buildLanguageTile(context),
-                      const SizedBox(height: 12),
-                      _buildCefrLevelTile(context),
-                      const SizedBox(height: 24),
-
-                      const _SectionHeader(title: '🤖 Preferencia de IA y Tutor'),
-                      const SizedBox(height: 12),
-                      _buildCorrectionLevelTile(context, currentSettings.correctionLevel),
-                      const SizedBox(height: 12),
-                      _buildTutorPersonalityTile(context, currentSettings.tutorPersonality),
-                      const SizedBox(height: 12),
-                      _buildCorrectionStyleTile(context, currentSettings.correctionStyle),
-                      const SizedBox(height: 12),
-                      _buildDailyGoalTile(context, currentSettings.dailyGoalMinutes),
-                      const SizedBox(height: 24),
-
-                      const _SectionHeader(title: '🔔 Recordatorios'),
-                      const SizedBox(height: 12),
-                      _buildNotificationTiles(context, currentSettings),
-                      const SizedBox(height: 24),
-
-                      const _SectionHeader(title: '🚪 Cuenta'),
-                      const SizedBox(height: 12),
-                      _buildLogoutTile(context),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-
-                // Save Changes Button
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryPurple.withValues(alpha: 0.35),
-                              blurRadius: 20,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                        const SizedBox(width: 8),
+                        Text(
+                          'SYSTEM CONFIG',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 1.0,
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+
+                  // Settings List
+                  Expanded(
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                      children: [
+                        const _SectionHeader(title: 'TARGET LANGUAGE & CEFR LEVEL'),
+                        const SizedBox(height: 12),
+                        _buildLanguageTile(context),
+                        const SizedBox(height: 12),
+                        _buildCefrLevelTile(context),
+                        const SizedBox(height: 24),
+
+                        const _SectionHeader(title: 'AI TUTOR PARAMETERS'),
+                        const SizedBox(height: 12),
+                        _buildCorrectionLevelTile(context, currentSettings.correctionLevel),
+                        const SizedBox(height: 12),
+                        _buildTutorPersonalityTile(context, currentSettings.tutorPersonality),
+                        const SizedBox(height: 12),
+                        _buildCorrectionStyleTile(context, currentSettings.correctionStyle),
+                        const SizedBox(height: 12),
+                        _buildDailyGoalTile(context, currentSettings.dailyGoalMinutes),
+                        const SizedBox(height: 24),
+
+                        const _SectionHeader(title: 'AUDIO & COMMUNICATIONS'),
+                        const SizedBox(height: 12),
+                        _buildNotificationTiles(context, currentSettings),
+                        const SizedBox(height: 24),
+
+                        const _SectionHeader(title: 'ACCOUNT'),
+                        const SizedBox(height: 12),
+                        _buildLogoutTile(context),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+
+                  // Save Changes Button
+                  Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      child: SizedBox(
+                        width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _isSaving
                               ? null
@@ -195,9 +184,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Ajustes e Onboarding guardados correctamente'),
+                                        SnackBar(
+                                          content: Text(
+                                            'CONFIGURATION ALIGNED SUCCESSFULLY',
+                                            style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
+                                          ),
                                           backgroundColor: Colors.green,
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))),
                                         ),
                                       );
                                     }
@@ -205,8 +199,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Error al guardar ajustes: $e'),
-                                          backgroundColor: AppColors.errorRed,
+                                          content: Text('ERROR SAVING CONFIG: $e'),
+                                          backgroundColor: AppColors.crimsonRed,
+                                          behavior: SnackBarBehavior.floating,
                                         ),
                                       );
                                     }
@@ -219,13 +214,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryPurple,
+                            backgroundColor: AppColors.runeViolet,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(4.0)),
                             ),
-                            elevation: 0,
+                            elevation: 8,
+                            shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
                           ),
                           child: _isSaving
                               ? const SizedBox(
@@ -236,35 +232,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(
-                                  'Guardar Ajustes',
-                                  style: TextStyle(
+                              : Text(
+                                  'SAVE CONFIGURATION',
+                                  style: GoogleFonts.jetBrainsMono(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                     fontSize: 16,
+                                    letterSpacing: 1.0,
                                   ),
                                 ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // --- Language Selection Tile ---
   Widget _buildLanguageTile(BuildContext context) {
     final Map<String, String> langNames = {
-      'en': 'Inglés 🇺🇸',
-      'fr': 'Francés 🇫🇷',
-      'de': 'Alemán 🇩🇪',
-      'it': 'Italiano 🇮🇹',
+      'en': 'ENGLISH (EN)',
+      'fr': 'FRENCH (FR)',
+      'de': 'GERMAN (DE)',
+      'it': 'ITALIAN (IT)',
     };
 
     return GlassCard(
@@ -275,15 +271,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showLanguageBottomSheet(context),
         child: Row(
           children: [
-            const Icon(Icons.language_rounded, color: AppColors.tertiaryTeal, size: 24),
+            const Icon(Icons.language_rounded, color: AppColors.manaCyan, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Idioma Objetivo',
-                    style: TextStyle(
+                  Text(
+                    'TARGET LANGUAGE',
+                    style: GoogleFonts.spaceGrotesk(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -291,8 +287,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    langNames[_selectedTargetLanguage] ?? 'Inglés 🇺🇸',
-                    style: TextStyle(
+                    langNames[_selectedTargetLanguage] ?? 'ENGLISH (EN)',
+                    style: GoogleFonts.jetBrainsMono(
                       color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
@@ -317,15 +313,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showCefrBottomSheet(context),
         child: Row(
           children: [
-            const Icon(Icons.psychology_rounded, color: AppColors.tertiaryTeal, size: 24),
+            const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Nivel CEFR Activo',
-                    style: TextStyle(
+                  Text(
+                    'CEFR PRACTICE LEVEL',
+                    style: GoogleFonts.spaceGrotesk(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -333,8 +329,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Nivel $_selectedCefrLevel',
-                    style: TextStyle(
+                    'LEVEL $_selectedCefrLevel',
+                    style: GoogleFonts.jetBrainsMono(
                       color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
@@ -362,21 +358,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             context.go('/');
           }
         },
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.logout_rounded, color: AppColors.errorRed, size: 24),
-            SizedBox(width: 16),
+            const Icon(Icons.logout_rounded, color: AppColors.errorRed, size: 24),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
-                'Cerrar Sesión',
-                style: TextStyle(
+                'LOG OUT OF DUNGEON',
+                style: GoogleFonts.spaceGrotesk(
                   color: AppColors.errorRed,
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: AppColors.errorRed),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.errorRed),
           ],
         ),
       ),
@@ -388,7 +384,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(4.0),
+          topRight: Radius.circular(4.0),
+        ),
       ),
       builder: (context) {
         return SafeArea(
@@ -397,15 +396,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Selecciona Idioma Objetivo',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                Text(
+                  'SELECT TARGET PATH',
+                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 const SizedBox(height: 16),
                 _buildOption(
-                  title: 'Inglés 🇺🇸',
-                  description: 'Aprende inglés conversacional e intensivo.',
+                  title: 'ENGLISH (EN)',
+                  description: 'Engage in intense conversation and vocabulary modules.',
                   isActive: _selectedTargetLanguage == 'en',
+                  icon: Icons.language_rounded,
                   onTap: () {
                     setState(() => _selectedTargetLanguage = 'en');
                     Navigator.pop(context);
@@ -413,9 +413,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 10),
                 _buildOption(
-                  title: 'Francés 🇫🇷',
-                  description: 'Aprende francés conversacional.',
+                  title: 'FRENCH (FR)',
+                  description: 'Engage in conversational French modules.',
                   isActive: _selectedTargetLanguage == 'fr',
+                  icon: Icons.language_rounded,
                   onTap: () {
                     setState(() => _selectedTargetLanguage = 'fr');
                     Navigator.pop(context);
@@ -423,9 +424,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 10),
                 _buildOption(
-                  title: 'Alemán 🇩🇪',
-                  description: 'Aprende alemán estructurado.',
+                  title: 'GERMAN (DE)',
+                  description: 'Engage in structured German trials.',
                   isActive: _selectedTargetLanguage == 'de',
+                  icon: Icons.language_rounded,
                   onTap: () {
                     setState(() => _selectedTargetLanguage = 'de');
                     Navigator.pop(context);
@@ -433,9 +435,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 10),
                 _buildOption(
-                  title: 'Italiano 🇮🇹',
-                  description: 'Aprende italiano fluido.',
+                  title: 'ITALIAN (IT)',
+                  description: 'Engage in fluent Italian practice.',
                   isActive: _selectedTargetLanguage == 'it',
+                  icon: Icons.language_rounded,
                   onTap: () {
                     setState(() => _selectedTargetLanguage = 'it');
                     Navigator.pop(context);
@@ -454,7 +457,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(4.0),
+          topRight: Radius.circular(4.0),
+        ),
       ),
       builder: (context) {
         return SafeArea(
@@ -463,11 +469,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Selecciona tu Nivel CEFR',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                Text(
+                  'SELECT CEFR LEVEL PATH',
+                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((lvl) {
@@ -479,11 +485,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Navigator.pop(context);
                       },
                       label: Text(lvl),
-                      labelStyle: TextStyle(
+                      labelStyle: GoogleFonts.jetBrainsMono(
                         color: isSel ? Colors.white : Colors.white70,
                         fontWeight: FontWeight.bold,
                       ),
-                      selectedColor: AppColors.primaryPurple,
+                      selectedColor: AppColors.runeViolet,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                      ),
                     );
                   }).toList(),
                 ),
@@ -505,15 +514,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showCorrectionLevelBottomSheet(context, currentLevel),
         child: Row(
           children: [
-            const Icon(Icons.tune_rounded, color: AppColors.primaryPurpleDim, size: 24),
+            const Icon(Icons.tune_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Nivel de Corrección de IA',
-                    style: TextStyle(
+                  Text(
+                    'AI CORRECTION SCOPE',
+                    style: GoogleFonts.spaceGrotesk(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -521,8 +530,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _getCorrectionLevelName(currentLevel),
-                    style: TextStyle(
+                    _getCorrectionLevelName(currentLevel).toUpperCase(),
+                    style: GoogleFonts.jetBrainsMono(
                       color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
@@ -547,15 +556,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showTutorPersonalityBottomSheet(context, currentPersonality),
         child: Row(
           children: [
-            const Icon(Icons.face_rounded, color: AppColors.primaryPurpleDim, size: 24),
+            const Icon(Icons.face_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Personalidad del Tutor',
-                    style: TextStyle(
+                  Text(
+                    'TUTOR PERSONALITY',
+                    style: GoogleFonts.spaceGrotesk(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -563,8 +572,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _getPersonalityName(currentPersonality),
-                    style: TextStyle(
+                    _getPersonalityName(currentPersonality).toUpperCase(),
+                    style: GoogleFonts.jetBrainsMono(
                       color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
@@ -589,15 +598,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showCorrectionStyleBottomSheet(context, currentStyle),
         child: Row(
           children: [
-            const Icon(Icons.spellcheck_rounded, color: AppColors.primaryPurpleDim, size: 24),
+            const Icon(Icons.spellcheck_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Estilo de Corrección',
-                    style: TextStyle(
+                  Text(
+                    'CORRECTION CADENCE',
+                    style: GoogleFonts.spaceGrotesk(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -605,8 +614,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _getStyleName(currentStyle),
-                    style: TextStyle(
+                    _getStyleName(currentStyle).toUpperCase(),
+                    style: GoogleFonts.jetBrainsMono(
                       color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
@@ -631,15 +640,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showDailyGoalBottomSheet(context, currentGoal),
         child: Row(
           children: [
-            const Icon(Icons.outlined_flag_rounded, color: AppColors.primaryPurpleDim, size: 24),
+            const Icon(Icons.outlined_flag_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Meta Diaria',
-                    style: TextStyle(
+                  Text(
+                    'DAILY QUEST FOCUS',
+                    style: GoogleFonts.spaceGrotesk(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -647,8 +656,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$currentGoal minutos al día',
-                    style: TextStyle(
+                    '$currentGoal MINUTES DAILY',
+                    style: GoogleFonts.jetBrainsMono(
                       color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
@@ -677,31 +686,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.volume_up_rounded, color: AppColors.tertiaryTeal, size: 24),
+              const Icon(Icons.volume_up_rounded, color: AppColors.manaCyan, size: 24),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Efectos de Sonido Épicos (SFX)',
-                      style: TextStyle(
+                      'AUDIO SFX CHANNELS',
+                      style: GoogleFonts.spaceGrotesk(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Sonidos de batallas, maná y subida de nivel',
-                      style: TextStyle(color: Colors.white54, fontSize: 11),
+                      'Combat, mana charges, and level calibration sfx',
+                      style: GoogleFonts.inter(color: Colors.white54, fontSize: 11),
                     ),
                   ],
                 ),
               ),
               Switch(
                 value: isSfxOn,
-                activeThumbColor: AppColors.tertiaryTeal,
+                activeColor: AppColors.manaCyan,
+                activeTrackColor: AppColors.manaCyan.withValues(alpha: 0.2),
+                inactiveThumbColor: Colors.white60,
+                inactiveTrackColor: Colors.white12,
                 onChanged: (val) {
                   ref.read(sfxEnabledProvider.notifier).setSfxEnabled(val);
                 },
@@ -711,12 +723,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(color: Colors.white12, height: 24),
           Row(
             children: [
-              const Icon(Icons.notifications_active_rounded, color: AppColors.primaryPurpleDim, size: 24),
+              const Icon(Icons.notifications_active_rounded, color: AppColors.runeViolet, size: 24),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Recordatorios Diarios',
-                  style: TextStyle(
+                  'DAILY ALERT EMISSIONS',
+                  style: GoogleFonts.spaceGrotesk(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -725,7 +737,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               Switch(
                 value: enabled,
-                activeThumbColor: AppColors.primaryPurpleDim,
+                activeColor: AppColors.runeViolet,
+                activeTrackColor: AppColors.runeViolet.withValues(alpha: 0.2),
+                inactiveThumbColor: Colors.white60,
+                inactiveTrackColor: Colors.white12,
                 onChanged: (val) {
                   setState(() {
                     _localSettings = currentSettings.copyWith(notificationsEnabled: val);
@@ -758,15 +773,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   const Icon(Icons.access_time_rounded, color: AppColors.onSurfaceVariant, size: 20),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Hora del recordatorio',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      'ALERTS DISPATCH TIME',
+                      style: GoogleFonts.inter(color: Colors.white70, fontSize: 14),
                     ),
                   ),
                   Text(
                     time.substring(0, 5),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.jetBrainsMono(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
                   const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
@@ -785,90 +800,95 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(4.0),
+          topRight: Radius.circular(4.0),
+        ),
       ),
       isScrollControlled: true,
       builder: (context) {
         return SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Nivel de Corrección',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'SELECT CORRECTION LEVEL',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 24),
-                  _buildOption(
-                    title: 'Solo errores importantes',
-                    description: 'La IA únicamente corregirá errores graves.',
-                    isActive: currentLevel == 'important_only',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'important_only');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Corrección corta',
-                    description: 'Corrección y una explicación de una sola línea.',
-                    isActive: currentLevel == 'short',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'short');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Corrección moderada',
-                    description: 'Explicación corta de 1 a 3 frases.',
-                    isActive: currentLevel == 'moderate',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'moderate');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Corrección detallada',
-                    description: 'Explicación completa con gramática y ejemplos.',
-                    isActive: currentLevel == 'detailed',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'detailed');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Modo profesor',
-                    description: 'Clase completa sobre el error cometido.',
-                    isActive: currentLevel == 'teacher',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'teacher');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                _buildOption(
+                  title: 'IMPORTANT MISTAKES ONLY',
+                  description: 'AI will only correct critical structural breaks.',
+                  isActive: currentLevel == 'important_only',
+                  icon: Icons.tune_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'important_only');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'COMPACT FEEDBACK',
+                  description: 'Quick corrections with single line annotations.',
+                  isActive: currentLevel == 'short',
+                  icon: Icons.tune_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'short');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'MODERATE EXPLANATION',
+                  description: 'Balanced corrections with 1 to 3 detail sentences.',
+                  isActive: currentLevel == 'moderate',
+                  icon: Icons.tune_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'moderate');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'DETAILED BREAKDOWN',
+                  description: 'In-depth grammar blueprints with contextual examples.',
+                  isActive: currentLevel == 'detailed',
+                  icon: Icons.tune_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'detailed');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'ORACLE MASTER MODE',
+                  description: 'Complete analysis of error blueprints.',
+                  isActive: currentLevel == 'teacher',
+                  icon: Icons.tune_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'teacher');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
           ),
         );
@@ -881,66 +901,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(4.0),
+          topRight: Radius.circular(4.0),
+        ),
       ),
       isScrollControlled: true,
       builder: (context) {
         return SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Personalidad del Tutor',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'SELECT TUTOR PERSONALITY',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 24),
-                  _buildOption(
-                    title: 'Amigable y paciente 😊',
-                    description: 'Cálido y motivador en cada respuesta.',
-                    isActive: currentPersonality == 'friendly',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'friendly');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Profesional e instructivo 🤵',
-                    description: 'Explicaciones claras y enfoque estructurado.',
-                    isActive: currentPersonality == 'professional',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'professional');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Desafiante y exigente 🏆',
-                    description: 'Te empujará a usar mejor vocabulario.',
-                    isActive: currentPersonality == 'challenging',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'challenging');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                _buildOption(
+                  title: 'COMPANION RATE',
+                  description: 'Patient, warm, and highly supportive responses.',
+                  isActive: currentPersonality == 'friendly',
+                  icon: Icons.sentiment_satisfied_alt_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'friendly');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'COMMANDER BRIEF',
+                  description: 'Formal, highly structured, and structured corrections.',
+                  isActive: currentPersonality == 'professional',
+                  icon: Icons.business_center_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'professional');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'BOSS CALIBER CHALLENGE',
+                  description: 'High-level vocabulary demands and strict responses.',
+                  isActive: currentPersonality == 'challenging',
+                  icon: Icons.campaign_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'challenging');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
           ),
         );
@@ -953,66 +976,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(4.0),
+          topRight: Radius.circular(4.0),
+        ),
       ),
       isScrollControlled: true,
       builder: (context) {
         return SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Estilo de Corrección',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'SELECT CORRECTION CADENCE',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 24),
-                  _buildOption(
-                    title: 'Estricto 🎯',
-                    description: 'Corrige cada detalle gramatical al instante.',
-                    isActive: currentStyle == 'strict',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'strict');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Balanceado ⚖️',
-                    description: 'Equilibrio entre fluidez y corrección.',
-                    isActive: currentStyle == 'balanced',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'balanced');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Conversacional 🗣️',
-                    description: 'Solo interrumpe ante errores graves.',
-                    isActive: currentStyle == 'conversational',
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'conversational');
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                _buildOption(
+                  title: 'STRICT ACTION',
+                  description: 'Interrupts and repairs errors instantly.',
+                  isActive: currentStyle == 'strict',
+                  icon: Icons.check_circle_outline_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'strict');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'BALANCED COMPASS',
+                  description: 'Maintains dialogue speed with structured correction feedback.',
+                  isActive: currentStyle == 'balanced',
+                  icon: Icons.balance_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'balanced');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'IMMERSIVE RAIDS',
+                  description: 'Keeps speaking flow; repairs only terminal breaks.',
+                  isActive: currentStyle == 'conversational',
+                  icon: Icons.chat_bubble_outline_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'conversational');
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
           ),
         );
@@ -1025,78 +1051,82 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(4.0),
+          topRight: Radius.circular(4.0),
+        ),
       ),
       isScrollControlled: true,
       builder: (context) {
         return SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Meta Diaria de Práctica',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'SELECT DAILY QUEST FOCUS',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 24),
-                  _buildOption(
-                    title: 'Casual',
-                    description: '10 minutos al día.',
-                    isActive: currentGoal == 10,
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 10);
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Regular',
-                    description: '15 minutos al día.',
-                    isActive: currentGoal == 15,
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 15);
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Serio',
-                    description: '30 minutos al día.',
-                    isActive: currentGoal == 30,
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 30);
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildOption(
-                    title: 'Intensivo',
-                    description: '60 minutos al día.',
-                    isActive: currentGoal == 60,
-                    onTap: () {
-                      setState(() {
-                        _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 60);
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                _buildOption(
+                  title: 'CASUAL RUN (10 MIN)',
+                  description: 'Quick entry practice daily.',
+                  isActive: currentGoal == 10,
+                  icon: Icons.fitness_center_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 10);
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'REGULAR RAID (15 MIN)',
+                  description: 'Solid learning rate path.',
+                  isActive: currentGoal == 15,
+                  icon: Icons.timer_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 15);
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'SERIOUS CAMPAIGN (30 MIN)',
+                  description: 'Acquire fluent skill markers rapidly.',
+                  isActive: currentGoal == 30,
+                  icon: Icons.speed_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 30);
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildOption(
+                  title: 'OVERLOAD OVERCLOCK (60 MIN)',
+                  description: 'Complete immersion overdrive.',
+                  isActive: currentGoal == 60,
+                  icon: Icons.bolt_rounded,
+                  onTap: () {
+                    setState(() {
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 60);
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
           ),
         );
@@ -1108,30 +1138,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required String title,
     required String description,
     required bool isActive,
+    required IconData icon,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primaryPurple.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.02),
-          borderRadius: BorderRadius.circular(16),
+          color: isActive ? AppColors.runeViolet.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.02),
+          borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
-            color: isActive ? AppColors.primaryPurple : Colors.white.withValues(alpha: 0.05),
+            color: isActive ? AppColors.runeViolet : Colors.white.withValues(alpha: 0.05),
             width: 1.5,
           ),
         ),
         child: Row(
           children: [
+            Icon(icon, color: isActive ? AppColors.runeViolet : AppColors.onSurfaceVariant, size: 20),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: GoogleFonts.spaceGrotesk(
                       color: Colors.white,
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
                       fontSize: 14,
@@ -1140,7 +1172,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                       color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                       fontSize: 11,
                     ),
@@ -1151,7 +1183,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             if (isActive)
               const Icon(
                 Icons.check_circle_rounded,
-                color: AppColors.primaryPurpleDim,
+                color: AppColors.runeViolet,
                 size: 20,
               ),
           ],
@@ -1164,43 +1196,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _getCorrectionLevelName(String level) {
     switch (level) {
       case 'important_only':
-        return 'Solo errores importantes';
+        return 'Important Errors Only';
       case 'short':
-        return 'Corrección corta';
+        return 'Compact Feedback';
       case 'moderate':
-        return 'Corrección moderada';
+        return 'Moderate Explanation';
       case 'detailed':
-        return 'Corrección detallada';
+        return 'Detailed Breakdown';
       case 'teacher':
-        return 'Modo profesor';
+        return 'Oracle Master Mode';
       default:
-        return 'Corrección corta';
+        return 'Compact Feedback';
     }
   }
 
   String _getPersonalityName(String personality) {
     switch (personality) {
       case 'friendly':
-        return 'Amigable y paciente';
+        return 'Companion Rate';
       case 'professional':
-        return 'Profesional e instructivo';
+        return 'Commander Brief';
       case 'challenging':
-        return 'Desafiante y exigente';
+        return 'Boss Caliber Challenge';
       default:
-        return 'Amigable y paciente';
+        return 'Companion Rate';
     }
   }
 
   String _getStyleName(String style) {
     switch (style) {
       case 'strict':
-        return 'Estricto';
+        return 'Strict Action';
       case 'balanced':
-        return 'Balanceado';
+        return 'Balanced Compass';
       case 'conversational':
-        return 'Conversacional';
+        return 'Immersive Raids';
       default:
-        return 'Balanceado';
+        return 'Balanced Compass';
     }
   }
 }
@@ -1213,10 +1245,11 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
+      style: GoogleFonts.spaceGrotesk(
+        fontSize: 14,
+        fontWeight: FontWeight.w900,
+        color: AppColors.manaCyan,
+        letterSpacing: 1.0,
       ),
     );
   }

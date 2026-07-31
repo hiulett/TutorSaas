@@ -88,235 +88,268 @@ class _LevelExamScreenState extends State<LevelExamScreen> {
       body: CyberManhwaBackground(
         isBossArena: true,
         child: Stack(
-        children: [
-          // Background Boss Avatar Video Feed
-          Positioned.fill(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.redAccent.withValues(alpha: 0.25),
-                        const Color(0xFF04060C),
-                      ],
-                      radius: 1.2,
+          children: [
+            // Background Boss Avatar Video Feed
+            Positioned.fill(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.redAccent.withValues(alpha: 0.25),
+                          const Color(0xFF04060C),
+                        ],
+                        radius: 1.2,
+                      ),
                     ),
                   ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 110,
-                      backgroundColor: Colors.redAccent.withValues(alpha: 0.4),
-                      child: CircleAvatar(
-                        radius: 102,
-                        backgroundImage: NetworkImage(boss.avatarUrl),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.redAccent, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.redAccent.withValues(alpha: 0.3),
+                              blurRadius: 15,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                          image: DecorationImage(
+                            image: NetworkImage(boss.avatarUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.redAccent),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              boss.name.toUpperCase(),
+                              style: GoogleFonts.orbitron(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.redAccent,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              boss.description,
+                              style: GoogleFonts.inter(fontSize: 11, color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Header Overlay
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.redAccent.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
                         border: Border.all(color: Colors.redAccent),
                       ),
-                      child: Column(
+                      child: Row(
                         children: [
+                          const Icon(Icons.gpp_bad_rounded, color: Colors.redAccent, size: 14),
+                          const SizedBox(width: 6),
                           Text(
-                            boss.name,
+                            'FLOOR GUARDIAN RAID: $level',
                             style: GoogleFonts.orbitron(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.redAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.runeViolet.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.manaCyan),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.timer_outlined, color: AppColors.manaCyan, size: 14),
+                          const SizedBox(width: 6),
                           Text(
-                            boss.description,
-                            style: const TextStyle(fontSize: 11, color: Colors.white70),
+                            timeStr,
+                            style: GoogleFonts.orbitron(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.manaCyan,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          // Header Overlay
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.redAccent),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 12),
-                        const SizedBox(width: 6),
-                        Text(
-                          'PRUEBA DEL GUARDIÁN DEL PISO $level',
-                          style: GoogleFonts.orbitron(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryPurple.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.tertiaryTeal),
-                    ),
-                    child: Text(
-                      '⏱️ $timeStr',
-                      style: GoogleFonts.orbitron(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.tertiaryTeal,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
-          ),
 
-          // Student Picture-in-Picture Floating Video
-          Positioned(
-            right: 20,
-            bottom: 120,
-            child: Container(
-              width: 110,
-              height: 150,
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.tertiaryTeal, width: 2),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black54, blurRadius: 10),
-                ],
-              ),
-              child: const ClipRRect(
-                borderRadius: BorderRadius.all(Radius.circular(14)),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Icon(Icons.person_rounded, color: Colors.white38, size: 40),
-                    ),
-                    Positioned(
-                      bottom: 6,
-                      left: 6,
-                      child: Text(
-                        'Tú (Cazador)',
-                        style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+            // Student Picture-in-Picture Floating Video
+            Positioned(
+              right: 20,
+              bottom: 120,
+              child: Container(
+                width: 110,
+                height: 150,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.manaCyan, width: 2),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black54, blurRadius: 10),
                   ],
                 ),
-              ),
-            ),
-          ),
-
-          // Bottom Control Actions
-          Positioned(
-            bottom: 30,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FloatingActionButton(
-                    heroTag: 'mic_mute',
-                    backgroundColor: Colors.white24,
-                    onPressed: () {},
-                    child: const Icon(Icons.mic_rounded, color: Colors.white),
-                  ),
-                  const SizedBox(width: 20),
-                  FloatingActionButton.large(
-                    heroTag: 'end_exam',
-                    backgroundColor: Colors.redAccent,
-                    onPressed: _finishExam,
-                    child: const Icon(Icons.call_end_rounded, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Exam Results Overlay Modal if Finished
-          if (_isExamFinished)
-            Container(
-              color: Colors.black87,
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: GlassCard(
-                  blur: 20,
-                  opacity: 0.1,
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                child: const ClipRRect(
+                  borderRadius: BorderRadius.all(Radius.circular(2)),
+                  child: Stack(
                     children: [
-                      Text(
-                        _examScore >= 80 ? '🎉 ¡PRUEBA DE PISO SUPERADA!' : '🚨 PRUEBA INCOMPLETA',
-                        style: GoogleFonts.orbitron(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: _examScore >= 80 ? const Color(0xFFFFD700) : Colors.redAccent,
-                        ),
+                      Center(
+                        child: Icon(Icons.person_rounded, color: Colors.white38, size: 40),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Puntaje Obtenido: $_examScore%',
-                        style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      if (_examScore >= 80)
-                        Text(
-                          '¡Felicidades Cazador! Has derrotado al ${boss.name} y abierto el portal al Piso siguiente.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 12, color: Colors.white70),
-                        )
-                      else
-                        const Text(
-                          'Debes repasar las lecciones marcadas en rojo para reintentar la prueba.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: Colors.redAccent),
+                      Positioned(
+                        bottom: 6,
+                        left: 6,
+                        child: Text(
+                          'YOU (HUNTER)',
+                          style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
                         ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.go('/home');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryPurple,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        ),
-                        child: const Text('Volver al Santuario', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
+
+            // Bottom Control Actions
+            Positioned(
+              bottom: 30,
+              left: 24,
+              right: 24,
+              child: GlassCard(
+                blur: 20,
+                opacity: 0.1,
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.mic_rounded, size: 18),
+                      label: Text('MUTE', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white10,
+                        foregroundColor: Colors.white,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _finishExam,
+                      icon: const Icon(Icons.call_end_rounded, size: 18),
+                      label: Text('CONCLUDE RAID', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Exam Results Overlay Modal if Finished
+            if (_isExamFinished)
+              Container(
+                color: Colors.black87,
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: GlassCard(
+                    blur: 20,
+                    opacity: 0.1,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _examScore >= 80 ? 'RAID CLEAR: STAGE CONQUERED!' : 'RAID FAILED: TARGET SURVIVED',
+                          style: GoogleFonts.orbitron(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: _examScore >= 80 ? const Color(0xFFFFD700) : Colors.redAccent,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Fluency Score: $_examScore%',
+                          style: GoogleFonts.jetBrainsMono(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        if (_examScore >= 80)
+                          Text(
+                            'Congratulations Hunter! You have defeated ${boss.name} and opened the gate to the next floor.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                          )
+                        else
+                          Text(
+                            'You must review the red-marked vocabulary & speech segments to re-attempt the gate.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(fontSize: 12, color: Colors.redAccent),
+                          ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.go('/home');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.runeViolet,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                          ),
+                          child: Text('RETURN TO SANCTUARY', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
