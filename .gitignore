@@ -47,3 +47,12 @@ app.*.map.json
 # Temporary directories
 TutorSaas_tmp/
 
+
+# Secretos locales (IA-01) � copiar config.sample.json a config.json y NO commitear
+config.json
+*.key
+.env
+
+# Salida generada de herramientas de análisis (no es código fuente)
+graphify-out/
+

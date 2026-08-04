@@ -407,3 +407,34 @@ auth.users
 scenarios
   â†’ scenario_objectives (1:N)
 ```
+
+---
+
+## Estado actual (Fases 2-11, 2026-07-30)
+
+### Tablas añadidas/verificadas
+| Tabla | Uso | Estado |
+|---|---|---|
+| mission_templates/instances | Motor de misiones | ? 8 tablas + 29 plantillas |
+| secret_missions, emergency_missions | Misiones IA/emergencia | ? |
+| global_events, player_event_progress | Eventos | ? |
+| guild_collaborative_missions, guild_quest_pool | Gremio | ? |
+| eward_history | Recompensas | ? |
+| player_inventory, cosmetic_catalog | Items (11 tipos + key/book/mission_modifier) | ? |
+| guild_battle_pass, player_daily_state, player_streaks, player_pergaminos | Economía | ? |
+
+### Columnas clave añadidas
+- user_settings: ui_language, learning_language, i_explanations_native.
+- users: country_code.
+- user_language_profiles: ragments, 	otal_gold, player_class, guild_role, equipped_title_code.
+- player_inventory: item_effect, item_meta, source.
+- mission_instances: eward_multiplier, pplied_modifier_code.
+- chat_rooms: oom_type, moderator_type, ssigned_moderator_id.
+
+### RPCs (verificados)
+dd_xp, dd_gems, spend_gems, dd_fragments, increment_pergaminos_max, otate_daily_missions, check_ai_audio_quota, 	rack_ai_audio_time.
+
+### Seguridad pendiente (QA)
+- system_ai_settings RLS ? service_role (script 20260730_phase11_security_fixes.sql).
+- ocabulary_items INSERT WITH CHECK (true) ? restringido.
+- Revocar EXECUTE de funciones internas a anon/authenticated.

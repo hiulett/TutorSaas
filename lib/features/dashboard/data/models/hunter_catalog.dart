@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class HunterTitleItem {
   final String code;
@@ -54,25 +55,25 @@ class HunterCatalog {
 
   static final List<HunterTitleItem> titles = [
     // Grammar
-    const HunterTitleItem(code: 'orco_caverna_f', name: 'Escritura de Orco de Caverna', attributeCategory: 'grammar', rankTier: 'F', icon: '👹', description: 'Primeros pasos cometiendo errores con valentía.', color: Colors.grey),
-    const HunterTitleItem(code: 'escriba_novato_e', name: 'Escriba Novato', attributeCategory: 'grammar', rankTier: 'E', icon: '📜', description: '50% de oraciones limpias.', color: Colors.green),
-    const HunterTitleItem(code: 'escriba_ciudad_d', name: 'Escriba de la Ciudad', attributeCategory: 'grammar', rankTier: 'D', icon: '📜', description: '65% de precisión gramatical.', color: Colors.blue),
-    const HunterTitleItem(code: 'escriba_imperial_c', name: 'Escriba de la Biblioteca Imperial', attributeCategory: 'grammar', rankTier: 'C', icon: '📜', description: '75% de precisión gramatical.', color: Colors.teal),
-    const HunterTitleItem(code: 'pluma_erudito_b', name: 'Pluma del Erudito Real', attributeCategory: 'grammar', rankTier: 'B', icon: '🪶', description: '85% de precisión gramatical.', color: Colors.purple),
-    const HunterTitleItem(code: 'pluma_archimago_a', name: 'Pluma Arcanista del Archimago', attributeCategory: 'grammar', rankTier: 'A', icon: '🪶', description: '92% de precisión gramatical.', color: Colors.amber),
-    const HunterTitleItem(code: 'pluma_celestial_s', name: 'Pluma Celestial del Sabio', attributeCategory: 'grammar', rankTier: 'S', icon: '✨', description: '97% de precisión gramatical.', color: Colors.deepOrange),
-    const HunterTitleItem(code: 'monarca_sintaxis_ss', name: 'Monarca de la Sintaxis Sagrada', attributeCategory: 'grammar', rankTier: 'SS', icon: '👑', description: '99% de precisión gramatical.', color: Colors.redAccent),
-    const HunterTitleItem(code: 'creador_abismo_sss', name: 'Creador de Lenguajes del Abismo', attributeCategory: 'grammar', rankTier: 'SSS', icon: '🌌', description: '100% de precisión gramatical impecable.', color: Color(0xFFFFD700)),
+    const HunterTitleItem(code: 'orco_caverna_f', name: 'Escritura de Orco de Caverna', attributeCategory: 'grammar', rankTier: 'F', icon: '👹', description: 'Primeros pasos cometiendo errores con valentía.', color: AppColors.onSurfaceVariant),
+    const HunterTitleItem(code: 'escriba_novato_e', name: 'Escriba Novato', attributeCategory: 'grammar', rankTier: 'E', icon: '📜', description: '50% de oraciones limpias.', color: AppColors.emeraldGreen),
+    const HunterTitleItem(code: 'escriba_ciudad_d', name: 'Escriba de la Ciudad', attributeCategory: 'grammar', rankTier: 'D', icon: '📜', description: '65% de precisión gramatical.', color: AppColors.manaCyan),
+    const HunterTitleItem(code: 'escriba_imperial_c', name: 'Escriba de la Biblioteca Imperial', attributeCategory: 'grammar', rankTier: 'C', icon: '📜', description: '75% de precisión gramatical.', color: AppColors.manaCyan),
+    const HunterTitleItem(code: 'pluma_erudito_b', name: 'Pluma del Erudito Real', attributeCategory: 'grammar', rankTier: 'B', icon: '🪶', description: '85% de precisión gramatical.', color: AppColors.runeViolet),
+    const HunterTitleItem(code: 'pluma_archimago_a', name: 'Pluma Arcanista del Archimago', attributeCategory: 'grammar', rankTier: 'A', icon: '🪶', description: '92% de precisión gramatical.', color: AppColors.royalGold),
+    const HunterTitleItem(code: 'pluma_celestial_s', name: 'Pluma Celestial del Sabio', attributeCategory: 'grammar', rankTier: 'S', icon: '✨', description: '97% de precisión gramatical.', color: AppColors.guildAmber),
+    const HunterTitleItem(code: 'monarca_sintaxis_ss', name: 'Monarca de la Sintaxis Sagrada', attributeCategory: 'grammar', rankTier: 'SS', icon: '👑', description: '99% de precisión gramatical.', color: AppColors.crimsonRed),
+    const HunterTitleItem(code: 'creador_abismo_sss', name: 'Creador de Lenguajes del Abismo', attributeCategory: 'grammar', rankTier: 'SSS', icon: '🌌', description: '100% de precisión gramatical impecable.', color: AppColors.rankGold),
 
     // Blind Listening
-    const HunterTitleItem(code: 'murcielago_ciego_f', name: 'Murciélago Ciego', attributeCategory: 'blind', rankTier: 'F', icon: '🦇', description: 'Escuchas iniciales con chat de texto.', color: Colors.grey),
-    const HunterTitleItem(code: 'oido_halcon_novato_d', name: 'Oído de Halcón Novato', attributeCategory: 'blind', rankTier: 'D', icon: '🦅', description: '2 lecciones sin chat.', color: Colors.blue),
-    const HunterTitleItem(code: 'oido_halcon_abismo_c', name: 'Oído de Halcón del Abismo', attributeCategory: 'blind', rankTier: 'C', icon: '🦅', description: '4 lecciones superadas a ciegas.', color: Colors.teal),
-    const HunterTitleItem(code: 'sonar_monarca_sombras_s', name: 'Sonar Absoluto del Monarca de las Sombras', attributeCategory: 'blind', rankTier: 'S', icon: '🌑', description: '16 lecciones superadas a ciegas.', color: Colors.deepOrange),
-    const HunterTitleItem(code: 'oidor_susurros_sss', name: 'Oidor de los Susurros del Universo', attributeCategory: 'blind', rankTier: 'SSS', icon: '🌌', description: 'Más de 30 lecciones pasadas a ciegas.', color: Color(0xFFFFD700)),
+    const HunterTitleItem(code: 'murcielago_ciego_f', name: 'Murciélago Ciego', attributeCategory: 'blind', rankTier: 'F', icon: '🦇', description: 'Escuchas iniciales con chat de texto.', color: AppColors.onSurfaceVariant),
+    const HunterTitleItem(code: 'oido_halcon_novato_d', name: 'Oído de Halcón Novato', attributeCategory: 'blind', rankTier: 'D', icon: '🦅', description: '2 lecciones sin chat.', color: AppColors.manaCyan),
+    const HunterTitleItem(code: 'oido_halcon_abismo_c', name: 'Oído de Halcón del Abismo', attributeCategory: 'blind', rankTier: 'C', icon: '🦅', description: '4 lecciones superadas a ciegas.', color: AppColors.manaCyan),
+    const HunterTitleItem(code: 'sonar_monarca_sombras_s', name: 'Sonar Absoluto del Monarca de las Sombras', attributeCategory: 'blind', rankTier: 'S', icon: '🌑', description: '16 lecciones superadas a ciegas.', color: AppColors.guildAmber),
+    const HunterTitleItem(code: 'oidor_susurros_sss', name: 'Oidor de los Susurros del Universo', attributeCategory: 'blind', rankTier: 'SSS', icon: '🌌', description: 'Más de 30 lecciones pasadas a ciegas.', color: AppColors.rankGold),
 
     // Mythic 5th Star Title
-    const HunterTitleItem(code: 'monarca_impecable_5star', name: 'Monarca Impecable de la Perfección', attributeCategory: 'mythic', rankTier: 'SSS', icon: '🏆', description: 'Otorgado por lograr la 5ª Estrella Mítica (0 errores a ciegas).', color: Color(0xFFFF00FF)),
+    const HunterTitleItem(code: 'monarca_impecable_5star', name: 'Monarca Impecable de la Perfección', attributeCategory: 'mythic', rankTier: 'SSS', icon: '🏆', description: 'Otorgado por lograr la 5ª Estrella Mítica (0 errores a ciegas).', color: AppColors.rankMagenta),
   ];
 
   /// The Oracle — principal mentor NPC for all conversations.

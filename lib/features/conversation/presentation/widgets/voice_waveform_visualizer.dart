@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class VoiceWaveformVisualizer extends StatefulWidget {
@@ -40,7 +41,7 @@ class _VoiceWaveformVisualizerState extends State<VoiceWaveformVisualizer>
     final isActive = widget.isAiSpeaking || widget.isUserSpeaking;
     final waveColor = widget.isAiSpeaking
         ? AppColors.runeViolet
-        : (widget.isUserSpeaking ? AppColors.manaCyan : Colors.white24);
+        : (widget.isUserSpeaking ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.24));
 
     return AnimatedBuilder(
       animation: _controller,
@@ -60,7 +61,7 @@ class _VoiceWaveformVisualizerState extends State<VoiceWaveformVisualizer>
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   color: waveColor.withValues(alpha: isActive ? 0.85 : 0.2),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   boxShadow: isActive
                       ? [
                           BoxShadow(

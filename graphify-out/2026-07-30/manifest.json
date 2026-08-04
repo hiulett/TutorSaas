@@ -95,8 +95,8 @@
     "semantic_hash": "1f1b860edf0bd2ef2fc0844eab6e56a1"
   },
   "lib/core/widgets/glass_card.dart": {
-    "mtime": 1785439949.815946,
-    "ast_hash": "31d36d1d6f54b8f65ce5dd26592d4094",
+    "mtime": 1785464552.961263,
+    "ast_hash": "f87df597d5767efeb9e60d16ffad04b7",
     "semantic_hash": ""
   },
   "lib/features/auth/data/repositories/auth_repository_impl.dart": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "lib/features/conversation/presentation/screens/conversation_screen.dart": {
-    "mtime": 1785450463.022787,
-    "ast_hash": "a40b38ef5b7186934afc4673f711b835",
+    "mtime": 1785464059.013952,
+    "ast_hash": "366953d8be73fd9ce2ab2c3b6d7f8ff3",
     "semantic_hash": ""
   },
   "lib/features/dashboard/data/models/lesson_catalog.dart": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "lib/features/dashboard/presentation/screens/dashboard_screen.dart": {
-    "mtime": 1785450297.5980594,
-    "ast_hash": "aba8dd00058ff9ddc9734803245d154b",
+    "mtime": 1785452334.1599529,
+    "ast_hash": "fb04b2ee0711e31f27647a06d6da1fd2",
     "semantic_hash": ""
   },
   "lib/features/dashboard/presentation/screens/profile_edit_screen.dart": {
@@ -610,9 +610,9 @@
     "semantic_hash": "41438a7057a3d0f15c6891ce3abff5f6"
   },
   "test/widget_test.dart": {
-    "mtime": 1784487489.2228122,
-    "ast_hash": "e7866baaee991745ce7227bdf3a06c7f",
-    "semantic_hash": "e7866baaee991745ce7227bdf3a06c7f"
+    "mtime": 1785450997.7048979,
+    "ast_hash": "f7a3c688309a46acb6f1d8d69431326a",
+    "semantic_hash": ""
   },
   "web/manifest.json": {
     "mtime": 1784261374.3143866,
@@ -750,8 +750,8 @@
     "semantic_hash": "75eb386f17caf77fd6fe3ce1d90968ee"
   },
   "lib/features/dashboard/presentation/widgets/completed_lessons_history_list.dart": {
-    "mtime": 1785447418.374388,
-    "ast_hash": "a9c34225503022c661c9edd6d24884d8",
+    "mtime": 1785451267.6527913,
+    "ast_hash": "02b3b47903d26c20e69fa523eb3a8b05",
     "semantic_hash": ""
   },
   "lib/features/dashboard/presentation/widgets/learning_path_roadmap.dart": {
@@ -760,8 +760,8 @@
     "semantic_hash": ""
   },
   "lib/features/dashboard/presentation/widgets/next_recommended_lesson_hero.dart": {
-    "mtime": 1785447418.3997416,
-    "ast_hash": "e63c2415f13c974e352ce91c8a24ba27",
+    "mtime": 1785452191.8313372,
+    "ast_hash": "707a97610b67967305c9f6201a357b9a",
     "semantic_hash": ""
   },
   "analysis_options.yaml": {
@@ -1090,8 +1090,8 @@
     "semantic_hash": ""
   },
   "test/overflow_test.dart": {
-    "mtime": 1784928319.5232923,
-    "ast_hash": "5df23453a9bc86235774d1bcc774820f",
+    "mtime": 1785451837.889225,
+    "ast_hash": "90df4e01e168e3e2b789453bff38a926",
     "semantic_hash": ""
   },
   "lib/core/i18n/app_translations.dart": {
@@ -1160,22 +1160,22 @@
     "semantic_hash": ""
   },
   "lib/l10n/app_localizations.dart": {
-    "mtime": 1785446828.4480631,
+    "mtime": 1785465496.8507104,
     "ast_hash": "5fff3f21263575cb29bb4e965bc42677",
     "semantic_hash": ""
   },
   "lib/l10n/app_localizations_en.dart": {
-    "mtime": 1785446828.4292033,
+    "mtime": 1785465496.823957,
     "ast_hash": "8269ece40a3716f0b524f16ce9a4748a",
     "semantic_hash": ""
   },
   "lib/l10n/app_localizations_es.dart": {
-    "mtime": 1785446828.4362712,
+    "mtime": 1785465496.8314972,
     "ast_hash": "52f4b60fe1b9ba22981b9959573412f8",
     "semantic_hash": ""
   },
   "lib/l10n/app_localizations_pt.dart": {
-    "mtime": 1785446828.4416425,
+    "mtime": 1785465496.8414073,
     "ast_hash": "804ead8e9eb2660ee6a0ebfa2d3ca8f5",
     "semantic_hash": ""
   },
@@ -1285,8 +1285,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1785203321.6721432,
-    "ast_hash": "d053e33c2fa727b10d46aa78759b4f7a",
+    "mtime": 1785466068.5500548,
+    "ast_hash": "2aa79b179f32cdba8d1bfff34bef2eac",
     "semantic_hash": ""
   },
   "ECONOMIC_MODEL.md": {
@@ -1670,13 +1670,83 @@
     "semantic_hash": ""
   },
   "test/dashboard_repository_test.dart": {
-    "mtime": 1785450776.6136973,
-    "ast_hash": "94a1b8b8320ab7191332aa0b5dd35f22",
+    "mtime": 1785450989.184932,
+    "ast_hash": "0dffd0d0c6ef893c2b116349405e23f5",
     "semantic_hash": ""
   },
   "test/lesson_catalog_test.dart": {
     "mtime": 1785450683.2172358,
     "ast_hash": "12e2aa8390c35af493881b288df5c683",
+    "semantic_hash": ""
+  },
+  "lib/core/widgets/animated_counter.dart": {
+    "mtime": 1785454714.747673,
+    "ast_hash": "04086e266cca146987a936b79823c29c",
+    "semantic_hash": ""
+  },
+  "lib/core/widgets/floating_reward.dart": {
+    "mtime": 1785454731.4698305,
+    "ast_hash": "9251b1be631a67aa1f3935fe8e117c4c",
+    "semantic_hash": ""
+  },
+  "lib/core/widgets/segmented_bar.dart": {
+    "mtime": 1785454703.1107464,
+    "ast_hash": "5beb1f4dcf0e8d690da95a479be3e000",
+    "semantic_hash": ""
+  },
+  "docs/00_Project_Status.md": {
+    "mtime": 1785466373.4240012,
+    "ast_hash": "99ee74048a7e227e1694cd5fe0face8d",
+    "semantic_hash": ""
+  },
+  "docs/01_UI_Audit.md": {
+    "mtime": 1785466392.853616,
+    "ast_hash": "f9e8f0fa3d07121559a6040fc34dc92c",
+    "semantic_hash": ""
+  },
+  "docs/02_Design_System_Audit.md": {
+    "mtime": 1785466409.3665533,
+    "ast_hash": "27d95e4f220b85c683266f7e377735a8",
+    "semantic_hash": ""
+  },
+  "docs/03_Component_Inventory.md": {
+    "mtime": 1785466425.1243086,
+    "ast_hash": "8b40abbe36b69bb70ff3976c10e9b7ab",
+    "semantic_hash": ""
+  },
+  "docs/04_Technical_Debt.md": {
+    "mtime": 1785466443.1506276,
+    "ast_hash": "14763d8827ecd871543717f2f13c9c10",
+    "semantic_hash": ""
+  },
+  "docs/05_Recovery_Plan.md": {
+    "mtime": 1785466460.16314,
+    "ast_hash": "01d654ce3381e724308a6c319344e17c",
+    "semantic_hash": ""
+  },
+  "docs/06_Design_Migration_Plan.md": {
+    "mtime": 1785466476.5243323,
+    "ast_hash": "c63c3b00ac81d8ed22dbbbb02d406d31",
+    "semantic_hash": ""
+  },
+  "docs/Epic_Roadmap.md": {
+    "mtime": 1785466920.0770063,
+    "ast_hash": "7b9f7312f1e237bb3ccb04966c9fd6aa",
+    "semantic_hash": ""
+  },
+  "docs/Implementation_Master_Plan.md": {
+    "mtime": 1785466912.679417,
+    "ast_hash": "c0265d36dbc4b0d0875c58af4ab4a1e6",
+    "semantic_hash": ""
+  },
+  "docs/Product_Backlog.md": {
+    "mtime": 1785466906.1007307,
+    "ast_hash": "2ad413505fa7bdcbcf25e2f94c0ead23",
+    "semantic_hash": ""
+  },
+  "docs/Task_Priorities.md": {
+    "mtime": 1785466929.9188924,
+    "ast_hash": "5da95116e06e9071da1ecf6913a53f56",
     "semantic_hash": ""
   }
 }

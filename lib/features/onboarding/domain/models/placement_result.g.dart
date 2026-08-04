@@ -21,6 +21,18 @@ _$PlacementResultImpl _$$PlacementResultImplFromJson(
       completedAt: json['completedAt'] == null
           ? null
           : DateTime.parse(json['completedAt'] as String),
+      gameRank: json['gameRank'] as String?,
+      scores: (json['scores'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, (e as num).toInt()),
+      ),
+      strengths: (json['strengths'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      weaknesses: (json['weaknesses'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      explanation: json['explanation'] as String?,
+      recommendedFocus: json['recommendedFocus'] as String?,
     );
 
 Map<String, dynamic> _$$PlacementResultImplToJson(
@@ -35,4 +47,10 @@ Map<String, dynamic> _$$PlacementResultImplToJson(
       'quizScore': instance.quizScore,
       'studyPlan': instance.studyPlan,
       'completedAt': instance.completedAt?.toIso8601String(),
+      'gameRank': instance.gameRank,
+      'scores': instance.scores,
+      'strengths': instance.strengths,
+      'weaknesses': instance.weaknesses,
+      'explanation': instance.explanation,
+      'recommendedFocus': instance.recommendedFocus,
     };

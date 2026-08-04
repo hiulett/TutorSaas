@@ -3,17 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/rpg_avatar.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/status_window_modal.dart';
-import '../../../../core/widgets/rpg_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
     final String fallbackName = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? (user != null ? 'Estudiante ${user.id.substring(0, 5)}' : 'Estudiante');
 
@@ -84,10 +87,10 @@ class ProfileScreen extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Text(
                             'PANEL DE ESTADO',
-                            style: GoogleFonts.orbitron(
+                            style: GoogleFonts.spaceGrotesk(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.onSurface,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -116,7 +119,7 @@ class ProfileScreen extends ConsumerWidget {
                           onTap: () => context.push('/profile-edit'),
                           child: GlassCard(
                             blur: 20,
-                            opacity: 0.04,
+                            opacity: AppColors.glassOpacity,
                             padding: const EdgeInsets.all(20),
                             child: Row(
                               children: [
@@ -137,14 +140,14 @@ class ProfileScreen extends ConsumerWidget {
                                             child: Text(
                                               displayName,
                                               style: const TextStyle(
-                                                color: Colors.white,
+                                                color: AppColors.onSurface,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 18,
                                               ),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
-                                          const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                                          Icon(Icons.chevron_right_rounded, color: AppColors.onSurface.withValues(alpha: 0.54), size: 20),
                                         ],
                                       ),
                                       const SizedBox(height: 4),
@@ -169,7 +172,7 @@ class ProfileScreen extends ConsumerWidget {
                           onPressed: () => StatusWindowModal.show(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.runeViolet,
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.onSurface,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.all(Radius.circular(4.0)),
@@ -180,11 +183,11 @@ class ProfileScreen extends ConsumerWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.bar_chart_rounded, size: 16, color: Colors.white),
+                              const Icon(Icons.bar_chart_rounded, size: 16, color: AppColors.onSurface),
                               const SizedBox(width: 8),
                               Text(
                                 'VENTANA DE ESTADO DEL CAZADOR',
-                                style: GoogleFonts.orbitron(
+                                style: GoogleFonts.spaceGrotesk(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1.0,
@@ -202,7 +205,7 @@ class ProfileScreen extends ConsumerWidget {
                             Expanded(
                               child: GlassCard(
                                 blur: 20,
-                                opacity: 0.04,
+                                opacity: AppColors.glassOpacity,
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   children: [
@@ -211,12 +214,15 @@ class ProfileScreen extends ConsumerWidget {
                                     Text(
                                       '$xp',
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const Text('XP Total', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+                                    Text(
+                                      l10n.profile_total_xp,
+                                      style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -225,21 +231,24 @@ class ProfileScreen extends ConsumerWidget {
                             Expanded(
                               child: GlassCard(
                                 blur: 20,
-                                opacity: 0.04,
+                                opacity: AppColors.glassOpacity,
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   children: [
-                                    const Icon(Icons.local_fire_department_rounded, color: Colors.orangeAccent, size: 24),
+                                    const Icon(Icons.local_fire_department_rounded, color: AppColors.guildAmber, size: 24),
                                     const SizedBox(height: 8),
                                     Text(
                                       '$streak',
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const Text('Racha activa', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+                                    Text(
+                                      l10n.profile_streak,
+                                      style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -248,7 +257,7 @@ class ProfileScreen extends ConsumerWidget {
                             Expanded(
                               child: GlassCard(
                                 blur: 20,
-                                opacity: 0.04,
+                                opacity: AppColors.glassOpacity,
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   children: [
@@ -257,12 +266,15 @@ class ProfileScreen extends ConsumerWidget {
                                     Text(
                                       cefrCode,
                                       style: const TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const Text('Nivel CEFR', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+                                    Text(
+                                      l10n.profile_cefr_level,
+                                      style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -277,14 +289,14 @@ class ProfileScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.onSurface,
                           ),
                         ),
                         const SizedBox(height: 16),
                         weeklyPracticeAsync.when(
                           data: (practiceList) => GlassCard(
                             blur: 20,
-                            opacity: 0.04,
+                            opacity: AppColors.glassOpacity,
                             padding: const EdgeInsets.all(20),
                             child: SizedBox(
                               height: 150,
@@ -300,7 +312,7 @@ class ProfileScreen extends ConsumerWidget {
                                       Text(
                                         '${data['minutes']}m',
                                         style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.7),
+                                          color: AppColors.onSurface.withValues(alpha: 0.7),
                                           fontSize: 10,
                                         ),
                                       ),
@@ -314,7 +326,7 @@ class ProfileScreen extends ConsumerWidget {
                                             begin: Alignment.bottomCenter,
                                             end: Alignment.topCenter,
                                           ),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(AppRadius.md),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -334,18 +346,18 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                           loading: () => const GlassCard(
                             blur: 20,
-                            opacity: 0.04,
+                            opacity: AppColors.glassOpacity,
                             padding: EdgeInsets.symmetric(vertical: 40),
                             child: Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
                           ),
-                          error: (e, s) => const GlassCard(
+                          error: (e, s) => GlassCard(
                             blur: 20,
-                            opacity: 0.04,
+                            opacity: AppColors.glassOpacity,
                             padding: EdgeInsets.symmetric(vertical: 40),
                             child: Center(
                               child: Text(
                                 'Error al cargar datos de práctica',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                           ),
@@ -367,12 +379,12 @@ class ProfileScreen extends ConsumerWidget {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                       ),
                                     ),
                                     TextButton(
                                       onPressed: () => _showAllVocabularyDialog(context, vocabularyList),
-                                      child: const Text('VER TODO', style: TextStyle(color: AppColors.runeViolet, fontSize: 12)),
+                                      child: Text(l10n.progress_see_all, style: const TextStyle(color: AppColors.runeViolet, fontSize: 12)),
                                     ),
                                   ],
                                 ),
@@ -391,7 +403,7 @@ class ProfileScreen extends ConsumerWidget {
                                         margin: const EdgeInsets.only(bottom: 12),
                                         child: GlassCard(
                                           blur: 20,
-                                          opacity: 0.04,
+                                          opacity: AppColors.glassOpacity,
                                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -402,7 +414,7 @@ class ProfileScreen extends ConsumerWidget {
                                                   Text(
                                                     vocab['word'] as String? ?? '',
                                                     style: const TextStyle(
-                                                      color: Colors.white,
+                                                      color: AppColors.onSurface,
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 15,
                                                     ),
@@ -419,8 +431,8 @@ class ProfileScreen extends ConsumerWidget {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white.withValues(alpha: 0.05),
-                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: AppColors.onSurface.withValues(alpha: 0.05),
+                                                  borderRadius: BorderRadius.circular(AppRadius.lg),
                                                 ),
                                                 child: Text(
                                                   vocab['category'] as String? ?? '',
@@ -441,9 +453,9 @@ class ProfileScreen extends ConsumerWidget {
                             padding: EdgeInsets.symmetric(vertical: 32),
                             child: Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
                           ),
-                          error: (e, s) => const Padding(
+                          error: (e, s) => Padding(
                             padding: EdgeInsets.symmetric(vertical: 32),
-                            child: Center(child: Text('Error al cargar vocabulario', style: TextStyle(color: Colors.white70))),
+                            child: Center(child: Text(l10n.profile_vocab_error, style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.7)))),
                           ),
                         ),
                         const SizedBox(height: 100),
@@ -464,7 +476,7 @@ class ProfileScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(4),
               child: GlassCard(
                 blur: 30.0,
-                opacity: 0.08,
+                opacity: AppColors.glassOpacity,
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -536,22 +548,23 @@ class ProfileScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
           title: Text(
             'Vocabulario Aprendido',
-            style: GoogleFonts.hankenGrotesk(
-              color: Colors.white,
+            style: GoogleFonts.spaceGrotesk(
+              color: AppColors.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
           content: SizedBox(
             width: double.maxFinite,
             child: vocabularyList.isEmpty
-                ? const Padding(
+                ? Padding(
                     padding: EdgeInsets.symmetric(vertical: 24.0),
-                    child: Text('No hay vocabulario para mostrar', style: TextStyle(color: Colors.white70)),
+                    child: Text(l10n.profile_vocab_empty, style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.7))),
                   )
                 : ListView.builder(
                     shrinkWrap: true,
@@ -562,7 +575,7 @@ class ProfileScreen extends ConsumerWidget {
                         margin: const EdgeInsets.only(bottom: 12),
                         child: GlassCard(
                           blur: 20,
-                          opacity: 0.04,
+                          opacity: AppColors.glassOpacity,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -573,7 +586,7 @@ class ProfileScreen extends ConsumerWidget {
                                   Text(
                                     vocab['word'] as String? ?? '',
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.onSurface,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
                                     ),
@@ -590,8 +603,8 @@ class ProfileScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: AppColors.onSurface.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(AppRadius.lg),
                                 ),
                                 child: Text(
                                   vocab['category'] as String? ?? '',
@@ -611,7 +624,7 @@ class ProfileScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cerrar', style: TextStyle(color: AppColors.runeViolet)),
+              child: Text(l10n.profile_close, style: const TextStyle(color: AppColors.runeViolet)),
             ),
           ],
         );

@@ -18,6 +18,25 @@ class ConversationState with _$ConversationState {
 
     /// AI-evaluated goal results: key = goal.id, value = achieved
     @Default({}) Map<String, bool> goalEvaluationResults,
+
+    /// Counter of goals completed since last build (drives FloatingReward).
+    @Default(0) int newGoalsCompleted,
+
+    /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
+    @Default('fluency') String selectedTactic,
+
+    // ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
+    /// True when this session is the Oracle conversational placement exam.
+    @Default(false) bool isOracleEvaluation,
+
+    /// Language the user is being evaluated in (the language to learn).
+    @Default('en') String oracleTargetLanguage,
+
+    /// The user's native language (used for instructions fallback only).
+    @Default('es') String oracleNativeLanguage,
+
+    /// Non-null once the Oracle finishes the exam; holds the placement result.
+    Map<String, dynamic>? oracleResult,
   }) = _ConversationState;
 
   /// Returns initial empty state. First message is set by [initSession].

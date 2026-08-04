@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -63,11 +64,11 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
     );
 
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       child: Container(
         height: MediaQuery.of(context).size.height * 0.88,
         decoration: const BoxDecoration(
-          color: Color(0xFF060A14),
+          color: AppColors.statusWindowBg,
           border: Border(
             top: BorderSide(color: AppColors.manaCyan, width: 2),
           ),
@@ -89,10 +90,10 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                   const SizedBox(width: 8),
                   Text(
                     'VENTANA DE ESTADO DEL CAZADOR',
-                    style: GoogleFonts.orbitron(
+                    style: GoogleFonts.spaceGrotesk(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       letterSpacing: 1.1,
                     ),
                   ),
@@ -100,11 +101,11 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                icon: Icon(Icons.close_rounded, color: AppColors.onSurface.withValues(alpha: 0.7)),
               ),
             ],
           ),
-          const Divider(color: Colors.white12),
+          Divider(color: AppColors.onSurface.withValues(alpha: 0.12)),
           const SizedBox(height: 10),
 
           Expanded(
@@ -116,7 +117,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                   // Rank & Class Hero Card
                   GlassCard(
                     blur: 20,
-                    opacity: 0.1,
+                    opacity: AppColors.glassOpacity,
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
@@ -138,10 +139,10 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                           child: Center(
                             child: Text(
                               widget.currentRank,
-                              style: GoogleFonts.orbitron(
+                              style: GoogleFonts.spaceGrotesk(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.white,
+                                color: AppColors.onSurface,
                               ),
                             ),
                           ),
@@ -153,7 +154,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                             children: [
                               Text(
                                 'CAZADOR DE RANGO ${widget.currentRank}',
-                                style: GoogleFonts.orbitron(
+                                style: GoogleFonts.spaceGrotesk(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.manaCyan,
@@ -162,10 +163,10 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                               const SizedBox(height: 4),
                               Text(
                                 '${activeTitle.icon} ${activeTitle.name}',
-                                style: GoogleFonts.hankenGrotesk(
+                                style: GoogleFonts.spaceGrotesk(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: AppColors.onSurface,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -178,7 +179,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                   const SizedBox(width: 12),
                                   Text(
                                     '⚡ ${widget.totalXp} XP Total',
-                                    style: const TextStyle(fontSize: 11, color: Colors.amber, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(fontSize: 11, color: AppColors.royalGold, fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -192,30 +193,30 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                   const SizedBox(height: 20),
                   Text(
                     '🛡️ ATRIBUTOS DEL MONARCA (11 MÉTRICAS)',
-                    style: GoogleFonts.orbitron(
+                    style: GoogleFonts.spaceGrotesk(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white70,
+                      color: AppColors.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 10),
 
                   // Attributes Grid
                   _buildAttributeRow('✍️ Precisión Gramatical', '88%', 0.88, AppColors.manaCyan),
-                  _buildAttributeRow('⚡ Latencia de Respuesta', '1.4s (Rango A)', 0.90, Colors.amber),
+                  _buildAttributeRow('⚡ Latencia de Respuesta', '1.4s (Rango A)', 0.90, AppColors.royalGold),
                   _buildAttributeRow('🎧 Agudeza Auditiva A Ciegas', '4 Lecciones', 0.60, AppColors.runeViolet),
-                  _buildAttributeRow('📚 Capacidad Léxica SRS', '142 Palabras', 0.70, Colors.lightBlueAccent),
-                  _buildAttributeRow('🎙️ Precisión Fonética', '91%', 0.91, Colors.greenAccent),
-                  _buildAttributeRow('🌪️ Volumen de Oratoria', '1,840 Palabras', 0.65, Colors.orangeAccent),
-                  _buildAttributeRow('🛡️ Presencia Social (Salas)', '120 Minutos', 0.75, Colors.pinkAccent),
+                  _buildAttributeRow('📚 Capacidad Léxica SRS', '142 Palabras', 0.70, AppColors.manaCyan),
+                  _buildAttributeRow('🎙️ Precisión Fonética', '91%', 0.91, AppColors.emeraldGreen),
+                  _buildAttributeRow('🌪️ Volumen de Oratoria', '1,840 Palabras', 0.65, AppColors.guildAmber),
+                  _buildAttributeRow('🛡️ Presencia Social (Salas)', '120 Minutos', 0.75, AppColors.presencePink),
 
                   const SizedBox(height: 24),
                   Text(
                     '📜 INVENTARIO DE TÍTULOS LEGENDARIOS (EQUIPABLES)',
-                    style: GoogleFonts.orbitron(
+                    style: GoogleFonts.spaceGrotesk(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white70,
+                      color: AppColors.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -229,10 +230,10 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                       decoration: BoxDecoration(
                         color: isEquipped
                             ? AppColors.runeViolet.withValues(alpha: 0.25)
-                            : Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(12),
+                            : AppColors.onSurface.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: Border.all(
-                          color: isEquipped ? AppColors.runeViolet : Colors.white12,
+                          color: isEquipped ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.12),
                         ),
                       ),
                       child: Row(
@@ -250,7 +251,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
-                                        color: isEquipped ? Colors.white : Colors.white70,
+                                        color: isEquipped ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.7),
                                       ),
                                     ),
                                     const SizedBox(width: 6),
@@ -258,7 +259,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: title.color.withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(6),
+                                        borderRadius: BorderRadius.circular(AppRadius.md),
                                       ),
                                       child: Text(
                                         'RANGO ${title.rankTier}',
@@ -274,7 +275,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                 const SizedBox(height: 2),
                                 Text(
                                   title.description,
-                                  style: const TextStyle(fontSize: 10, color: Colors.white54),
+                                  style: TextStyle(fontSize: 10, color: AppColors.onSurface.withValues(alpha: 0.54)),
                                 ),
                               ],
                             ),
@@ -291,8 +292,8 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isEquipped ? Colors.white12 : AppColors.runeViolet,
-                              foregroundColor: Colors.white,
+                              backgroundColor: isEquipped ? AppColors.onSurface.withValues(alpha: 0.12) : AppColors.runeViolet,
+                              foregroundColor: AppColors.onSurface,
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               minimumSize: const Size(60, 30),
                             ),
@@ -326,7 +327,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(name, style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500)),
+              Text(name, style: TextStyle(fontSize: 12, color: AppColors.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w500)),
               Text(valueText, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
             ],
           ),
@@ -335,7 +336,7 @@ class _StatusWindowModalState extends State<StatusWindowModal> {
             borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white10,
+              backgroundColor: AppColors.onSurface.withValues(alpha: 0.10),
               valueColor: AlwaysStoppedAnimation<Color>(color),
               minHeight: 5,
             ),

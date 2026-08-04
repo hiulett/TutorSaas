@@ -28,22 +28,35 @@ class PlacementRepositoryImpl implements PlacementRepository {
     required String mainDifficulty,
     required int quizScore,
   }) async {
-    // Upsert placement result into Supabase
-    await _client.from('placement_results').upsert({
-      'user_id': userId,
-      'cefr_level': cefrLevel,
-      'learning_goal': learningGoal,
-      'main_difficulty': mainDifficulty,
-      'quiz_score': quizScore,
-      'completed_at': DateTime.now().toIso8601String(),
-    }, onConflict: 'user_id');
+    // 1. Get CEFR Level ID from code (A1, A2, etc.)
+    int cefrId = 1;
+    try {
+      final cefrResponse = await _client
+          .from('cefr_levels')
+          .select('id')
+          .eq('code', cefrLevel)
+          .maybeSingle();
+      if (cefrResponse != null) {
+        cefrId = cefrResponse['id'] as int;
+      }
+    } catch (_) {}
 
-    // Also update the user_profiles table with the computed level
-    await _client.from('user_profiles').upsert({
-      'id': userId,
-      'cefr_level': cefrLevel,
-      'placement_completed': true,
-    }, onConflict: 'id');
+    // 2. Update user_language_profiles with the computed level ID
+    try {
+      await _client.from('user_language_profiles').upsert({
+        'user_id': userId,
+        'language_id': 1, // Default English language id
+        'cefr_level_id': cefrId,
+      }, onConflict: 'user_id, language_id');
+    } catch (_) {}
+
+    // 3. Update public.users table with goals / difficulties inside bio
+    try {
+      await _client.from('users').update({
+        'bio': '[Stats|STR:5|INT:5|DEX:5|LUK:5] Goal: $learningGoal | Obstacle: $mainDifficulty | Quiz: $quizScore',
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', userId);
+    } catch (_) {}
   }
 }
 

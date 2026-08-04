@@ -92,24 +92,24 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
   }
 
   Color _getPrimaryThemeColor() {
-    if (widget.isBossArena) return Colors.redAccent;
+    if (widget.isBossArena) return AppColors.crimsonRed;
     switch (widget.bgMode) {
       case CyberBgMode.dashboardGate:
       case CyberBgMode.hunterStatus:
         return AppColors.manaCyan;
       case CyberBgMode.guildHall:
       case CyberBgMode.guildTable:
-        return Colors.amberAccent;
+        return AppColors.royalGold;
       case CyberBgMode.onboardingStep7:
-        return const Color(0xFFFFD700);
+        return AppColors.trophyGold;
       default:
         switch (widget.levelCode.toUpperCase()) {
-          case 'A1': return const Color(0xFF10B981);
-          case 'A2': return const Color(0xFFF59E0B);
-          case 'B1': return const Color(0xFF06B6D4);
-          case 'B2': return const Color(0xFF8B5CF6);
-          case 'C1': return const Color(0xFFEC4899);
-          case 'C2': return const Color(0xFFFF4500);
+          case 'A1': return AppColors.cefrA1;
+          case 'A2': return AppColors.cefrA2;
+          case 'B1': return AppColors.cefrB1;
+          case 'B2': return AppColors.cefrB2;
+          case 'C1': return AppColors.cefrC1;
+          case 'C2': return AppColors.cefrC2;
           default: return AppColors.runeViolet;
         }
     }
@@ -174,7 +174,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
         // 1. Dark Base Void
         Positioned.fill(
           child: Container(
-            color: const Color(0xFF04060C),
+            color: AppColors.arenaVoid,
           ),
         ),
 
@@ -195,7 +195,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
                         gradient: RadialGradient(
                           colors: [
                             themeColor.withValues(alpha: 0.35),
-                            const Color(0xFF04060C),
+                            AppColors.arenaVoid,
                           ],
                           radius: 1.3,
                         ),
@@ -216,9 +216,9 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF04060C).withValues(alpha: 0.82),
-                  const Color(0xFF04060C).withValues(alpha: 0.65),
-                  const Color(0xFF04060C).withValues(alpha: 0.90),
+                  AppColors.arenaVoid.withValues(alpha: 0.82),
+                  AppColors.arenaVoid.withValues(alpha: 0.65),
+                  AppColors.arenaVoid.withValues(alpha: 0.90),
                 ],
               ),
             ),

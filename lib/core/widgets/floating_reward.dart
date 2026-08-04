@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 
 class FloatingReward extends StatefulWidget {
   final String text;
@@ -38,12 +39,12 @@ class _FloatingRewardState extends State<FloatingReward>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+    _controller = AnimationController(vsync: this, duration: AppMotion.reward);
     _fadeAnim = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.6, 1.0, curve: Curves.easeOut)),
     );
     _slideAnim = Tween<Offset>(begin: Offset.zero, end: const Offset(0, -1.5)).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _controller, curve: AppMotion.curveStandard),
     );
     _controller.forward();
   }
@@ -78,7 +79,7 @@ class _FloatingRewardState extends State<FloatingReward>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (widget.icon != null) ...[Icon(widget.icon!, color: widget.color, size: 18), const SizedBox(width: 6)],
-                    Text(widget.text, style: GoogleFonts.jetBrainsMono(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    Text(widget.text, style: GoogleFonts.jetBrainsMono(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
                   ],
                 ),
               ),
@@ -132,7 +133,7 @@ class _FloatingRewardOverlayState extends State<_FloatingRewardOverlay>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (widget.icon != null) ...[Icon(widget.icon!, color: widget.color, size: 20), const SizedBox(width: 8)],
-                      Text(widget.text, style: GoogleFonts.jetBrainsMono(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text(widget.text, style: GoogleFonts.jetBrainsMono(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
                     ],
                   ),
                 ),

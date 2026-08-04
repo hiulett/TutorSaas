@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/stat_tile.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../providers/dashboard_providers.dart';
 
@@ -14,6 +17,7 @@ class SessionSummaryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Stack(
@@ -56,7 +60,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                     children: [
                       ClipOval(
                         child: Material(
-                          color: Colors.white.withValues(alpha: 0.05),
+                          color: AppColors.onSurface.withValues(alpha: 0.05),
                           child: InkWell(
                             onTap: () {
                               ref.read(dashboardRefreshProvider.notifier).state++;
@@ -69,9 +73,9 @@ class SessionSummaryScreen extends ConsumerWidget {
                               context.go('/home');
                             },
                             child: const SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                              width: 48,
+                              height: 48,
+                              child: Icon(Icons.arrow_back_rounded, color: AppColors.onSurface),
                             ),
                           ),
                         ),
@@ -81,7 +85,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                         'Resumen',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.onSurface,
                         ),
                       ),
                     ],
@@ -94,7 +98,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.runeViolet.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: Border.all(
                           color: AppColors.runeViolet.withValues(alpha: 0.3),
                           width: 1.0,
@@ -128,10 +132,10 @@ class SessionSummaryScreen extends ConsumerWidget {
                   Text(
                     'Resumen de la Sesión',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.hankenGrotesk(
+                    style: GoogleFonts.spaceGrotesk(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -160,6 +164,14 @@ class SessionSummaryScreen extends ConsumerWidget {
 
                     final corrections = userMsgs.where((m) => m.originalText != null && m.originalText!.isNotEmpty).toList();
 
+                    // Estimated session duration (~45s per user turn) since no clock is stored.
+                    final int sessionSeconds = userMsgs.isEmpty ? 0 : math.max(60, userMsgs.length * 45);
+                    final int sessionMin = sessionSeconds ~/ 60;
+                    final int sessionSec = sessionSeconds % 60;
+                    final String durationLabel = sessionMin > 0
+                        ? '${sessionMin}m ${sessionSec.toString().padLeft(2, '0')}s'
+                        : '${sessionSec}s';
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -170,7 +182,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                             Expanded(
                               child: GlassCard(
                                 blur: 20,
-                                opacity: 0.04,
+                                opacity: AppColors.glassOpacity,
                                 padding: const EdgeInsets.all(20),
                                 child: Column(
                                   children: [
@@ -179,7 +191,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -225,7 +237,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                             Expanded(
                               child: GlassCard(
                                 blur: 20,
-                                opacity: 0.04,
+                                opacity: AppColors.glassOpacity,
                                 padding: const EdgeInsets.all(20),
                                 child: Column(
                                   children: [
@@ -234,7 +246,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -276,6 +288,48 @@ class SessionSummaryScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 24),
+
+                        // KPI Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: StatTile(
+                                icon: Icons.timer_outlined,
+                                color: AppColors.manaCyan,
+                                label: 'DURACIÓN',
+                                value: durationLabel,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: StatTile(
+                                icon: Icons.record_voice_over_rounded,
+                                color: AppColors.runeViolet,
+                                label: 'PALABRAS',
+                                value: '$wordCount',
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: StatTile(
+                                icon: Icons.gps_fixed_rounded,
+                                color: AppColors.emeraldGreen,
+                                label: 'PRECISIÓN',
+                                value: '$pronPct%',
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: StatTile(
+                                icon: Icons.bolt_rounded,
+                                color: AppColors.royalGold,
+                                label: 'XP',
+                                value: '+80',
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 32),
 
                         // Common Mistakes Title
@@ -292,7 +346,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: AppColors.onSurface,
                               ),
                             ),
                           ],
@@ -326,7 +380,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                   // Rewards & Actions Panel
                   GlassCard(
                     blur: 30,
-                    opacity: 0.08,
+                    opacity: AppColors.glassOpacity,
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -357,7 +411,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                     Text(
                                       '+80 XP',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
@@ -373,7 +427,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                            Container(width: 1, height: 40, color: Colors.white10),
+                            Container(width: 1, height: 40, color: AppColors.onSurface.withValues(alpha: 0.10)),
                             Row(
                               children: [
                                 Container(
@@ -381,11 +435,11 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   height: 44,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.orangeAccent.withValues(alpha: 0.15),
+                                    color: AppColors.guildAmber.withValues(alpha: 0.15),
                                   ),
                                   child: const Icon(
                                     Icons.local_fire_department_rounded,
-                                    color: Colors.orangeAccent,
+                                    color: AppColors.guildAmber,
                                     size: 24,
                                   ),
                                 ),
@@ -396,7 +450,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                     Text(
                                       '+1 Racha',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
@@ -416,7 +470,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                         ),
 
                         const SizedBox(height: 24),
-                        const Divider(color: Colors.white10, height: 1),
+                        Divider(color: AppColors.onSurface.withValues(alpha: 0.10), height: 1),
                         const SizedBox(height: 24),
 
                         // Action buttons
@@ -425,10 +479,10 @@ class SessionSummaryScreen extends ConsumerWidget {
                             Expanded(
                               child: OutlinedButton.icon(
                                 icon: const Icon(Icons.menu_book_rounded, size: 18),
-                                label: const Text('VER VOCABULARIO'),
+                                label: Text(l10n.summary_view_vocab),
                                 onPressed: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Vocabulario guardado en tu perfil.')),
+                                    SnackBar(content: Text(l10n.summary_vocab_saved)),
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
@@ -438,7 +492,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   ),
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.lg),
                                   ),
                                 ),
                               ),
@@ -447,16 +501,16 @@ class SessionSummaryScreen extends ConsumerWidget {
                             Expanded(
                               child: ElevatedButton.icon(
                                 icon: const Icon(Icons.check_rounded, size: 18),
-                                label: const Text('LISTO'),
+                                label: Text(l10n.summary_done),
                                 onPressed: () {
                                   context.go('/home');
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.runeViolet,
-                                  foregroundColor: Colors.white,
+                                  foregroundColor: AppColors.onSurface,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.lg),
                                   ),
                                   elevation: 4,
                                 ),
@@ -486,7 +540,7 @@ class SessionSummaryScreen extends ConsumerWidget {
   }) {
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,7 +556,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                 ),
                 child: const Icon(
                   Icons.close_rounded,
-                  color: Colors.redAccent,
+                  color: AppColors.crimsonRed,
                   size: 18,
                 ),
               ),
@@ -540,7 +594,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                 child: Text(
                   correctedText,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
@@ -555,7 +609,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: Text(
                   category,
@@ -570,8 +624,8 @@ class SessionSummaryScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.onSurface.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: Text(
                   tag,
@@ -602,7 +656,7 @@ class NeonProgressPainter extends CustomPainter {
     final radius = (size.width - 8) / 2;
 
     final basePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
+      ..color = AppColors.onSurface.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8;
 

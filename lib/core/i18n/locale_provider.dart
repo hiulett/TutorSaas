@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'language_settings.dart';
 
 /// Legacy locale provider — maintains backward compatibility with existing code
 class LocaleNotifier extends StateNotifier<String> {

@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+
 class MissionTemplate {
   final String id;
   final String missionType;
@@ -168,6 +171,135 @@ class EmergencyMission {
   );
 }
 
+/// Misión colaborativa del gremio (progreso global compartido).
+class GuildMission {
+  final String id;
+  final String title;
+  final String description;
+  final String objectiveType;
+  final int targetValue;
+  final int currentValue;
+  final int xpReward;
+  final int gemReward;
+  final String? itemReward;
+  final DateTime startsAt;
+  final DateTime expiresAt;
+  final bool isRewardClaimed;
+
+  const GuildMission({
+    required this.id,
+    required this.title,
+    this.description = '',
+    required this.objectiveType,
+    this.targetValue = 1,
+    this.currentValue = 0,
+    this.xpReward = 500,
+    this.gemReward = 100,
+    this.itemReward,
+    required this.startsAt,
+    required this.expiresAt,
+    this.isRewardClaimed = false,
+  });
+
+  double get progress => targetValue > 0 ? (currentValue / targetValue).clamp(0.0, 1.0) : 0.0;
+  bool get isCompleted => currentValue >= targetValue;
+  bool get isExpired => expiresAt.isBefore(DateTime.now());
+
+  factory GuildMission.fromMap(Map<String, dynamic> m) => GuildMission(
+    id: m['id'] as String? ?? '',
+    title: m['title'] as String? ?? '',
+    description: m['description'] as String? ?? '',
+    objectiveType: m['objective_type'] as String? ?? 'speak_minutes',
+    targetValue: (m['target_value'] as num?)?.toInt() ?? 1,
+    currentValue: (m['current_value'] as num?)?.toInt() ?? 0,
+    xpReward: (m['xp_reward'] as num?)?.toInt() ?? 500,
+    gemReward: (m['gem_reward'] as num?)?.toInt() ?? 100,
+    itemReward: m['item_reward'] as String?,
+    startsAt: m['starts_at'] != null ? DateTime.parse(m['starts_at'] as String) : DateTime.now(),
+    expiresAt: m['expires_at'] != null ? DateTime.parse(m['expires_at'] as String) : DateTime.now(),
+    isRewardClaimed: m['is_reward_claimed'] as bool? ?? false,
+  );
+}
+
+/// Misión del pool de misiones del gremio (tabla guild_quest_pool).
+class GuildQuest {
+  final String id;
+  final String questType;
+  final String title;
+  final String description;
+  final String objectiveType;
+  final int targetValue;
+  final int xpReward;
+  final int gemReward;
+  final String? itemReward;
+  final String? minCefrLevel;
+  final bool isActive;
+
+  const GuildQuest({
+    required this.id,
+    required this.questType,
+    required this.title,
+    this.description = '',
+    required this.objectiveType,
+    this.targetValue = 10,
+    this.xpReward = 50,
+    this.gemReward = 0,
+    this.itemReward,
+    this.minCefrLevel,
+    this.isActive = true,
+  });
+
+  factory GuildQuest.fromMap(Map<String, dynamic> m) => GuildQuest(
+    id: m['id'] as String? ?? '',
+    questType: m['quest_type'] as String? ?? 'daily',
+    title: m['title'] as String? ?? '',
+    description: m['description'] as String? ?? '',
+    objectiveType: m['objective_type'] as String? ?? 'speak_minutes',
+    targetValue: (m['target_value'] as num?)?.toInt() ?? 10,
+    xpReward: (m['xp_reward'] as num?)?.toInt() ?? 50,
+    gemReward: (m['gem_reward'] as num?)?.toInt() ?? 0,
+    itemReward: m['item_reward'] as String?,
+    minCefrLevel: m['min_cefr_level'] as String?,
+    isActive: m['is_active'] as bool? ?? true,
+  );
+}
+
+/// Evento global temporal con progreso del jugador.
+class GlobalEvent {  final String id;
+  final String title;
+  final String description;
+  final String eventType;
+  final DateTime startsAt;
+  final DateTime expiresAt;
+  final Map<String, dynamic> rewardData;
+  final bool isActive;
+
+  const GlobalEvent({
+    required this.id,
+    required this.title,
+    this.description = '',
+    required this.eventType,
+    required this.startsAt,
+    required this.expiresAt,
+    this.rewardData = const {},
+    this.isActive = true,
+  });
+
+  bool get isExpired => expiresAt.isBefore(DateTime.now());
+  bool get isRunning => !isExpired && startsAt.isBefore(DateTime.now());
+
+  factory GlobalEvent.fromMap(Map<String, dynamic> m) => GlobalEvent(
+    id: m['id'] as String? ?? '',
+    title: m['title'] as String? ?? '',
+    description: m['description'] as String? ?? '',
+    eventType: m['event_type'] as String? ?? '',
+    startsAt: m['starts_at'] != null ? DateTime.parse(m['starts_at'] as String) : DateTime.now(),
+    expiresAt: m['expires_at'] != null ? DateTime.parse(m['expires_at'] as String) : DateTime.now(),
+    rewardData: Map<String, dynamic>.from(m['reward_data'] as Map? ?? const {}),
+    isActive: m['is_active'] as bool? ?? true,
+  );
+}
+
 class RewardHistory {
   final String id;
   final String sourceType;
@@ -243,16 +375,16 @@ String missionTypeIcon(String type) {
 }
 
 /// Color for mission types
-int missionTypeColor(String type) {
+Color missionTypeColor(String type) {
   switch (type) {
-    case 'daily': return 0xFF00E5FF;
-    case 'weekly': return 0xFFFFC700;
-    case 'secondary': return 0xFF00E676;
-    case 'secret': return 0xFF9D4EDD;
-    case 'emergency': return 0xFFFF1744;
-    case 'guild': return 0xFFFFAB00;
-    case 'collaborative': return 0xFF42A5F5;
-    case 'event': return 0xFF00E5FF;
-    default: return 0xFF00E5FF;
+    case 'daily': return AppColors.manaCyan;
+    case 'weekly': return AppColors.royalGold;
+    case 'secondary': return AppColors.emeraldGreen;
+    case 'secret': return AppColors.runeViolet;
+    case 'emergency': return AppColors.crimsonRed;
+    case 'guild': return AppColors.guildAmber;
+    case 'collaborative': return AppColors.collabBlue;
+    case 'event': return AppColors.manaCyan;
+    default: return AppColors.manaCyan;
   }
 }

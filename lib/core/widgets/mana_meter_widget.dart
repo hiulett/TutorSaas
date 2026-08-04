@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_radius.dart';
 
 class ManaMeterWidget extends StatelessWidget {
   final int currentMana;
@@ -21,8 +22,8 @@ class ManaMeterWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.deepSlate.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: AppColors.runeViolet.withValues(alpha: 0.5),
         ),
@@ -46,10 +47,10 @@ class ManaMeterWidget extends StatelessWidget {
                 children: [
                   Text(
                     '$currentMana Maná',
-                    style: GoogleFonts.orbitron(
+                    style: GoogleFonts.jetBrainsMono(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                     ),
                   ),
                   if (usedInSession > 0) ...[
@@ -58,7 +59,7 @@ class ManaMeterWidget extends StatelessWidget {
                       '(-$usedInSession)',
                       style: const TextStyle(
                         fontSize: 9,
-                        color: Colors.redAccent,
+                        color: AppColors.crimsonRed,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -70,10 +71,10 @@ class ManaMeterWidget extends StatelessWidget {
                 width: 80,
                 height: 4,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   child: LinearProgressIndicator(
                     value: percent,
-                    backgroundColor: Colors.white10,
+                    backgroundColor: AppColors.onSurface.withValues(alpha: 0.10),
                     valueColor: const AlwaysStoppedAnimation<Color>(AppColors.runeViolet),
                   ),
                 ),

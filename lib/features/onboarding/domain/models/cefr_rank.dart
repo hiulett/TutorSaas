@@ -1,0 +1,63 @@
+/// Helper puro que mapea niveles CEFR ↔ rangos del juego (System HUD).
+///
+/// La escala de rangos es: E (novato) → D → C → B → A → S → SS → SSS (élite).
+class CefrRank {
+  CefrRank._();
+
+  /// Mapeo canónico CEFR → rango del juego.
+  static const Map<String, String> _cefrToRank = {
+    'A1': 'E',
+    'A2': 'D',
+    'B1': 'C',
+    'B2': 'B',
+    'C1': 'A',
+    'C2': 'S',
+  };
+
+  /// Mapeo inverso rango del juego → CEFR (más permisivo: también admite
+  /// los rangos extendidos SS/SSS que se usan para C1+/C2).
+  static const Map<String, String> _rankToCefr = {
+    'E': 'A1',
+    'D': 'A2',
+    'C': 'B1',
+    'B': 'B2',
+    'A': 'C1',
+    'S': 'C2',
+    'SS': 'C2',
+    'SSS': 'C2',
+  };
+
+  /// Descripciones cortas estilo juego para cada rango.
+  static const Map<String, String> _rankDescriptions = {
+    'E': 'Novato — cada aventura empieza con un primer paso.',
+    'D': 'Aprendiz — los básicos ya no te frenan.',
+    'C': 'Aventurero — te desenvuelves en mazmorras cotidianas.',
+    'B': 'Guerrero — conversaciones firmes y con recursos.',
+    'A': 'Campeón — lideras la conversación con soltura.',
+    'S': 'Leyenda — casi imposible de igualar.',
+    'SS': 'Leyenda Suprema — dominio casi perfecto.',
+    'SSS': 'Deidad del Idioma — maestría absoluta.',
+  };
+
+  /// Devuelve el rango del juego correspondiente a un nivel CEFR.
+  ///
+  /// Devuelve 'E' como rango por defecto para niveles desconocidos.
+  static String gameRankFromCefr(String cefr) {
+    final level = cefr.trim().toUpperCase();
+    return _cefrToRank[level] ?? 'E';
+  }
+
+  /// Devuelve el nivel CEFR correspondiente a un rango del juego.
+  ///
+  /// Devuelve 'A1' como nivel por defecto para rangos desconocidos.
+  static String cefrFromGameRank(String rank) {
+    final normalized = rank.trim().toUpperCase();
+    return _rankToCefr[normalized] ?? 'A1';
+  }
+
+  /// Descripción corta estilo juego para un rango.
+  static String rankDescription(String rank) {
+    final normalized = rank.trim().toUpperCase();
+    return _rankDescriptions[normalized] ?? 'Rango misterioso — sigue entrenando.';
+  }
+}

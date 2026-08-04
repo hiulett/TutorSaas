@@ -1,10 +1,28 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/services/retention_analytics.dart';
 import '../../domain/repositories/economy_repository.dart';
 
 class EconomyRepositoryImpl implements EconomyRepository {
   final SupabaseClient _client;
 
   EconomyRepositoryImpl(this._client);
+
+  /// Best-effort fire-and-forget logging of a usage event into api_request_logs.
+  /// Never throws and never blocks the main flow (wrapped in its own try-catch).
+  Future<void> _logEvent(String userId, String eventType) async {
+    if (userId.isEmpty || eventType.isEmpty) return;
+    try {
+      await _client.from('api_request_logs').insert({
+        'user_id': userId,
+        'endpoint': eventType,
+      });
+      debugPrint('api_request_logs event logged: $eventType');
+    } catch (e) {
+      debugPrint('Error logging api_request_logs event ($eventType): $e');
+    }
+  }
 
   @override
   Future<Map<String, dynamic>> getDailyState(String userId) async {
@@ -119,8 +137,19 @@ class EconomyRepositoryImpl implements EconomyRepository {
           newStreak = ((streak['current_streak'] as int?) ?? 0) + 1;
         } else if (diff == 0) {
           newStreak = (streak['current_streak'] as int?) ?? 0;
+        } else {
+          // Day was lost (diff > 1): consume a freeze if available,
+          // otherwise reset the streak.
+          final freezes = await getStreakFreezes(userId);
+          if (freezes > 0) {
+            newStreak = (streak['current_streak'] as int?) ?? 0;
+            await _client
+                .from('player_streaks')
+                .update({'streak_freezes': freezes - 1})
+                .eq('user_id', userId);
+          }
+          // else: newStreak stays 1 (reset)
         }
-        // else: diff > 1, reset to 1
       } catch (_) {
         newStreak = 1;
       }
@@ -166,12 +195,19 @@ class EconomyRepositoryImpl implements EconomyRepository {
         'p_amount': gems,
       });
 
+      await _client.rpc('increment_pergaminos_max', params: {
+        'p_user_id': userId,
+        'p_amount': pergaminos,
+      });
+
       await _client
           .from('player_daily_state')
-          .update({'daily_reward_claimed': true, 'pergaminos_max': _client.rpc('increment_pergaminos_max', params: {'p_user_id': userId, 'p_amount': pergaminos})})
+          .update({'daily_reward_claimed': true})
           .eq('user_id', userId)
           .eq('date', today);
 
+      unawaited(_logEvent(userId, 'claim_daily'));
+      unawaited(RetentionAnalytics.instance.track(userId, 'claim_daily'));
       return true;
     } catch (_) {
       return false;
@@ -194,14 +230,18 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<bool> purchaseItem(String userId, String itemCode) async {
     try {
-      // Check if already owned
-      final existing = await _client
-          .from('player_inventory')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('item_code', itemCode)
-          .maybeSingle();
-      if (existing != null) return false;
+      final isConsumable = itemCode.startsWith('consumible_');
+
+      // Check if already owned (only for non-consumables)
+      if (!isConsumable) {
+        final existing = await _client
+            .from('player_inventory')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('item_code', itemCode)
+            .maybeSingle();
+        if (existing != null) return false;
+      }
 
       // Get item price
       final catalog = await _client
@@ -218,13 +258,36 @@ class EconomyRepositoryImpl implements EconomyRepository {
       final spent = await spendGems(userId, price);
       if (!spent) return false;
 
-      await _client.from('player_inventory').insert({
-        'user_id': userId,
-        'item_code': itemCode,
-        'item_type': 'consumable',
-        'is_equipped': false,
-      });
+      if (isConsumable) {
+        // Handle specific consumable effects
+        final today = DateTime.now().toIso8601String().split('T').first;
+        final dailyState = await getDailyState(userId);
+        final currentMax = (dailyState['invocations_max'] as int?) ?? 20;
 
+        if (itemCode == 'consumible_invocacion5') {
+          await _client
+              .from('player_daily_state')
+              .update({'invocations_max': currentMax + 5})
+              .eq('user_id', userId)
+              .eq('date', today);
+        } else if (itemCode == 'consumible_invocacion20') {
+          await _client
+              .from('player_daily_state')
+              .update({'invocations_max': currentMax + 20})
+              .eq('user_id', userId)
+              .eq('date', today);
+        }
+      } else {
+        await _client.from('player_inventory').insert({
+          'user_id': userId,
+          'item_code': itemCode,
+          'item_type': 'cosmetic',
+          'is_equipped': false,
+        });
+      }
+
+      unawaited(_logEvent(userId, 'purchase_item'));
+      unawaited(RetentionAnalytics.instance.track(userId, 'purchase_item'));
       return true;
     } catch (_) {
       return false;
@@ -295,6 +358,52 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
+  Future<bool> purchaseStreakFreeze(String userId) async {
+    try {
+      const freezeCost = 30;
+
+      // Ensure the streak row exists before updating the freeze count
+      await getStreak(userId);
+
+      final current = await getStreakFreezes(userId);
+      await _client
+          .from('player_streaks')
+          .update({'streak_freezes': current + 1})
+          .eq('user_id', userId);
+
+      final spent = await spendGems(userId, freezeCost);
+      if (!spent) {
+        // Roll back the freeze if the gems could not be charged.
+        await _client
+            .from('player_streaks')
+            .update({'streak_freezes': current})
+            .eq('user_id', userId);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('purchaseStreakFreeze error: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<int> getStreakFreezes(String userId) async {
+    try {
+      final existing = await _client
+          .from('player_streaks')
+          .select('streak_freezes')
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (existing == null) return 0;
+      return (existing['streak_freezes'] as num?)?.toInt() ?? 0;
+    } catch (e) {
+      debugPrint('getStreakFreezes error: $e');
+      return 0;
+    }
+  }
+
+  @override
   Future<void> generateDailyPergaminos(String userId) async {
     // This would be called by a batch job (Edge Function).
     // For now, generate placeholder content.
@@ -325,6 +434,156 @@ class EconomyRepositoryImpl implements EconomyRepository {
           'is_used': false,
         });
       }
+    } catch (_) {}
+  }
+
+  // ── Battle Pass ──────────────────────────────────────────────────────────
+
+  @override
+  Future<Map<String, dynamic>> getBattlePass(String userId) async {
+    const season = 'season_2026_02';
+    try {
+      final existing = await _client
+          .from('guild_battle_pass')
+          .select()
+          .eq('user_id', userId)
+          .eq('season', season)
+          .maybeSingle();
+
+      if (existing != null) return Map<String, dynamic>.from(existing);
+
+      final created = await _client.from('guild_battle_pass').insert({
+        'user_id': userId,
+        'season': season,
+        'level': 1,
+        'xp_progress': 0,
+        'is_premium': false,
+        'claimed_rewards': const <String>[],
+      }).select().single();
+
+      return Map<String, dynamic>.from(created);
+    } catch (_) {
+      return {'season': season, 'level': 1, 'xp_progress': 0, 'is_premium': false, 'claimed_rewards': <String>[]};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> addBattlePassXp(String userId, int amount) async {
+    try {
+      const season = 'season_2026_02';
+      const xpPerLevel = 1000;
+      final bp = await getBattlePass(userId);
+
+      final level = (bp['level'] as num?)?.toInt() ?? 1;
+      final progress = (bp['xp_progress'] as num?)?.toInt() ?? 0;
+      var newProgress = progress + amount;
+      var newLevel = level;
+
+      while (newProgress >= xpPerLevel) {
+        newProgress -= xpPerLevel;
+        newLevel++;
+      }
+
+      await _client.from('guild_battle_pass').upsert({
+        'user_id': userId,
+        'season': season,
+        'level': newLevel,
+        'xp_progress': newProgress,
+        'is_premium': bp['is_premium'] as bool? ?? false,
+        'claimed_rewards': (bp['claimed_rewards'] as List? ?? const <String>[]),
+      }, onConflict: 'user_id, season').select().single();
+
+      return {'level': newLevel, 'xp_progress': newProgress, 'season': season};
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> claimBattlePassReward(String userId, int tier) async {
+    try {
+      final bp = await getBattlePass(userId);
+      final level = (bp['level'] as num?)?.toInt() ?? 1;
+      if (tier > level) return false;
+
+      final claimed = List<String>.from((bp['claimed_rewards'] as List? ?? const <String>[]));
+      final key = 'tier_$tier';
+      if (claimed.contains(key)) return false;
+      claimed.add(key);
+
+      await _client.from('guild_battle_pass').upsert({
+        'user_id': userId,
+        'season': bp['season'] as String? ?? 'season_2026_02',
+        'level': level,
+        'xp_progress': (bp['xp_progress'] as num?)?.toInt() ?? 0,
+        'is_premium': bp['is_premium'] as bool? ?? false,
+        'claimed_rewards': claimed,
+      }, onConflict: 'user_id, season');
+
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // ── Gold & Fragments (T-504) ─────────────────────────────────────────────
+
+  @override
+  Future<int> getGold(String userId) async {
+    try {
+      final profile = await _client
+          .from('user_language_profiles')
+          .select('total_gold')
+          .eq('user_id', userId)
+          .maybeSingle();
+      return (profile?['total_gold'] as num?)?.toInt() ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  @override
+  Future<bool> spendGold(String userId, int amount) async {
+    try {
+      final profile = await _client
+          .from('user_language_profiles')
+          .select('total_gold')
+          .eq('user_id', userId)
+          .maybeSingle();
+      final gold = (profile?['total_gold'] as num?)?.toInt() ?? 0;
+      if (gold < amount) return false;
+
+      await _client
+          .from('user_language_profiles')
+          .update({'total_gold': gold - amount})
+          .eq('user_id', userId);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<int> getFragments(String userId) async {
+    try {
+      final profile = await _client
+          .from('user_language_profiles')
+          .select('fragments')
+          .eq('user_id', userId)
+          .maybeSingle();
+      return (profile?['fragments'] as num?)?.toInt() ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  @override
+  Future<void> addFragments(String userId, int amount) async {
+    try {
+      await _client.rpc('add_fragments', params: {
+        'p_user_id': userId,
+        'p_amount': amount,
+      });
     } catch (_) {}
   }
 }

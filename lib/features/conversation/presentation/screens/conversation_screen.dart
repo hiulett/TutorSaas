@@ -10,22 +10,35 @@ import '../../domain/models/conversation_state.dart';
 import '../providers/conversation_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
+import '../../../dashboard/domain/models/progress_utils.dart';
 import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/live_goals_tracker_bar.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
 import '../../../../core/widgets/mana_meter_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
+import '../../../../core/widgets/system_snack.dart';
 import '../../../dashboard/data/models/hunter_catalog.dart';
+import '../../../../l10n/app_localizations.dart';
 
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String? scenarioId;
   final String? scenarioTitle;
 
+  /// Cuando es true, esta pantalla ejecuta la Evaluación del Oráculo
+  /// (onboarding Paso 4): la IA conduce un examen oral conversacional
+  /// reutilizando el mismo chat de voz y al final devuelve el resultado.
+  final bool oracleMode;
+  final String? oracleTargetLanguage;
+  final String? oracleNativeLanguage;
+
   const ConversationScreen({
     super.key,
     this.scenarioId,
     this.scenarioTitle,
+    this.oracleMode = false,
+    this.oracleTargetLanguage,
+    this.oracleNativeLanguage,
   });
 
   @override
@@ -71,10 +84,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
     // Initialize session with optional scenario persistence
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(conversationStateProvider.notifier).initSession(
-            scenarioId: widget.scenarioId,
-            scenarioTitle: widget.scenarioTitle,
-          );
+      if (widget.oracleMode) {
+        ref.read(conversationStateProvider.notifier).initOracleSession(
+              targetLanguage: widget.oracleTargetLanguage,
+              nativeLanguage: widget.oracleNativeLanguage,
+            );
+      } else {
+        ref.read(conversationStateProvider.notifier).initSession(
+              scenarioId: widget.scenarioId,
+              scenarioTitle: widget.scenarioTitle,
+            );
+      }
     });
   }
 
@@ -191,7 +211,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Metas del Escenario:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(AppLocalizations.of(context)!.conversation_goals, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                     const SizedBox(height: 8),
                     if (lesson != null) ...[
                       ...lesson.goals.asMap().entries.map((entry) {
@@ -213,7 +233,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         ),
                       ),
                     const SizedBox(height: 20),
-                    const Text('Frases Clave Sugeridas (Useful Phrases):', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(AppLocalizations.of(context)!.conversation_key_phrases, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                     const SizedBox(height: 10),
                     if (lesson != null)
                       SizedBox(
@@ -477,7 +497,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   ],
                 ),
                 const SizedBox(height: 18),
-                const Text('Fonemas recomendados a practicar:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(AppLocalizations.of(context)!.conversation_phonemes, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -547,31 +567,31 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final theme = Theme.of(context);
     final conversationState = ref.watch(conversationStateProvider);
     final conversationNotifier = ref.read(conversationStateProvider.notifier);
+    final isOracle = conversationState.isOracleEvaluation;
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
       if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: AppColors.errorRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        SystemSnack.show(context, next.errorMessage!, type: SystemSnackType.error);
+      }
+      // Examen del Oráculo terminado: devolver el resultado al onboarding.
+      if (isOracle && next.oracleResult != null && next.oracleResult != prev?.oracleResult) {
+        Future<void>.delayed(const Duration(milliseconds: 600), () {
+          if (!mounted) return;
+          final navigator = Navigator.of(context);
+          if (navigator.canPop()) {
+            navigator.pop(next.oracleResult);
+          } else {
+            context.go('/home');
+          }
+        });
       }
     });
 
-    // Progress ratio: max(saved from dashboard, current messages / 10) — matches getRecommendedLessons formula
-    final lessonsAsync = ref.watch(recommendedLessonsProvider);
-    final double savedProgress = lessonsAsync.when(
-      data: (lessons) {
-        final match = lessons.firstWhere(
-          (l) => l['id'] == conversationState.activeScenarioId,
-          orElse: () => <String, dynamic>{},
-        );
-        return (match['progress'] as num?)?.toDouble() ?? 0.0;
-      },
-      loading: () => 0.0,
-      error: (_, __) => 0.0,
+    // Progress ratio: max(saved from completed conversations, current messages / 10) — coherente con el roadmap
+    final completedLessons = ref.watch(completedLessonsProvider).value ?? [];
+    final double savedProgress = ProgressUtils.lessonProgress(
+      completedLessons,
+      conversationState.activeScenarioId ?? '',
     );
     // Subtract the initial tutor greeting so it doesn't inflate the student's progress
     final int progressMessages = (conversationState.messages.length - 1).clamp(0, 999);
@@ -589,7 +609,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         child: PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) {
+          if (didPop && !isOracle) {
             final duration = DateTime.now().difference(_startTime);
             final minutes = duration.inMinutes;
             final minutesToSave = minutes > 0 ? minutes : 1;
@@ -637,7 +657,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                widget.scenarioTitle ?? conversationState.activeScenarioName ?? 'Práctica de Conversación',
+                                isOracle
+                                    ? AppLocalizations.of(context)!.oracle_title
+                                    : (widget.scenarioTitle ?? conversationState.activeScenarioName ?? 'Práctica de Conversación'),
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -649,52 +671,55 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: Container(
-                                  height: 6,
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: FractionallySizedBox(
-                                      widthFactor: realProgressRatio,
-                                      child: Container(
-                                        color: const Color(0xFFF1C40F),
+                        if (!isOracle) ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Container(
+                                    height: 6,
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: FractionallySizedBox(
+                                        widthFactor: realProgressRatio,
+                                        child: Container(
+                                          color: const Color(0xFFF1C40F),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 36,
-                              child: Text(
-                                '${(realProgressRatio * 100).round()}%',
-                                style: const TextStyle(
-                                  color: Color(0xFFF1C40F),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 36,
+                                child: Text(
+                                  '${(realProgressRatio * 100).round()}%',
+                                  style: const TextStyle(
+                                    color: Color(0xFFF1C40F),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
+                            ],
+                          ),
+                          if (LessonCatalog.getLessonById(widget.scenarioId, title: widget.scenarioTitle) != null) ...[
+                            const SizedBox(height: 8),
+                            LiveGoalsTrackerBar(
+                              goals: LessonCatalog.getLessonById(widget.scenarioId, title: widget.scenarioTitle)!.goals,
+                              goalEvaluationResults: conversationState.goalEvaluationResults,
+                              onTapCompass: () => _showScenarioMissionModal(context),
                             ),
                           ],
-                        ),
-                        if (LessonCatalog.getLessonById(widget.scenarioId, title: widget.scenarioTitle) != null) ...[
                           const SizedBox(height: 8),
-                          LiveGoalsTrackerBar(
-                            goals: LessonCatalog.getLessonById(widget.scenarioId, title: widget.scenarioTitle)!.goals,
-                            goalEvaluationResults: conversationState.goalEvaluationResults,
-                            onTapCompass: () => _showScenarioMissionModal(context),
-                          ),
                         ],
-                        const SizedBox(height: 8),
 
                         // Mana & Mode Controls Bar
-                        SingleChildScrollView(
+                        if (!isOracle)
+                          SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
                           child: Row(
@@ -925,14 +950,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        // Icon 1: Compass (Guía de Misión)
-                        IconButton(
+                        // Icon 1: Compass (Guía de Misión) — oculto en el examen del Oráculo
+                        if (!isOracle)
+                          IconButton(
                           icon: const Icon(Icons.explore_outlined, color: Colors.white70, size: 28),
                           onPressed: () => _showScenarioMissionModal(context),
                         ),
 
-                        // Icon 2: Hashtag (20 Tópicos al azar)
-                        IconButton(
+                        // Icon 2: Hashtag (20 Tópicos al azar) — oculto en el examen del Oráculo
+                        if (!isOracle)
+                          IconButton(
                           icon: Icon(
                             Icons.tag_rounded,
                             color: _showTopicsBar ? AppColors.runeViolet : Colors.white70,
@@ -1007,10 +1034,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             ),
 
             // Floating Draggable & Collapsible Monster Overlay
-            DraggableMonsterWidget(
-              monster: HunterCatalog.regularMonsters.first,
-              isSpeaking: conversationState.isPlaying || conversationState.isProcessing,
-            ),
+            if (!isOracle)
+              DraggableMonsterWidget(
+                monster: HunterCatalog.regularMonsters.first,
+                isSpeaking: conversationState.isPlaying || conversationState.isProcessing,
+              ),
           ],
         ),
       ),

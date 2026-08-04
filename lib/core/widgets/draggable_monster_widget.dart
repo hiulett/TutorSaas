@@ -2,17 +2,20 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_radius.dart';
 import '../../features/dashboard/data/models/hunter_catalog.dart';
 
 class DraggableMonsterWidget extends StatefulWidget {
   final DungeonMonsterItem monster;
   final bool isSpeaking;
+  final double progress; // Value from 0.0 to 1.0 (deals damage to boss HP)
   final Function(bool isExpanded)? onExpandChanged;
 
   const DraggableMonsterWidget({
     super.key,
     required this.monster,
     this.isSpeaking = false,
+    this.progress = 0.0,
     this.onExpandChanged,
   });
 
@@ -102,7 +105,7 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
               final finalScale = breatheScale + speakingExtra;
 
               return Container(
-                color: Colors.black.withValues(alpha: 0.80),
+                color: AppColors.voidBg.withValues(alpha: 0.80),
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -116,14 +119,14 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: widget.monster.isBoss
-                                ? Colors.redAccent.withValues(alpha: 0.4)
+                                ? AppColors.crimsonRed.withValues(alpha: 0.4)
                                 : AppColors.runeViolet.withValues(alpha: 0.4),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: widget.monster.isBoss
-                                  ? Colors.redAccent.withValues(alpha: 0.3)
+                                  ? AppColors.crimsonRed.withValues(alpha: 0.3)
                                   : AppColors.runeViolet.withValues(alpha: 0.3),
                               blurRadius: 90,
                               spreadRadius: 30,
@@ -147,17 +150,17 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                                 shape: BoxShape.circle,
                                 gradient: SweepGradient(
                                   colors: [
-                                    widget.monster.isBoss ? Colors.redAccent : AppColors.runeViolet,
+                                    widget.monster.isBoss ? AppColors.crimsonRed : AppColors.runeViolet,
                                     AppColors.manaCyan,
-                                    widget.monster.isBoss ? Colors.orangeAccent : AppColors.manaCyan,
-                                    widget.monster.isBoss ? Colors.redAccent : AppColors.runeViolet,
+                                    widget.monster.isBoss ? AppColors.royalGold : AppColors.manaCyan,
+                                    widget.monster.isBoss ? AppColors.crimsonRed : AppColors.runeViolet,
                                   ],
                                   transform: GradientRotation(_runeRotateController.value * 2 * pi),
                                 ),
                               ),
                               child: CircleAvatar(
                                 radius: 95,
-                                backgroundColor: const Color(0xFF0F172A),
+                                backgroundColor: AppColors.monsterAvatarBg,
                                 child: CircleAvatar(
                                   radius: 90,
                                   backgroundImage: NetworkImage(widget.monster.avatarUrl),
@@ -168,10 +171,10 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.85),
-                                borderRadius: BorderRadius.circular(24),
+                                color: AppColors.voidBg.withValues(alpha: 0.85),
+                                borderRadius: BorderRadius.circular(AppRadius.lg),
                                 border: Border.all(
-                                  color: widget.monster.isBoss ? Colors.redAccent : AppColors.manaCyan,
+                                          color: widget.monster.isBoss ? AppColors.crimsonRed : AppColors.manaCyan,
                                   width: 1.5,
                                 ),
                               ),
@@ -185,7 +188,7 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: widget.monster.isBoss ? Colors.redAccent : AppColors.manaCyan,
+                                          color: widget.monster.isBoss ? AppColors.crimsonRed : AppColors.manaCyan,
                                         ),
                                       ),
                                     ],
@@ -193,11 +196,61 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                                   const SizedBox(height: 4),
                                   Text(
                                     widget.monster.name,
-                                    style: GoogleFonts.orbitron(
+                                    style: GoogleFonts.spaceGrotesk(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: AppColors.onSurface,
                                     ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Boss HP Bar
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'HP',
+                                            style: GoogleFonts.jetBrainsMono(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.crimsonRed,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${((1.0 - widget.progress) * 100).round().clamp(0, 100)}%',
+                                            style: GoogleFonts.jetBrainsMono(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.onSurface.withValues(alpha: 0.7),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        height: 8,
+                                        width: 180,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.onSurface.withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: AppColors.crimsonRed.withValues(alpha: 0.3)),
+                                        ),
+                                        child: FractionallySizedBox(
+                                          alignment: Alignment.centerLeft,
+                                          widthFactor: (1.0 - widget.progress).clamp(0.0, 1.0),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [AppColors.crimsonRed, AppColors.royalGold],
+                                              ),
+                                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -206,14 +259,14 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.white10,
-                                borderRadius: BorderRadius.circular(16),
+                                color: AppColors.onSurface.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(AppRadius.lg),
                               ),
                               child: Text(
                                 widget.isSpeaking ? '🎙️ Hablando en vivo...' : '↕️ Toca para colapsar a vista flotante',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.white70,
+                                  color: AppColors.onSurface.withValues(alpha: 0.7),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -266,18 +319,18 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF060B16).withValues(alpha: 0.92),
-                    borderRadius: BorderRadius.circular(30),
+                    color: AppColors.monsterPillBg.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     border: Border.all(
                       color: widget.monster.isBoss
-                          ? Colors.redAccent
+                          ? AppColors.crimsonRed
                           : (widget.isSpeaking ? AppColors.manaCyan : AppColors.runeViolet),
                       width: 1.8,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: widget.monster.isBoss
-                            ? Colors.redAccent.withValues(alpha: 0.5)
+                            ? AppColors.crimsonRed.withValues(alpha: 0.5)
                             : (widget.isSpeaking
                                 ? AppColors.manaCyan.withValues(alpha: 0.6)
                                 : AppColors.runeViolet.withValues(alpha: 0.4)),
@@ -294,7 +347,7 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: widget.isSpeaking ? AppColors.manaCyan : Colors.white24,
+                            color: widget.isSpeaking ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.24),
                             width: 1.2,
                           ),
                         ),
@@ -310,10 +363,10 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                         children: [
                           Text(
                             widget.monster.name,
-                            style: GoogleFonts.hankenGrotesk(
+                            style: GoogleFonts.spaceGrotesk(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.onSurface,
                             ),
                           ),
                           Text(
@@ -321,13 +374,13 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w600,
-                              color: widget.isSpeaking ? AppColors.manaCyan : Colors.white60,
+                              color: widget.isSpeaking ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.drag_indicator_rounded, color: Colors.white38, size: 14),
+                      Icon(Icons.drag_indicator_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 14),
                     ],
                   ),
                 ),

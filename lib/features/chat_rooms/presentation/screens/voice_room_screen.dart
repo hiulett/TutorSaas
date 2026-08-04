@@ -13,6 +13,9 @@ import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../../core/widgets/mana_meter_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
+import '../../../../core/widgets/segmented_bar.dart';
+import '../../../../core/widgets/system_snack.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class VoiceRoomScreen extends ConsumerStatefulWidget {
   final String roomId;
@@ -29,7 +32,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
 
   bool _isMuted = false;
   bool _isHandRaised = false;
-  bool _showChatSheet = false;
+  bool _showTipBanner = true;
+  bool _showDemoBanner = true;
+  bool _showAudience = true;
 
   final Map<String, bool> _speakingSimState = {};
   Timer? _speakingTimer;
@@ -129,23 +134,12 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
             speakerSlot: slot,
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('SUCCESSFULLY MOUNTED GUILD STAGE SLOT $slot!'),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        SystemSnack.show(context, 'SUCCESSFULLY MOUNTED GUILD STAGE SLOT $slot!', type: SystemSnackType.success);
         ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al subir al escenario: $e'),
-            backgroundColor: AppColors.errorRed,
-          ),
-        );
+        SystemSnack.show(context, 'Error al subir al escenario: $e', type: SystemSnackType.error);
       }
     }
   }
@@ -175,14 +169,183 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     });
   }
 
+  /// Abre el chat de la cámara como bottom sheet (Fase 2 UX-Audit).
+  /// No expande el grid: el chat vive en un overlay para no competir con los oradores.
+  void _openChatSheet() {
+    final l10n = AppLocalizations.of(context)!;
+    final messagesAsync = ref.read(chatRoomMessagesProvider(widget.roomId));
+    final user = ref.read(currentUserProvider);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          height: MediaQuery.of(sheetContext).size.height * 0.65,
+          margin: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.chat_bubble_rounded, color: AppColors.manaCyan, size: 18),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'CHAMBER TEXT CHAT',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1.2),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(sheetContext),
+                      child: const Icon(Icons.close_rounded, color: AppColors.onSurfaceVariant, size: 18),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: AppColors.onSurface.withValues(alpha: 0.1)),
+              Expanded(
+                child: messagesAsync.when(
+                  data: (messages) {
+                    if (messages.isEmpty) {
+                      return Center(
+                        child: Text(l10n.room_no_messages,
+                            style: GoogleFonts.jetBrainsMono(color: AppColors.onSurface.withValues(alpha: 0.6), fontSize: 12)),
+                      );
+                    }
+                    return ListView.builder(
+                      controller: _chatScrollController,
+                      padding: const EdgeInsets.all(12),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final msg = messages[index];
+                        final msgUserId = msg['user_id'] as String;
+                        final isSelf = msgUserId == user?.id;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6.0),
+                          child: Row(
+                            mainAxisAlignment: isSelf ? MainAxisAlignment.end : MainAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelf ? AppColors.runeViolet.withValues(alpha: 0.3) : AppColors.onSurface.withValues(alpha: 0.10),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  msg['message_text'] as String? ?? '',
+                                  style: const TextStyle(color: AppColors.onSurface, fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _messageController,
+                        style: const TextStyle(color: AppColors.onSurface, fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'Type a message...',
+                          hintStyle: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.38), fontSize: 12),
+                          filled: true,
+                          fillColor: AppColors.onSurface.withValues(alpha: 0.05),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(4), borderSide: BorderSide.none),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.send_rounded, color: AppColors.manaCyan),
+                      onPressed: () {
+                        _sendMessage();
+                        Future.delayed(const Duration(milliseconds: 150), () {
+                          if (mounted && _chatScrollController.hasClients) {
+                            _chatScrollController.animateTo(
+                              _chatScrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
     final participantsAsync = ref.watch(chatRoomParticipantsProvider(widget.roomId));
     final messagesAsync = ref.watch(chatRoomMessagesProvider(widget.roomId));
 
+    Map<String, dynamic>? currentRoom;
+    final rooms = ref.watch(chatRoomsListProvider).value;
+    if (rooms != null) {
+      for (final r in rooms) {
+        if (r['id'] == widget.roomId) {
+          currentRoom = r;
+          break;
+        }
+      }
+    }
+    final roomTitle = currentRoom?['title'] as String?;
+    final missionName =
+        (roomTitle != null && roomTitle.trim().isNotEmpty) ? roomTitle : 'MISIÓN LIBRE';
+
+    double resonance;
+    final participants = participantsAsync.value;
+    final messages = messagesAsync.value;
+    if (participants != null && participants.isNotEmpty) {
+      final speakers = participants.where((p) => p['is_speaker'] == true).toList();
+      if (speakers.isNotEmpty) {
+        var active = 0;
+        for (final s in speakers) {
+          final uid = s['user_id'] as String?;
+          if (uid != null && _speakingSimState[uid] == true) active++;
+        }
+        resonance = (active / speakers.length).clamp(0.1, 1.0).toDouble();
+      } else {
+        resonance = 0.5;
+      }
+    } else if (messages != null && messages.isNotEmpty) {
+      resonance = (messages.length / 15.0).clamp(0.1, 1.0).toDouble();
+    } else {
+      resonance = 0.5;
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFF090D16),
+      backgroundColor: AppColors.screenBg,
       body: CyberManhwaBackground(
         bgMode: CyberBgMode.guildTable,
         child: Stack(
@@ -230,87 +393,243 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
+                    Expanded(
+                      child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onSurface, size: 20),
                             onPressed: _leaveRoom,
                           ),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    'GUILD VOICE CHAMBER',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.redAccent.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: Colors.redAccent),
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 8),
-                                        const SizedBox(width: 4),
-                                        Text('LIVE', style: TextStyle(color: Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Text(
-                                'Moderated by AI Tutor in Real Time',
-                                style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const ManaMeterWidget(currentMana: 448, usedInSession: 2),
                           const SizedBox(width: 4),
-                          IconButton(
-                            icon: const Icon(Icons.exit_to_app_rounded, color: AppColors.errorRed),
-                            onPressed: _leaveRoom,
-                            tooltip: 'Salir de la sala',
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'GUILD VOICE CHAMBER',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.spaceGrotesk(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.crimsonRed.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: AppColors.crimsonRed),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.fiber_manual_record, color: AppColors.crimsonRed, size: 6),
+                                          const SizedBox(width: 2),
+                                          Text(l10n.room_live, style: const TextStyle(color: AppColors.crimsonRed, fontSize: 8, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Text(
+                                  'Moderated by AI Tutor in Real Time',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const ManaMeterWidget(currentMana: 448, usedInSession: 2),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          icon: const Icon(Icons.exit_to_app_rounded, color: AppColors.errorRed),
+                          onPressed: _leaveRoom,
+                          tooltip: 'Salir de la sala',
+                        ),
+                      ],
+                    ),
                     ],
                   ),
                 ),
 
-                // AI Tutor Tip Banner
+                // AI Tutor Tip Banner (colapsable — se muestra al entrar y se cierra)
+                if (_showTipBanner)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0),
+                    child: GlassCard(
+                      blur: 20,
+                      opacity: AppColors.glassOpacity,
+                      border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 400),
+                              child: Text(
+                                _aiTips[_currentTipIndex],
+                                key: ValueKey(_currentTipIndex),
+                                style: const TextStyle(color: AppColors.onSurface, fontSize: 11, fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () => setState(() => _showTipBanner = false),
+                            child: const Icon(Icons.close_rounded, color: AppColors.onSurfaceVariant, size: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                // GUILD-01: Demo transparency — chip compacto (colapsable, se expande al tocar)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 2.0),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _showDemoBanner = !_showDemoBanner),
+                    child: GlassCard(
+                      blur: 20,
+                      opacity: AppColors.glassOpacity,
+                      border: Border.all(color: AppColors.guildAmber.withValues(alpha: 0.45)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.science_rounded, color: AppColors.guildAmber, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _showDemoBanner ? 'AUDIO DEL GREMIO: DEMO — los oradores son simulados. Tu voz sí se graba.'
+                                              : 'AUDIO DEMO · TOCA PARA VER DETALLE',
+                              style: GoogleFonts.jetBrainsMono(
+                                color: AppColors.guildAmber,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.9,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(
+                            _showDemoBanner ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.guildAmber,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // Guild-02: Misión + Resonancia fusionadas en una fila compacta
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 2.0),
                   child: GlassCard(
                     blur: 20,
-                    opacity: 0.08,
-                    border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    opacity: AppColors.glassOpacity,
+                    border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.35)),
+                    showRunicCorners: true,
+                    runicColor: AppColors.royalGold,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Row(
                       children: [
-                        const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 20),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.royalGold.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.4)),
+                          ),
+                          child: const Icon(Icons.flag_rounded, color: AppColors.royalGold, size: 16),
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 400),
-                            child: Text(
-                              _aiTips[_currentTipIndex],
-                              key: ValueKey(_currentTipIndex),
-                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                            ),
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'MISIÓN DE LA SALA',
+                                style: GoogleFonts.jetBrainsMono(
+                                  color: AppColors.royalGoldLight,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              const SizedBox(height: 1),
+                              Text(
+                                missionName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.spaceGrotesk(
+                                  color: AppColors.onSurface,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Resonancia compacta
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'RESONANCIA',
+                                    style: GoogleFonts.jetBrainsMono(
+                                      color: AppColors.onSurfaceVariant,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.0,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${(resonance * 100).round()}%',
+                                    style: GoogleFonts.jetBrainsMono(
+                                      color: AppColors.manaCyan,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              SegmentedBar(
+                                value: resonance,
+                                segments: 10,
+                                color: AppColors.manaCyan,
+                                height: 4,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -318,7 +637,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
                 // Main Stage Speakers Grid & Audience
                 Expanded(
@@ -348,9 +667,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                               child: GridView.builder(
                                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
-                                  crossAxisSpacing: 14,
-                                  mainAxisSpacing: 14,
-                                  childAspectRatio: 0.85,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                  childAspectRatio: 1.0,
                                 ),
                                 itemCount: 6,
                                 itemBuilder: (context, index) {
@@ -367,8 +686,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                       onTap: () => _claimSlot(slotNum),
                                       child: GlassCard(
                                         blur: 15,
-                                        opacity: 0.03,
-                                        border: Border.all(color: Colors.white12, width: 1),
+                                        opacity: AppColors.glassOpacity,
+                                        border: Border.all(color: AppColors.onSurface.withValues(alpha: 0.12), width: 1),
                                         padding: const EdgeInsets.all(8),
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -376,16 +695,16 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                             Container(
                                               padding: const EdgeInsets.all(10),
                                               decoration: BoxDecoration(
-                                                color: Colors.white.withValues(alpha: 0.05),
+                                                color: AppColors.onSurface.withValues(alpha: 0.05),
                                                 shape: BoxShape.circle,
                                               ),
-                                              child: const Icon(Icons.add_rounded, color: Colors.white38, size: 24),
+                                              child: Icon(Icons.add_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 24),
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
                                               'Subir al Slot $slotNum',
                                               textAlign: TextAlign.center,
-                                              style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold),
+                                              style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         ),
@@ -401,7 +720,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                     blur: 20,
                                     opacity: isSpeaking ? 0.15 : 0.06,
                                     border: Border.all(
-                                      color: isSpeaking ? AppColors.manaCyan : Colors.white24,
+                                      color: isSpeaking ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.24),
                                       width: isSpeaking ? 2 : 1,
                                     ),
                                     padding: const EdgeInsets.all(8),
@@ -416,8 +735,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                                 animation: _pulseController,
                                                 builder: (context, child) {
                                                   return Container(
-                                                    width: 58 + (_pulseController.value * 12),
-                                                    height: 58 + (_pulseController.value * 12),
+                                                    width: 52 + (_pulseController.value * 10),
+                                                    height: 52 + (_pulseController.value * 10),
                                                     decoration: BoxDecoration(
                                                       borderRadius: BorderRadius.circular(4),
                                                       border: Border.all(
@@ -433,7 +752,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                                   ? (ref.read(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior')
                                                   : ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][speakerUserId.hashCode % 5],
                                               initials: isSelf ? 'ME' : 'H$slotNum',
-                                              size: 48,
+                                              size: 44,
                                               hunterClass: isSelf
                                                   ? 'assassin'
                                                   : ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][speakerUserId.hashCode % 5],
@@ -441,10 +760,17 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                           ],
                                         ),
                                         const SizedBox(height: 8),
-                                        Text(
-                                          isSelf ? 'YOU' : 'HUNTER $slotNum',
-                                          style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                                          overflow: TextOverflow.ellipsis,
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                isSelf ? 'YOU' : 'HUNTER $slotNum',
+                                                style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 10),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
@@ -463,241 +789,162 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                             ),
                           ),
 
-                          // Audience Horizontal Strip (Gradas)
+                          // Audience Horizontal Strip (Gradas) — colapsable
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
-                            child: GlassCard(
-                              blur: 20,
-                              opacity: 0.05,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.people_alt_rounded, color: AppColors.onSurfaceVariant, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'GUILD BENCH (${audience.length}):',
-                                    style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: SizedBox(
-                                      height: 32,
-                                      child: ListView.builder(
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: audience.length,
-                                        itemBuilder: (context, index) {
-                                          final item = audience[index];
-                                          final audId = item['user_id'] as String;
-                                          final initials = audId.length >= 2 ? audId.substring(0, 2).toUpperCase() : 'U';
-
-                                          return Container(
-                                            margin: const EdgeInsets.only(right: 6),
-                                            child: RpgAvatar(
-                                              avatarUrl: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
-                                              initials: initials,
-                                              size: 32,
-                                              hunterClass: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
-                                            ),
-                                          );
-                                        },
-                                      ),
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 2),
+                            child: GestureDetector(
+                              onTap: () => setState(() => _showAudience = !_showAudience),
+                              child: GlassCard(
+                                blur: 20,
+                                opacity: AppColors.glassOpacity,
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.people_alt_rounded, color: AppColors.onSurfaceVariant, size: 16),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'GUILD BENCH (${audience.length})',
+                                      style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontSize: 11, fontWeight: FontWeight.bold),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _showAudience
+                                          ? SizedBox(
+                                              height: 32,
+                                              child: ListView.builder(
+                                                scrollDirection: Axis.horizontal,
+                                                itemCount: audience.length,
+                                                itemBuilder: (context, index) {
+                                                  final item = audience[index];
+                                                  final audId = item['user_id'] as String;
+                                                  final initials = audId.length >= 2 ? audId.substring(0, 2).toUpperCase() : 'U';
+
+                                                  return Container(
+                                                    margin: const EdgeInsets.only(right: 6),
+                                                    child: RpgAvatar(
+                                                      avatarUrl: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
+                                                      initials: initials,
+                                                      size: 32,
+                                                      hunterClass: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            )
+                                          : const SizedBox.shrink(),
+                                    ),
+                                    Icon(
+                                      _showAudience ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                      color: AppColors.onSurfaceVariant,
+                                      size: 16,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
 
-                          // Expandable Chat Area / Button
+                          // Chat button (abre bottom sheet — no expande en el grid)
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 2),
                             child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _showChatSheet = !_showChatSheet;
-                                });
-                              },
+                              onTap: _openChatSheet,
                               child: GlassCard(
                                 blur: 20,
-                                opacity: 0.08,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                opacity: AppColors.glassOpacity,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.manaCyan, size: 18),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Chamber Text Chat (${messagesAsync.value?.length ?? 0})',
-                                          style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                        ),
-                                      ],
+                                    Flexible(
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.manaCyan, size: 16),
+                                          const SizedBox(width: 8),
+                                          Flexible(
+                                            child: Text(
+                                              'Chamber Text Chat (${messagesAsync.value?.length ?? 0})',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 12),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    Icon(
-                                      _showChatSheet ? Icons.keyboard_arrow_down_rounded : Icons.keyboard_arrow_up_rounded,
-                                      color: Colors.white70,
-                                    ),
+                                    const Icon(Icons.open_in_full_rounded, color: AppColors.onSurfaceVariant, size: 16),
                                   ],
                                 ),
                               ),
                             ),
                           ),
-
-                          if (_showChatSheet)
-                            Expanded(
-                              flex: 4,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0F172A),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.white12),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Expanded(
-                                      child: messagesAsync.when(
-                                        data: (messages) {
-                                          if (messages.isEmpty) {
-                                            return Center(
-                                              child: Text('No messages in this chamber yet.', style: GoogleFonts.jetBrainsMono(color: Colors.white38, fontSize: 12)),
-                                            );
-                                          }
-                                          return ListView.builder(
-                                            controller: _chatScrollController,
-                                            itemCount: messages.length,
-                                            itemBuilder: (context, index) {
-                                              final msg = messages[index];
-                                              final msgUserId = msg['user_id'] as String;
-                                              final isSelf = msgUserId == user?.id;
-
-                                              return Padding(
-                                                padding: const EdgeInsets.only(bottom: 6.0),
-                                                child: Row(
-                                                  mainAxisAlignment: isSelf ? MainAxisAlignment.end : MainAxisAlignment.start,
-                                                  children: [
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                      decoration: BoxDecoration(
-                                                        color: isSelf ? AppColors.runeViolet.withValues(alpha: 0.3) : Colors.white10,
-                                                        borderRadius: BorderRadius.circular(4),
-                                                      ),
-                                                      child: Text(
-                                                        msg['message_text'] as String? ?? '',
-                                                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
-                                        error: (_, __) => const SizedBox.shrink(),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            controller: _messageController,
-                                            style: const TextStyle(color: Colors.white, fontSize: 13),
-                                            decoration: InputDecoration(
-                                              hintText: 'Type a message...',
-                                              hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                                              filled: true,
-                                              fillColor: Colors.white.withValues(alpha: 0.05),
-                                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(4), borderSide: BorderSide.none),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        IconButton(
-                                          icon: const Icon(Icons.send_rounded, color: AppColors.manaCyan),
-                                          onPressed: _sendMessage,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
                         ],
                       );
                     },
                     loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
-                    error: (err, _) => Center(child: Text('Error en sala: $err', style: const TextStyle(color: AppColors.errorRed))),
+                    error: (err, _) => Center(child: Text(l10n.room_error('$err'), style: const TextStyle(color: AppColors.errorRed))),
                   ),
                 ),
 
-                // Bottom Floating Control Bar
+                // Bottom Floating Control Bar — 4 controles compactos (no desborda)
                 Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
                   child: GlassCard(
                     blur: 30,
-                    opacity: 0.1,
+                    opacity: AppColors.glassOpacity,
                     border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.3), width: 1.5),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        // Mute Toggle Button
-                        IconButton(
-                          icon: Icon(
-                            _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                            color: _isMuted ? AppColors.errorRed : const Color(0xFF10B981),
-                            size: 26,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isMuted = !_isMuted;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(_isMuted ? 'MICROPHONE MUTED' : 'MICROPHONE ACTIVATED'),
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                          tooltip: 'Micrófono',
-                        ),
-
-                        // Raise Hand Button
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _isHandRaised = !_isHandRaised;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(_isHandRaised ? 'REQUEST SENT TO GUILD' : 'HAND LOWERED'),
-                                backgroundColor: AppColors.runeViolet,
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                          icon: Icon(_isHandRaised ? Icons.back_hand : Icons.back_hand_outlined, size: 16),
-                          label: Text(
-                            _isHandRaised ? 'REQUESTED' : 'ASK TO SPEAK',
-                            style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _isHandRaised ? AppColors.runeViolet : Colors.white10,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        // Mute
+                        Expanded(
+                          child: _controlButton(
+                            icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                            color: _isMuted ? AppColors.errorRed : AppColors.liveGreen,
+                            label: _isMuted ? 'MUTED' : 'MIC',
+                            onTap: () {
+                              setState(() => _isMuted = !_isMuted);
+                              SystemSnack.show(
+                                context,
+                                _isMuted ? 'MICROPHONE MUTED' : 'MICROPHONE ACTIVATED',
+                                type: _isMuted ? SystemSnackType.warning : SystemSnackType.success,
+                              );
+                            },
                           ),
                         ),
-
-                        // Leave Room Button
-                        IconButton(
-                          icon: const Icon(Icons.call_end_rounded, color: AppColors.errorRed, size: 26),
-                          onPressed: _leaveRoom,
-                          tooltip: 'Salir',
+                        // Práctica con el Oráculo
+                        Expanded(
+                          child: _controlButton(
+                            icon: Icons.auto_awesome_rounded,
+                            color: AppColors.royalGold,
+                            label: 'ORÁCULO',
+                            onTap: _startOraclePractice,
+                          ),
+                        ),
+                        // Raise Hand
+                        Expanded(
+                          child: _controlButton(
+                            icon: _isHandRaised ? Icons.back_hand : Icons.back_hand_outlined,
+                            color: _isHandRaised ? AppColors.runeViolet : AppColors.onSurfaceVariant,
+                            label: _isHandRaised ? 'PEDIDO' : 'HAND',
+                            onTap: () {
+                              setState(() => _isHandRaised = !_isHandRaised);
+                              SystemSnack.show(
+                                context,
+                                _isHandRaised ? 'REQUEST SENT TO GUILD' : 'HAND LOWERED',
+                                type: SystemSnackType.info,
+                              );
+                            },
+                          ),
+                        ),
+                        // Leave
+                        Expanded(
+                          child: _controlButton(
+                            icon: Icons.call_end_rounded,
+                            color: AppColors.errorRed,
+                            label: 'SALIR',
+                            onTap: _leaveRoom,
+                          ),
                         ),
                       ],
                     ),
@@ -712,12 +959,53 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     );
   }
 
+  /// Botón compacto de la barra de control inferior (icono + etiqueta corta).
+  /// Distribuido con Expanded para no desbordar el ancho disponible.
+  Widget _controlButton({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 48),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.jetBrainsMono(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Práctica individual con el Oráculo dentro de la mesa (Fase 7 · G-E).
+  void _startOraclePractice() {
+    context.push('/conversation');
+  }
+
   Widget _buildAiModeratorCard() {
     return GlassCard(
       blur: 20,
-      opacity: 0.12,
-      border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
-      padding: const EdgeInsets.all(8),
+      opacity: AppColors.glassOpacity,
+      border: Border.all(color: AppColors.aiGold, width: 1.5),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -725,32 +1013,32 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
             alignment: Alignment.center,
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFFD700), width: 2),
+                  border: Border.all(color: AppColors.aiGold, width: 1.5),
                   boxShadow: [
-                    BoxShadow(color: const Color(0xFFFFD700).withValues(alpha: 0.3), blurRadius: 10),
+                    BoxShadow(color: AppColors.aiGold.withValues(alpha: 0.3), blurRadius: 6),
                   ],
                 ),
               ),
               const CircleAvatar(
-                radius: 22,
+                radius: 16,
                 backgroundColor: AppColors.runeViolet,
-                child: Icon(Icons.smart_toy_rounded, color: Color(0xFFFFD700), size: 24),
+                child: Icon(Icons.smart_toy_rounded, color: AppColors.aiGold, size: 18),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           const Text(
             'AI TUTOR',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 10),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           const Text(
             'AI MODERATOR',
-            style: TextStyle(color: Color(0xFFFFD700), fontSize: 9, fontWeight: FontWeight.bold),
+            style: TextStyle(color: AppColors.aiGold, fontSize: 8, fontWeight: FontWeight.bold),
           ),
         ],
       ),

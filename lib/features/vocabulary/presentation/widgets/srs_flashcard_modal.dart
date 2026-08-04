@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SrsFlashcardModal extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> vocabularyItems;
@@ -17,7 +19,7 @@ class SrsFlashcardModal extends ConsumerStatefulWidget {
   static void show(BuildContext context, List<Map<String, dynamic>> items) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.surfaceDeep,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
       ),
@@ -67,6 +69,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final total = widget.vocabularyItems.length;
     final isFinished = _currentIndex >= total || total == 0;
 
@@ -80,8 +83,8 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.onSurface.withValues(alpha: 0.24),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),
@@ -94,7 +97,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -117,14 +120,14 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.stars_rounded, color: Color(0xFFFFD700), size: 64),
+                    const Icon(Icons.stars_rounded, color: AppColors.triumphGold, size: 64),
                     const SizedBox(height: 16),
                     Text(
                       'REVIEW WAVE CONQUERED!',
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -142,7 +145,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: Text('CLOSE', style: GoogleFonts.jetBrainsMono(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text(l10n.srs_close, style: GoogleFonts.jetBrainsMono(color: AppColors.onSurface, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -158,7 +161,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 },
                 child: GlassCard(
                   blur: 30,
-                  opacity: 0.1,
+                  opacity: AppColors.glassOpacity,
                   border: Border.all(
                     color: AppColors.runeViolet.withValues(alpha: 0.4),
                     width: 1.5,
@@ -174,7 +177,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                               children: [
                                 Text(
                                   widget.vocabularyItems[_currentIndex]['translation'] as String? ?? '',
-                                  style: GoogleFonts.hankenGrotesk(
+                                  style: GoogleFonts.spaceGrotesk(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.manaCyan,
@@ -184,8 +187,9 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                                 const SizedBox(height: 12),
                                 Text(
                                   'PATH: ${(widget.vocabularyItems[_currentIndex]['category'] ?? 'Vocabularies').toUpperCase()}',
-                                  style: GoogleFonts.jetBrainsMono(color: Colors.white70, fontSize: 12),
+                                  style: GoogleFonts.jetBrainsMono(color: AppColors.onSurface.withValues(alpha: 0.7), fontSize: 12),
                                 ),
+                                const SizedBox(height: 12),
                               ],
                             )
                           : Column(
@@ -194,10 +198,10 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                               children: [
                                 Text(
                                   widget.vocabularyItems[_currentIndex]['word'] as String? ?? '',
-                                  style: GoogleFonts.hankenGrotesk(
+                                  style: GoogleFonts.spaceGrotesk(
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.onSurface,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -233,7 +237,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                         side: const BorderSide(color: AppColors.errorRed),
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: Text('HARD', style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text(l10n.srs_hard, style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -241,11 +245,11 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                     child: OutlinedButton(
                       onPressed: () => _evaluateWord(2.5),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.amberAccent,
-                        side: const BorderSide(color: Colors.amberAccent),
+                        foregroundColor: AppColors.royalGold,
+                        side: const BorderSide(color: AppColors.royalGold),
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: Text('NORMAL', style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text(l10n.srs_normal, style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -253,11 +257,11 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                     child: ElevatedButton(
                       onPressed: () => _evaluateWord(5.0),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.easyGreen,
+                        foregroundColor: AppColors.onSurface,
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
                       ),
-                      child: Text('EASY', style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text(l10n.srs_easy, style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],

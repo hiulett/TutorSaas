@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 
@@ -10,7 +11,7 @@ class CompletedLessonsHistoryList extends StatefulWidget {
     required this.completedLessons,
   });
 
-  static const Color accentGreen = Color(0xFF10B981);
+  static const Color accentGreen = AppColors.accentGreen;
 
   @override
   State<CompletedLessonsHistoryList> createState() => _CompletedLessonsHistoryListState();
@@ -102,7 +103,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                       ),
                     ),
                   ),
@@ -139,7 +140,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
             ? Container(
                 height: 380, // Fixed scroll container showing ~4 cards at once with internal scroll
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: ListView.separated(
                   physics: const BouncingScrollPhysics(),
@@ -170,9 +171,9 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
 
     return GlassCard(
       blur: 15,
-      opacity: 0.06,
+      opacity: AppColors.glassOpacity,
       border: Border.all(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.onSurface.withValues(alpha: 0.05),
         width: 1,
       ),
       padding: const EdgeInsets.all(14),
@@ -189,7 +190,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: AppColors.runeViolet.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Text(
                         level,
@@ -207,7 +208,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -220,7 +221,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: CompletedLessonsHistoryList.accentGreen.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(
                     color: CompletedLessonsHistoryList.accentGreen.withValues(alpha: 0.3),
                   ),
@@ -282,7 +283,7 @@ class _CompletedLessonsHistoryListState extends State<CompletedLessonsHistoryLis
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 11,
           ),

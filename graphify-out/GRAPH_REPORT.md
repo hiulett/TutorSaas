@@ -1,16 +1,16 @@
-# Graph Report - TutorSaas  (2026-07-30)
+# Graph Report - TutorSaas  (2026-07-31)
 
 ## Corpus Check
-- 258 files · ~1,897,645 words
+- 419 files · ~1,991,060 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3621 nodes · 4312 edges · 233 communities (225 shown, 8 thin omitted)
+- 5377 nodes · 6495 edges · 368 communities (357 shown, 11 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8c1ef25e`
+- Built from commit: `c2fd749e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -243,35 +243,170 @@
 - build
 - 2.1 CORE THEME
 - EconomyRepository
+- quest_card.dart
+- voice_waveform_visualizer.dart
+- conversational_tactics_navigator.dart
+- Fases del plan
+- Pasos
+- Tablas implicadas
+- Pasos
+- Fase 6 — Tasks
+- conversationStateProvider
+- app.dart
+- Pasos
+- Fase 2 — Tasks
+- Tablas consumidas
+- Tablas consumidas
+- Fase 5 — Analysis
+- Fase 5 — Tasks
+- Fase 6 — Database
+- Fase 2 — Analysis
+- Fase 3 — Analysis
+- Fase 3 — Tasks
+- Fase 4 — Analysis
+- Fase 4 — Tasks
+- 05_Missions/README.md
+- Fase 5 — Architecture
+- Fase 5 — Database
+- 06_Economy/README.md
+- Fase 6 — Analysis
+- Fase 6 — Architecture
+- Project_Status — TutorSaas / Dungeon of English
+- StateNotifier
+- Fase 2 — Architecture
+- 2026-07-30
+- Fase 2 — Known_Issues
+- Fase 2 — QA_Report
+- 02_User_Experience/README.md
+- Fase 3 — Architecture
+- 2026-07-30
+- 03_Dashboard/README.md
+- 04_Conversations/README.md
+- Fase 4 — Architecture
+- 2026-07-30
+- Fase 4 — Recovery
+- 2026-07-30
+- 2026-07-30
+- 2026-07-30
+- Technical_Debt — TutorSaas / Dungeon of English
+- Fase 2 — Recovery
+- Fase 3 — Known_Issues
+- Fase 3 — QA_Report
+- Fase 3 — Recovery
+- Fase 4 — QA_Report
+- Fase 5 — Known_Issues
+- Fase 5 — QA_Report
+- Fase 5 — Recovery
+- Fase 6 — Known_Issues
+- Fase 6 — QA_Report
+- Fase 6 — Recovery
+- Recovery_Log — TutorSaas / Dungeon of English
+- Fase 4 — Sistema de Conversaciones
+- _buildLevelPage
+- rpg_avatar.dart
+- status_window_modal.dart
+- StatelessWidget
+- 📋 TASK BOARD — TutorSaas / Dungeon of English
+- Color
+- CustomPainter
+- isRegisteringProvider
+- widget_test.dart
+- 2.3 AUTH SCREENS
+- 2.8 CHAT ROOMS
+- index.ts
+- 2. Hallazgos con evidencia
+- app_motion.dart
+- app_typography.dart
+- Tareas (orden de ejecución)
+- Fase 8 — IA · Plan Gratuito (tarea 30)
+- Fase 9 — RPG · Sistema de Items (tarea 32)
+- DESIGN_SYSTEM_STANDARDIZATION.md
+- 📋 TASK BOARD — MASTER IMPLEMENTATION PLAN (Ejecución)
+- Rediseño del Estado del Aventurero — Hallazgo 05
+- Fase 8 — IA · Auditoría de Costos (tarea 29)
+- Fase 8 — IA · Monetización IA (tarea 31)
+- Rediseño del Dashboard — Hallazgo 03
+- audio_sfx_service.dart
+- 6. Roadmap por Fases
+- Arquitectura de Información — Propuesta reorganizada
+- mission_board_widget.dart
+- lesson_card.dart
+- package:flutter_test/flutter_test.dart
+- oracle_conversation_test.dart
+- Fase 10 — Microinteracciones · Auditoría de Animaciones (tarea 35)
+- Conversación — Dungeon of English
+- 2026-07-30
+- Fase 11 — QA · Auditoría Final (tarea 43)
+- Design System — Dungeon of English
+- Guild — Dungeon of English
+- 2026-07-30
+- 2026-07-30
+- 2026-07-30
+- 14. Auditoría del Producto
+- Misiones — Dungeon of English
+- 2026-07-30
+- 2026-07-30
+- 16. Auditoría de Retención
+- Visión — Dungeon of English
+- economy_repository_helpers_test.dart
+- @freezed
+- 28. Visión Estratégica a 3-5 años
+- 32. Roadmap Consolidado
+- overflow_test.dart
+- 15. Auditoría del Game Loop
+- 22. Auditoría de la Economía (simulación)
+- 25. Criterios de Lanzamiento
+- 2.7 CONVERSATION
+- 📋 TASK BOARD — Fase 7 · Guild
+- 10. Auditoría UX
+- 4. Auditoría Técnica
+- 2.1 CORE THEME
+- 36. Conclusión Ejecutiva
+- MissionRepository
+- recommended_lessons_hub.dart
+- chat_rooms_providers.dart
+- welcome_screen.dart
+- package:supabase_flutter/supabase_flutter.dart
+- build
+- leaderboard_screen.dart
+- auth_providers.dart
+- package:flutter/foundation.dart
+- segmented_bar.dart
+- _ConversationScreenState
+- subscription_repository_impl.dart
+- subscription_repository.dart
+- Índice de Documentación — TutorSaas
+- 2.3 AUTH SCREENS
+- PARTE 6 — Personalización
 
 ## God Nodes (most connected - your core abstractions)
-1. `currentUserProvider` - 29 edges
-2. `Tablas` - 23 edges
-3. `build` - 19 edges
-4. `Modelo Económico Completo — Dungeon of English` - 17 edges
-5. `Rediseño Estratégico — Dungeon of English` - 16 edges
-6. `Estrategia de Internacionalización — Dungeon of English` - 15 edges
-7. `Estrategia Unificada — Dungeon of English` - 15 edges
-8. `react` - 14 edges
-9. `Auditoría del Gran Salón del Gremio — Dungeon of English` - 14 edges
-10. `FASE 4 — Modelos de Monetización (Evaluación)` - 14 edges
+1. `currentUserProvider` - 47 edges
+2. `MASTER_AUDIT_V2.md — TutorSaas / Dungeon of English` - 38 edges
+3. `MASTER_IMPLEMENTATION_PLAN.md — TutorSaas / Dungeon of English` - 28 edges
+4. `MASTER_AUDIT.md — TutorSaas / Dungeon of English` - 26 edges
+5. `userProgressProvider` - 24 edges
+6. `Tablas` - 23 edges
+7. `5. Product Backlog` - 18 edges
+8. `Modelo Económico Completo — Dungeon of English` - 17 edges
+9. `Rediseño Estratégico — Dungeon of English` - 16 edges
+10. `supabaseClientProvider` - 15 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `build` --references--> `currentUserProvider`  [EXTRACTED]
-  lib/features/onboarding/presentation/screens/welcome_screen.dart → lib/features/auth/presentation/providers/auth_providers.dart
-- `_buildNotificationTiles` --references--> `sfxEnabledProvider`  [EXTRACTED]
-  lib/features/dashboard/presentation/screens/settings_screen.dart → lib/core/services/audio_sfx_service.dart
-- `_SettingsScreenState` --references--> `sfxEnabledProvider`  [EXTRACTED]
-  lib/features/dashboard/presentation/screens/settings_screen.dart → lib/core/services/audio_sfx_service.dart
-- `_ChatRoomsScreenState` --references--> `supabaseClientProvider`  [EXTRACTED]
-  lib/features/chat_rooms/presentation/screens/chat_rooms_screen.dart → lib/features/auth/presentation/providers/auth_providers.dart
 - `dispose` --references--> `supabaseClientProvider`  [EXTRACTED]
   lib/features/chat_rooms/presentation/screens/chat_rooms_screen.dart → lib/features/auth/presentation/providers/auth_providers.dart
+- `_subscribeToRoomsRealtime` --references--> `supabaseClientProvider`  [EXTRACTED]
+  lib/features/chat_rooms/presentation/screens/chat_rooms_screen.dart → lib/features/auth/presentation/providers/auth_providers.dart
+- `build` --references--> `currentUserProvider`  [EXTRACTED]
+  lib/features/onboarding/presentation/screens/welcome_screen.dart → lib/features/auth/presentation/providers/auth_providers.dart
+- `build` --references--> `userProgressProvider`  [EXTRACTED]
+  lib/features/dashboard/presentation/screens/dungeon_map_screen.dart → lib/features/dashboard/presentation/providers/dashboard_providers.dart
+- `build` --references--> `userLanguageProvider`  [EXTRACTED]
+  lib/app/app.dart → lib/core/i18n/language_settings.dart
 
 ## Import Cycles
 - None detected.
 
-## Communities (233 total, 8 thin omitted)
+## Communities (368 total, 11 thin omitted)
 
 ### Community 0 - "System Architecture & Business Context"
 Cohesion: 0.07
@@ -286,8 +421,8 @@ Cohesion: 0.18
 Nodes (10): 1. Causa Raíz del Corte de Audio en la Implementación Anterior, 2. Nueva Arquitectura: Grabación Raw + Groq Cloud Whisper STT, 3. Alternativas STT Evaluadas, 4. Configuración de Llaves de API, A. Groq Cloud API (Implementación Actual), Arquitectura de Voz y Alternativas STT para TutorSaas, B. Self-Hosted `faster-whisper` (100% Gratuito), C. On-Device Whisper (`whisper_flutter_plus` / `sherpa_onnx`) (+2 more)
 
 ### Community 3 - "Database Schema & Tables"
-Cohesion: 0.24
-Nodes (10): dart:ui, isRegisteringProvider, build, _buildCurrentView, createState, _redirectUser, _viewMode, WelcomeScreen (+2 more)
+Cohesion: 0.06
+Nodes (42): ConsumerWidget, chatRoomsListProvider, accent, build, caption, _categoryLabels, _ChatRoomsScreenState, createState (+34 more)
 
 ### Community 4 - "Database Repair & CEFR Seeding"
 Cohesion: 0.17
@@ -295,15 +430,15 @@ Nodes (11): dart:isolate, double get, Duration, duration, LatencyBenchmark, Late
 
 ### Community 5 - "Frontend Routing & Lesson Repair"
 Cohesion: 0.07
-Nodes (31): ../../../../core/services/audio_sfx_service.dart, ../../domain/models/user_settings.dart, userSettingsProvider, build, _buildCefrLevelTile, _buildCorrectionLevelTile, _buildCorrectionStyleTile, _buildDailyGoalTile (+23 more)
+Nodes (30): ../../../../core/services/audio_sfx_service.dart, ../../domain/models/user_settings.dart, userSettingsProvider, build, _buildCefrLevelTile, _buildCorrectionLevelTile, _buildCorrectionStyleTile, _buildDailyGoalTile (+22 more)
 
 ### Community 6 - "Data Model & UI Corrections"
 Cohesion: 0.06
-Nodes (35): placementRepositoryProvider, build, _buildBottomNav, _buildHeader, _buildOptionGrid, _buildStepGoal, _buildStepObstacle, _buildStepQuiz (+27 more)
+Nodes (30): build, _buildBottomNav, _buildHeader, _buildOptionGrid, _buildStepGoal, _buildStepObstacle, _buildStepQuiz, _buildStepResult (+22 more)
 
 ### Community 7 - "Internationalization & Onboarding"
 Cohesion: 0.05
-Nodes (39): build, _buildCorrectionStylePage, _buildGoalPage, _buildInterestsPage, _buildLevelPage, _buildNativeLanguageAndCountryPage, _buildPaywallScreenPage, _buildPlacementObstaclePage (+31 more)
+Nodes (42): ../../../../core/i18n/language_settings.dart, ../../../../core/i18n/locale_provider.dart, core/theme/app_theme.dart, ../../../../l10n/app_localizations.dart, build, TutorSaaSApp, userLanguageProvider, localeProvider (+34 more)
 
 ### Community 8 - "Web Admin Tooling & Linting"
 Cohesion: 0.50
@@ -319,7 +454,7 @@ Nodes (25): oxc, react, warn, plugins, rules, react/only-export-components, reac
 
 ### Community 15 - "Web Admin GlassCard Component"
 Cohesion: 0.05
-Nodes (37): ../../../../core/utils/text_diff_utils.dart, ../../data/repositories/conversation_repository_impl.dart, FlutterTts, activeConversationIdProvider, activeScenarioIdProvider, _asyncSaveAndAnalyzeSession, _audioRecorder, conversationDioProvider (+29 more)
+Nodes (38): ../../../../core/utils/text_diff_utils.dart, ../../data/repositories/conversation_repository_impl.dart, FlutterTts, activeConversationIdProvider, activeScenarioIdProvider, _asyncSaveAndAnalyzeSession, _audioRecorder, conversationDioProvider (+30 more)
 
 ### Community 16 - "Web Admin Navbar Component"
 Cohesion: 0.11
@@ -330,20 +465,20 @@ Cohesion: 0.07
 Nodes (29): lucide-react, oxlint, react, react-dom, @supabase/supabase-js, @types/react, @types/react-dom, vite (+21 more)
 
 ### Community 18 - "Web Admin User Detail Modal"
-Cohesion: 0.06
-Nodes (40): ../../../../core/widgets/draggable_monster_widget.dart, ../../domain/models/conversation_state.dart, conversationStateProvider, build, _buildGoalItem, _buildMetricCard, _buildPhonemeTag, _buildPhraseChip (+32 more)
+Cohesion: 0.07
+Nodes (33): ../../../../core/widgets/draggable_monster_widget.dart, ../../domain/models/conversation_state.dart, conversationStateProvider, _buildGoalItem, _buildMetricCard, _buildPhonemeTag, _buildPhraseChip, _buildTutorBubble (+25 more)
 
 ### Community 19 - "Web Admin Overview Page"
-Cohesion: 0.08
-Nodes (25): accentColor, _buildNavItem, _controller, createState, description, dispose, icon, initState (+17 more)
+Cohesion: 0.16
+Nodes (16): authRepositoryProvider, userAchievementsProvider, userProfileProvider, build, DashboardScreen, dashboardTabProvider, build, initState (+8 more)
 
 ### Community 20 - "Web Admin AI Settings"
-Cohesion: 0.09
-Nodes (23): accentGreen, activeUserLevel, build, completedLessonsHistory, createState, didUpdateWidget, _getIconData, _getLessonScore (+15 more)
+Cohesion: 0.08
+Nodes (25): ../../../conversation/presentation/widgets/conversational_tactics_navigator.dart, ../../../../core/widgets/quest_card.dart, accentGreen, activeUserLevel, build, completedLessonsHistory, createState, didUpdateWidget (+17 more)
 
 ### Community 21 - "Web Admin CEFR Manager"
 Cohesion: 0.08
-Nodes (24): dart:convert, Dio, ../../domain/repositories/conversation_repository.dart, analyzeAndSaveSessionProgress, checkAiAudioQuota, _client, _dio, evaluateGoals (+16 more)
+Nodes (25): dart:convert, Dio, ../../domain/repositories/conversation_repository.dart, analyzeAndSaveSessionProgress, checkAiAudioQuota, _client, _dio, evaluateGoals (+17 more)
 
 ### Community 22 - "Web Admin Lesson Manager"
 Cohesion: 0.11
@@ -354,8 +489,8 @@ Cohesion: 0.10
 Nodes (21): hashCode, levelCode, levelName, operator, _privateConstructorUsedError, streak, targetLanguageCode, targetLanguageEmoji (+13 more)
 
 ### Community 24 - "Web Admin Biometrics Manager"
-Cohesion: 0.05
-Nodes (41): AppColors, background, bossRed, crimsonRed, emeraldGreen, emeraldGreenDim, errorContainer, errorRed (+33 more)
+Cohesion: 0.02
+Nodes (80): accentGreen, aiGold, alertRed, AppColors, arenaVoid, background, blindMagenta, bossRed (+72 more)
 
 ### Community 25 - "conversation_state.dart"
 Cohesion: 0.11
@@ -370,12 +505,12 @@ Cohesion: 0.11
 Nodes (14): Any, Bool, Flutter, FlutterAppDelegate, FlutterImplicitEngineBridge, FlutterImplicitEngineDelegate, FlutterSceneDelegate, AppDelegate (+6 more)
 
 ### Community 28 - "conversation_message.dart"
-Cohesion: 0.12
-Nodes (17): audioUrl, correctionExplanation, hashCode, operator, originalText, _privateConstructorUsedError, sender, text (+9 more)
+Cohesion: 0.11
+Nodes (18): audioUrl, correctionExplanation, hashCode, operator, originalText, _privateConstructorUsedError, sender, text (+10 more)
 
 ### Community 29 - "profile_edit_screen.dart"
 Cohesion: 0.09
-Nodes (21): FormState, _adjustStat, _bioController, _buildStatRow, createState, _currentAvatarUrl, _dex, dispose (+13 more)
+Nodes (22): FormState, _adjustStat, _bioController, _buildStatRow, createState, _currentAvatarUrl, _dex, dispose (+14 more)
 
 ### Community 30 - "conversation_repository.dart"
 Cohesion: 0.11
@@ -383,35 +518,35 @@ Nodes (18): ../../domain/models/conversation_message.dart, ConversationRepositor
 
 ### Community 31 - "../../../../core/theme/app_colors.dart"
 Cohesion: 0.06
-Nodes (34): ../../data/repositories/dashboard_repository_impl.dart, LocaleNotifier, SfxNotifier, UserSettings, activeTitleItemProvider, code, correctionLevelProvider, equip (+26 more)
+Nodes (30): ../../data/repositories/dashboard_repository_impl.dart, UserSettings, activeTitleItemProvider, code, correctionLevelProvider, equip, equippedTitleProvider, fluency (+22 more)
 
 ### Community 32 - "dashboard_providers.dart"
-Cohesion: 0.12
-Nodes (30): ConsumerWidget, authRepositoryProvider, _ConversationScreenState, fluencyTrendsProvider, learnedVocabularyProvider, practiceHeatmapProvider, recommendedLessonsProvider, skillsRadarProvider (+22 more)
+Cohesion: 0.04
+Nodes (44): 10. Auditoría Base de Datos, 11. Auditoría Performance (app), 12. Auditoría de Seguridad, 13. Auditoría de Monetización, 14. Auditoría de Escalabilidad, 15. Auditoría Completa del Diseño, 16. Análisis de las Plantillas HTML (estándar oficial), 17. Plan Maestro de Migración Visual (+36 more)
 
 ### Community 33 - "paywall_screen.dart"
-Cohesion: 0.10
-Nodes (24): ConsumerState, ConsumerStatefulWidget, ChatRoomsScreen, VoiceRoomScreen, ConversationScreen, ProfileEditScreen, RecommendedLessonsHub, _RecommendedLessonsHubState (+16 more)
+Cohesion: 0.04
+Nodes (44): 0. Priorización y dependencias, 1.1 Archivos afectados, 1.2 Widgets afectados, 1.3 Navegación afectada, 1.4 Componentes reutilizables, 1.5 Dependencias, 1.6 Orden interno, 1.7 Verificación (+36 more)
 
 ### Community 34 - "router.dart"
-Cohesion: 0.13
-Nodes (14): ../features/chat_rooms/presentation/screens/chat_rooms_screen.dart, ../features/chat_rooms/presentation/screens/voice_room_screen.dart, ../features/conversation/presentation/screens/conversation_screen.dart, ../features/conversation/presentation/screens/level_exam_screen.dart, ../features/dashboard/presentation/screens/dashboard_screen.dart, ../features/dashboard/presentation/screens/profile_edit_screen.dart, ../features/dashboard/presentation/screens/profile_screen.dart, ../features/dashboard/presentation/screens/session_summary_screen.dart (+6 more)
+Cohesion: 0.08
+Nodes (25): ../core/widgets/system_mana_disruption_screen.dart, ../features/chat_rooms/presentation/screens/chat_rooms_screen.dart, ../features/chat_rooms/presentation/screens/voice_room_screen.dart, ../features/conversation/presentation/screens/conversation_screen.dart, ../features/conversation/presentation/screens/level_exam_screen.dart, ../features/dashboard/presentation/screens/dashboard_screen.dart, ../features/dashboard/presentation/screens/dungeon_map_screen.dart, ../features/dashboard/presentation/screens/hunter_status_screen.dart (+17 more)
 
 ### Community 35 - "_OnboardingScreenState"
 Cohesion: 0.01
-Nodes (253): app_localizations_en.dart, app_localizations_es.dart, app_localizations_pt.dart, class, account, achievements, active, active_cefr (+245 more)
+Nodes (252): app_localizations_en.dart, app_localizations_es.dart, app_localizations_pt.dart, class, account, achievements, active, active_cefr (+244 more)
 
 ### Community 36 - "onboarding_repository_impl.dart"
 Cohesion: 0.15
 Nodes (11): ../../domain/repositories/onboarding_repository.dart, _getCefrName, _getCefrOrder, _getLanguageEmoji, _getLanguageName, _getNativeLanguageName, OnboardingRepositoryImpl, saveOnboardingData (+3 more)
 
 ### Community 37 - "package:flutter/material.dart"
-Cohesion: 0.05
-Nodes (41): Color, core/theme/app_theme.dart, build, TutorSaaSApp, calculateSimilarity, getDiffSpans, TextDiffUtils, build (+33 more)
+Cohesion: 0.10
+Nodes (18): ../../domain/models/drop_loot.dart, _baseXp, color, DropLoot, DropRarity, emoji, rarity, rarityLabel (+10 more)
 
 ### Community 38 - "voice_room_screen.dart"
-Cohesion: 0.08
-Nodes (36): ../../../../core/widgets/mana_meter_widget.dart, ../../data/repositories/chat_rooms_repository_impl.dart, ../../domain/repositories/chat_rooms_repository.dart, currentUserProvider, chatRoomMessagesProvider, chatRoomParticipantsProvider, chatRoomsListProvider, chatRoomsRepositoryProvider (+28 more)
+Cohesion: 0.04
+Nodes (47): ../../../../core/widgets/mana_meter_widget.dart, ../../../../core/widgets/segmented_bar.dart, ../../../dashboard/data/models/hunter_catalog.dart, _aiTips, _buildAiModeratorCard, _chatScrollController, createState, _currentTipIndex (+39 more)
 
 ### Community 39 - "package:google_fonts/google_fonts.dart"
 Cohesion: 0.06
@@ -419,11 +554,11 @@ Nodes (37): CustomPainter, AnimatedMagicCirclePainter, bgMode, build, _cameraZoo
 
 ### Community 40 - "session_summary_screen.dart"
 Cohesion: 0.01
-Nodes (237): account, achievements, active, active_cefr, active_level, active_quests, active_streak, advanced (+229 more)
+Nodes (239): app_localizations.dart, account, achievements, active, active_cefr, active_level, active_quests, active_streak (+231 more)
 
 ### Community 41 - "chat_rooms_repository_impl.dart"
-Cohesion: 0.10
-Nodes (20): ai_pick_hero_card.dart, lesson_preview_sheet.dart, build, createState, DailyQuestsWidget, _DailyQuestsWidgetState, _quests, streakDays (+12 more)
+Cohesion: 0.07
+Nodes (30): ../../data/models/oracle_question.dart, _defaultOracleQuestions, oracleQuestionsProvider, _answers, build, _computeLevel, _controller, createState (+22 more)
 
 ### Community 42 - "api_constants.dart"
 Cohesion: 0.18
@@ -446,36 +581,36 @@ Cohesion: 0.11
 Nodes (18): dart:io, AuthRepositoryImpl, authStateChanges, getCurrentUser, signInAnonymously, signInWithApple, signInWithGoogle, signOut (+10 more)
 
 ### Community 47 - "subscription_providers.dart"
-Cohesion: 0.12
-Nodes (15): ../../../auth/presentation/providers/auth_providers.dart, ../../data/repositories/onboarding_repository_impl.dart, ../../data/repositories/subscription_repository_impl.dart, supabaseClient, _checkStatus, repo, _repository, setPremium (+7 more)
+Cohesion: 0.05
+Nodes (37): ../../data/repositories/mission_repository.dart, client, completedToday, created, d, _dailySeedIndex, dailyTemplate, dailyTemplatesProvider (+29 more)
 
 ### Community 48 - "build"
 Cohesion: 0.01
-Nodes (238): app_localizations.dart, account, achievements, active, active_cefr, active_level, active_quests, active_streak (+230 more)
+Nodes (239): account, achievements, active, active_cefr, active_level, active_quests, active_streak, advanced (+231 more)
 
 ### Community 49 - "../../../auth/presentation/providers/auth_providers.dart"
-Cohesion: 0.16
-Nodes (13): ../../../dashboard/presentation/providers/dashboard_providers.dart, dashboardRepositoryProvider, build, build, createState, _currentIndex, _evaluateWord, _isFlipped (+5 more)
+Cohesion: 0.09
+Nodes (33): AnimatedMessage, AnimatedCounter, _AnimatedCounterState, FloatingReward, _FloatingRewardOverlay, _FloatingRewardOverlayState, _FloatingRewardState, RunicButton (+25 more)
 
 ### Community 50 - "ConsumerState"
-Cohesion: 0.13
-Nodes (14): ../../data/repositories/economy_repository_impl.dart, ../../domain/repositories/economy_repository.dart, canInvoke, canInvokeProvider, client, dailyStateProvider, getDailyState, getGems (+6 more)
+Cohesion: 0.06
+Nodes (30): An�lisis, Dashboard � Unificaci�n con Design System (DASHBOARD_DESIGN_AUDIT), DS-01 ✅ · app_spacing.dart, DS-02 ✅ · app_typography.dart, DS-03 ? � ThemeData unificado, DS-04 ? � app_radius.dart + app_elevation.dart, Ejecuci�n en paralelo (5 subagentes), Fase A/B � Avance (+22 more)
 
 ### Community 51 - "ConsumerWidget"
-Cohesion: 0.18
-Nodes (10): dart:async, claimSpeakerSlot, createRoom, getRooms, joinRoom, leaveRoom, sendChatMessage, streamMessages (+2 more)
+Cohesion: 0.10
+Nodes (19): claimSpeakerSlot, countActiveSpeakers, createRoom, getRecentRooms, getRooms, _initLocalRoom, _isLocalRoom, joinRoom (+11 more)
 
 ### Community 52 - "chat_rooms_screen.dart"
-Cohesion: 0.15
-Nodes (13): supabaseClientProvider, _categories, createState, dispose, _getCategoryIcon, _getCategorySlug, initState, _roomsChannel (+5 more)
+Cohesion: 0.10
+Nodes (42): ConsumerState, currentUserProvider, supabaseClientProvider, dashboardRepositoryProvider, HunterStatusScreen, _HunterStatusScreenState, _saveStats, build (+34 more)
 
 ### Community 53 - "build"
-Cohesion: 0.06
-Nodes (39): ../../../../core/widgets/segmented_bar.dart, ../../data/repositories/mission_repository.dart, ../../domain/models/mission_models.dart, acceptMission, canAcceptMission, claimReward, cleanupOldMissions, _client (+31 more)
+Cohesion: 0.07
+Nodes (27): ../../domain/repositories/mission_repository.dart, acceptMission, applyMissionModifier, canAcceptMission, claimReward, cleanupOldMissions, _client, contributeToWeeklyRaid (+19 more)
 
 ### Community 54 - "subscription_repository_impl.dart"
-Cohesion: 0.14
-Nodes (12): ../../domain/repositories/subscription_repository.dart, getSubscriptionPlans, isUserPremium, purchasePackage, restorePurchases, SubscriptionRepositoryImpl, _supabaseClient, getSubscriptionPlans (+4 more)
+Cohesion: 0.22
+Nodes (8): ../../data/repositories/subscription_repository_impl.dart, _checkStatus, repo, _repository, setPremium, supabaseClient, user, _userId
 
 ### Community 55 - "_MicPulseButtonState"
 Cohesion: 0.20
@@ -483,11 +618,11 @@ Nodes (10): accentGreen, build, _buildLessonCard, _buildMiniMetric, completedLes
 
 ### Community 56 - "Route /home"
 Cohesion: 0.05
-Nodes (38): claimedAt, completedAt, cooldownHours, currentValue, description, EmergencyMission, expiresAt, fromMap (+30 more)
+Nodes (43): claimedAt, completedAt, cooldownHours, currentValue, description, EmergencyMission, eventType, expiresAt (+35 more)
 
 ### Community 57 - "subscription_repository.dart"
-Cohesion: 0.22
-Nodes (8): AuthState, ../../data/repositories/auth_repository_impl.dart, ../../domain/repositories/auth_repository.dart, authStateAsync, authStateProvider, client, maybeWhen, repo
+Cohesion: 0.06
+Nodes (32): accent, AppElevation, flat, none, reward, AppRadius, card, circle (+24 more)
 
 ### Community 58 - "supabase"
 Cohesion: 0.29
@@ -498,24 +633,24 @@ Cohesion: 0.40
 Nodes (5): @JsonSerializable, _, _, _, _
 
 ### Community 67 - "StatelessWidget"
-Cohesion: 0.05
-Nodes (46): app_colors.dart, ../../../conversation/presentation/providers/conversation_providers.dart, ../../../../core/theme/app_colors.dart, ../../../../core/widgets/cyber_manhwa_background.dart, ../../../../core/widgets/glass_card.dart, ../../../../core/widgets/rpg_avatar.dart, dart:math, ../../data/models/lesson_catalog.dart (+38 more)
+Cohesion: 0.10
+Nodes (19): ../../data/models/lesson_catalog.dart, LessonData, AIPickHeroCard, build, _getIconData, lesson, matchPercentage, matchReason (+11 more)
 
 ### Community 68 - "package:flutter_riverpod/flutter_riverpod.dart"
 Cohesion: 0.06
 Nodes (34): 1. Auditoría Completa, 2. Concepto Ideal, 3.1 ¿Qué se implementó?, 3.2 Tipos de Moderación, 3.3 Archivos Modificados, 3.4 Flujo de Creación de Mesa, 3.5 Flujo de Moderación en Sala de Voz, 3. Sistema de Moderación (+26 more)
 
 ### Community 69 - "ai_pick_hero_card.dart"
-Cohesion: 0.07
-Nodes (40): AnimationController, IconData, AnimatedCounter, _AnimatedCounterState, build, color, _controller, createState (+32 more)
+Cohesion: 0.08
+Nodes (24): Animation, ../../../../core/theme/app_motion.dart, build, color, _controller, createState, dispose, _fadeAnim (+16 more)
 
 ### Community 70 - "package:flutter/foundation.dart"
-Cohesion: 0.25
-Nodes (7): ErrorTracker, init, _initialized, logError, logEvent, package:flutter/foundation.dart, static bool
+Cohesion: 0.05
+Nodes (39): BACKLOG DE DESARROLLO — TutorSaas / Dungeon of English, Estado de la línea base (verificado), 📊 Resumen de prioridades, T-000 · Aplicar migraciones pendientes a la DB live, T-001 · Fix `overflow_test.dart` (LeagueLeaderboard pumpAndSettle timeout), T-002 · Fix voice room roomId no-UUID (GUILD-001), T-100 · Aplicar localización en MaterialApp (ONB-003, K2-1) — P0, T-101 · Persistir idioma desde onboarding (ONB-004, K2-2) — P0 (+31 more)
 
 ### Community 71 - "StatelessWidget"
-Cohesion: 0.07
-Nodes (29): `achievements`, `ai_usage_logs`, Base de Datos — Esquema Supabase, `cefr_levels`, Convenciones, `conversations`, `corrections`, `daily_challenges` (+21 more)
+Cohesion: 0.06
+Nodes (34): `achievements`, `ai_usage_logs`, Base de Datos — Esquema Supabase, `cefr_levels`, Columnas clave a�adidas, Convenciones, `conversations`, `corrections` (+26 more)
 
 ### Community 72 - "currentUserProvider"
 Cohesion: 0.10
@@ -530,16 +665,16 @@ Cohesion: 0.11
 Nodes (18): ../../features/dashboard/data/models/hunter_catalog.dart, _breatheController, build, createState, dispose, DraggableMonsterWidget, _DraggableMonsterWidgetState, _floatController (+10 more)
 
 ### Community 75 - "level_exam_screen.dart"
-Cohesion: 0.13
-Nodes (14): ../../../dashboard/data/models/hunter_catalog.dart, createState, dispose, _examScore, _examTimer, _finishExam, _getExamDurationSeconds, initState (+6 more)
+Cohesion: 0.07
+Nodes (29): 11. Auditoría Visual (confirmada y ampliada), 12. Auditoría del Design System, 13. Auditoría de Migración a Plantillas HTML, 17. Auditoría Psicológica del Jugador, 18. Auditoría de Engagement, 19. Auditoría RPG (identidad), 1. Resumen Ejecutivo, 20. Auditoría Narrativa (+21 more)
 
 ### Community 76 - "status_window_modal.dart"
-Cohesion: 0.15
-Nodes (13): ../../data/models/hunter_catalog.dart, build, _buildAttributeRow, createState, currentRank, _equippedCode, equippedTitleCode, initState (+5 more)
+Cohesion: 0.05
+Nodes (42): charts/fluency_latency_chart.dart, charts/practice_heatmap.dart, charts/skills_radar_chart.dart, ../../../../core/theme/app_radius.dart, ../../../../core/widgets/animated_counter.dart, ../../../../core/widgets/floating_reward.dart, ../../../../core/widgets/rpg_avatar.dart, daily_quests_widget.dart (+34 more)
 
 ### Community 77 - "audio_sfx_service.dart"
-Cohesion: 0.24
-Nodes (11): AudioSfxService, _key, _loadPreference, playBossAlarm, playLevelUp, playManaRecharge, playQuestComplete, setSfxEnabled (+3 more)
+Cohesion: 0.08
+Nodes (25): ../../../../core/services/retention_analytics.dart, addBattlePassXp, addFragments, addGems, canInvoke, claimBattlePassReward, claimDailyReward, _client (+17 more)
 
 ### Community 78 - "Route /home"
 Cohesion: 0.11
@@ -554,32 +689,32 @@ Cohesion: 0.12
 Nodes (16): Componentes del Sistema, CyberManhwaBackground, DashboardScreen — 3 Tabs, DraggableMonsterWidget, GlassCard, Identidad Visual, ManaBar, ManaMeterWidget (deprecated → usar ManaBar) (+8 more)
 
 ### Community 81 - "main.dart"
-Cohesion: 0.13
-Nodes (14): app/app.dart, core/constants/api_constants.dart, core/utils/error_tracker.dart, core/utils/latency_benchmark.dart, core/widgets/configuration_error_widget.dart, _client, PlacementRepository, PlacementRepositoryImpl (+6 more)
+Cohesion: 0.22
+Nodes (8): dart:async, ../../../features/auth/presentation/providers/auth_providers.dart, _client, _instance, RetentionAnalytics, retentionAnalyticsProvider, track, static RetentionAnalytics?
 
 ### Community 82 - "voice_waveform_visualizer.dart"
-Cohesion: 0.08
-Nodes (24): Border?, EdgeInsetsGeometry?, backgroundColor, blur, border, borderColor, borderRadius, build (+16 more)
+Cohesion: 0.09
+Nodes (23): Border?, backgroundColor, blur, border, borderColor, borderRadius, build, child (+15 more)
 
 ### Community 83 - "State"
 Cohesion: 0.13
 Nodes (15): Achievements (Logros), ADR-007: Sistema de Gamificación, Consecuencias, Contexto, Daily Quests (Misiones Diarias), Decisión, Elementos del Sistema, Estado (+7 more)
 
 ### Community 84 - "StateNotifier"
-Cohesion: 0.09
-Nodes (22): [CONV-001] Visual Polish for Combat System Battle Screen, [CONV-002] Integrate Conversational Tactics Selector, [DB-001] Database Migration Audit and Live Sync, [DS-001] Introduce Danger Token & Spacing Constants, [DS-002] Create Custom QuestCard / RankCard Widget, [DS-003] Create SystemWindow Wrapper Widget, [DSH-001] Build Hunter Status Profile Screen (`/hunter-status`), [DSH-002] Create Dungeon Gateways Selection Map (+14 more)
+Cohesion: 0.06
+Nodes (35): [CONV-001] Visual Polish for Combat System Battle Screen — ⬜ Pendiente (K4-1), [CONV-002] Integrate Conversational Tactics Selector — ✅ Implementado (`conversational_tactics_navigator`), [CONV-003] Recompensas visuales en flujo — ⬜ Pendiente (K4-2), [DB-001] Database Migration Audit and Live Sync — ⬜ Pendiente (verificar RPCs add_xp/add_gems/spend_gems en live), [DS-001] Introduce Danger Token & Spacing Constants — ⬜ Pendiente, [DS-002] Create Custom QuestCard / RankCard Widget — ✅ Widget creado (`lib/core/widgets/quest_card.dart`), [DS-003] Create SystemWindow Wrapper Widget — ✅ Widget creado (`lib/core/widgets/system_window.dart`), [DSH-001] Build Hunter Status Profile Screen (`/hunter-status`) — ✅ Implementada (316 líneas) (+27 more)
 
 ### Community 85 - "chat_rooms_repository.dart"
-Cohesion: 0.18
-Nodes (10): ChatRoomsRepositoryImpl, ChatRoomsRepository, claimSpeakerSlot, createRoom, getRooms, joinRoom, leaveRoom, sendChatMessage (+2 more)
+Cohesion: 0.13
+Nodes (14): ChatRoomsRepositoryImpl, ChatRoomsRepository, claimSpeakerSlot, countActiveSpeakers, createRoom, getRecentRooms, getRooms, joinRoom (+6 more)
 
 ### Community 86 - "ai_pick_hero_card.dart"
 Cohesion: 0.13
 Nodes (14): Comandos, Enfoque General, Framework, Modelos Freezed, Navegación, Pipeline de Voz (Prioridad Máxima), Providers Riverpod, `test/latency_benchmark_test.dart` (+6 more)
 
 ### Community 87 - "../../../auth/presentation/providers/auth_providers.dart"
-Cohesion: 0.13
-Nodes (15): 2.10 VOCABULARY (SRS), 2.11 LEVEL EXAM, 2.12 OTHER, 2.3 AUTH SCREENS, 2.8 CHAT ROOMS, 2.9 SUBSCRIPTION, Brand Header (`_BrandHeader` in welcome_screen.dart), ChatRoomsScreen (`lib/features/chat_rooms/presentation/screens/chat_rooms_screen.dart`) (+7 more)
+Cohesion: 0.12
+Nodes (17): 2.10 VOCABULARY (SRS), 2.11 LEVEL EXAM, 2.12 OTHER, 2.4 ONBOARDING SCREENS, 2.8 CHAT ROOMS, 2.9 SUBSCRIPTION, ChatRoomsScreen (`lib/features/chat_rooms/presentation/screens/chat_rooms_screen.dart`), ConfigurationErrorWidget (`lib/core/widgets/configuration_error_widget.dart`) (+9 more)
 
 ### Community 88 - "ConsumerStatefulWidget"
 Cohesion: 0.14
@@ -587,11 +722,11 @@ Nodes (13): API Keys, Convenciones de Código — TutorSaas, Dart/Flutter, Estru
 
 ### Community 89 - "subscription_repository.dart"
 Cohesion: 0.12
-Nodes (15): Animation, _animation, autoStart, build, _controller, createState, didUpdateWidget, dispose (+7 more)
+Nodes (15): int?, _animation, autoStart, build, _controller, createState, didUpdateWidget, dispose (+7 more)
 
 ### Community 90 - "overflow_test.dart"
-Cohesion: 0.14
-Nodes (13): addGems, canInvoke, claimDailyReward, generateDailyPergaminos, getDailyState, getGems, getInventory, getStreak (+5 more)
+Cohesion: 0.08
+Nodes (25): 1. Patrón: Chips / badges con icono + texto mono, 2. Patrón: Tarjetas de métrica KPI (valor grande mono + label small), 3. Patrón: Botones `ElevatedButton` con estilo custom, 4. Patrón: Header de pantalla con back button + título (+ subtítulo / badge derecha), 5. Patrón: Empty states (icono + mensaje + CTA opcional), Componente / acción propuesta, Componente propuesto, Componente propuesto (+17 more)
 
 ### Community 91 - "app.dart"
 Cohesion: 0.14
@@ -602,8 +737,8 @@ Cohesion: 0.11
 Nodes (18): bool get, avatarIndex, _avatars, build, CharacterCreationData, CharacterCreationWizard, _CharacterCreationWizardState, _classes (+10 more)
 
 ### Community 93 - "language_settings.dart"
-Cohesion: 0.15
-Nodes (13): aiExplanationsInNative, copyWith, learningLanguage, _load, _persistToSupabase, setAiExplanationsInNative, setLearningLanguage, setUiLanguage (+5 more)
+Cohesion: 0.17
+Nodes (12): aiExplanationsInNative, copyWith, learningLanguage, _load, _persistToSupabase, setAiExplanationsInNative, setLearningLanguage, setUiLanguage (+4 more)
 
 ### Community 94 - "FASE 4 — Modelos de Monetización (Evaluación)"
 Cohesion: 0.14
@@ -618,8 +753,8 @@ Cohesion: 0.24
 Nodes (3): ADRs, Architecture Decision Records — TutorSaas, ¿Qué es un ADR?
 
 ### Community 97 - "Fases Completadas"
-Cohesion: 0.15
-Nodes (12): Fase 1: Corrección de Base de Datos, Fase 2: Corrección de Código Frontend, Fase 3: Motor de Recomendaciones, Fase 4: Dashboard y UI, Fase 5: Modelos, Fases Completadas, Items Pendientes, Prioridad Alta (+4 more)
+Cohesion: 0.12
+Nodes (15): Estado actual (Fases 2-11, 2026-07-30), Fase 1: Corrección de Base de Datos, Fase 2: Corrección de Código Frontend, Fase 3: Motor de Recomendaciones, Fase 4: Dashboard y UI, Fase 5: Modelos, Fases Completadas, Fases implementadas (+7 more)
 
 ### Community 98 - "7.2 Pantallas y su propósito"
 Cohesion: 0.15
@@ -638,16 +773,16 @@ Cohesion: 0.17
 Nodes (11): Auditoría del Gran Salón del Gremio — Dungeon of English, ¿Cómo puede esta pantalla incentivar el aprendizaje?, ¿El jugador encuentra fácilmente...?, FASE 10 — Componentes Faltantes, FASE 3 — Auditoría Visual del Estado Actual, FASE 6 — Experiencia del Aventurero, FASE 7 — Aprendizaje, FASE 9 — Benchmark con RPG Modernos (+3 more)
 
 ### Community 102 - "locale_provider.dart"
-Cohesion: 0.17
-Nodes (11): language_settings.dart, key, languageCode, languageCodeProvider, _loadFromStorage, localeProvider, setLanguage, t (+3 more)
+Cohesion: 0.18
+Nodes (10): language_settings.dart, key, languageCode, languageCodeProvider, _loadFromStorage, setLanguage, t, watch (+2 more)
 
 ### Community 103 - "ADR-006: Voice Pipeline — record → Groq STT → DeepSeek LLM → flutter_tts TTS"
 Cohesion: 0.18
 Nodes (11): ADR-006: Voice Pipeline — record → Groq STT → DeepSeek LLM → flutter_tts TTS, Captura de Audio, Consecuencias, Contexto, Decisión, Estado, LLM (Generación de Respuesta), Opciones Evaluadas (+3 more)
 
 ### Community 104 - "Arquitectura de TutorSaas"
-Cohesion: 0.18
-Nodes (10): Arquitectura de TutorSaas, Backend Supabase, Capas por Feature, Diagrama de Flujo de Datos, Estado con Riverpod, Feature-First Clean Architecture, Navegación con GoRouter, Pipeline de Voz (+2 more)
+Cohesion: 0.13
+Nodes (14): Arquitectura de TutorSaas, Backend Supabase, Capas por Feature, Decisiones de arquitectura (Fases 7-10), Diagrama de Flujo de Datos, Estado actual (Fases 2-11, 2026-07-30), Estado con Riverpod, Feature-First Clean Architecture (+6 more)
 
 ### Community 105 - "UX_UI_AUDIT.md"
 Cohesion: 0.18
@@ -690,8 +825,8 @@ Cohesion: 0.22
 Nodes (8): Arquitectura General, Cuándo NO usar IA, Integración con IA, Mission Engine — Dungeon of English, Modelo de Datos (SQL), Prompt para Generación de Misiones Secretas, Reglas de Negocio, Tipos de Misiones (19 Categorías)
 
 ### Community 115 - "Rediseño Estratégico — Dungeon of English"
-Cohesion: 0.22
-Nodes (8): Catálogo de Personalización (Todo Cosmético), Conclusión: El Lema del Producto, Estructura del Nuevo Guild Hall, Nuevas Funcionalidades del Gremio, PARTE 6 — Personalización, PARTE 7 — Rediseño del Gremio, Principio de Personalización, Rediseño Estratégico — Dungeon of English
+Cohesion: 0.20
+Nodes (9): Battle Pass del Gremio, Conclusión: El Lema del Producto, Estructura del Nuevo Guild Hall, Lo que es GRATIS, Lo que se MONETIZA (cosmético/social), Nuevas Funcionalidades del Gremio, PARTE 7 — Rediseño del Gremio, PARTE 9 — Monetización del Gremio (+1 more)
 
 ### Community 116 - "Nuevo Flujo: "La Prueba del Oráculo del Gremio""
 Cohesion: 0.22
@@ -838,12 +973,12 @@ Cohesion: 0.33
 Nodes (6): Categorías de Misiones del Gremio, Estrategia de Contenido para Reducir Costos, Las 3 Categorías, Misiones del Gremio — Sistema Detallado (NUEVO), PARTE 4 — Nuevo Sistema de Misiones, Tablón del Gremio (Pantalla)
 
 ### Community 152 - "Índice de Documentación — TutorSaas"
-Cohesion: 0.40
-Nodes (5): Archivos de Documentación Pre-existentes, Decisiones de Arquitectura (ADRs), Documentación General, Documentos de Contexto, Índice de Documentación — TutorSaas
+Cohesion: 0.08
+Nodes (25): 10. Plan RPG, 11. Plan de Guild, 12. Plan de Economía, 13. Plan de UX/UI, 14. Plan de Performance, 15. Plan de Seguridad, 16. Plan de QA, 17. Plan de Beta Cerrada (+17 more)
 
 ### Community 153 - "2.4 ONBOARDING SCREENS"
-Cohesion: 0.40
-Nodes (5): 2.4 ONBOARDING SCREENS, HunterLicenseScreen (`lib/features/onboarding/presentation/screens/hunter_license_screen.dart`), OnboardingScreen (`lib/features/onboarding/presentation/screens/onboarding_screen.dart`), PlacementTestScreen (`lib/features/onboarding/presentation/screens/placement_test_screen.dart`), SplashVideoScreen (`lib/features/onboarding/presentation/screens/splash_video_screen.dart`)
+Cohesion: 0.09
+Nodes (24): ../../../conversation/presentation/providers/conversation_providers.dart, ../../../../core/theme/app_colors.dart, ../../../../core/widgets/stat_tile.dart, dart:math, fluencyTrendsProvider, practiceHeatmapProvider, skillsRadarProvider, _buildSummaryCorrectionCard (+16 more)
 
 ### Community 154 - "Recomendación Final"
 Cohesion: 0.40
@@ -910,8 +1045,8 @@ Cohesion: 0.40
 Nodes (5): PARTE 2 — Microinteracciones (Catálogo Completo), Sistema de IA, Sistema de Progresión, Sistema de Recompensas, Sistema Social (Gremio)
 
 ### Community 170 - "2.7 CONVERSATION"
-Cohesion: 0.50
-Nodes (4): 2.7 CONVERSATION, ConversationScreen (`lib/features/conversation/presentation/screens/conversation_screen.dart`), LiveGoalsTrackerBar (`lib/features/conversation/presentation/widgets/live_goals_tracker_bar.dart`), VoiceWaveformVisualizer (`lib/features/conversation/presentation/widgets/voice_waveform_visualizer.dart`)
+Cohesion: 0.05
+Nodes (40): ../../../auth/presentation/providers/auth_providers.dart, ../../../../core/widgets/cyber_manhwa_background.dart, ../../data/repositories/onboarding_repository_impl.dart, build, errorMessage, onRetry, SystemManaDisruptionScreen, BattlePassScreen (+32 more)
 
 ### Community 171 - "FASE 11 — Optimización de Costos de IA"
 Cohesion: 0.50
@@ -946,8 +1081,8 @@ Cohesion: 0.50
 Nodes (4): Migración de Datos Existente, Modelo de Localización en DB, PARTE 5 — Cambios en la Base de Datos, Tablas Afectadas
 
 ### Community 179 - "PARTE 9 — Monetización del Gremio"
-Cohesion: 0.50
-Nodes (4): Battle Pass del Gremio, Lo que es GRATIS, Lo que se MONETIZA (cosmético/social), PARTE 9 — Monetización del Gremio
+Cohesion: 0.12
+Nodes (16): ../../../../core/widgets/glass_card.dart, ../../../dashboard/presentation/providers/dashboard_providers.dart, build, createState, DailyQuestsWidget, _DailyQuestsWidgetState, _quests, streakDays (+8 more)
 
 ### Community 180 - "PARTE 3 — Misiones Secretas (Hidden Quests)"
 Cohesion: 0.50
@@ -998,8 +1133,8 @@ Cohesion: 0.50
 Nodes (4): Información que Aparece Solo al Cambiar, Información que Nunca Debe Animarse, Información Siempre Visible, PARTE 4 — Sistema HUD
 
 ### Community 192 - "2.1 CORE THEME"
-Cohesion: 0.12
-Nodes (15): ../../../dashboard/data/models/lesson_catalog.dart, build, _controller, createState, didUpdateWidget, dispose, _glowAnim, goalEvaluationResults (+7 more)
+Cohesion: 0.08
+Nodes (24): AnimationController, ../../../dashboard/data/models/lesson_catalog.dart, build, _controller, createState, didUpdateWidget, dispose, _glowAnim (+16 more)
 
 ### Community 193 - "FASE 12 — Blueprint Final"
 Cohesion: 0.67
@@ -1090,20 +1225,20 @@ Cohesion: 0.67
 Nodes (3): Elementos con Alto Potencial Comercial, Elementos Libres (no monetizar), PARTE 9 — Personalización Visual (Catálogo de Cosméticos)
 
 ### Community 216 - "economy_repository_impl.dart"
-Cohesion: 0.13
-Nodes (14): addGems, canInvoke, claimDailyReward, _client, generateDailyPergaminos, getDailyState, getGems, getInventory (+6 more)
+Cohesion: 0.08
+Nodes (24): EconomyRepositoryImpl, addBattlePassXp, addFragments, addGems, canInvoke, claimBattlePassReward, claimDailyReward, EconomyRepository (+16 more)
 
 ### Community 217 - "SupabaseClient"
-Cohesion: 0.25
-Nodes (7): Exception, Fake, package:tutorsaas/features/dashboard/data/repositories/dashboard_repository_impl.dart, SupabaseClient, FakeSupabaseClient, from, main
+Cohesion: 0.08
+Nodes (24): 1. El Mundo — "El Reino del Verbo", 2. El Conflicto — "El Vacío del Olvido", 3. El Enemigo — Bosses por Rango CEFR, 4. El Objetivo Final — Sellar el Vacío, 5. Progresión Narrativa — El Oráculo del Gremio como guía, 6. Temporada 1 — Los 5 Episodios Iniciales, 7. Diálogos del Oráculo por Episodio, 8.1 Textos en la app (l10n) (+16 more)
 
 ### Community 218 - "package:flutter_test/flutter_test.dart"
-Cohesion: 0.17
-Nodes (9): package:flutter_test/flutter_test.dart, package:shared_preferences/shared_preferences.dart, package:tutorsaas/core/utils/latency_benchmark.dart, package:tutorsaas/features/dashboard/data/models/lesson_catalog.dart, package:tutorsaas/features/dashboard/presentation/screens/dashboard_screen.dart, package:tutorsaas/features/dashboard/presentation/widgets/league_leaderboard_widget.dart, main, main (+1 more)
+Cohesion: 0.19
+Nodes (12): subscriptionRepositoryProvider, build, createState, _features, _fetchDynamicPlans, initState, _isPurchasing, PaywallScreen (+4 more)
 
 ### Community 219 - "@freezed"
-Cohesion: 0.40
-Nodes (5): @freezed, ConversationState, ConversationState, _ConversationState, ConversationNotifier
+Cohesion: 0.33
+Nodes (6): LocaleNotifier, SfxNotifier, EquippedTitleNotifier, DevAlwaysShowOnboardingNotifier, PremiumStatusNotifier, StateNotifier
 
 ### Community 220 - "2.3 AUTH SCREENS"
 Cohesion: 0.22
@@ -1126,8 +1261,8 @@ Cohesion: 0.25
 Nodes (7): 06 — Design Migration Plan, Orden de ejecución sugerido en Fase 2, Paso 1 — Cerrar el sistema de diseño base, Paso 2 — Pantallas de núcleo con paridad alta, Paso 3 — Elevar pantallas existentes, Paso 4 — Pantallas de soporte, Paso 5 — Validación
 
 ### Community 225 - "Epic-Level Timeline"
-Cohesion: 0.25
-Nodes (7): Epic-Level Timeline, Epic Roadmap — TutorSaas / Dungeon of English, Phase 1: Foundation & Infrastructure Sync, Phase 2: Design Components & Character Setup, Phase 3: Hunter Hub & Dungeon Exploration, Phase 4: Progression Loops & Guild Customization, Roadmap Dependencies
+Cohesion: 0.22
+Nodes (8): Dependencias, Epic Roadmap — TutorSaas / Dungeon of English, Fase 1 (base) — Deuda transversal, Fase 2 — Experiencia del Usuario, Fase 3 — Dashboard, Fase 4 — Conversaciones, Fase 5 — Misiones, Fase 6 — Economía
 
 ### Community 226 - "Implementation Master Plan — TutorSaas / Dungeon of English"
 Cohesion: 0.25
@@ -1146,32 +1281,560 @@ Cohesion: 0.33
 Nodes (5): 1. High Priority (P0) — Critical Blocks & Onboarding Core, 2. Medium Priority (P1) — Standard Components & Core Visual Loop, 3. Low Priority (P2) — Supplementary Features & Monetization, Task Priorities & Estimates — TutorSaas / Dungeon of English, Total Project Backlog Estimate: 70.5 Hours
 
 ### Community 230 - "build"
-Cohesion: 0.50
-Nodes (5): economyRepositoryProvider, gemBalanceProvider, build, NucleoArcanoLimitScreen, Route /paywall
+Cohesion: 0.08
+Nodes (23): acceptMission, applyMissionModifier, canAcceptMission, claimReward, cleanupOldMissions, contributeToWeeklyRaid, createSecretMission, generateDailyMissions (+15 more)
 
 ### Community 231 - "2.1 CORE THEME"
+Cohesion: 0.12
+Nodes (15): ConsumerStatefulWidget, ChatRoomsScreen, ProfileEditScreen, _claimed, color, createState, DailyRewardModal, icon (+7 more)
+
+### Community 232 - "EconomyRepository"
+Cohesion: 0.15
+Nodes (12): 6.1 Fix de `claimDailyReward` (P0), 6.2 Inventario UI (P0), 6.3 Battle Pass (P0), 6.4 Daily Rewards UI (P1), 6.5 Oro y fragmentos (P1), 6.6 Loot/drops (P1), 6.7 Integración con IA (P1), 6.8 Balance económico (P2) (+4 more)
+
+### Community 233 - "quest_card.dart"
+Cohesion: 0.15
+Nodes (12): build, description, gemReward, _getRankColor, onTap, progress, progressSegments, QuestCard (+4 more)
+
+### Community 234 - "voice_waveform_visualizer.dart"
+Cohesion: 0.09
+Nodes (21): 10. Plan de migración visual, 11. Plan de refactorización, 12. Checklist de validación, 13. Conclusiones, 14. Estado de implementación (2026-07-31), 1. Resumen Ejecutivo, 2. Estado Actual del Dashboard, 3. Componentes analizados (+13 more)
+
+### Community 235 - "conversational_tactics_navigator.dart"
+Cohesion: 0.20
+Nodes (10): ../../../../core/widgets/system_window.dart, build, _buildTacticCard, ConversationalTacticsNavigator, _ConversationalTacticsNavigatorState, createState, scenarioId, scenarioTitle (+2 more)
+
+### Community 236 - "Fases del plan"
+Cohesion: 0.18
+Nodes (10): 2.1 Wiring de localización (P0), 2.2 Persistencia del idioma desde onboarding (P0), 2.3 Migración DB (P0), 2.4 Oracle conversacional (P1), 2.5 Registro y perfil inicial (P1), 2.6 i18n de pantallas (P2), Criterios de terminación, Fase 2 — Implementation_Plan (+2 more)
+
+### Community 237 - "Pasos"
+Cohesion: 0.18
+Nodes (10): 5.1 Misiones del gremio (P0), 5.2 Eventos globales y player_event_progress (P0), 5.3 Progresión parcial (P1), 5.4 Mission Board integrado (P1), 5.5 Rotación y timers (P1), 5.6 Integración con economía (P2), Criterios de terminación, Fase 5 — Implementation_Plan (+2 more)
+
+### Community 238 - "Tablas implicadas"
+Cohesion: 0.20
+Nodes (9): Fase 2 — Database, Migración pendiente (propuesta), Notas, `public.cefr_levels`, `public.languages`, `public.oracle_questions` (migración `20260730_oracle_questions.sql`), `public.user_language_profiles`, `public.user_settings`, `public.users` (+1 more)
+
+### Community 239 - "Pasos"
+Cohesion: 0.20
+Nodes (9): 3.1 HUD central (P0), 3.2 Unificación Dashboard + Guild (P0), 3.3 Hunter Status refinado (P1), 3.4 Accesos rápidos e indicadores (P1), 3.5 QA del leaderboard (P1), Criterios de terminación, Fase 3 — Implementation_Plan, Objetivo (+1 more)
+
+### Community 240 - "Fase 6 — Tasks"
+Cohesion: 0.20
+Nodes (10): Fase 6 — Tasks, P0 — Battle Pass, P0 — Bugs, P0 — Inventario UI, P1 — Daily Rewards UI, P1 — Integración IA, P1 — Loot/drops, P1 — Oro y fragmentos (+2 more)
+
+### Community 241 - "conversationStateProvider"
+Cohesion: 0.10
+Nodes (19): 1. Estado actual (verificado), 1. Estado actual (verificado), 2. Diseño — Objetos que modifican misiones, 2. Diseño — Personalización completa, 3. Plan de implementación, 3. Plan de implementación, ✅ Aplicado en DB (script `20260730_phase9_items_modifiers.sql`), Categoría `mission_modifier` en `player_inventory` (+11 more)
+
+### Community 242 - "app.dart"
+Cohesion: 0.10
+Nodes (19): 1.1 Redirección del Welcome (`welcome_screen.dart`), 1.2 No existe flag de «mostrar siempre», 1.3 Configuración del usuario (settings + persistencia), 1. Estado actual, 2. Hallazgos con evidencia, 3.1 Base de datos (migración), 3.2 Modelo (`user_settings.dart`), 3.3 Provider (`dashboard_providers.dart`) (+11 more)
+
+### Community 243 - "Pasos"
+Cohesion: 0.22
+Nodes (8): 4.1 Header y HUD definitivos (P0), 4.2 Barra de progreso y objetivos (P0), 4.3 Microinteracciones y recompensas (P1), 4.4 Coherencia (P1), Criterios de terminación, Fase 4 — Implementation_Plan, Objetivo, Pasos
+
+### Community 244 - "Fase 2 — Tasks"
+Cohesion: 0.22
+Nodes (8): Fase 2 — Tasks, P0 — Localización aplicada, P0 — Migración DB, P0 — Persistencia del idioma, P1 — Oráculo conversacional, P1 — Registro y perfil, P2 — i18n de pantallas, QA
+
+### Community 245 - "Tablas consumidas"
+Cohesion: 0.25
+Nodes (7): Fase 3 — Database, Observaciones, `public.cefr_levels`, `public.user_language_profiles`, `public.user_progress` (referenciado por HunterStatusScreen), `public.users`, Tablas consumidas
+
+### Community 246 - "Tablas consumidas"
+Cohesion: 0.25
+Nodes (7): Fase 4 — Database, Objetivos, Observaciones, `public.conversation_messages`, `public.conversations`, `public.scenarios` (o `lessons`), Tablas consumidas
+
+### Community 247 - "Fase 5 — Analysis"
+Cohesion: 0.25
+Nodes (7): 1. Modelos de dominio (`mission_models.dart`), 2. Repositorio (`mission_repository.dart`, 358 líneas), 3. Providers (`mission_providers.dart`), 4. Widget, 5. Tipos de misión cubiertos, 6. Conclusión, Fase 5 — Analysis
+
+### Community 248 - "Fase 5 — Tasks"
+Cohesion: 0.25
+Nodes (8): Fase 5 — Tasks, P0 — Eventos globales, P0 — Gremio, P1 — Mission Board, P1 — Progresión, P1 — Rotación/timers, P2 — Economía, QA
+
+### Community 249 - "Fase 6 — Database"
+Cohesion: 0.25
+Nodes (7): Columnas añadidas a `chat_rooms`, Columnas añadidas a `user_language_profiles`, Fase 6 — Database, Observaciones, Realtime, RLS, Tablas
+
+### Community 250 - "Fase 2 — Analysis"
+Cohesion: 0.29
+Nodes (6): 1. Onboarding, 2. Clasificación CEFR / Oráculo, 3. Sistema de idioma / multilenguaje, 4. Registro, 5. Conclusión, Fase 2 — Analysis
+
+### Community 251 - "Fase 3 — Analysis"
+Cohesion: 0.29
+Nodes (6): 1. DashboardScreen (`dashboard_screen.dart`, 2018 líneas), 2. HunterStatusScreen (`hunter_status_screen.dart`, 316 líneas), 3. Widgets del dashboard, 4. Paridad con PlantillasHTML, 5. Conclusión, Fase 3 — Analysis
+
+### Community 252 - "Fase 3 — Tasks"
+Cohesion: 0.29
+Nodes (7): Fase 3 — Tasks, P0 — HUD central, P0 — Unificación Dashboard + Guild, P1 — Accesos rápidos, P1 — Hunter Status refinado, P1 — QA leaderboard, QA
+
+### Community 253 - "Fase 4 — Analysis"
+Cohesion: 0.29
+Nodes (6): 1. ConversationScreen (`conversation_screen.dart`, 1175 líneas), 2. ConversationalTacticsNavigator, 3. LiveGoalsTrackerBar, 4. Paridad con PlantillasHTML, 5. Conclusión, Fase 4 — Analysis
+
+### Community 254 - "Fase 4 — Tasks"
+Cohesion: 0.29
+Nodes (6): Fase 4 — Tasks, P0 — Barra de progreso, P0 — Header y HUD definitivos, P1 — Coherencia, P1 — Microinteracciones y recompensas, QA
+
+### Community 255 - "05_Missions/README.md"
+Cohesion: 0.29
+Nodes (4): Documentos, Estado actual, Fase 5 — Sistema de Misiones, Resumen
+
+### Community 256 - "Fase 5 — Architecture"
+Cohesion: 0.29
+Nodes (7): Capa de datos, Decisiones, Fase 5 — Architecture, Flujo principal, Gaps, Módulos, Secretas / Emergencias
+
+### Community 257 - "Fase 5 — Database"
+Cohesion: 0.29
+Nodes (6): Fase 5 — Database, Observaciones, Realtime, RLS, Tablas, Índices
+
+### Community 258 - "06_Economy/README.md"
+Cohesion: 0.29
+Nodes (4): Documentos, Estado actual, Fase 6 — Economía del Juego, Resumen
+
+### Community 259 - "Fase 6 — Analysis"
+Cohesion: 0.29
+Nodes (7): 1. Monedas y recursos, 2. Repositorio (`economy_repository_impl.dart`, 355 líneas), 3. Providers (`economy_providers.dart`), 4. UI, 5. Paridad con requisitos de Fase 6, 6. Conclusión, Fase 6 — Analysis
+
+### Community 260 - "Fase 6 — Architecture"
+Cohesion: 0.29
+Nodes (6): Decisiones, Diseño desacoplado, Fase 6 — Architecture, Flujo, Gaps, Módulos
+
+### Community 261 - "Project_Status — TutorSaas / Dungeon of English"
+Cohesion: 0.20
+Nodes (9): Archivos nuevos (Fase 2–6), Estado de DB live (verificado 2026-07-30), Estado por fase, Estado por fase (implementación), Métricas, Project_Status — TutorSaas / Dungeon of English, Resumen ejecutivo, Riesgos principales (+1 more)
+
+### Community 262 - "StateNotifier"
+Cohesion: 0.05
+Nodes (36): Color, EdgeInsetsGeometry?, glass_card.dart, calculateSimilarity, getDiffSpans, TextDiffUtils, build, ConfigurationErrorWidget (+28 more)
+
+### Community 263 - "Fase 2 — Architecture"
+Cohesion: 0.33
+Nodes (5): Decisiones de arquitectura, Fase 2 — Architecture, Flujo de datos, Gaps detectados, Módulos
+
+### Community 264 - "2026-07-30"
+Cohesion: 0.50
+Nodes (4): 2026-07-30, Corrección (iteración previa), Documentación (iteración previa), Implementación (iteración actual)
+
+### Community 265 - "Fase 2 — Known_Issues"
+Cohesion: 0.33
+Nodes (5): Fase 2 — Known_Issues, P0 — Funcionalidad, P1 — Oráculo, P2 — i18n / UX, QA / Tests
+
+### Community 266 - "Fase 2 — QA_Report"
+Cohesion: 0.33
+Nodes (5): Estado del build, Falla de test preexistente, Fase 2 — QA_Report, Regresión, Validaciones de la fase
+
+### Community 267 - "02_User_Experience/README.md"
+Cohesion: 0.25
+Nodes (6): Fase 2 — Change_Log, Pendiente, Documentos, Estado actual, Fase 2 — Experiencia del Usuario (Onboarding y Localización), Resumen
+
+### Community 268 - "Fase 3 — Architecture"
+Cohesion: 0.33
+Nodes (5): Decisiones, Fase 3 — Architecture, Flujo de datos, Gaps, Módulos
+
+### Community 269 - "2026-07-30"
+Cohesion: 0.33
+Nodes (5): 2026-07-30, Corrección, Documentación (esta iteración), Fase 3 — Change_Log, Pendiente (futuro, al implementar la fase)
+
+### Community 270 - "03_Dashboard/README.md"
+Cohesion: 0.33
+Nodes (4): Documentos, Estado actual, Fase 3 — Dashboard del Aventurero, Resumen
+
+### Community 271 - "04_Conversations/README.md"
+Cohesion: 0.33
+Nodes (3): Fase 4 — Known_Issues, Funcionalidad, QA / Tests
+
+### Community 272 - "Fase 4 — Architecture"
+Cohesion: 0.33
+Nodes (6): Decisiones, Fase 4 — Architecture, Flujo, Gaps, Módulos, Pipeline de voz (NO ALTERAR)
+
+### Community 273 - "2026-07-30"
+Cohesion: 0.33
+Nodes (5): 2026-07-30, Corrección, Documentación (esta iteración), Fase 4 — Change_Log, Pendiente (futuro, al implementar la fase)
+
+### Community 274 - "Fase 4 — Recovery"
+Cohesion: 0.33
+Nodes (5): ⚠️ Contexto crítico del repo, Fase 4 — Recovery, ⚠️ Pipeline de voz — DO NOT ALTER, Procedimiento, Riesgos específicos de Fase 4
+
+### Community 275 - "2026-07-30"
+Cohesion: 0.33
+Nodes (5): 2026-07-30, Corrección, Documentación (esta iteración), Fase 5 — Change_Log, Pendiente (futuro, al implementar la fase)
+
+### Community 276 - "2026-07-30"
+Cohesion: 0.33
+Nodes (5): 2026-07-30, Corrección, Documentación (esta iteración), Fase 6 — Change_Log, Pendiente (futuro, al implementar la fase)
+
+### Community 277 - "2026-07-30"
+Cohesion: 0.15
+Nodes (12): 2026-07-30 — Implementación Fases 2–6 (segunda parte del día), 2026-07-30 (primera parte del día), Backlog y seguimiento, Change_Log — TutorSaas / Dungeon of English, DB live (aplicada por el usuario vía SQL Editor), Fase 2 — User Experience, Fase 3 — Dashboard, Fase 4 — Conversations (+4 more)
+
+### Community 278 - "Technical_Debt — TutorSaas / Dungeon of English"
+Cohesion: 0.33
+Nodes (5): P0 — Críticos, P1 — Funcional, P1/P2 — Diseño y calidad, Proceso, Technical_Debt — TutorSaas / Dungeon of English
+
+### Community 279 - "Fase 2 — Recovery"
+Cohesion: 0.40
+Nodes (4): ⚠️ Contexto crítico del repo, Fase 2 — Recovery, Incidentes de esta iteración, Procedimiento de recuperación de la fase
+
+### Community 280 - "Fase 3 — Known_Issues"
+Cohesion: 0.40
+Nodes (4): Diseño / Convenciones, Fase 3 — Known_Issues, Funcionalidad, QA
+
+### Community 281 - "Fase 3 — QA_Report"
+Cohesion: 0.40
+Nodes (4): Estado del build, Fase 3 — QA_Report, Regresión, Validaciones del módulo
+
+### Community 282 - "Fase 3 — Recovery"
+Cohesion: 0.40
+Nodes (4): ⚠️ Contexto crítico del repo, Fase 3 — Recovery, Procedimiento, Riesgos específicos de Fase 3
+
+### Community 283 - "Fase 4 — QA_Report"
+Cohesion: 0.40
+Nodes (4): Estado del build, Fase 4 — QA_Report, Regresión, Validaciones del módulo
+
+### Community 284 - "Fase 5 — Known_Issues"
+Cohesion: 0.40
+Nodes (4): DB, Fase 5 — Known_Issues, Funcionalidad, QA / Tests
+
+### Community 285 - "Fase 5 — QA_Report"
+Cohesion: 0.40
+Nodes (4): Estado del build, Fase 5 — QA_Report, Regresión, Validaciones del módulo
+
+### Community 286 - "Fase 5 — Recovery"
+Cohesion: 0.40
+Nodes (4): ⚠️ Contexto crítico del repo, Fase 5 — Recovery, Procedimiento, Riesgos específicos de Fase 5
+
+### Community 287 - "Fase 6 — Known_Issues"
+Cohesion: 0.40
+Nodes (4): Bugs, Fase 6 — Known_Issues, Funcionalidad incompleta, QA / Tests
+
+### Community 288 - "Fase 6 — QA_Report"
+Cohesion: 0.40
+Nodes (4): Estado del build, Fase 6 — QA_Report, Regresión, Validaciones del módulo
+
+### Community 289 - "Fase 6 — Recovery"
+Cohesion: 0.40
+Nodes (4): ⚠️ Contexto crítico del repo, Fase 6 — Recovery, Procedimiento, Riesgos específicos de Fase 6
+
+### Community 290 - "Recovery_Log — TutorSaas / Dungeon of English"
+Cohesion: 0.40
+Nodes (4): Incidentes, Procedimiento de recuperación, Recovery_Log — TutorSaas / Dungeon of English, ⚠️ Regla de oro del repo
+
+### Community 291 - "Fase 4 — Sistema de Conversaciones"
+Cohesion: 0.50
+Nodes (4): Documentos, Estado actual, Fase 4 — Sistema de Conversaciones, Resumen
+
+### Community 292 - "_buildLevelPage"
+Cohesion: 0.11
+Nodes (18): _, backgroundColor, build, _controller, createState, dispose, foregroundColor, _handleTapCancel (+10 more)
+
+### Community 293 - "rpg_avatar.dart"
+Cohesion: 0.10
+Nodes (18): app/app.dart, core/constants/api_constants.dart, core/utils/error_tracker.dart, core/utils/latency_benchmark.dart, core/widgets/configuration_error_widget.dart, avatarUrl, borderColor, build (+10 more)
+
+### Community 294 - "status_window_modal.dart"
+Cohesion: 0.06
+Nodes (29): ../../../../core/widgets/runic_button.dart, ../../data/models/hunter_catalog.dart, _bioText, _buildStatRow, color, createState, _dex, _equippedTitleCode (+21 more)
+
+### Community 295 - "StatelessWidget"
+Cohesion: 0.06
+Nodes (37): _GuildPoster, _GuildTrophyTile, _Badge, _SectionHeader, _SectionHeader, _RoadmapNodeTile, GuildMission, GuildQuest (+29 more)
+
+### Community 296 - "📋 TASK BOARD — TutorSaas / Dungeon of English"
+Cohesion: 0.22
+Nodes (8): 🏁 Métricas, 📋 TASK BOARD — TutorSaas / Dungeon of English, 🧱 Épica 0 — Transversal (P0), 👤 Épica 1 — Fase 2 · Experiencia del Usuario, 🏠 Épica 2 — Fase 3 · Dashboard, 🗣️ Épica 3 — Fase 4 · Conversaciones, 🎯 Épica 4 — Fase 5 · Misiones, 💰 Épica 5 — Fase 6 · Economía
+
+### Community 297 - "Color"
+Cohesion: 0.11
+Nodes (18): 5. Product Backlog, EP-A11Y, EP-BETA / EP-PROD, EP-DS Design System, EP-ECO Economía, EP-GUILD, EP-IA, EP-LIVE (+10 more)
+
+### Community 298 - "CustomPainter"
+Cohesion: 0.12
+Nodes (16): 1. Rutas registradas (23 rutas en `lib/app/router.dart`), 2. Flujo de onboarding (Welcome → Dashboard), 3.1 Orden real del Tab 0 (Dungeons) — orden verificado, 3. Dashboard (`/home`, `dashboard_screen.dart`, 630 líneas), 4.1 Orden verificado de la pantalla, 4.2 NPC del gremio (`guild_master_npc_banner.dart`), 4. Gremio (`/chat-rooms`, `chat_rooms_screen.dart`, 1089 líneas), 5. Estado del cazador (`/hunter-status`, `hunter_status_screen.dart`, 326 líneas) (+8 more)
+
+### Community 299 - "isRegisteringProvider"
+Cohesion: 0.09
+Nodes (24): build, catalog, collection, _CollectionCard, _CollectionsData, collectionsProvider, CollectionsScreen, _CollectionsScreenState (+16 more)
+
+### Community 300 - "widget_test.dart"
+Cohesion: 0.13
+Nodes (14): 1. Arquitectura actual del Guild, 2. Problemas detectados, 3. Mejoras propuestas (priorizadas), 4. Plan de implementación (tareas atómicas), 5. Documentación de Fase 7, Fase 7 — Guild · Análisis del estado actual, Flujo, P0 — Críticos (bloquean el Guild como centro de experiencia) (+6 more)
+
+### Community 301 - "2.3 AUTH SCREENS"
+Cohesion: 0.13
+Nodes (14): Arquitectura, Escalabilidad, Estado de build y calidad, Estado de implementación (2026-07-30), Fase 11 — QA · Auditorías (tareas 38-42), Performance — Supabase Advisors (95: 38 INFO + 57 WARN), Relaciones/consultas, Resumen de acciones priorizadas (deuda QA) (+6 more)
+
+### Community 302 - "2.8 CHAT ROOMS"
+Cohesion: 0.13
+Nodes (14): 1. Ingresos (income) de gemas por mes, 2. Gastos (sinks) por mes, 3. Oro (economía secundaria), 4. Fragmentos, 5. Tabla resumen 6-12 meses, 6. Nota de diseño, Balance, Balance 6-12 meses (ECO-04) (+6 more)
+
+### Community 304 - "2. Hallazgos con evidencia"
+Cohesion: 0.13
+Nodes (14): 1. Estado actual (orden de render verificado), 2. Hallazgos con evidencia, 3. Propuesta de rediseño (orden de render objetivo), 4. Riesgos (lo que NO debe perderse), 5. Resultado esperado, 6. Decisiones abiertas, Datos disponibles por sala (para el rediseño del listado), Hallazgo 4.1 — La acción principal (unirse a una mesa) está al final de la pantalla (+6 more)
+
+### Community 305 - "app_motion.dart"
+Cohesion: 0.13
+Nodes (14): ambient, AppMotion, curvePress, curveSpring, curveStandard, fast, micro, of (+6 more)
+
+### Community 306 - "app_typography.dart"
+Cohesion: 0.08
+Nodes (25): app_colors.dart, app_spacing.dart, ../../domain/models/mission_models.dart, AppTheme, AppTypography, body, bodyMuted, headline (+17 more)
+
+### Community 307 - "Tareas (orden de ejecución)"
+Cohesion: 0.14
+Nodes (13): Contexto, Criterios de terminación de la Fase 7, Fase 7 — Guild · Implementation_Plan, G-A · Seed de mesas en DB + columna `room_type` — P0, G-B · Refactor `getRooms` (leer de DB, sin hardcode, filtrar is_active) — P0, G-C · Guild Quest Board en el Gran Salón — P1, G-D · i18n + tipografía del Gran Salón — P1, G-E · Modo práctica IA en sala (Oráculo) — P1 (+5 more)
+
+### Community 308 - "Fase 8 — IA · Plan Gratuito (tarea 30)"
+Cohesion: 0.14
+Nodes (13): 1. Estado actual (verificado en DB), 2. Infraestructura de límites real (verificada), 3. Diseño del Plan Gratuito (objetivo: adquisición + retención + conversión), 4. Mejoras propuestas (para implementación), 5. Impacto económico estimado, 6. Conclusión, Elementos de conversión (no agresivos), Fase 8 — IA · Plan Gratuito (tarea 30) (+5 more)
+
+### Community 309 - "Fase 9 — RPG · Sistema de Items (tarea 32)"
+Cohesion: 0.15
+Nodes (12): 1. Estado actual (verificado), 2. Brechas del sistema RPG (respecto al prompt), 3. Diseño propuesto — Sistema de Items ampliado, 4. Plan de implementación (tareas atómicas), 5. Decisiones, A. Nuevas categorías (ampliar CHECK de `player_inventory`), B. Columnas adicionales, C. Obtención de reliquias (drops) (+4 more)
+
+### Community 310 - "DESIGN_SYSTEM_STANDARDIZATION.md"
+Cohesion: 0.15
+Nodes (11): 10. Checklist de consistencia visual, 11. Conclusión, 1. Resumen Ejecutivo, 2. Inventario de pantallas revisadas, 3. Inventario de componentes revisados, 4. Inconsistencias encontradas, 5. Componentes corregidos, 6. Design Tokens oficiales aplicados (+3 more)
+
+### Community 311 - "📋 TASK BOARD — MASTER IMPLEMENTATION PLAN (Ejecución)"
+Cohesion: 0.15
+Nodes (12): Fase A — Cimientos (seguridad + design system), Fase B — Migración Visual, Fase C — Refactor + UX, Fase D — RPG + Narrativa + Guild, Fase E — Economía + Balance, Fase F — Retención + Observabilidad, Fase G — QA + Accesibilidad + Performance, Fase H — Beta Cerrada (+4 more)
+
+### Community 312 - "Rediseño del Estado del Aventurero — Hallazgo 05"
+Cohesion: 0.15
+Nodes (12): 1. Estado actual, 2. Hallazgos con evidencia, 3. Cambios propuestos, 4. Riesgos (lo que NO debe perderse), 5. Resultado esperado, 6. Decisiones abiertas, Hallazgo 5.1 — El radar de habilidades vive en el tab «Estado», no en la pantalla que se vende como el HUD del cazador, Hallazgo 5.2 — Los 4 atributos consumen todo el viewport con filas de alto desperdicio (+4 more)
+
+### Community 313 - "Fase 8 — IA · Auditoría de Costos (tarea 29)"
+Cohesion: 0.17
+Nodes (11): 1. Infraestructura de IA actual, 2. Problemas de costos detectados, 3. Estrategias de reducción de costos (priorizadas), 4. Estimación de impacto, 5. Próximos pasos, A0 — Críticos, A1 — Optimizables, Fase 8 — IA · Auditoría de Costos (tarea 29) (+3 more)
+
+### Community 314 - "Fase 8 — IA · Monetización IA (tarea 31)"
+Cohesion: 0.17
+Nodes (11): 1. Estado actual de monetización, 2. Análisis de la propuesta de valor, 3. Diseño de monetización IA propuesto, 4. Implementación recomendada (tareas atómicas), 5. Conclusión, A. Planes (ajustes mínimos, coherentes con lo existente), B. Microtransacciones (energía, en la tienda existente), C. Flujo de conversión suave (+3 more)
+
+### Community 315 - "Rediseño del Dashboard — Hallazgo 03"
+Cohesion: 0.17
+Nodes (11): 1. Estado actual (inventario de bloques, en orden de render), 2. Hallazgos con evidencia, 3. Cambios propuestos, 4. Riesgos (lo que NO debe perderse), 5. Resultado esperado, 6. Decisiones abiertas, Hallazgo 3.1 — El hero «SIGUIENTE RAID» duplica la primera etapa del LearningPathRoadmap, Hallazgo 3.2 — El banner «Salas de Chat de Voz» duplica la navegación GUILD del menú inferior (+3 more)
+
+### Community 316 - "audio_sfx_service.dart"
+Cohesion: 0.24
+Nodes (11): AudioSfxService, _key, _loadPreference, playBossAlarm, playLevelUp, playManaRecharge, playQuestComplete, setSfxEnabled (+3 more)
+
+### Community 317 - "6. Roadmap por Fases"
+Cohesion: 0.18
+Nodes (11): 6. Roadmap por Fases, Fase A — Cimientos (seguridad + design system) — [Crítico], Fase B — Migración Visual [Crítico], Fase C — Refactor + UX [Alto], Fase D — RPG + Narrativa + Guild [Alto], Fase E — Economía + Balance [Alto], Fase F — Retención + Observabilidad [Alto], Fase G — QA + Accesibilidad [Alto] (+3 more)
+
+### Community 318 - "Arquitectura de Información — Propuesta reorganizada"
+Cohesion: 0.18
+Nodes (10): 1. Contexto y problemas detectados (de la auditoría), 2. Principios de la reorganización, 3.1 Dashboard — Tab MAZMORRAS (índice 0) → `dashboard_screen.dart`, 3.2 Gremio — Tab GUILD → `/chat-rooms` → `chat_rooms_screen.dart`, 3.3 Estado del aventurero — Tab ESTADO (índice 2) → `progress_tab_view.dart` + `/hunter-status`, 3.4 Configuración — Tab CONFIG (índice 3) → `settings_screen.dart`, 3. Propuesta por pantalla, 4. Mapa de navegación propuesto (texto) (+2 more)
+
+### Community 319 - "mission_board_widget.dart"
+Cohesion: 0.60
+Nodes (5): activeMissionsProvider, completedMissionsProvider, emergencyMissionsProvider, build, MissionBoardWidget
+
+### Community 320 - "lesson_card.dart"
+Cohesion: 0.18
+Nodes (10): IconData, accentColor, build, description, icon, LessonCard, level, onTap (+2 more)
+
+### Community 321 - "package:flutter_test/flutter_test.dart"
+Cohesion: 0.15
+Nodes (10): package:flutter_test/flutter_test.dart, package:tutorsaas/core/utils/latency_benchmark.dart, package:tutorsaas/features/dashboard/data/models/lesson_catalog.dart, dailyReward, gems, invocationsMax, main, pergaminos (+2 more)
+
+### Community 322 - "oracle_conversation_test.dart"
+Cohesion: 0.18
+Nodes (10): answerOf, avg, computeLevel, main, minWordsA2, minWordsB1, minWordsB2, minWordsC1 (+2 more)
+
+### Community 323 - "Fase 10 — Microinteracciones · Auditoría de Animaciones (tarea 35)"
+Cohesion: 0.20
+Nodes (9): 1. Inventario de animaciones existentes, 2. Problemas detectados (tarea 35), 3. Plan de estandarización — Tokens de animación, 4. Conclusión, Fase 10 — Microinteracciones · Auditoría de Animaciones (tarea 35), P0 — Consistencia, P1 — Calidad percibida, P2 — Rendimiento / accesibilidad (+1 more)
+
+### Community 324 - "Conversación — Dungeon of English"
+Cohesion: 0.22
+Nodes (8): Conversación — Dungeon of English, Economía asociada, Metas y evaluación, Oráculo, Pendiente, Persistencia, Pipeline de voz (NO ALTERAR), Tácticas
+
+### Community 325 - "2026-07-30"
+Cohesion: 0.25
+Nodes (7): 2026-07-30, Código (implementado), DB (aplicada por el usuario vía SQL Editor), Documentación, Fase 9 — RPG · Change_Log, Pendiente, Verificación
+
+### Community 326 - "Fase 11 — QA · Auditoría Final (tarea 43)"
+Cohesion: 0.25
+Nodes (7): 1. Estado general, 2. Fortalezas, 3. Debilidades y riesgos, 4. Checklist de producción, 5. Veredicto, Camino a beta pública (orden recomendado), Fase 11 — QA · Auditoría Final (tarea 43)
+
+### Community 327 - "Design System — Dungeon of English"
+Cohesion: 0.25
+Nodes (7): Animación (`lib/core/theme/app_motion.dart`), Componentes core (`lib/core/widgets/`), Design System — Dungeon of English, Geometría y espaciado, Paleta (AppColors — `lib/core/theme/app_colors.dart`), Pantallas clave (paridad PlantillaHtml), Tipografía (google_fonts)
+
+### Community 328 - "Guild — Dungeon of English"
+Cohesion: 0.25
+Nodes (7): Arquitectura, DB del Guild, Gran Salón (`/chat-rooms`), Guild — Dungeon of English, Pendiente (mejoras futuras), Sala de voz (`/voice-room`), Visión
+
+### Community 329 - "2026-07-30"
+Cohesion: 0.29
+Nodes (6): 2026-07-30, Fase 10 — Microinteracciones · Change_Log, Implementación, Pendiente, Tarea 35 — Auditoría de animaciones, Verificación
+
+### Community 330 - "2026-07-30"
+Cohesion: 0.29
+Nodes (6): 2026-07-30, Acciones propuestas (sin implementar — requieren SQL/decisiones), Datos verificados, Documentación, Fase 11 — QA · Change_Log, Verificación
+
+### Community 331 - "2026-07-30"
+Cohesion: 0.29
+Nodes (6): 2026-07-30, Documentos maestros sincronizados (Fases 2-11), Documentos por fase (creados en su fase), Estado final del proyecto, Fase 12 — Documentación · Change_Log, Migraciones SQL generadas (Fases 7-11, aplicadas por el usuario)
+
+### Community 332 - "14. Auditoría del Producto"
+Cohesion: 0.29
+Nodes (7): 14. Auditoría del Producto, Decisión de producto sugerida, Funcionalidades de bajo valor / a simplificar, Innovaciones reales, Problema que resuelve, Propuesta de valor diferencial, Ventaja competitiva
+
+### Community 333 - "Misiones — Dungeon of English"
+Cohesion: 0.29
+Nodes (6): Arquitectura, Economía asociada, Flujo, Misiones — Dungeon of English, Tipos de misión, UI
+
+### Community 334 - "2026-07-30"
+Cohesion: 0.33
+Nodes (5): 2026-07-30, Fase 7 — Guild · Change_Log, Implementación (8/8 tareas), Pendiente (usuario), Verificación
+
+### Community 335 - "2026-07-30"
+Cohesion: 0.33
+Nodes (5): 2026-07-30, 2026-07-30 (implementaciones previas), ⚠️ Acción pendiente del usuario (fuera del repo), Fase 8 — IA · Change_Log, IA-01 · Seguridad de API keys (implementado)
+
+### Community 336 - "16. Auditoría de Retención"
+Cohesion: 0.33
+Nodes (6): 16. Auditoría de Retención, Eventos/sistemas faltantes, Por qué seguiría 6 meses (D30-D180), Por qué volvería la próxima semana (D7), Por qué volvería mañana (D1), Riesgos de abandono
+
+### Community 337 - "Visión — Dungeon of English"
+Cohesion: 0.33
+Nodes (5): Estado actual (resumen), Pilares, Propósito, Veredicto de producto, Visión — Dungeon of English
+
+### Community 338 - "economy_repository_helpers_test.dart"
+Cohesion: 0.12
+Nodes (16): ../../data/repositories/economy_repository_impl.dart, ../../domain/repositories/economy_repository.dart, canInvoke, canInvokeProvider, client, fragmentBalanceProvider, getDailyState, getGems (+8 more)
+
+### Community 339 - "@freezed"
+Cohesion: 0.40
+Nodes (5): @freezed, ConversationState, ConversationState, _ConversationState, ConversationNotifier
+
+### Community 340 - "28. Visión Estratégica a 3-5 años"
+Cohesion: 0.40
+Nodes (5): 28. Visión Estratégica a 3-5 años, Componentes que deberán rediseñarse, Oportunidad a 3-5 años, Riesgos que limitan crecimiento, Sistemas que soportan evolución
+
+### Community 341 - "32. Roadmap Consolidado"
+Cohesion: 0.40
+Nodes (5): 32. Roadmap Consolidado, 🟠 Alta (antes de beta pública), 🟢 Baja (futuro), 🔴 Crítica (impide lanzamiento), 🟡 Media (mejoras)
+
+### Community 342 - "overflow_test.dart"
+Cohesion: 0.40
+Nodes (4): package:shared_preferences/shared_preferences.dart, package:tutorsaas/features/dashboard/presentation/screens/dashboard_screen.dart, package:tutorsaas/features/dashboard/presentation/widgets/league_leaderboard_widget.dart, main
+
+### Community 343 - "15. Auditoría del Game Loop"
+Cohesion: 0.50
+Nodes (4): 15. Auditoría del Game Loop, Bucles rotos, Game Loop actual (real), Game Loop ideal (propuesto)
+
+### Community 344 - "22. Auditoría de la Economía (simulación)"
+Cohesion: 0.50
+Nodes (4): 22. Auditoría de la Economía (simulación), Corrección sugerida, Problemas de economía simulada, Simulación de recursos
+
+### Community 345 - "25. Criterios de Lanzamiento"
+Cohesion: 0.50
+Nodes (4): 25. Criterios de Lanzamiento, Beta Cerrada, Beta Pública, Producción
+
+### Community 346 - "2.7 CONVERSATION"
+Cohesion: 0.50
+Nodes (4): 2.7 CONVERSATION, ConversationScreen (`lib/features/conversation/presentation/screens/conversation_screen.dart`), LiveGoalsTrackerBar (`lib/features/conversation/presentation/widgets/live_goals_tracker_bar.dart`), VoiceWaveformVisualizer (`lib/features/conversation/presentation/widgets/voice_waveform_visualizer.dart`)
+
+### Community 348 - "10. Auditoría UX"
+Cohesion: 0.67
+Nodes (3): 10. Auditoría UX, Fricciones confirmadas, Puntos de fricción nuevos
+
+### Community 349 - "4. Auditoría Técnica"
+Cohesion: 0.67
+Nodes (3): 4. Auditoría Técnica, Hallazgos técnicos nuevos, Verificaciones
+
+### Community 350 - "2.1 CORE THEME"
 Cohesion: 0.67
 Nodes (3): 2.1 CORE THEME, AppColors (`lib/core/theme/app_colors.dart`), AppTheme (`lib/core/theme/app_theme.dart`)
 
+### Community 353 - "recommended_lessons_hub.dart"
+Cohesion: 0.13
+Nodes (14): ai_pick_hero_card.dart, lesson_preview_sheet.dart, _calculateMatchScore, _categories, _cefrLevels, createState, dispose, _getIconData (+6 more)
+
+### Community 354 - "chat_rooms_providers.dart"
+Cohesion: 0.17
+Nodes (14): ../../data/repositories/chat_rooms_repository_impl.dart, ../../domain/repositories/chat_rooms_repository.dart, chatRoomMessagesProvider, chatRoomParticipantsProvider, chatRoomsRepositoryProvider, client, read, _showCreateRoomDialog (+6 more)
+
+### Community 355 - "welcome_screen.dart"
+Cohesion: 0.19
+Nodes (13): ../../../../core/theme/app_typography.dart, dart:ui, isRegisteringProvider, devAlwaysShowOnboardingProvider, build, _buildCurrentView, createState, _redirectUser (+5 more)
+
+### Community 356 - "package:supabase_flutter/supabase_flutter.dart"
+Cohesion: 0.16
+Nodes (12): Exception, Fake, _client, PlacementRepository, PlacementRepositoryImpl, savePlacementResult, package:supabase_flutter/supabase_flutter.dart, package:tutorsaas/features/dashboard/data/repositories/dashboard_repository_impl.dart (+4 more)
+
+### Community 357 - "build"
+Cohesion: 0.20
+Nodes (14): dispose, dashboardRefreshProvider, learnedVocabularyProvider, weeklyPracticeProvider, build, ProfileScreen, build, SessionSummaryScreen (+6 more)
+
+### Community 358 - "leaderboard_screen.dart"
+Cohesion: 0.24
+Nodes (10): build, _buildEmptyState, _buildHeader, _buildRankEntry, _buildRowContent, createState, LeaderboardScreen, _LeaderboardScreenState (+2 more)
+
+### Community 359 - "auth_providers.dart"
+Cohesion: 0.22
+Nodes (8): AuthState, ../../data/repositories/auth_repository_impl.dart, ../../domain/repositories/auth_repository.dart, authStateAsync, authStateProvider, client, maybeWhen, repo
+
+### Community 360 - "package:flutter/foundation.dart"
+Cohesion: 0.25
+Nodes (7): ErrorTracker, init, _initialized, logError, logEvent, package:flutter/foundation.dart, static bool
+
+### Community 361 - "segmented_bar.dart"
+Cohesion: 0.25
+Nodes (7): backgroundColor, build, color, height, SegmentedBar, segments, value
+
+### Community 362 - "_ConversationScreenState"
+Cohesion: 0.25
+Nodes (8): _leaveRoom, build, ConversationScreen, _ConversationScreenState, recommendedLessonsProvider, build, _RecommendedLessonsHubState, Route /chat-rooms
+
+### Community 363 - "subscription_repository_impl.dart"
+Cohesion: 0.29
+Nodes (6): ../../domain/repositories/subscription_repository.dart, getSubscriptionPlans, isUserPremium, purchasePackage, restorePurchases, _supabaseClient
+
+### Community 364 - "subscription_repository.dart"
+Cohesion: 0.29
+Nodes (6): SubscriptionRepositoryImpl, getSubscriptionPlans, isUserPremium, purchasePackage, restorePurchases, SubscriptionRepository
+
+### Community 365 - "Índice de Documentación — TutorSaas"
+Cohesion: 0.40
+Nodes (5): Archivos de Documentación Pre-existentes, Decisiones de Arquitectura (ADRs), Documentación General, Documentos de Contexto, Índice de Documentación — TutorSaas
+
+### Community 366 - "2.3 AUTH SCREENS"
+Cohesion: 0.67
+Nodes (3): 2.3 AUTH SCREENS, Brand Header (`_BrandHeader` in welcome_screen.dart), WelcomeScreen (`lib/features/onboarding/presentation/screens/welcome_screen.dart`)
+
+### Community 367 - "PARTE 6 — Personalización"
+Cohesion: 0.67
+Nodes (3): Catálogo de Personalización (Todo Cosmético), PARTE 6 — Personalización, Principio de Personalización
+
 ## Knowledge Gaps
-- **2773 isolated node(s):** `XCTest`, `build`, `appRouter`, `ApiConstants`, `supabaseUrl` (+2768 more)
+- **4012 isolated node(s):** `XCTest`, `appRouter`, `ApiConstants`, `supabaseUrl`, `supabaseAnonKey` (+4007 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `EconomyRepository` connect `EconomyRepository` to `overflow_test.dart`, `ConsumerState`?**
-  _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **Why does `ChatRoomsRepository` connect `chat_rooms_repository.dart` to `voice_room_screen.dart`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **Why does `SubscriptionRepository` connect `subscription_repository_impl.dart` to `subscription_providers.dart`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **What connects `XCTest`, `build`, `appRouter` to the rest of the system?**
-  _2773 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `ChatRoomsRepository` connect `chat_rooms_repository.dart` to `chat_rooms_providers.dart`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+- **Why does `MissionRepository` connect `MissionRepository` to `build`, `subscription_providers.dart`?**
+  _High betweenness centrality (0.003) - this node is a cross-community bridge._
+- **Why does `EconomyRepository` connect `economy_repository_impl.dart` to `economy_repository_helpers_test.dart`?**
+  _High betweenness centrality (0.003) - this node is a cross-community bridge._
+- **What connects `XCTest`, `appRouter`, `ApiConstants` to the rest of the system?**
+  _4012 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `System Architecture & Business Context` be split into smaller, more focused modules?**
   _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._
 - **Should `Implementation Plan & Repair Strategy` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
-- **Should `Frontend Routing & Lesson Repair` be split into smaller, more focused modules?**
-  _Cohesion score 0.06854838709677419 - nodes in this community are weakly interconnected._
+- **Should `Database Schema & Tables` be split into smaller, more focused modules?**
+  _Cohesion score 0.06090808416389812 - nodes in this community are weakly interconnected._

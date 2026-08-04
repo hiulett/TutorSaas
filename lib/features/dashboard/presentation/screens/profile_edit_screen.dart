@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
+import '../../../../core/widgets/system_snack.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/dashboard_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -151,7 +154,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               'PHOTO UPLOADED SUCCESSFULY 📸',
               style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.emeraldGreen,
             behavior: SnackBarBehavior.floating,
             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))),
           ),
@@ -182,12 +185,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   void _showAvatarPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.sheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(4.0)),
       ),
       isScrollControlled: true,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -200,7 +204,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -214,10 +218,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           _pickImage(ImageSource.camera);
                         },
                         icon: const Icon(Icons.camera_alt_rounded),
-                        label: Text('CAMERA', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
+                        label: Text(l10n.profile_edit_camera, style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.05),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.onSurface.withValues(alpha: 0.05),
+                          foregroundColor: AppColors.onSurface,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(4.0)),
@@ -233,10 +237,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           _pickImage(ImageSource.gallery);
                         },
                         icon: const Icon(Icons.photo_library_rounded),
-                        label: Text('GALLERY', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
+                        label: Text(l10n.profile_edit_gallery, style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.05),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.onSurface.withValues(alpha: 0.05),
+                          foregroundColor: AppColors.onSurface,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(4.0)),
@@ -309,7 +313,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 child: Row(
                   children: [
                     Material(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: AppColors.onSurface.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(4.0),
                       child: InkWell(
                         onTap: () {
@@ -322,18 +326,22 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         child: const SizedBox(
                           width: 44,
                           height: 44,
-                          child: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                          child: Icon(Icons.arrow_back_rounded, color: AppColors.onSurface),
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      'HUNTER LICENSE REGISTRY',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 1.0,
+                    Expanded(
+                      child: Text(
+                        'HUNTER LICENSE REGISTRY',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.onSurface,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ],
@@ -353,7 +361,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         // Hunter License Card Preview
                         GlassCard(
                           blur: 25,
-                          opacity: 0.08,
+                          opacity: AppColors.glassOpacity,
                           padding: const EdgeInsets.all(20),
                           child: Row(
                             children: [
@@ -376,7 +384,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                         borderRadius: BorderRadius.all(Radius.circular(4)),
                                       ),
                                       padding: const EdgeInsets.all(6),
-                                      child: const Icon(Icons.photo_camera_rounded, color: Colors.white, size: 14),
+                                      child: const Icon(Icons.photo_camera_rounded, color: AppColors.onSurface, size: 14),
                                     ),
                                   ),
                                 ],
@@ -390,7 +398,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
                                         border: Border.all(color: AppColors.manaCyan, width: 1),
-                                        borderRadius: BorderRadius.circular(2),
+                                        borderRadius: BorderRadius.circular(AppRadius.sm),
                                       ),
                                       child: Text(
                                         rank,
@@ -407,7 +415,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                           ? _nameController.text.toUpperCase()
                                           : 'HUNTER NAME',
                                       style: GoogleFonts.spaceGrotesk(
-                                        color: Colors.white,
+                                        color: AppColors.onSurface,
                                         fontWeight: FontWeight.w900,
                                         fontSize: 18,
                                         letterSpacing: 0.5,
@@ -457,10 +465,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? AppColors.runeViolet.withValues(alpha: 0.2)
-                                      : Colors.white.withValues(alpha: 0.03),
+                                      : AppColors.onSurface.withValues(alpha: 0.03),
                                   borderRadius: BorderRadius.circular(4),
                                   border: Border.all(
-                                    color: isSelected ? AppColors.runeViolet : Colors.white12,
+                                    color: isSelected ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.12),
                                     width: isSelected ? 1.5 : 1,
                                   ),
                                 ),
@@ -469,7 +477,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                   style: GoogleFonts.jetBrainsMono(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: isSelected ? Colors.white : Colors.white60,
+                                    color: isSelected ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.60),
                                   ),
                                 ),
                               ),
@@ -511,11 +519,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           child: Column(
                             children: [
                               _buildStatRow('STR', _str, 'Strength & muscle power'),
-                              const Divider(color: Colors.white10),
+                              Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
                               _buildStatRow('INT', _int, 'Spellcasting & parsing speed'),
-                              const Divider(color: Colors.white10),
+                              Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
                               _buildStatRow('DEX', _dex, 'Agility & response rhythm'),
-                              const Divider(color: Colors.white10),
+                              Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
                               _buildStatRow('LUK', _luk, 'Critical correction avoidance'),
                             ],
                           ),
@@ -536,16 +544,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         
                         TextFormField(
                           controller: _nameController,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: AppColors.onSurface),
                           onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.03),
+                            fillColor: AppColors.onSurface.withValues(alpha: 0.03),
                             labelText: 'HUNTER FULL NAME',
-                            labelStyle: GoogleFonts.spaceGrotesk(color: Colors.white30, fontSize: 12),
+                            labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.30), fontSize: 12),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white10),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.10)),
                               borderRadius: BorderRadius.all(Radius.circular(4.0)),
                             ),
                             focusedBorder: const OutlineInputBorder(
@@ -564,16 +572,16 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
                         TextFormField(
                           controller: _bioController,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: AppColors.onSurface),
                           maxLines: 3,
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.03),
+                            fillColor: AppColors.onSurface.withValues(alpha: 0.03),
                             labelText: 'MEMOIR / OBJECTIVES',
-                            labelStyle: GoogleFonts.spaceGrotesk(color: Colors.white30, fontSize: 12),
+                            labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.30), fontSize: 12),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white10),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.10)),
                               borderRadius: BorderRadius.all(Radius.circular(4.0)),
                             ),
                             focusedBorder: const OutlineInputBorder(
@@ -587,17 +595,17 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.03),
+                            color: AppColors.onSurface.withValues(alpha: 0.03),
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.white10),
+                            border: Border.all(color: AppColors.onSurface.withValues(alpha: 0.10)),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _selectedLanguage,
-                              dropdownColor: const Color(0xFF0F172A),
-                              style: const TextStyle(color: Colors.white),
+                              dropdownColor: AppColors.sheetBackground,
+                              style: const TextStyle(color: AppColors.onSurface),
                               isExpanded: true,
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white54),
+                              icon: Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.onSurface.withValues(alpha: 0.54)),
                               items: const [
                                 DropdownMenuItem(value: 'es', child: Text('SPANISH (ES)')),
                                 DropdownMenuItem(value: 'en', child: Text('ENGLISH (EN)')),
@@ -660,7 +668,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                             'LICENSE REGISTRY UPDATED SUCCESSFULY 🎉',
                                             style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
                                           ),
-                                          backgroundColor: Colors.green,
+                                          backgroundColor: AppColors.emeraldGreen,
                                           behavior: SnackBarBehavior.floating,
                                           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))),
                                         ),
@@ -673,13 +681,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('ERROR SAVING LICENSE: $e'),
-                                          backgroundColor: AppColors.crimsonRed,
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
+                                      SystemSnack.show(context, 'ERROR SAVING LICENSE: $e', type: SystemSnackType.error);
                                     }
                                   } finally {
                                     if (mounted) {
@@ -691,7 +693,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.runeViolet,
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.onSurface,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.all(Radius.circular(4.0)),
@@ -701,7 +703,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                               ? const SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                  child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
                                 )
                               : Text(
                                   'SAVE LICENSE REGISTRY',
@@ -731,7 +733,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             child: Text(
               statName,
               style: GoogleFonts.spaceGrotesk(
-                color: Colors.white,
+                color: AppColors.onSurface,
                 fontWeight: FontWeight.w900,
                 fontSize: 15,
                 letterSpacing: 0.5,
@@ -745,7 +747,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               children: [
                 Text(
                   desc,
-                  style: const TextStyle(color: Colors.white54, fontSize: 10),
+                  style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.54), fontSize: 10),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
@@ -755,7 +757,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     Container(
                       height: 8,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: AppColors.onSurface.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -780,7 +782,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           Text(
             '$val',
             style: GoogleFonts.jetBrainsMono(
-              color: Colors.white,
+              color: AppColors.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 15,
             ),

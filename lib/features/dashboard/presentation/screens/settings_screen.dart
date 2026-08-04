@@ -6,7 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
+import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/services/audio_sfx_service.dart';
+import '../../../../core/i18n/language_settings.dart';
 import '../../domain/models/user_settings.dart';
 import '../providers/dashboard_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -85,7 +87,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onSurface),
                           onPressed: () {
                             if (context.canPop()) {
                               context.pop();
@@ -100,7 +102,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: GoogleFonts.spaceGrotesk(
                             fontSize: 24,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
+                            color: AppColors.onSurface,
                             letterSpacing: 1.0,
                           ),
                         ),
@@ -119,6 +121,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         _buildLanguageTile(context),
                         const SizedBox(height: 12),
                         _buildCefrLevelTile(context),
+                        const SizedBox(height: 24),
+
+                        const _SectionHeader(title: 'LANGUAGE'),
+                        const SizedBox(height: 12),
+                        _buildDeviceLanguageTile(context),
+                        const SizedBox(height: 12),
+                        _buildInterfaceLanguageTile(context),
                         const SizedBox(height: 24),
 
                         const _SectionHeader(title: 'AI TUTOR PARAMETERS'),
@@ -140,6 +149,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const _SectionHeader(title: 'ACCOUNT'),
                         const SizedBox(height: 12),
                         _buildLogoutTile(context),
+                        const SizedBox(height: 24),
+
+                        const _SectionHeader(title: 'DEVELOPER TOOLS'),
+                        const SizedBox(height: 12),
+                        _buildDevToolsTile(context),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -189,7 +203,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                             'CONFIGURATION ALIGNED SUCCESSFULLY',
                                             style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
                                           ),
-                                          backgroundColor: Colors.green,
+                                          backgroundColor: AppColors.emeraldGreen,
                                           behavior: SnackBarBehavior.floating,
                                           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))),
                                         ),
@@ -197,13 +211,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('ERROR SAVING CONFIG: $e'),
-                                          backgroundColor: AppColors.crimsonRed,
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
+                                      SystemSnack.show(context, 'ERROR SAVING CONFIG: $e', type: SystemSnackType.error);
                                     }
                                   } finally {
                                     if (mounted) {
@@ -215,7 +223,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.runeViolet,
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.onSurface,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.all(Radius.circular(4.0)),
@@ -228,7 +236,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   height: 20,
                                   width: 20,
                                   child: CircularProgressIndicator(
-                                    color: Colors.white,
+                                    color: AppColors.onSurface,
                                     strokeWidth: 2,
                                   ),
                                 )
@@ -236,7 +244,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   'SAVE CONFIGURATION',
                                   style: GoogleFonts.jetBrainsMono(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.onSurface,
                                     fontSize: 16,
                                     letterSpacing: 1.0,
                                   ),
@@ -265,7 +273,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
         onTap: () => _showLanguageBottomSheet(context),
@@ -280,7 +288,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'TARGET LANGUAGE',
                     style: GoogleFonts.spaceGrotesk(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -307,7 +315,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildCefrLevelTile(BuildContext context) {
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
         onTap: () => _showCefrBottomSheet(context),
@@ -322,7 +330,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'CEFR PRACTICE LEVEL',
                     style: GoogleFonts.spaceGrotesk(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -349,7 +357,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildLogoutTile(BuildContext context) {
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
         onTap: () async {
@@ -382,7 +390,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _showLanguageBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.sheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(4.0),
@@ -398,7 +406,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text(
                   'SELECT TARGET PATH',
-                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.onSurface),
                 ),
                 const SizedBox(height: 16),
                 _buildOption(
@@ -455,7 +463,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _showCefrBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.sheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(4.0),
@@ -471,7 +479,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text(
                   'SELECT CEFR LEVEL PATH',
-                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.onSurface),
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -486,7 +494,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       },
                       label: Text(lvl),
                       labelStyle: GoogleFonts.jetBrainsMono(
-                        color: isSel ? Colors.white : Colors.white70,
+                        color: isSel ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.7),
                         fontWeight: FontWeight.bold,
                       ),
                       selectedColor: AppColors.runeViolet,
@@ -508,7 +516,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildCorrectionLevelTile(BuildContext context, String currentLevel) {
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
         onTap: () => _showCorrectionLevelBottomSheet(context, currentLevel),
@@ -523,7 +531,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'AI CORRECTION SCOPE',
                     style: GoogleFonts.spaceGrotesk(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -550,7 +558,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildTutorPersonalityTile(BuildContext context, String currentPersonality) {
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
         onTap: () => _showTutorPersonalityBottomSheet(context, currentPersonality),
@@ -565,7 +573,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'TUTOR PERSONALITY',
                     style: GoogleFonts.spaceGrotesk(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -592,7 +600,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildCorrectionStyleTile(BuildContext context, String currentStyle) {
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
         onTap: () => _showCorrectionStyleBottomSheet(context, currentStyle),
@@ -607,7 +615,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'CORRECTION CADENCE',
                     style: GoogleFonts.spaceGrotesk(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -634,7 +642,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildDailyGoalTile(BuildContext context, int currentGoal) {
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
         onTap: () => _showDailyGoalBottomSheet(context, currentGoal),
@@ -649,7 +657,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'DAILY QUEST FOCUS',
                     style: GoogleFonts.spaceGrotesk(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -680,7 +688,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return GlassCard(
       blur: 20,
-      opacity: 0.04,
+      opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -695,7 +703,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Text(
                       'AUDIO SFX CHANNELS',
                       style: GoogleFonts.spaceGrotesk(
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -703,7 +711,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const SizedBox(height: 2),
                     Text(
                       'Combat, mana charges, and level calibration sfx',
-                      style: GoogleFonts.inter(color: Colors.white54, fontSize: 11),
+                      style: GoogleFonts.inter(color: AppColors.onSurface.withValues(alpha: 0.54), fontSize: 11),
                     ),
                   ],
                 ),
@@ -712,15 +720,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 value: isSfxOn,
                 activeColor: AppColors.manaCyan,
                 activeTrackColor: AppColors.manaCyan.withValues(alpha: 0.2),
-                inactiveThumbColor: Colors.white60,
-                inactiveTrackColor: Colors.white12,
+                inactiveThumbColor: AppColors.onSurface.withValues(alpha: 0.6),
+                inactiveTrackColor: AppColors.onSurface.withValues(alpha: 0.12),
                 onChanged: (val) {
                   ref.read(sfxEnabledProvider.notifier).setSfxEnabled(val);
                 },
               ),
             ],
           ),
-          const Divider(color: Colors.white12, height: 24),
+          Divider(color: AppColors.onSurface.withValues(alpha: 0.12), height: 24),
           Row(
             children: [
               const Icon(Icons.notifications_active_rounded, color: AppColors.runeViolet, size: 24),
@@ -729,7 +737,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: Text(
                   'DAILY ALERT EMISSIONS',
                   style: GoogleFonts.spaceGrotesk(
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
@@ -739,8 +747,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 value: enabled,
                 activeColor: AppColors.runeViolet,
                 activeTrackColor: AppColors.runeViolet.withValues(alpha: 0.2),
-                inactiveThumbColor: Colors.white60,
-                inactiveTrackColor: Colors.white12,
+                inactiveThumbColor: AppColors.onSurface.withValues(alpha: 0.6),
+                inactiveTrackColor: AppColors.onSurface.withValues(alpha: 0.12),
                 onChanged: (val) {
                   setState(() {
                     _localSettings = currentSettings.copyWith(notificationsEnabled: val);
@@ -750,7 +758,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
           if (enabled) ...[
-            const Divider(color: Colors.white12, height: 24),
+            Divider(color: AppColors.onSurface.withValues(alpha: 0.12), height: 24),
             InkWell(
               onTap: () async {
                 final parts = time.split(':');
@@ -776,12 +784,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Expanded(
                     child: Text(
                       'ALERTS DISPATCH TIME',
-                      style: GoogleFonts.inter(color: Colors.white70, fontSize: 14),
+                      style: GoogleFonts.inter(color: AppColors.onSurface.withValues(alpha: 0.7), fontSize: 14),
                     ),
                   ),
                   Text(
                     time.substring(0, 5),
-                    style: GoogleFonts.jetBrainsMono(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.jetBrainsMono(color: AppColors.onSurface, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
                   const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
@@ -798,7 +806,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _showCorrectionLevelBottomSheet(BuildContext context, String currentLevel) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.sheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(4.0),
@@ -819,7 +827,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -899,7 +907,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _showTutorPersonalityBottomSheet(BuildContext context, String currentPersonality) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.sheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(4.0),
@@ -920,7 +928,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -974,7 +982,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _showCorrectionStyleBottomSheet(BuildContext context, String currentStyle) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.sheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(4.0),
@@ -995,7 +1003,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1049,7 +1057,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _showDailyGoalBottomSheet(BuildContext context, int currentGoal) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.sheetBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(4.0),
@@ -1070,7 +1078,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1146,10 +1154,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.runeViolet.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.02),
+          color: isActive ? AppColors.runeViolet.withValues(alpha: 0.1) : AppColors.onSurface.withValues(alpha: 0.02),
           borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
-            color: isActive ? AppColors.runeViolet : Colors.white.withValues(alpha: 0.05),
+            color: isActive ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.05),
             width: 1.5,
           ),
         ),
@@ -1164,7 +1172,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     title,
                     style: GoogleFonts.spaceGrotesk(
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -1188,6 +1196,247 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDeviceLanguageTile(BuildContext context) {
+    final langSettings = ref.watch(userLanguageProvider);
+    final deviceLang = ref.watch(deviceLocaleProvider);
+
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          const Icon(Icons.phonelink_setup_rounded, color: AppColors.manaCyan, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'USAR IDIOMA DEL DISPOSITIVO',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: AppColors.onSurface,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Detectado: ${deviceLang.toUpperCase()}',
+                  style: GoogleFonts.jetBrainsMono(
+                    color: AppColors.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: langSettings.followDeviceLanguage,
+            activeThumbColor: AppColors.manaCyan,
+            onChanged: (val) {
+              ref.read(userLanguageProvider.notifier).setFollowDeviceLanguage(val);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInterfaceLanguageTile(BuildContext context) {
+    final langSettings = ref.watch(userLanguageProvider);
+    const Map<String, String> langNames = {
+      'en': 'ENGLISH (EN)',
+      'es': 'SPANISH (ES)',
+      'pt': 'PORTUGUESE (PT)',
+    };
+
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: InkWell(
+        onTap: langSettings.followDeviceLanguage
+            ? null
+            : () => _showInterfaceLanguageBottomSheet(context),
+        child: Row(
+          children: [
+            const Icon(Icons.language_rounded, color: AppColors.runeViolet, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'IDIOMA DE LA APLICACIÓN',
+                    style: GoogleFonts.spaceGrotesk(
+                      color: AppColors.onSurface,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    langNames[langSettings.uiLanguage] ?? langSettings.uiLanguage.toUpperCase(),
+                    style: GoogleFonts.jetBrainsMono(
+                      color: langSettings.followDeviceLanguage ? AppColors.onSurfaceVariant : AppColors.manaCyan,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              langSettings.followDeviceLanguage ? Icons.lock_rounded : Icons.keyboard_arrow_down_rounded,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showInterfaceLanguageBottomSheet(BuildContext context) {
+    const Map<String, String> langNames = {
+      'en': 'ENGLISH',
+      'es': 'ESPAÑOL',
+      'pt': 'PORTUGUÊS',
+    };
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surfaceContainerLow,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+        side: BorderSide(color: AppColors.runeViolet, width: 1.5),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'IDIOMA DE LA APLICACIÓN',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: AppColors.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              ...langNames.entries.map((e) {
+                return ListTile(
+                  leading: const Icon(Icons.language_rounded, color: AppColors.manaCyan),
+                  title: Text(e.value, style: const TextStyle(color: AppColors.onSurface)),
+                  trailing: ref.watch(userLanguageProvider).uiLanguage == e.key
+                      ? const Icon(Icons.check_rounded, color: AppColors.emeraldGreen)
+                      : null,
+                  onTap: () {
+                    ref.read(userLanguageProvider.notifier).setUiLanguage(e.key);
+                    Navigator.pop(sheetContext);
+                  },
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDevToolsTile(BuildContext context) {
+    final devAlwaysShow = ref.watch(devAlwaysShowOnboardingProvider);
+
+    return GlassCard(
+      blur: 15,
+      opacity: AppColors.glassOpacity,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Forzar Onboarding Continuo',
+                      style: TextStyle(
+                        color: AppColors.onSurface,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Salta el inicio directo a la home y redirige a la pantalla de onboarding para testing.',
+                      style: TextStyle(
+                        color: AppColors.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: devAlwaysShow,
+                activeColor: AppColors.manaCyan,
+                activeTrackColor: AppColors.manaCyan.withValues(alpha: 0.3),
+                inactiveThumbColor: AppColors.onSurfaceVariant,
+                inactiveTrackColor: AppColors.onSurface.withValues(alpha: 0.1),
+                onChanged: (val) async {
+                  await ref.read(devAlwaysShowOnboardingProvider.notifier).toggle(val);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: AppColors.deepSlate),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final goRouter = GoRouter.of(context);
+                final supabase = ref.read(supabaseClientProvider);
+                final user = ref.read(currentUserProvider);
+                if (user != null) {
+                  try {
+                    await supabase.from('user_language_profiles').delete().eq('user_id', user.id);
+                    ref.invalidate(currentUserProvider);
+                    ref.invalidate(userSettingsProvider);
+                    SystemSnack.show(context, 'Perfil de cazador eliminado. Reiniciando...', type: SystemSnackType.info);
+                    goRouter.go('/');
+                  } catch (e) {
+                    SystemSnack.show(context, 'Error al reiniciar: $e', type: SystemSnackType.error);
+                  }
+                }
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text(
+                'REINICIAR HISTORIAL DE ONBOARDING',
+                style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.crimsonRed,
+                foregroundColor: AppColors.onSurface,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

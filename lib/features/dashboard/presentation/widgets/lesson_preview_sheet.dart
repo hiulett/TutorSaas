@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../data/models/lesson_catalog.dart';
 
@@ -34,8 +35,8 @@ class LessonPreviewSheet extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: const BoxDecoration(
-            color: Color(0xFF0F172A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            color: AppColors.sheetBackground,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
             border: Border(
               top: BorderSide(
                 color: AppColors.runeViolet,
@@ -54,10 +55,10 @@ class LessonPreviewSheet extends StatelessWidget {
                   child: Container(
                     width: 40,
                     height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+                      decoration: BoxDecoration(
+                        color: AppColors.onSurface.withValues(alpha: 0.24),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -70,11 +71,11 @@ class LessonPreviewSheet extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.runeViolet.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                       child: Text(
                         'NIVEL ${lesson.level} • ${lesson.category.toUpperCase()}',
-                        style: GoogleFonts.hankenGrotesk(
+                        style: GoogleFonts.spaceGrotesk(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: AppColors.manaCyan,
@@ -100,7 +101,7 @@ class LessonPreviewSheet extends StatelessWidget {
                   lesson.title,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                     fontSize: 22,
                   ),
                 ),
@@ -119,7 +120,7 @@ class LessonPreviewSheet extends StatelessWidget {
                 // Roles Card
                 GlassCard(
                   blur: 20,
-                  opacity: 0.06,
+                  opacity: AppColors.glassOpacity,
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
@@ -136,14 +137,14 @@ class LessonPreviewSheet extends StatelessWidget {
                               lesson.userRole,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: AppColors.onSurface,
                                 fontSize: 13,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Container(width: 1, height: 35, color: Colors.white12),
+                      Container(width: 1, height: 35, color: AppColors.onSurface.withValues(alpha: 0.12)),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -176,7 +177,7 @@ class LessonPreviewSheet extends StatelessWidget {
                   'Metas Conversacionales (${lesson.goals.length}):',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                     fontSize: 15,
                   ),
                 ),
@@ -216,7 +217,7 @@ class LessonPreviewSheet extends StatelessWidget {
                               Text(
                                 g.text,
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.onSurface,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -245,7 +246,7 @@ class LessonPreviewSheet extends StatelessWidget {
                   'Frases Útiles Preparatorias (${lesson.usefulPhrases.length}):',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                     fontSize: 15,
                   ),
                 ),
@@ -254,8 +255,8 @@ class LessonPreviewSheet extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppColors.onSurface.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(
                     children: lesson.usefulPhrases.take(4).map((p) {
@@ -267,7 +268,7 @@ class LessonPreviewSheet extends StatelessWidget {
                             Text(
                               p.phrase,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.onSurface,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
                               ),
@@ -301,9 +302,9 @@ class LessonPreviewSheet extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.runeViolet,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.onSurface,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       elevation: 6,
                     ),
@@ -314,7 +315,7 @@ class LessonPreviewSheet extends StatelessWidget {
                         const SizedBox(width: 10),
                         Text(
                           'Iniciar Conversación de Voz',
-                          style: GoogleFonts.hankenGrotesk(
+                          style: GoogleFonts.spaceGrotesk(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),

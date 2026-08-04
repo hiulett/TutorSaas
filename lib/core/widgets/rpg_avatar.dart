@@ -111,7 +111,7 @@ class RpgAvatar extends StatelessWidget {
         break;
       case 'priest':
         classIcon = Icons.volunteer_activism;
-        iconColor = Colors.greenAccent;
+        iconColor = AppColors.emeraldGreen;
         break;
       default:
         classIcon = Icons.shield_moon;

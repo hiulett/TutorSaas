@@ -224,6 +224,23 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((ref
   }
 });
 
+/// Fetches all completed lessons/scenarios history for the active user
+final completedLessonsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  ref.watch(dashboardRefreshProvider);
+  try {
+    final supabase = ref.read(supabaseClientProvider);
+    final res = await supabase
+        .from('conversations')
+        .select('scenario_id, score, fluency_score, created_at')
+        .eq('user_id', user.id);
+    return List<Map<String, dynamic>>.from(res as List);
+  } catch (_) {
+    return [];
+  }
+});
+
 /// Fetches practice minutes by day for the last 28 days (4 weeks heatmap)
 final practiceHeatmapProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
   final user = ref.watch(currentUserProvider);
@@ -282,14 +299,14 @@ Color hunterAttributeColor(String key) {
     case 'grammar': return AppColors.emeraldGreen;
     case 'latency': return AppColors.royalGold;
     case 'blind': return AppColors.manaCyan;
-    case 'vocabulary': return const Color(0xFF64B5F6);
+    case 'vocabulary': return AppColors.vocabularyBlue;
     case 'phonetics': return AppColors.emeraldGreen;
-    case 'volume': return const Color(0xFFFF9800);
-    case 'presence': return const Color(0xFFE91E63);
+    case 'volume': return AppColors.rarityLegendary;
+    case 'presence': return AppColors.presencePink;
     case 'stage': return AppColors.runeViolet;
-    case 'hosting': return const Color(0xFFFFAB00);
+    case 'hosting': return AppColors.hostingAmber;
     case 'chalice': return AppColors.royalGold;
-    case 'chat': return const Color(0xFF42A5F5);
+    case 'chat': return AppColors.chatBlue;
     default: return AppColors.manaCyan;
   }
 }

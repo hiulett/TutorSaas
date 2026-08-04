@@ -42,6 +42,24 @@ mixin _$PlacementResult {
   List<String> get studyPlan => throw _privateConstructorUsedError;
   DateTime? get completedAt => throw _privateConstructorUsedError;
 
+  /// Game rank assigned by the AI placement evaluator (E, D, C, B, A, S, SS, SSS)
+  String? get gameRank => throw _privateConstructorUsedError;
+
+  /// Dimension scores (0-100) from the AI evaluator
+  Map<String, int>? get scores => throw _privateConstructorUsedError;
+
+  /// Strengths detected by the AI evaluator
+  List<String>? get strengths => throw _privateConstructorUsedError;
+
+  /// Weaknesses detected by the AI evaluator
+  List<String>? get weaknesses => throw _privateConstructorUsedError;
+
+  /// AI explanation of the assigned level
+  String? get explanation => throw _privateConstructorUsedError;
+
+  /// Recommended focus area from the AI evaluator
+  String? get recommendedFocus => throw _privateConstructorUsedError;
+
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $PlacementResultCopyWith<PlacementResult> get copyWith =>
@@ -63,7 +81,13 @@ abstract class $PlacementResultCopyWith<$Res> {
       String mainDifficulty,
       int quizScore,
       List<String> studyPlan,
-      DateTime? completedAt});
+      DateTime? completedAt,
+      String? gameRank,
+      Map<String, int>? scores,
+      List<String>? strengths,
+      List<String>? weaknesses,
+      String? explanation,
+      String? recommendedFocus});
 }
 
 /// @nodoc
@@ -88,6 +112,12 @@ class _$PlacementResultCopyWithImpl<$Res, $Val extends PlacementResult>
     Object? quizScore = null,
     Object? studyPlan = null,
     Object? completedAt = freezed,
+    Object? gameRank = freezed,
+    Object? scores = freezed,
+    Object? strengths = freezed,
+    Object? weaknesses = freezed,
+    Object? explanation = freezed,
+    Object? recommendedFocus = freezed,
   }) {
     return _then(_value.copyWith(
       userId: null == userId
@@ -126,6 +156,30 @@ class _$PlacementResultCopyWithImpl<$Res, $Val extends PlacementResult>
           ? _value.completedAt
           : completedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      gameRank: freezed == gameRank
+          ? _value.gameRank
+          : gameRank // ignore: cast_nullable_to_non_nullable
+              as String?,
+      scores: freezed == scores
+          ? _value.scores
+          : scores // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>?,
+      strengths: freezed == strengths
+          ? _value.strengths
+          : strengths // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      weaknesses: freezed == weaknesses
+          ? _value.weaknesses
+          : weaknesses // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      explanation: freezed == explanation
+          ? _value.explanation
+          : explanation // ignore: cast_nullable_to_non_nullable
+              as String?,
+      recommendedFocus: freezed == recommendedFocus
+          ? _value.recommendedFocus
+          : recommendedFocus // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -147,7 +201,13 @@ abstract class _$$PlacementResultImplCopyWith<$Res>
       String mainDifficulty,
       int quizScore,
       List<String> studyPlan,
-      DateTime? completedAt});
+      DateTime? completedAt,
+      String? gameRank,
+      Map<String, int>? scores,
+      List<String>? strengths,
+      List<String>? weaknesses,
+      String? explanation,
+      String? recommendedFocus});
 }
 
 /// @nodoc
@@ -170,6 +230,12 @@ class __$$PlacementResultImplCopyWithImpl<$Res>
     Object? quizScore = null,
     Object? studyPlan = null,
     Object? completedAt = freezed,
+    Object? gameRank = freezed,
+    Object? scores = freezed,
+    Object? strengths = freezed,
+    Object? weaknesses = freezed,
+    Object? explanation = freezed,
+    Object? recommendedFocus = freezed,
   }) {
     return _then(_$PlacementResultImpl(
       userId: null == userId
@@ -208,6 +274,30 @@ class __$$PlacementResultImplCopyWithImpl<$Res>
           ? _value.completedAt
           : completedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      gameRank: freezed == gameRank
+          ? _value.gameRank
+          : gameRank // ignore: cast_nullable_to_non_nullable
+              as String?,
+      scores: freezed == scores
+          ? _value._scores
+          : scores // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>?,
+      strengths: freezed == strengths
+          ? _value._strengths
+          : strengths // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      weaknesses: freezed == weaknesses
+          ? _value._weaknesses
+          : weaknesses // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      explanation: freezed == explanation
+          ? _value.explanation
+          : explanation // ignore: cast_nullable_to_non_nullable
+              as String?,
+      recommendedFocus: freezed == recommendedFocus
+          ? _value.recommendedFocus
+          : recommendedFocus // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -224,8 +314,17 @@ class _$PlacementResultImpl implements _PlacementResult {
       required this.mainDifficulty,
       required this.quizScore,
       required final List<String> studyPlan,
-      this.completedAt})
-      : _studyPlan = studyPlan;
+      this.completedAt,
+      this.gameRank,
+      final Map<String, int>? scores,
+      final List<String>? strengths,
+      final List<String>? weaknesses,
+      this.explanation,
+      this.recommendedFocus})
+      : _studyPlan = studyPlan,
+        _scores = scores,
+        _strengths = strengths,
+        _weaknesses = weaknesses;
 
   factory _$PlacementResultImpl.fromJson(Map<String, dynamic> json) =>
       _$$PlacementResultImplFromJson(json);
@@ -269,9 +368,60 @@ class _$PlacementResultImpl implements _PlacementResult {
   @override
   final DateTime? completedAt;
 
+  /// Game rank assigned by the AI placement evaluator (E, D, C, B, A, S, SS, SSS)
+  @override
+  final String? gameRank;
+
+  /// Dimension scores (0-100) from the AI evaluator
+  final Map<String, int>? _scores;
+
+  /// Dimension scores (0-100) from the AI evaluator
+  @override
+  Map<String, int>? get scores {
+    final value = _scores;
+    if (value == null) return null;
+    if (_scores is EqualUnmodifiableMapView) return _scores;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  /// Strengths detected by the AI evaluator
+  final List<String>? _strengths;
+
+  /// Strengths detected by the AI evaluator
+  @override
+  List<String>? get strengths {
+    final value = _strengths;
+    if (value == null) return null;
+    if (_strengths is EqualUnmodifiableListView) return _strengths;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// Weaknesses detected by the AI evaluator
+  final List<String>? _weaknesses;
+
+  /// Weaknesses detected by the AI evaluator
+  @override
+  List<String>? get weaknesses {
+    final value = _weaknesses;
+    if (value == null) return null;
+    if (_weaknesses is EqualUnmodifiableListView) return _weaknesses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// AI explanation of the assigned level
+  @override
+  final String? explanation;
+
+  /// Recommended focus area from the AI evaluator
+  @override
+  final String? recommendedFocus;
+
   @override
   String toString() {
-    return 'PlacementResult(userId: $userId, cefrLevel: $cefrLevel, levelName: $levelName, levelDescription: $levelDescription, learningGoal: $learningGoal, mainDifficulty: $mainDifficulty, quizScore: $quizScore, studyPlan: $studyPlan, completedAt: $completedAt)';
+    return 'PlacementResult(userId: $userId, cefrLevel: $cefrLevel, levelName: $levelName, levelDescription: $levelDescription, learningGoal: $learningGoal, mainDifficulty: $mainDifficulty, quizScore: $quizScore, studyPlan: $studyPlan, completedAt: $completedAt, gameRank: $gameRank, scores: $scores, strengths: $strengths, weaknesses: $weaknesses, explanation: $explanation, recommendedFocus: $recommendedFocus)';
   }
 
   @override
@@ -295,7 +445,18 @@ class _$PlacementResultImpl implements _PlacementResult {
             const DeepCollectionEquality()
                 .equals(other._studyPlan, _studyPlan) &&
             (identical(other.completedAt, completedAt) ||
-                other.completedAt == completedAt));
+                other.completedAt == completedAt) &&
+            (identical(other.gameRank, gameRank) ||
+                other.gameRank == gameRank) &&
+            const DeepCollectionEquality().equals(other._scores, _scores) &&
+            const DeepCollectionEquality()
+                .equals(other._strengths, _strengths) &&
+            const DeepCollectionEquality()
+                .equals(other._weaknesses, _weaknesses) &&
+            (identical(other.explanation, explanation) ||
+                other.explanation == explanation) &&
+            (identical(other.recommendedFocus, recommendedFocus) ||
+                other.recommendedFocus == recommendedFocus));
   }
 
   @JsonKey(ignore: true)
@@ -310,7 +471,13 @@ class _$PlacementResultImpl implements _PlacementResult {
       mainDifficulty,
       quizScore,
       const DeepCollectionEquality().hash(_studyPlan),
-      completedAt);
+      completedAt,
+      gameRank,
+      const DeepCollectionEquality().hash(_scores),
+      const DeepCollectionEquality().hash(_strengths),
+      const DeepCollectionEquality().hash(_weaknesses),
+      explanation,
+      recommendedFocus);
 
   @JsonKey(ignore: true)
   @override
@@ -337,7 +504,13 @@ abstract class _PlacementResult implements PlacementResult {
       required final String mainDifficulty,
       required final int quizScore,
       required final List<String> studyPlan,
-      final DateTime? completedAt}) = _$PlacementResultImpl;
+      final DateTime? completedAt,
+      final String? gameRank,
+      final Map<String, int>? scores,
+      final List<String>? strengths,
+      final List<String>? weaknesses,
+      final String? explanation,
+      final String? recommendedFocus}) = _$PlacementResultImpl;
 
   factory _PlacementResult.fromJson(Map<String, dynamic> json) =
       _$PlacementResultImpl.fromJson;
@@ -372,6 +545,30 @@ abstract class _PlacementResult implements PlacementResult {
   List<String> get studyPlan;
   @override
   DateTime? get completedAt;
+  @override
+
+  /// Game rank assigned by the AI placement evaluator (E, D, C, B, A, S, SS, SSS)
+  String? get gameRank;
+  @override
+
+  /// Dimension scores (0-100) from the AI evaluator
+  Map<String, int>? get scores;
+  @override
+
+  /// Strengths detected by the AI evaluator
+  List<String>? get strengths;
+  @override
+
+  /// Weaknesses detected by the AI evaluator
+  List<String>? get weaknesses;
+  @override
+
+  /// AI explanation of the assigned level
+  String? get explanation;
+  @override
+
+  /// Recommended focus area from the AI evaluator
+  String? get recommendedFocus;
   @override
   @JsonKey(ignore: true)
   _$$PlacementResultImplCopyWith<_$PlacementResultImpl> get copyWith =>

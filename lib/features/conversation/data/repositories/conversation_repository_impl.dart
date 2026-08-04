@@ -1,9 +1,10 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/retention_analytics.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/repositories/conversation_repository.dart';
 
@@ -15,16 +16,42 @@ class ConversationRepositoryImpl implements ConversationRepository {
 
   SupabaseClient get _client => _supabaseClient ?? Supabase.instance.client;
 
-  /// Transcribes raw audio (.m4a/.wav) using Groq Cloud Whisper API.
+  /// Best-effort fire-and-forget logging of a usage event into api_request_logs.
+  /// Never throws and never blocks the main flow (wrapped in its own try-catch).
+  Future<void> _logEvent(String userId, String eventType) async {
+    if (userId.isEmpty || eventType.isEmpty) return;
+    try {
+      await _client.from('api_request_logs').insert({
+        'user_id': userId,
+        'endpoint': eventType,
+      });
+      debugPrint('api_request_logs event logged: $eventType');
+    } catch (e) {
+      debugPrint('Error logging api_request_logs event ($eventType): $e');
+    }
+  }
+
+  /// Transcribe raw audio (.m4a/.wav) via the `llm-proxy` Edge Function,
+  /// which holds the Groq key server-side and authenticates with the user JWT.
   @override
   Future<String> transcribeAudio(String audioPath) async {
     try {
-      const apiKey = ApiConstants.groqApiKey;
-      const url = ApiConstants.groqSttUrl;
+      final token = await _authToken();
+      final url = '${ApiConstants.llmProxyBaseUrl}/transcribe';
+
+      String cleanPath = audioPath;
+      if (cleanPath.startsWith('file://')) {
+        try {
+          cleanPath = Uri.parse(cleanPath).toFilePath();
+        } catch (e) {
+          debugPrint('Error converting file URI to path: $e');
+          cleanPath = cleanPath.replaceFirst(RegExp(r'^file:\/+/'), '');
+        }
+      }
 
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
-          audioPath,
+          cleanPath,
           filename: 'recording.m4a',
         ),
         'model': 'whisper-large-v3-turbo',
@@ -32,22 +59,19 @@ class ConversationRepositoryImpl implements ConversationRepository {
         'response_format': 'json',
       });
 
-      debugPrint('Sending audio file ($audioPath) to Groq Whisper API...');
+      debugPrint('Sending audio file ($audioPath) to llm-proxy STT...');
 
       final response = await _dio.post(
         url,
         data: formData,
         options: Options(
-          headers: {
-            'Authorization': 'Bearer $apiKey',
-          },
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 30),
+          headers: await _proxyHeaders(token),
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 60),
         ),
       );
 
-      debugPrint('Groq STT Status: ${response.statusCode}');
-      debugPrint('Groq STT Data: ${response.data}');
+      debugPrint('llm-proxy STT Status: ${response.statusCode}');
 
       if (response.statusCode == 200 && response.data != null) {
         dynamic data = response.data;
@@ -56,13 +80,13 @@ class ConversationRepositoryImpl implements ConversationRepository {
         }
         if (data is Map) {
           final text = data['text'] as String?;
-          debugPrint('Groq STT Result: "$text"');
+          debugPrint('llm-proxy STT Result: "$text"');
           return text?.trim() ?? '';
         }
       }
       return '';
     } catch (e) {
-      debugPrint('=== GROQ STT ERROR ===');
+      debugPrint('=== GROQ STT (via proxy) ERROR ===');
       debugPrint('Error: $e');
       if (e is DioException) {
         debugPrint('Dio error code: ${e.response?.statusCode}');
@@ -73,18 +97,12 @@ class ConversationRepositoryImpl implements ConversationRepository {
     }
   }
 
-  /// Streams the AI tutor's response via DeepSeek chat completions SSE.
+  /// Streams the AI tutor's response via the `llm-proxy` Edge Function
+  /// (DeepSeek SSE reenvÃ­ado), autenticado con el JWT de sesiÃ³n.
   @override
   Stream<String> getTutorResponseStream(List<Map<String, String>> history) async* {
-    String apiKey = ApiConstants.deepseekApiKey;
-    String baseUrl = ApiConstants.deepseekBaseUrl;
-
-    if (apiKey == 'placeholder_deepseek_key') {
-      apiKey = 'sk-592200e11f164db5b054a9421d98bd53';
-    }
-    if (baseUrl.contains('example.com')) {
-      baseUrl = 'https://api.deepseek.com/v1';
-    }
+    final String currentUserId = _client.auth.currentUser?.id ?? '';
+    final url = '${ApiConstants.llmProxyBaseUrl}/chat';
 
     const maxRetries = 2;
     int attempt = 0;
@@ -92,19 +110,16 @@ class ConversationRepositoryImpl implements ConversationRepository {
     while (attempt < maxRetries) {
       attempt++;
       try {
-        debugPrint('DeepSeek attempt $attempt/$maxRetries to $baseUrl');
+        debugPrint('llm-proxy attempt $attempt/$maxRetries');
         final response = await _dio.post(
-          '$baseUrl/chat/completions',
+          url,
           data: {
             'model': 'deepseek-v4-flash',
             'messages': history,
             'stream': true,
           },
           options: Options(
-            headers: {
-              'Authorization': 'Bearer $apiKey',
-              'Content-Type': 'application/json',
-            },
+            headers: await _proxyHeaders(await _authToken()),
             responseType: ResponseType.stream,
             connectTimeout: const Duration(seconds: 30),
             receiveTimeout: const Duration(seconds: 90),
@@ -141,8 +156,23 @@ class ConversationRepositoryImpl implements ConversationRepository {
             break;
           }
         }
+        unawaited(_logEvent(currentUserId, 'invoke_llm'));
+        unawaited(RetentionAnalytics.instance.track(currentUserId, 'invoke_llm'));
         return;
       } catch (e) {
+        final isRetryableHttp = e is DioException &&
+            (e.response?.statusCode == 429 ||
+             e.response?.statusCode == 500 ||
+             e.response?.statusCode == 503);
+        final bool willRetry = e is DioException &&
+            attempt < maxRetries &&
+            (e.type == DioExceptionType.connectionTimeout ||
+             e.type == DioExceptionType.sendTimeout ||
+             e.type == DioExceptionType.connectionError ||
+             isRetryableHttp);
+        if (!willRetry) {
+          unawaited(_logEvent(currentUserId, 'invoke_llm_error'));
+        }
         debugPrint('=== DEEPSEEK ERROR (attempt $attempt) ===: $e');
         if (e is DioException) {
           debugPrint('DeepSeek Status Code: ${e.response?.statusCode}');
@@ -166,16 +196,20 @@ class ConversationRepositoryImpl implements ConversationRepository {
           if (attempt < maxRetries &&
               (e.type == DioExceptionType.connectionTimeout ||
                e.type == DioExceptionType.sendTimeout ||
-               e.type == DioExceptionType.connectionError)) {
+               e.type == DioExceptionType.connectionError ||
+               isRetryableHttp)) {
             await Future.delayed(const Duration(seconds: 2));
             continue;
           }
           if (e.type == DioExceptionType.connectionTimeout ||
               e.type == DioExceptionType.connectionError) {
-            yield 'No pude conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.';
+            yield 'No pude conectar con el servidor. Verifica tu conexiÃ³n a internet e intenta de nuevo.';
             return;
           } else if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-            yield 'Error de autenticación con el servidor. Contacta soporte.';
+            yield 'Error de autenticaciÃ³n con el servidor. Contacta soporte.';
+            return;
+          } else if (isRetryableHttp) {
+            yield 'El servidor de IA estÃ¡ saturado en este momento. Intenta de nuevo en unos segundos.';
             return;
           }
         }
@@ -188,23 +222,15 @@ class ConversationRepositoryImpl implements ConversationRepository {
   @override
   Future<String> generateTtsAudio(String text) async => '';
 
-  /// Sends the conversation + goals to DeepSeek for AI-based goal evaluation.
-  /// Returns a map of goalId → achieved (true/false).
+  /// Sends the conversation + goals to DeepSeek (via llm-proxy) for AI-based
+  /// goal evaluation. Returns a map of goalId â†’ achieved (true/false).
   @override
   Future<Map<String, bool>> evaluateGoals(
     String conversationJson,
     List<Map<String, dynamic>> goalItems,
   ) async {
     try {
-      String apiKey = ApiConstants.deepseekApiKey;
-      String baseUrl = ApiConstants.deepseekBaseUrl;
-
-      if (apiKey == 'placeholder_deepseek_key') {
-        apiKey = 'sk-592200e11f164db5b054a9421d98bd53';
-      }
-      if (baseUrl.contains('example.com')) {
-        baseUrl = 'https://api.deepseek.com/v1';
-      }
+      final url = '${ApiConstants.llmProxyBaseUrl}/chat';
 
       final systemPrompt = '''
 You are a strict and objective evaluator of language learning conversations.
@@ -231,9 +257,9 @@ No markdown, no explanation, no code blocks.
 ''';
 
       final response = await _dio.post(
-        '$baseUrl/chat/completions',
+        url,
         data: {
-          'model': 'deepseek-v4-pro',
+          'model': 'deepseek-v4-flash',
           'messages': [
             {'role': 'system', 'content': systemPrompt},
           ],
@@ -241,12 +267,9 @@ No markdown, no explanation, no code blocks.
           'temperature': 0.3,
         },
         options: Options(
-          headers: {
-            'Authorization': 'Bearer $apiKey',
-            'Content-Type': 'application/json',
-          },
+          headers: await _proxyHeaders(await _authToken()),
           connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 60),
         ),
       );
 
@@ -268,9 +291,9 @@ No markdown, no explanation, no code blocks.
     }
   }
 
-  // ────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Database Persistence & Analysis Methods
-  // ────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   @override
   Future<Map<String, dynamic>> getOrCreateConversation(String userId, {String? scenarioId}) async {
@@ -357,9 +380,7 @@ No markdown, no explanation, no code blocks.
       await _client.from('messages').insert({
         'conversation_id': conversationId,
         'sender_role': senderRole == 'user' ? 'user' : 'assistant',
-        'role': senderRole == 'user' ? 'user' : 'assistant',
         'text': text,
-        'content_text': text,
         'sequence_number': nextSeq,
         'created_at': DateTime.now().toIso8601String(),
       });
@@ -384,7 +405,7 @@ No markdown, no explanation, no code blocks.
       if (userTexts.isEmpty) return;
 
       // Extract and save new learned vocabulary only.
-      // Stats (XP, streak, minutes) are handled by endSession → logPracticeSession
+      // Stats (XP, streak, minutes) are handled by endSession â†’ logPracticeSession
       // to avoid double-counting on every turn.
       final Set<String> words = {};
       final RegExp wordRegExp = RegExp(r'\b[a-zA-Z]{4,15}\b');
@@ -416,12 +437,12 @@ No markdown, no explanation, no code blocks.
         'school': 'escuela',
         'teacher': 'profesor',
         'student': 'estudiante',
-        'english': 'inglés',
+        'english': 'inglÃ©s',
         'speak': 'hablar',
         'write': 'escribir',
         'read': 'leer',
         'learn': 'aprender',
-        'conversation': 'conversación',
+        'conversation': 'conversaciÃ³n',
         'practice': 'practicar',
         'sentence': 'frase',
         'tutor': 'tutor',
@@ -676,5 +697,28 @@ No markdown, no explanation, no code blocks.
       debugPrint('Error tracking AI audio time: $e');
       return {'is_allowed': true};
     }
+  }
+
+  // â”€â”€ Auth helpers para el llm-proxy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  /// Token JWT de sesiÃ³n del usuario autenticado (el proxy valida con Ã©l).
+  Future<String> _authToken() async {
+    try {
+      final session = _client.auth.currentSession;
+      return session?.accessToken ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Headers con la sesiÃ³n del usuario + anon key para el llm-proxy.
+  Future<Map<String, dynamic>> _proxyHeaders(String token) async {
+    final headers = <String, dynamic>{
+      'Content-Type': 'application/json',
+    };
+    if (token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
   }
 }

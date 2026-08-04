@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../providers/subscription_providers.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class PaywallScreen extends ConsumerStatefulWidget {
   const PaywallScreen({super.key});
@@ -78,9 +80,10 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       if (success) {
         ref.read(isPremiumProvider.notifier).setPremium(true);
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Thank you for subscribing! Premium benefits unlocked.'),
+            SnackBar(
+              content: Text(l10n.paywall_success),
               backgroundColor: AppColors.manaCyan,
             ),
           );
@@ -89,8 +92,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Purchase failure: $e')),
+          SnackBar(content: Text(l10n.paywall_failure('$e'))),
         );
       }
     } finally {
@@ -104,8 +108,6 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: CyberManhwaBackground(
         child: Stack(
@@ -146,7 +148,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+                          icon: const Icon(Icons.close_rounded, color: AppColors.onSurface, size: 28),
                           onPressed: () {
                             if (context.canPop()) {
                               context.pop();
@@ -159,16 +161,16 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                           onPressed: () async {
                             await ref.read(subscriptionRepositoryProvider).restorePurchases();
                             if (context.mounted) {
+                              final l10n = AppLocalizations.of(context)!;
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Purchases successfully restored.')),
+                                SnackBar(content: Text(l10n.paywall_restored)),
                               );
                             }
                           },
+                          style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                           child: Text(
                             'RESTORE',
-                            style: GoogleFonts.spaceMono(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            style: AppTypography.stat(context).copyWith(
                               color: AppColors.runeViolet,
                             ),
                           ),
@@ -211,10 +213,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                           Text(
                             'UPGRADE TO PREMIUM',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 26,
+                            style: AppTypography.headline(context).copyWith(
                               fontWeight: FontWeight.w900,
-                              color: Colors.white,
                               letterSpacing: 1.0,
                             ),
                           ),
@@ -222,9 +222,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                           Text(
                             'Unlock unlimited live sessions and accelerate your Hunter Rank with AI.',
                             textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
+                            style: AppTypography.bodyMuted(context),
                           ),
                           const SizedBox(height: 32),
 
@@ -242,9 +240,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                     Expanded(
                                       child: Text(
                                         feature,
-                                        style: GoogleFonts.inter(
-                                          color: Colors.white,
-                                          fontSize: 13,
+                                        style: AppTypography.bodyMuted(context).copyWith(
+                                          color: AppColors.onSurface,
                                         ),
                                       ),
                                     ),
@@ -274,7 +271,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                       border: Border.all(
                                         color: isSelected
                                             ? AppColors.runeViolet
-                                            : Colors.white.withValues(alpha: 0.1),
+                                            : AppColors.onSurface.withValues(alpha: 0.1),
                                         width: isSelected ? 2 : 1,
                                       ),
                                       padding: const EdgeInsets.all(20),
@@ -287,16 +284,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                               children: [
                                                 Text(
                                                   plan['title'] as String,
-                                                  style: GoogleFonts.spaceGrotesk(
-                                                    color: Colors.white,
+                                                  style: AppTypography.subtitle(context).copyWith(
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
                                                   ),
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
                                                   plan['billing'] as String,
-                                                  style: GoogleFonts.inter(
+                                                  style: AppTypography.bodyMuted(context).copyWith(
                                                     color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                                                     fontSize: 12,
                                                   ),
@@ -307,9 +302,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                           const SizedBox(width: 12),
                                           Text(
                                             plan['price'] as String,
-                                            style: GoogleFonts.jetBrainsMono(
-                                              color: isSelected ? AppColors.runeViolet : Colors.white,
-                                              fontWeight: FontWeight.bold,
+                                            style: AppTypography.stat(context).copyWith(
+                                              color: isSelected ? AppColors.runeViolet : AppColors.onSurface,
                                               fontSize: 20,
                                             ),
                                           ),
@@ -331,9 +325,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                           ),
                                           child: Text(
                                             plan['tag'] as String,
-                                            style: GoogleFonts.spaceMono(
-                                              color: Colors.white,
-                                              fontSize: 9,
+                                            style: AppTypography.tiny(context).copyWith(
+                                              color: AppColors.onSurface,
                                               fontWeight: FontWeight.bold,
                                               letterSpacing: 1.0,
                                             ),
@@ -352,7 +345,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                             onPressed: _isPurchasing ? null : _handlePurchase,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.runeViolet,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.onSurface,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -365,7 +358,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                                     width: 24,
                                     height: 24,
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
+                                      color: AppColors.onSurface,
                                       strokeWidth: 2.5,
                                     ),
                                   )
@@ -381,7 +374,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                           Text(
                             'Cancel anytime via App Store / Play Store. Terms and Conditions apply.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
+                            style: AppTypography.bodyMuted(context).copyWith(
                               color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
                               fontSize: 10,
                             ),

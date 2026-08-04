@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/runic_button.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
+import '../../../../core/widgets/system_snack.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../providers/onboarding_providers.dart';
+import '../widgets/character_creation_wizard.dart';
+import '../../domain/models/cefr_rank.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../../core/i18n/language_settings.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../data/country_catalog.dart';
+import '../../domain/models/hunter_class.dart';
+
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -20,23 +31,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  // Character creation values
+  String _characterName = '';
+  String _characterClass = 'warrior';
+  int _selectedAvatarIndex = 0;
+
   // Selected values
   String _selectedLanguageCode = 'en'; // App Default Target Language: English
   String _selectedNativeLanguageCode = 'es'; // Native language
   String _selectedCountryCode = 'MX';
-  bool _switchInterfaceToNative = false;
   String _selectedCefrCode = 'A1';
+  String? _gameRank;
   int _selectedDailyGoal = 15;
   final List<String> _selectedInterests = [];
   String _selectedCorrectionStyle = 'balanced';
   String _selectedCorrectionExplanationLanguage = 'native'; // 'native' vs 'target'
   String _selectedObstacle = '';
 
-  // Paywall & Subscription State
-  String _selectedPaywallPlan = 'annual';
-  bool _isLoadingPlans = true;
-  List<Map<String, dynamic>> _dynamicSubscriptionPlans = [];
+  // Estado
   bool _isSaving = false;
+  bool _showHeroWelcome = false;
 
   // Options lists
   final List<Map<String, String>> _nativeLanguages = [
@@ -50,20 +64,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     {'code': 'ja', 'name': 'Japanese', 'native': '日本語'},
   ];
 
-  final List<Map<String, String>> _countries = [
-    {'code': 'MX', 'name': 'México'},
-    {'code': 'CO', 'name': 'Colombia'},
-    {'code': 'ES', 'name': 'España'},
-    {'code': 'US', 'name': 'United States'},
-    {'code': 'AR', 'name': 'Argentina'},
-    {'code': 'CL', 'name': 'Chile'},
-    {'code': 'PE', 'name': 'Perú'},
-    {'code': 'BR', 'name': 'Brasil'},
-    {'code': 'FR', 'name': 'France'},
-    {'code': 'DE', 'name': 'Germany'},
-    {'code': 'IT', 'name': 'Italy'},
-  ];
-
   final List<Map<String, String>> _targetLanguages = [
     {'code': 'en', 'name': 'English', 'native': 'English', 'desc': 'Global communication & professional growth'},
     {'code': 'fr', 'name': 'French', 'native': 'Français', 'desc': 'Culture, gastronomy & international relations'},
@@ -71,100 +71,49 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     {'code': 'it', 'name': 'Italian', 'native': 'Italiano', 'desc': 'Art, design, music & tourism'},
   ];
 
-  final List<Map<String, String>> _levels = [
-    {'code': 'A1', 'title': 'Beginner (A1)', 'desc': 'Starting from scratch with basic greetings and phrases.', 'badge': 'A1'},
-    {'code': 'A2', 'title': 'Elementary (A2)', 'desc': 'Understand simple sentences, food, shopping & travel.', 'badge': 'A2'},
-    {'code': 'B1', 'title': 'Intermediate (B1)', 'desc': 'Hold conversations on familiar topics and work tasks.', 'badge': 'B1'},
-    {'code': 'B2', 'title': 'Upper Intermediate (B2)', 'desc': 'Speak fluently about complex topics and debates.', 'badge': 'B2'},
-    {'code': 'C1', 'title': 'Advanced (C1)', 'desc': 'Refine professional jargon and academic expression.', 'badge': 'C1'},
-    {'code': 'C2', 'title': 'Mastery (C2)', 'desc': 'Near-native fluency across all subjects.', 'badge': 'C2'},
-  ];
-
-  final List<Map<String, dynamic>> _goals = [
-    {'minutes': 10, 'title': 'Casual', 'desc': '10 min / day. Great for steady daily habit.'},
-    {'minutes': 15, 'title': 'Regular', 'desc': '15 min / day. Balanced and steady progress.'},
-    {'minutes': 30, 'title': 'Serious', 'desc': '30 min / day. Accelerated language learning.'},
-    {'minutes': 45, 'title': 'Intense', 'desc': '45 min / day. Deep immersion and mastery.'},
-  ];
-
-  final List<Map<String, dynamic>> _interests = [
-    {'code': 'travel', 'name': 'Travel & Tourism', 'icon': Icons.flight},
-    {'code': 'business', 'name': 'Career & Business', 'icon': Icons.business_center},
-    {'code': 'technology', 'name': 'Technology & AI', 'icon': Icons.computer},
-    {'code': 'art', 'name': 'Art & Design', 'icon': Icons.palette},
-    {'code': 'sports', 'name': 'Sports & Fitness', 'icon': Icons.sports_soccer},
-    {'code': 'music', 'name': 'Music & Movies', 'icon': Icons.music_note},
-    {'code': 'science', 'name': 'Science & Innovation', 'icon': Icons.science},
-    {'code': 'cooking', 'name': 'Food & Cooking', 'icon': Icons.restaurant},
-    {'code': 'history', 'name': 'Culture & History', 'icon': Icons.museum},
-  ];
-
-  final List<Map<String, dynamic>> _correctionStyles = [
-    {'code': 'strict', 'name': 'Strict', 'desc': 'Correct every grammar detail instantly.', 'icon': Icons.gps_fixed},
-    {'code': 'balanced', 'name': 'Balanced', 'desc': 'Correct key mistakes while maintaining natural flow.', 'icon': Icons.balance},
-    {'code': 'conversational', 'name': 'Conversational', 'desc': 'Only correct mistakes that prevent understanding.', 'icon': Icons.record_voice_over},
-  ];
-
-  final List<Map<String, dynamic>> _obstacles = [
-    {'id': 'speaking_fluency', 'icon': Icons.record_voice_over, 'label': 'Speaking Fluency & Confidence'},
-    {'id': 'listening', 'icon': Icons.hearing, 'label': 'Listening Comprehension'},
-    {'id': 'grammar_structure', 'icon': Icons.edit, 'label': 'Grammar & Sentence Structure'},
-    {'id': 'pronunciation', 'icon': Icons.mic, 'label': 'Pronunciation & Accent'},
-  ];
-
   @override
   void initState() {
     super.initState();
-    _fetchPlansFromDb();
-  }
-
-  Future<void> _fetchPlansFromDb() async {
-    try {
-      final plans = await ref.read(subscriptionRepositoryProvider).getSubscriptionPlans();
-      if (mounted) {
-        setState(() {
-          _dynamicSubscriptionPlans = plans;
-          if (plans.isNotEmpty) {
-            _selectedPaywallPlan = plans.first['id'] as String? ?? 'annual';
-          }
-          _isLoadingPlans = false;
-        });
+    // Detección automática del idioma del dispositivo (primer inicio).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final settings = ref.read(userLanguageProvider);
+      final deviceLang = ref.read(deviceLocaleProvider);
+      if (settings.followDeviceLanguage) {
+        SystemSnack.show(
+          context,
+          'Hemos detectado que tu dispositivo utiliza ${deviceLang.toUpperCase()}. '
+          'La aplicación se mostrará en ese idioma.',
+          type: SystemSnackType.info,
+          duration: const Duration(milliseconds: 3000),
+        );
       }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingPlans = false);
-      }
-    }
+    });
   }
 
   void _nextPage() {
-    if (_currentPage < 7) {
-      // Validation Page 4 (Interests) - Quick SnackBar (1.5 seconds)
-      if (_currentPage == 4 && _selectedInterests.isEmpty) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select at least one interest to continue.'),
-            duration: Duration(milliseconds: 1500),
-            backgroundColor: AppColors.runeViolet,
-          ),
-        );
-        return;
-      }
+    final l10n = AppLocalizations.of(context)!;
+    // Onboarding de 5 pasos (T04-T06): nativo → país → objetivo → clasificación IA → personaje.
+    if (_currentPage == 0 && _selectedNativeLanguageCode.isEmpty) {
+      SystemSnack.show(context, l10n.onb_validate_native,
+          type: SystemSnackType.warning,
+          duration: const Duration(milliseconds: 1500));
+      return;
+    }
 
-      // Mandatory Validation Page 6 (Obstacles) - Cannot advance without selection
-      if (_currentPage == 6 && _selectedObstacle.isEmpty) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select your biggest obstacle before continuing.'),
-            duration: Duration(milliseconds: 1500),
-            backgroundColor: Color(0xFFEF4444),
-          ),
-        );
-        return;
-      }
+    if (_currentPage == 2 && _selectedLanguageCode.isEmpty) {
+      SystemSnack.show(context, l10n.onb_validate_target,
+          type: SystemSnackType.warning,
+          duration: const Duration(milliseconds: 1500));
+      return;
+    }
 
+    if (_currentPage == 3) {
+      _startOracleEvaluation();
+      return;
+    }
+
+    if (_currentPage < 4) {
       setState(() {
         _currentPage++;
       });
@@ -191,17 +140,43 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
+  /// Lanza la evaluación conversacional del Oráculo y, al volver, avanza al
+  /// paso de creación del personaje. Si la evaluación aún no está lista y no
+  /// devolvió nivel, se usará el default A1 al guardar.
+  Future<void> _startOracleEvaluation() async {
+    final result = await context.push<Map<String, dynamic>>(
+      '/oracle-test?target=${_selectedLanguageCode}&native=${_selectedNativeLanguageCode}',
+    );
+    if (!mounted) return;
+    setState(() {
+      _currentPage = 4;
+      if (result != null && result['cefrLevel'] != null) {
+        _selectedCefrCode = result['cefrLevel'] as String;
+        _gameRank = result['gameRank'] as String? ?? _gameRank;
+      }
+    });
+    _pageController.animateToPage(
+      4,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   Future<void> _completeOnboardingAndPurchase() async {
     setState(() => _isSaving = true);
     try {
       final user = ref.read(currentUserProvider) ?? ref.read(supabaseClientProvider).auth.currentUser;
       final String targetUserId = user?.id ?? 'guest_${DateTime.now().millisecondsSinceEpoch}';
 
+      // Si el usuario omitió la evaluación del Oráculo (paso opcional), se
+      // parte del rango inicial A1.
+      final String cefrCode = _selectedCefrCode.isEmpty ? 'A1' : _selectedCefrCode;
+
       await ref.read(onboardingRepositoryProvider).saveOnboardingData(
             userId: targetUserId,
             targetLanguageCode: _selectedLanguageCode,
             nativeLanguageCode: _selectedNativeLanguageCode,
-            cefrLevelCode: _selectedCefrCode,
+            cefrLevelCode: cefrCode,
             dailyGoalMinutes: _selectedDailyGoal,
             interests: _selectedInterests,
             motivation: 'career',
@@ -211,19 +186,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             learningStyle: 'auditory_interactive',
           );
 
-      final bool isFreePlan = _selectedPaywallPlan == 'free' || _selectedPaywallPlan.contains('free');
+      final languageNotifier = ref.read(userLanguageProvider.notifier);
+      await languageNotifier.setLearningLanguage(_selectedLanguageCode);
+      await languageNotifier.setAiExplanationsInNative(
+          _selectedCorrectionExplanationLanguage == 'native');
 
-      if (!isFreePlan) {
-        // Execute Payment process ONLY for paid plans (Monthly, Annual, Lifetime)
-        await ref.read(subscriptionRepositoryProvider).purchasePackage(_selectedPaywallPlan);
-        ref.read(isPremiumProvider.notifier).setPremium(true);
-      } else {
-        // Free Plan: Skip payment process entirely
-        ref.read(isPremiumProvider.notifier).setPremium(false);
+      try {
+        await ref.read(supabaseClientProvider).from('users').update({
+          'country_code': _selectedCountryCode,
+        }).eq('id', targetUserId);
+      } catch (_) {}
+
+      if (_gameRank != null || _characterClass.isNotEmpty) {
+        try {
+          await ref.read(supabaseClientProvider).from('user_language_profiles').update({
+            if (_gameRank != null) 'game_rank': _gameRank,
+            'character_class': _characterClass.isNotEmpty ? _characterClass : 'warrior',
+            'avatar_index': _selectedAvatarIndex,
+          }).eq('user_id', targetUserId);
+        } catch (_) {}
       }
 
+      try {
+        final accountName = (user?.userMetadata?['full_name'] as String?) ??
+            (user?.email?.split('@').first ?? 'Hunter');
+        await ref.read(dashboardRepositoryProvider).updateUserProfile(
+          targetUserId,
+          displayName: _characterName.isNotEmpty ? _characterName : accountName,
+          avatarUrl: _characterClass,
+          nativeLanguage: _selectedNativeLanguageCode,
+          bio: '[Stats|STR:5|INT:5|DEX:5|LUK:5] ¡Hola! Soy un cazador aventurero.',
+        );
+        ref.invalidate(userProfileProvider);
+      } catch (_) {}
+
+      // UX-02: el paywall se mueve post-sesión. El onboarding siempre arranca en plan free.
+      ref.read(isPremiumProvider.notifier).setPremium(false);
+
+      try {
+        await ref.read(userLanguageProvider.notifier).setLearningLanguage(_selectedLanguageCode);
+      } catch (_) {}
+
       if (mounted) {
-        context.go('/home');
+        setState(() {
+          _isSaving = false;
+          _showHeroWelcome = true;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -238,11 +246,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       case 0: return CyberBgMode.onboardingStep0;
       case 1: return CyberBgMode.onboardingStep1;
       case 2: return CyberBgMode.onboardingStep2;
-      case 3: return CyberBgMode.onboardingStep3;
-      case 4: return CyberBgMode.onboardingStep4;
-      case 5: return CyberBgMode.onboardingStep5;
-      case 6: return CyberBgMode.onboardingStep6;
-      case 7: return CyberBgMode.onboardingStep7;
+      case 3: return CyberBgMode.onboardingStep7;
+      case 4: return CyberBgMode.onboardingStep3;
       default: return CyberBgMode.onboardingStep0;
     }
   }
@@ -250,6 +255,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_showHeroWelcome) {
+      return _buildHeroWelcomeScreen(context);
+    }
 
     return Scaffold(
       body: CyberManhwaBackground(
@@ -289,22 +299,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Onboarding Header & Progress Indicator (8 pages total)
+                  // Onboarding Header & Progress Indicator (5 pasos — UX-01)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (_currentPage > 0)
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onSurface),
                           onPressed: _prevPage,
                         )
                       else
                         const SizedBox(width: 48),
-                      // Segmented Progress Bar (8 pages)
+                      // Segmented Progress Bar (5 pasos)
                       Expanded(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(8, (index) {
+                          children: List.generate(5, (index) {
                             final isActive = index <= _currentPage;
                             return Expanded(
                               child: Container(
@@ -313,8 +323,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 decoration: BoxDecoration(
                                   color: isActive
                                       ? AppColors.runeViolet
-                                      : Colors.white.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(3),
+                                      : AppColors.onSurface.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(AppRadius.sm),
                                 ),
                               ),
                             );
@@ -323,74 +333,57 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        '${_currentPage + 1}/8',
-                        style: const TextStyle(
+                        '${_currentPage + 1}/5',
+                        style: AppTypography.stat(context).copyWith(
                           color: AppColors.onSurfaceVariant,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // Scrollable Questionnaire Pages (8 Total Steps)
+                  // Scrollable Questionnaire Pages (5 pasos — UX-01)
                   Expanded(
                     child: PageView(
                       controller: _pageController,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
-                        _buildNativeLanguageAndCountryPage(theme),
+                        _buildNativeLanguagePage(theme),
+                        _buildCountryPage(theme),
                         _buildTargetLanguagePage(theme),
-                        _buildLevelPage(theme),
-                        _buildGoalPage(theme),
-                        _buildInterestsPage(theme),
-                        _buildCorrectionStylePage(theme),
-                        _buildPlacementObstaclePage(theme),
-                        _buildPaywallScreenPage(theme),
+                        _buildAiClassificationPage(theme),
+                        _buildCharacterCreationPage(theme),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Bottom Action Button
-                  ElevatedButton(
-                    onPressed: _isSaving
-                        ? null
-                        : (_currentPage == 6 && _selectedObstacle.isEmpty)
-                            ? null
-                            : _nextPage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: (_currentPage == 6 && _selectedObstacle.isEmpty)
-                          ? Colors.white12
-                          : AppColors.runeViolet,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                  // Bottom Action Button (oculto en el paso 4 — el wizard de personaje tiene su propio botón)
+                  if (_currentPage != 4)
+                    ElevatedButton(
+                      onPressed: _isSaving ? null : _nextPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.runeViolet,
+                        foregroundColor: AppColors.onSurface,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                        ),
+                        elevation: 8,
+                        shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
                       ),
-                      elevation: 8,
-                      shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
-                    ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                          )
-                        : Text(
-                            _currentPage == 7
-                                ? ((_selectedPaywallPlan == 'free' || _selectedPaywallPlan.contains('free'))
-                                    ? 'Start Free Practice'
-                                    : 'Subscribe & Start Practice')
-                                : 'Continue',
-                            style: GoogleFonts.hankenGrotesk(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
+                            )
+                          : Text(
+                              _currentPage == 3 ? 'INICIAR EVALUACIÓN' : l10n.btn_continue,
+                              style: AppTypography.title(context),
                             ),
-                          ),
-                  ),
-                  const SizedBox(height: 12),
+                    ),
+                  if (_currentPage != 4) const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -401,41 +394,233 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   );
 }
 
-  // 🟢 Screen 0: Native Language & Country of Origin
-  Widget _buildNativeLanguageAndCountryPage(ThemeData theme) {
+  IconData _heroClassIcon(String heroClass) {
+    return HunterClass.findById(heroClass).icon;
+  }
+
+  Color _heroClassColor(String heroClass) {
+    return HunterClass.findById(heroClass).color;
+  }
+
+  String _heroClassName(String heroClass, AppLocalizations l10n) {
+    return HunterClass.findById(heroClass).getName(l10n);
+  }
+
+  /// Pantalla final del onboarding (Fase 2 auditoría): tarjeta del héroe.
+  /// Resumen del aventurero (nombre, clase, CEFR y rango del juego) antes de
+  /// entrar al reino. El guardado ya se completó en [_completeOnboardingAndPurchase].
+  Widget _buildHeroWelcomeScreen(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final displayName = _characterName.isNotEmpty ? _characterName : 'Hunter';
+    final heroClass = _characterClass.isNotEmpty ? _characterClass : 'warrior';
+    final cefrCode = _selectedCefrCode.isEmpty ? 'A1' : _selectedCefrCode;
+    final gameRank = _gameRank ?? CefrRank.gameRankFromCefr(cefrCode);
+    final classColor = _heroClassColor(heroClass);
+
+    return Scaffold(
+      body: CyberManhwaBackground(
+        bgMode: CyberBgMode.onboardingStep3,
+        child: Stack(
+          children: [
+            Positioned(
+              top: -100,
+              left: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.royalGold.withValues(alpha: 0.12),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.runeViolet.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Spacer(),
+                    Text(
+                      l10n.welcome_hunter_prefix,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.headline(context),
+                    ),
+                    Text(
+                      l10n.welcome_hunter_suffix,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.headline(context).copyWith(
+                        color: AppColors.royalGold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      displayName,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.subtitle(context).copyWith(
+                        color: AppColors.manaCyan,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Tarjeta del héroe destacada (runic corners + royalGold)
+                    GlassCard(
+                      borderColor: AppColors.royalGold,
+                      border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.6), width: 1.5),
+                      showRunicCorners: true,
+                      runicColor: AppColors.royalGold,
+                      opacity: AppColors.glassOpacity,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: classColor.withValues(alpha: 0.18),
+                                border: Border.all(color: classColor.withValues(alpha: 0.5)),
+                              ),
+                              child: Icon(_heroClassIcon(heroClass), color: classColor, size: 34),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              _heroClassName(heroClass, l10n),
+                              style: AppTypography.title(context).copyWith(color: classColor),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildHeroRankPill(context, 'CEFR', cefrCode),
+                                const SizedBox(width: 12),
+                                _buildHeroRankPill(context, l10n.rank, gameRank),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              CefrRank.rankDescription(gameRank),
+                              textAlign: TextAlign.center,
+                              style: AppTypography.bodyMuted(context).copyWith(
+                                color: AppColors.onSurface.withValues(alpha: 0.75),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      l10n.adventure_begins,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.body(context).copyWith(
+                        color: AppColors.onSurface.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    const Spacer(),
+                    RunicButton(
+                      label: l10n.enter_realm,
+                      icon: Icons.door_front_door_rounded,
+                      backgroundColor: AppColors.royalGold,
+                      foregroundColor: AppColors.voidBg,
+                      onPressed: () => context.go('/home'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroRankPill(BuildContext context, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.royalGold.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: AppTypography.tiny(context).copyWith(color: AppColors.royalGold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: AppTypography.stat(context).copyWith(
+              color: AppColors.royalGoldLight,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCharacterCreationPage(ThemeData theme) {
+    return CharacterCreationWizard(
+      onComplete: (data) {
+        setState(() {
+          _characterName = data.name;
+          _characterClass = data.playerClass;
+          _selectedAvatarIndex = data.avatarIndex;
+        });
+        _nextPage();
+      },
+    );
+  }
+
+  // 🟢 Página 0: Idioma del Despertar (idioma nativo + idioma de la interfaz)
+  Widget _buildNativeLanguagePage(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'What is your native language and country?',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            l10n.onboarding_lang,
+            style: AppTypography.headline(context),
           ),
           const SizedBox(height: 8),
           Text(
-            'We will customize your learning journey according to your mother tongue.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withValues(alpha: 0.7),
+            l10n.onboarding_lang_desc,
+            style: AppTypography.body(context).copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 24),
 
           // Native Language Selector
           Text(
-            'Native Language',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
+            l10n.onboarding_native_lang,
+            style: AppTypography.body(context).copyWith(fontWeight: FontWeight.bold, color: AppColors.manaCyan),
           ),
           const SizedBox(height: 8),
           ..._nativeLanguages.map((lang) {
             final isSelected = _selectedNativeLanguageCode == lang['code'];
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
+              constraints: const BoxConstraints(minHeight: 48),
               child: GestureDetector(
                 onTap: () {
                   setState(() {
@@ -443,8 +628,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
-                  opacity: isSelected ? 0.18 : 0.04,
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.10)),
+                  opacity: AppColors.glassOpacity,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
@@ -453,13 +638,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.outlineVariant, width: 1),
-                            borderRadius: BorderRadius.circular(2),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Text(
                             lang['code']!.toUpperCase(),
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                            style: AppTypography.label(context).copyWith(
                               color: isSelected ? AppColors.runeViolet : AppColors.onSurfaceVariant,
                             ),
                           ),
@@ -468,10 +651,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         Expanded(
                           child: Text(
                             '${lang['native']} (${lang['name']})',
-                            style: TextStyle(
-                              fontSize: 15,
+                            style: AppTypography.body(context).copyWith(
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: Colors.white,
+                              color: AppColors.onSurface,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -488,85 +670,79 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             );
           }),
 
-          const SizedBox(height: 20),
-          // Country Selector
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // 🟢 Página 1: País de Origen
+  Widget _buildCountryPage(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            'Country of Origin',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
+            l10n.onboarding_country_title,
+            style: AppTypography.headline(context),
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedCountryCode,
-                dropdownColor: const Color(0xFF0F172A),
-                isExpanded: true,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70),
-                items: _countries.map((c) {
-                  return DropdownMenuItem<String>(
-                    value: c['code'],
-                    child: Text(c['name']!, style: const TextStyle(color: Colors.white, fontSize: 15), overflow: TextOverflow.ellipsis),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedCountryCode = val;
-                    });
-                  }
-                },
-              ),
+          Text(
+            l10n.onboarding_country_desc,
+            style: AppTypography.body(context).copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.7),
             ),
           ),
-
           const SizedBox(height: 24),
-          // App Interface Language Preference Switch Card
-          GlassCard(
-            border: Border.all(color: _switchInterfaceToNative ? AppColors.manaCyan : Colors.white10),
-            opacity: _switchInterfaceToNative ? 0.12 : 0.03,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  const Icon(Icons.language_rounded, color: AppColors.manaCyan, size: 28),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Switch App Interface Language',
-                          style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+
+          Text(
+            'Country of Origin',
+            style: AppTypography.body(context).copyWith(fontWeight: FontWeight.bold, color: AppColors.manaCyan),
+          ),
+          const SizedBox(height: 12),
+
+          const SizedBox(height: 16),
+          Text(
+            'Busca tu país en el catálogo completo.',
+            style: AppTypography.bodyMuted(context).copyWith(color: AppColors.onSurface.withValues(alpha: 0.6)),
+          ),
+          const SizedBox(height: 8),
+
+          // Dropdown con buscador sobre el catálogo completo de países
+          Builder(
+            builder: (context) {
+              final currentSelected = CountryCatalog.countries
+                  .firstWhere((c) => c.code == _selectedCountryCode, orElse: () => CountryCatalog.countries.first);
+              return GestureDetector(
+                onTap: () => _openCountryDropdown(context, locale),
+                child: Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(minHeight: 52),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.onSurface.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          currentSelected.getName(locale),
+                          style: AppTypography.body(context).copyWith(color: AppColors.onSurface),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Change app menus and buttons to ${_selectedNativeLanguageCode.toUpperCase()} instead of English.',
-                          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_drop_down_rounded, color: AppColors.manaCyan, size: 28),
+                    ],
                   ),
-                  Switch(
-                    value: _switchInterfaceToNative,
-                    activeThumbColor: AppColors.manaCyan,
-                    onChanged: (val) {
-                      setState(() {
-                        _switchInterfaceToNative = val;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 24),
         ],
@@ -574,32 +750,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  // 🟢 Screen 1: Target Language to Learn (English, French, German, Italian)
+  Future<void> _openCountryDropdown(BuildContext context, String locale) async {
+    final selected = await showModalBottomSheet<CountryCatalogItem>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceDeep,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      builder: (sheetContext) => _CountryDropdownSheet(
+        locale: locale,
+        currentCode: _selectedCountryCode,
+      ),
+    );
+    if (selected != null && mounted) {
+      setState(() {
+        _selectedCountryCode = selected.code;
+      });
+    }
+  }
+
+  // 🟢 Página 2: Idioma a Aprender
   Widget _buildTargetLanguagePage(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'What language do you want to learn?',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            l10n.onboarding_target,
+            style: AppTypography.headline(context),
           ),
           const SizedBox(height: 8),
           Text(
-            'Select the target language you want to practice with your AI voice tutor.',
-            style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7)),
+            l10n.onboarding_target_desc,
+            style: AppTypography.body(context).copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.7),
+            ),
           ),
           const SizedBox(height: 24),
 
           ..._targetLanguages.map((lang) {
             final isSelected = _selectedLanguageCode == lang['code'];
             return Container(
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: const EdgeInsets.only(bottom: 8),
+              constraints: const BoxConstraints(minHeight: 48),
               child: GestureDetector(
                 onTap: () {
                   setState(() {
@@ -607,375 +803,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
-                  opacity: isSelected ? 0.2 : 0.04,
+                  border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.10)),
+                  opacity: AppColors.glassOpacity,
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     child: Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.outlineVariant, width: 1.5),
-                            borderRadius: BorderRadius.circular(2),
+                        Text(
+                          lang['code']!.toUpperCase(),
+                          style: AppTypography.stat(context).copyWith(
+                            color: isSelected ? AppColors.runeViolet : AppColors.onSurfaceVariant,
                           ),
-                          child: Text(
-                            lang['code']!.toUpperCase(),
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? AppColors.runeViolet : AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${lang['name']} (${lang['native']})',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected ? AppColors.runeViolet : Colors.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                lang['desc']!,
-                                style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 24),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // 🟢 Screen 2: Current CEFR Level
-  Widget _buildLevelPage(ThemeData theme) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'What is your current level?',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Choose your estimated level. You can adjust this anytime later.',
-            style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(height: 24),
-
-          ..._levels.map((level) {
-            final isSelected = _selectedCefrCode == level['code'];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedCefrCode = level['code']!;
-                  });
-                },
-                child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
-                  opacity: isSelected ? 0.2 : 0.04,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.runeViolet : Colors.white12,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            level['badge']!,
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                level['title']!,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected ? AppColors.runeViolet : Colors.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                level['desc']!,
-                                style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 22),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // 🟢 Screen 3: Daily Practice Goal
-  Widget _buildGoalPage(ThemeData theme) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'What is your daily practice goal?',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Consistency is key to speaking fluently.',
-            style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(height: 24),
-
-          ..._goals.map((goal) {
-            final isSelected = _selectedDailyGoal == goal['minutes'];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedDailyGoal = goal['minutes'] as int;
-                  });
-                },
-                child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
-                  opacity: isSelected ? 0.2 : 0.04,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.timer_rounded, color: AppColors.manaCyan, size: 24),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${goal['title']} (${goal['minutes']} min / day)',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected ? AppColors.runeViolet : Colors.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                goal['desc'] as String,
-                                style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 24),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // 🟢 Screen 4: Areas of Interest (Toast duration 1.5s)
-  Widget _buildInterestsPage(ThemeData theme) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Select your areas of interest',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Your AI tutor will craft customized scenario dialogues around these topics.',
-            style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(height: 24),
-
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: _interests.map((interest) {
-              final isSelected = _selectedInterests.contains(interest['code']);
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedInterests.remove(interest['code']);
-                    } else {
-                      _selectedInterests.add(interest['code']!);
-                    }
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.runeViolet.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: isSelected ? AppColors.runeViolet : Colors.white12,
-                      width: isSelected ? 2 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        interest['icon'] as IconData,
-                        size: 16,
-                        color: isSelected ? Colors.white : AppColors.manaCyan,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          interest['name']!,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.8),
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            fontSize: 14,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 🟢 Screen 5: Correction Style & Explanation Language
-  Widget _buildCorrectionStylePage(ThemeData theme) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'How would you like your AI corrections?',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Tailor how strict the AI tutor is and in which language grammar feedback is explained.',
-            style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(height: 20),
-
-          // Correction Level
-          Text(
-            'Correction Intensity',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
-          ),
-          const SizedBox(height: 8),
-          ..._correctionStyles.map((style) {
-            final isSelected = _selectedCorrectionStyle == style['code'];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedCorrectionStyle = style['code']!;
-                  });
-                },
-                child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
-                  opacity: isSelected ? 0.2 : 0.04,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          style['icon'] as IconData,
-                          size: 22,
-                          color: isSelected ? Colors.white : AppColors.runeViolet,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                style['name']!,
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isSelected ? AppColors.runeViolet : Colors.white),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(style['desc']!, style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.6)), overflow: TextOverflow.ellipsis),
-                            ],
+                          child: Text(
+                            '${lang['name']} (${lang['native']})',
+                            style: AppTypography.body(context).copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? AppColors.runeViolet : AppColors.onSurface,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (isSelected) ...[
@@ -989,305 +837,231 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             );
           }),
-
-          const SizedBox(height: 20),
-          // NEW Selector: Correction Explanation Language
-          Text(
-            'Grammar Feedback Language',
-            style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
-          ),
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedCorrectionExplanationLanguage = 'native';
-                    });
-                  },
-                  child: GlassCard(
-                    border: Border.all(color: _selectedCorrectionExplanationLanguage == 'native' ? AppColors.manaCyan : Colors.white10),
-                    opacity: _selectedCorrectionExplanationLanguage == 'native' ? 0.2 : 0.04,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.translate_rounded, color: AppColors.manaCyan, size: 24),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Native Language',
-                            style: GoogleFonts.hankenGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Rules in ${_selectedNativeLanguageCode.toUpperCase()}',
-                            style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.6)),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedCorrectionExplanationLanguage = 'target';
-                    });
-                  },
-                  child: GlassCard(
-                    border: Border.all(color: _selectedCorrectionExplanationLanguage == 'target' ? AppColors.runeViolet : Colors.white10),
-                    opacity: _selectedCorrectionExplanationLanguage == 'target' ? 0.2 : 0.04,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.center_focus_strong_rounded, color: AppColors.runeViolet, size: 24),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Target Language',
-                            style: GoogleFonts.hankenGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '100% in ${_selectedLanguageCode.toUpperCase()}',
-                            style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.6)),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  // 🟢 Screen 6: Biggest Obstacle (Mandatory Selection Validation)
-  Widget _buildPlacementObstaclePage(ThemeData theme) {
+  // 🟢 Página 3: Clasificación del Oráculo (evaluación IA, paso opcional)
+  Widget _buildAiClassificationPage(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'What is your biggest obstacle when speaking?',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            l10n.onboarding_oracle_classification,
+            style: AppTypography.headline(context),
           ),
           const SizedBox(height: 8),
           Text(
-            'Select your main challenge so your AI tutor focuses practice sessions on overcoming it.',
-            style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7)),
+            l10n.onboarding_oracle_classification_desc,
+            style: AppTypography.body(context).copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.7),
+            ),
           ),
           const SizedBox(height: 24),
 
-          ..._obstacles.map((obs) {
-            final isSelected = _selectedObstacle == obs['id'];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedObstacle = obs['id']!;
-                  });
-                },
-                child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
-                  opacity: isSelected ? 0.2 : 0.04,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          obs['icon'] as IconData,
-                          size: 28,
-                          color: isSelected ? Colors.white : AppColors.manaCyan,
+          // GlassCard destacada con la explicación de la evaluación conversacional
+          GlassCard(
+            borderColor: AppColors.royalGold,
+            border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.6), width: 1.5),
+            opacity: AppColors.glassOpacity,
+            showRunicCorners: true,
+            runicColor: AppColors.royalGold,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.royalGold.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Text(
-                            obs['label']!,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? AppColors.runeViolet : Colors.white,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                        child: const Icon(Icons.auto_awesome_rounded, color: AppColors.royalGold, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          l10n.onboarding_voice_evaluation,
+                          style: AppTypography.subtitle(context).copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.royalGold,
+                            letterSpacing: 1.0,
                           ),
                         ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 24),
-                        ],
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    l10n.onboarding_voice_evaluation_desc,
+                    style: AppTypography.body(context).copyWith(
+                      color: AppColors.onSurface.withValues(alpha: 0.8),
+                      height: 1.4,
                     ),
                   ),
-                ),
+                ],
               ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // 🟢 Screen 7: Dynamic Paywall & Subscription Plans from Supabase DB
-  Widget _buildPaywallScreenPage(ThemeData theme) {
-    if (_isLoadingPlans) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.runeViolet),
-      );
-    }
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.runeViolet.withValues(alpha: 0.2),
-              ),
-              child: const Icon(Icons.stars_rounded, color: AppColors.runeViolet, size: 40),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Text(
-              'Choose your Plan & Start Journey',
-              style: GoogleFonts.hankenGrotesk(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Center(
-            child: Text(
-              'Unlock 24/7 AI Voice Tutor & Speech DNA Biometrics',
-              style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.7)),
-              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 20),
 
-          ..._dynamicSubscriptionPlans.map((plan) {
-            final String planId = plan['id'] as String? ?? 'annual';
-            final isSelected = _selectedPaywallPlan == planId;
-            final String title = plan['title'] as String? ?? 'Plan';
-            final String price = plan['price'] as String? ?? '\$9.99';
-            final String billing = plan['billing'] as String? ?? 'Billed monthly';
-            final String? tag = plan['tag'] as String?;
-            final int minutesLimit = plan['minutesLimit'] as int? ?? 300;
+          Text(
+            l10n.onboarding_evaluation_optional,
+            textAlign: TextAlign.center,
+            style: AppTypography.bodyMuted(context).copyWith(
+              color: AppColors.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedPaywallPlan = planId;
-                  });
-                },
-                child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : Colors.white10),
-                  opacity: isSelected ? 0.2 : 0.04,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                title,
-                                style: GoogleFonts.hankenGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (tag != null) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.runeViolet.withValues(alpha: 0.3),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppColors.runeViolet),
-                                ),
-                                child: Text(
-                                  tag,
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.runeViolet),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              price,
-                              style: GoogleFonts.hankenGrotesk(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                billing,
-                                style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.timer_rounded, color: AppColors.manaCyan, size: 16),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '$minutesLimit min/month AI Audio Practice',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+class _CountryDropdownSheet extends StatefulWidget {
+  final String locale;
+  final String currentCode;
+
+  const _CountryDropdownSheet({required this.locale, required this.currentCode});
+
+  @override
+  State<_CountryDropdownSheet> createState() => _CountryDropdownSheetState();
+}
+
+class _CountryDropdownSheetState extends State<_CountryDropdownSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  List<CountryCatalogItem> _results = CountryCatalog.countries;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    final q = query.toLowerCase();
+    setState(() {
+      _results = q.isEmpty
+          ? CountryCatalog.countries
+          : CountryCatalog.countries.where((c) {
+              final name = c.getName(widget.locale).toLowerCase();
+              return name.contains(q) || c.code.toLowerCase().contains(q);
+            }).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: FractionallySizedBox(
+          heightFactor: 0.75,
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 10, bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.onSurface.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Search field
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  onChanged: _onSearchChanged,
+                  style: AppTypography.body(context).copyWith(color: AppColors.onSurface),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.onSurface.withValues(alpha: 0.05),
+                    hintText: l10n.onboarding_country_search_hint,
+                    hintStyle: AppTypography.body(context).copyWith(color: AppColors.onSurface.withValues(alpha: 0.3)),
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.onSurfaceVariant),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close_rounded, color: AppColors.onSurfaceVariant),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                            },
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      borderSide: BorderSide(color: AppColors.manaCyan.withValues(alpha: 0.3)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      borderSide: const BorderSide(color: AppColors.manaCyan),
                     ),
                   ),
                 ),
               ),
-            );
-          }),
-        ],
+              const SizedBox(height: 12),
+              // Country list
+              Expanded(
+                child: _results.isEmpty
+                    ? Center(
+                        child: Text(
+                          l10n.onboarding_country_no_results,
+                          style: AppTypography.bodyMuted(context),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        itemCount: _results.length,
+                        itemBuilder: (context, index) {
+                          final item = _results[index];
+                          final isSelected = item.code == widget.currentCode;
+                          return ListTile(
+                            dense: true,
+                            leading: Text(
+                              item.code,
+                              style: AppTypography.label(context).copyWith(
+                                color: isSelected ? AppColors.manaCyan : AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                            title: Text(
+                              item.getName(widget.locale),
+                              style: AppTypography.body(context).copyWith(
+                                color: AppColors.onSurface,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                            trailing: isSelected
+                                ? const Icon(Icons.check_circle_rounded, color: AppColors.manaCyan, size: 20)
+                                : null,
+                            onTap: () => Navigator.of(context).pop(item),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

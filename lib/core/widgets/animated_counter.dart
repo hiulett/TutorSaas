@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 
 class AnimatedCounter extends StatefulWidget {
   final int target;
@@ -13,7 +15,7 @@ class AnimatedCounter extends StatefulWidget {
     required this.target,
     this.previous,
     this.style,
-    this.duration = const Duration(milliseconds: 600),
+    this.duration = AppMotion.standard,
     this.autoStart = true,
   });
 
@@ -58,7 +60,7 @@ class _AnimatedCounterState extends State<AnimatedCounter>
         final value = start + (widget.target - start) * _animation.value;
         return Text(
           value.round().toString(),
-          style: widget.style ?? GoogleFonts.jetBrainsMono(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+          style: widget.style ?? GoogleFonts.jetBrainsMono(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.onSurface),
         );
       },
     );

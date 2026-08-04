@@ -378,7 +378,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get hunter => 'Caçador';
 
   @override
-  String get rank => 'Rank';
+  String get rank => 'RANGO';
 
   @override
   String get mission => 'Missão';
@@ -508,10 +508,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get nucleo_recharge => 'Recarregar com Cristais de Maná';
+  String get nucleo_recharge => 'RECARREGAR +5';
 
   @override
-  String get nucleo_premium => 'Invocação Ilimitada';
+  String get nucleo_premium => 'IR PREMIUM';
 
   @override
   String get nucleo_rest => 'Descansar até amanhã — o Núcleo recarregará';
@@ -749,4 +749,424 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get get_started => 'Começar';
+
+  @override
+  String get register_new_hunter => 'REGISTAR NOVO CAÇADOR';
+
+  @override
+  String get onboarding_select_native_warn =>
+      'Selecione seu idioma nativo para continuar.';
+
+  @override
+  String get onboarding_select_target_warn =>
+      'Selecione o idioma que deseja aprender.';
+
+  @override
+  String get onboarding_switch_interface_lang => 'Alterar idioma da interface';
+
+  @override
+  String onboarding_switch_interface_desc(String lang) {
+    return 'Altere os menus e botões do aplicativo para $lang em vez de inglês.';
+  }
+
+  @override
+  String get onboarding_country_title => 'PAÍS DE ORIGEM';
+
+  @override
+  String get onboarding_country_desc =>
+      'Diga-nos de onde você vem para adaptar a pronúncia e as expressões.';
+
+  @override
+  String get onboarding_country_search_hint => 'Buscar país...';
+
+  @override
+  String get onboarding_country_no_results => 'Nenhum país encontrado.';
+
+  @override
+  String get onboarding_oracle_classification =>
+      'O ORÁCULO IRÁ CLASSIFICAR VOCÊ';
+
+  @override
+  String get onboarding_oracle_classification_desc =>
+      'O Oráculo analisará sua proficiência no idioma por meio de uma conversa para determinar seu rank inicial.';
+
+  @override
+  String get onboarding_voice_evaluation => 'AVALIAÇÃO CONVERSACIONAL POR VOZ';
+
+  @override
+  String get onboarding_voice_evaluation_desc =>
+      'Fale com o Oráculo e você será avaliado em pronúncia, vocabulário, gramática, compreensão e fluência. O resultado definirá seu rank inicial.';
+
+  @override
+  String get onboarding_start_evaluation => 'INICIAR AVALIAÇÃO';
+
+  @override
+  String get onboarding_evaluation_optional =>
+      'A avaliação é opcional: se você pular, começará no rank inicial (A1).';
+
+  @override
+  String get welcome_hunter_prefix => 'BEM-VINDO,';
+
+  @override
+  String get welcome_hunter_suffix => 'CAÇADOR!';
+
+  @override
+  String get adventure_begins => 'Sua aventura começa agora.';
+
+  @override
+  String get enter_realm => 'ENTRAR NO REINO';
+
+  @override
+  String get character_creation_title => 'CRIE SEU PERSONAGEM';
+
+  @override
+  String get character_creation_desc =>
+      'Antes de começar sua aventura, precisamos saber quem você é.';
+
+  @override
+  String get character_creation_continue => 'O ORÁCULO ESPERA POR VOCÊ';
+
+  @override
+  String get character_name_optional =>
+      'Opcional — se usará o nome da sua conta se vazio.';
+
+  @override
+  String get character_class_unavailable =>
+      'Classes indisponíveis. Tente novamente mais tarde.';
+
+  @override
+  String get character_difficulty_label => 'Dificuldade';
+
+  @override
+  String get character_combat_label => 'Combate';
+
+  @override
+  String get character_affinity_label => 'Afinidade';
+
+  @override
+  String get character_abilities_label => 'HABILIDADES';
+
+  @override
+  String get character_stat_attack => 'Ataque';
+
+  @override
+  String get character_stat_defense => 'Defesa';
+
+  @override
+  String get character_stat_magic => 'Magia';
+
+  @override
+  String get character_stat_speed => 'Velocidade';
+
+  @override
+  String get character_stat_support => 'Suporte';
+
+  @override
+  String get character_stat_survival => 'Sobrevivência';
+
+  @override
+  String get class_warrior_name => 'Berserker';
+
+  @override
+  String get class_warrior_desc =>
+      'Extrovertido e corajoso. Você fala primeiro e pensa depois. Ideal para perder o medo de falar.';
+
+  @override
+  String get class_warrior_arch =>
+      'Extrovertido, fala primeiro — superar o medo';
+
+  @override
+  String get class_mage_name => 'Mago Arcano';
+
+  @override
+  String get class_mage_desc =>
+      'Analítico e preciso. Você observa e estrutura antes de falar. Ideal para aperfeiçoar a gramática.';
+
+  @override
+  String get class_mage_arch =>
+      'Analítico, estrutura antes de falar — gramática';
+
+  @override
+  String get class_assassin_name => 'Assassino';
+
+  @override
+  String get class_assassin_desc =>
+      'Observador tático. Você busca precisão e eficiência furtiva. Ideal para vocabulário de alta precisão.';
+
+  @override
+  String get class_assassin_arch =>
+      'Observador tático — vocabulário de precisão';
+
+  @override
+  String get class_knight_name => 'Cavaleiro';
+
+  @override
+  String get class_knight_desc =>
+      'Constante e metódico. Mantém-se firme em suas rotinas. Ideal para construir sequências e consistência.';
+
+  @override
+  String get class_knight_arch =>
+      'Constante e metódico — consistência e sequências';
+
+  @override
+  String get class_archer_name => 'Arqueiro';
+
+  @override
+  String get class_archer_desc =>
+      'Ágil e rápido. Você aprende na prática dentro do contexto. Ideal para dominar expressões úteis.';
+
+  @override
+  String get class_archer_arch =>
+      'Ágil, aprende em contexto — expressões diárias';
+
+  @override
+  String get class_summoner_name => 'Invocador';
+
+  @override
+  String get class_summoner_desc =>
+      'Criativo e associativo. Você conecta conceitos e conjura ideias. Ideal para frases idiomáticas.';
+
+  @override
+  String get class_summoner_arch =>
+      'Criativo, associa ideias — expressões idiomáticas';
+
+  @override
+  String get class_paladin_name => 'Paladino';
+
+  @override
+  String get class_paladin_desc =>
+      'Protetor guiado por objetivos. Orientado ao dever. Ideal para conversas formais e estruturadas.';
+
+  @override
+  String get class_paladin_arch => 'Guiado por objetivos — conversação formal';
+
+  @override
+  String get class_necromancer_name => 'Necromante';
+
+  @override
+  String get class_necromancer_desc =>
+      'Explorador etimológico. Ressuscita as raízes do idioma. Ideal para raízes latinas e origens de palavras.';
+
+  @override
+  String get class_necromancer_arch =>
+      'Curioso sobre etimologia — raízes latinas e história';
+
+  @override
+  String get onboarding_lang_desc =>
+      'Personalizaremos sua jornada de aprendizado de acordo com sua língua nativa.';
+
+  @override
+  String get onboarding_native_lang => 'Idioma nativo';
+
+  @override
+  String get onboarding_target_desc => 'Qual idioma você quer dominar?';
+
+  @override
+  String get onb_validate_native =>
+      'Selecione seu idioma nativo para continuar.';
+
+  @override
+  String get onb_validate_target => 'Selecione o idioma que deseja aprender.';
+
+  @override
+  String get login_google_error => 'Erro ao entrar com o Google.';
+
+  @override
+  String get register_google_error => 'Erro ao registrar com o Google.';
+
+  @override
+  String get oracle_no_voice =>
+      'Nenhuma voz detectada. Fale mais perto do microfone ou use o teclado.';
+
+  @override
+  String get oracle_listening => 'OUVINDO... SOLTE PARA ENVIAR';
+
+  @override
+  String get oracle_processing => 'PROCESSANDO COM GROQ IA...';
+
+  @override
+  String get oracle_skip => 'PULAR PERGUNTA';
+
+  @override
+  String get oracle_complete => 'CONCLUIR AVALIAÇÃO';
+
+  @override
+  String get room_no_messages => 'Ainda não há mensagens nesta câmara.';
+
+  @override
+  String room_error(String err) {
+    return 'Erro na sala: $err';
+  }
+
+  @override
+  String get room_hunt_lang => 'Idioma de Caça:';
+
+  @override
+  String get room_xp_points => 'Pontos de Experiência:';
+
+  @override
+  String get room_type_ai => 'TREINO IA';
+
+  @override
+  String get room_type_mentorship => 'MENTORIA (RESSONÂNCIA)';
+
+  @override
+  String get room_type_event => 'EVENTO ESPECIAL';
+
+  @override
+  String get room_cancel => 'CANCELAR';
+
+  @override
+  String room_create_error(String err) {
+    return 'Erro ao criar sala: $err';
+  }
+
+  @override
+  String get room_initialize => 'INICIAR';
+
+  @override
+  String room_prestige(String level) {
+    return 'PRESTÍGIO $level';
+  }
+
+  @override
+  String get mission_accept => 'ACEITAR';
+
+  @override
+  String get mission_none => 'SEM MISSÕES ATIVAS';
+
+  @override
+  String get mission_generate => 'GERAR MISSÕES';
+
+  @override
+  String get mission_claim => 'RESGATAR';
+
+  @override
+  String get srs_close => 'FECHAR';
+
+  @override
+  String get srs_hard => 'DIFÍCIL';
+
+  @override
+  String get srs_normal => 'NORMAL';
+
+  @override
+  String get srs_easy => 'FÁCIL';
+
+  @override
+  String get nucleo_unlimited => 'Invocação Ilimitada — Caçador de Elite';
+
+  @override
+  String get paywall_success =>
+      'Obrigado por assinar! Benefícios Premium desbloqueados.';
+
+  @override
+  String paywall_failure(String err) {
+    return 'Falha na compra: $err';
+  }
+
+  @override
+  String get paywall_restored => 'Compras restauradas com sucesso.';
+
+  @override
+  String get lessons_voice_rooms => 'Salas de Voz';
+
+  @override
+  String get lessons_view_goals => 'Ver Objetivos';
+
+  @override
+  String get exam_mute => 'MUDO';
+
+  @override
+  String get exam_conclude => 'CONCLUIR RAID';
+
+  @override
+  String get exam_return => 'VOLTAR AO SANTUÁRIO';
+
+  @override
+  String get progress_xp_points => 'Pontos XP';
+
+  @override
+  String get progress_active_streak => 'Sequência Ativa';
+
+  @override
+  String get progress_active_level => 'Nível Ativo';
+
+  @override
+  String get progress_srs_review => 'Revisão SRS';
+
+  @override
+  String get progress_see_all => 'VER TUDO';
+
+  @override
+  String get inventory_load_error => 'Não foi possível carregar o inventário';
+
+  @override
+  String get inventory_empty => 'INVENTÁRIO VAZIO';
+
+  @override
+  String get inventory_visit_shop => 'VISITE A LOJA →';
+
+  @override
+  String get inventory_equipped => 'EQUIPADO';
+
+  @override
+  String get conversation_goals => 'Metas do Cenário:';
+
+  @override
+  String get conversation_key_phrases => 'Frases-chave Sugeridas:';
+
+  @override
+  String get conversation_phonemes => 'Fonemas recomendados para praticar:';
+
+  @override
+  String get hero_got_it => 'Entendi';
+
+  @override
+  String get summary_view_vocab => 'VER VOCABULÁRIO';
+
+  @override
+  String get summary_vocab_saved => 'Vocabulário salvo no seu perfil.';
+
+  @override
+  String get summary_done => 'PRONTO';
+
+  @override
+  String get collections_load_error => 'Não foi possível carregar as coleções';
+
+  @override
+  String get profile_total_xp => 'XP Total';
+
+  @override
+  String get profile_streak => 'Sequência ativa';
+
+  @override
+  String get profile_cefr_level => 'Nível CEFR';
+
+  @override
+  String get profile_vocab_error => 'Erro ao carregar vocabulário';
+
+  @override
+  String get profile_vocab_empty => 'Sem vocabulário para mostrar';
+
+  @override
+  String get profile_close => 'Fechar';
+
+  @override
+  String get battlepass_load_error => 'Não foi possível carregar o Battle Pass';
+
+  @override
+  String get profile_edit_camera => 'CÂMERA';
+
+  @override
+  String get profile_edit_gallery => 'GALERIA';
+
+  @override
+  String get chart_4weeks => 'H� 4 semanas';
+
+  @override
+  String get chart_today => 'Hoje';
+
+  @override
+  String get chart_latency => 'Lat�ncia (s)';
 }

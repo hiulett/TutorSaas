@@ -67,4 +67,5 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/avatars/
     - assets/videos/

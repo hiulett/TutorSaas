@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/mission_models.dart';
+import '../../domain/repositories/mission_repository.dart';
 
-class MissionRepository {
+class MissionRepositoryImpl implements MissionRepository {
   final SupabaseClient _client;
   
   // Max misiones activas por jugador
@@ -11,7 +13,7 @@ class MissionRepository {
   // Días para considerar una misión como "muy antigua" y eliminarla
   static const int oldMissionDays = 14;
 
-  MissionRepository(this._client);
+  MissionRepositoryImpl(this._client);
 
   // ── Cleanup ────────────────────────────────────────────────────────────
 
@@ -158,12 +160,28 @@ class MissionRepository {
     }
   }
 
-  Future<bool> updateProgress(String instanceId, int newValue) async {
+  /// Incrementa el progreso de una misión en [delta] unidades.
+  /// Marca `completed` solo cuando se alcanza el target; de lo contrario
+  /// persiste el progreso parcial en vivo (T-402).
+  Future<bool> updateProgress(String instanceId, {int delta = 1}) async {
     try {
+      final instance = await _client
+          .from('mission_instances')
+          .select('current_value, target_value, status')
+          .eq('id', instanceId)
+          .maybeSingle();
+      if (instance == null) return false;
+
+      final current = (instance['current_value'] as num?)?.toInt() ?? 0;
+      final target = (instance['target_value'] as num?)?.toInt() ?? 1;
+      final next = (current + delta).clamp(0, target);
+      final isDone = next >= target;
+      final isAlreadyDone = instance['status'] == 'completed';
+
       await _client.from('mission_instances').update({
-        'current_value': newValue,
-        'status': 'completed', // mark completed when progress reaches target
-        'completed_at': DateTime.now().toIso8601String(),
+        'current_value': next,
+        'status': isDone ? 'completed' : 'active',
+        if (isDone && !isAlreadyDone) 'completed_at': DateTime.now().toIso8601String(),
       }).eq('id', instanceId);
       return true;
     } catch (_) {
@@ -180,12 +198,16 @@ class MissionRepository {
           .maybeSingle();
       if (instance == null) return false;
 
-      final xp = (instance['xp_reward'] as num?)?.toInt() ?? 0;
-      final gems = (instance['gem_reward'] as num?)?.toInt() ?? 0;
+      final baseXp = (instance['xp_reward'] as num?)?.toInt() ?? 0;
+      final baseGems = (instance['gem_reward'] as num?)?.toInt() ?? 0;
+      final multiplier = (instance['reward_multiplier'] as num?)?.toInt() ?? 1;
+      final xp = baseXp * multiplier;
+      final gems = baseGems * multiplier;
 
       // Mark as claimed
       await _client.from('mission_instances').update({
         'is_reward_claimed': true,
+        'reward_multiplier': multiplier,
       }).eq('id', instanceId);
 
       // Add XP
@@ -207,6 +229,71 @@ class MissionRepository {
         'gems_earned': gems,
         'item_code': instance['item_reward'],
       });
+
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Aplica un item `mission_modifier` a una misión activa (Fase 9 · MM-03).
+  /// Códigos soportados:
+  ///   mod_recompensa_x2      → reward_multiplier = 2
+  ///   mod_piedra_facilidad   → target_value = ceil(target * 0.5)
+  ///   mod_piedra_desafio     → target_value = ceil(target * 1.5), reward_multiplier = 2
+  ///   mod_llave_ruta_secreta → crea una misión secreta nueva
+  /// Consume el item del inventario del jugador al aplicarlo.
+  Future<bool> applyMissionModifier({
+    required String userId,
+    required String instanceId,
+    required String itemCode,
+  }) async {
+    try {
+      final inventoryItem = await _client
+          .from('player_inventory')
+          .select('id, item_code')
+          .eq('user_id', userId)
+          .eq('item_code', itemCode)
+          .maybeSingle();
+      if (inventoryItem == null) return false;
+
+      if (itemCode == 'mod_llave_ruta_secreta') {
+        await createSecretMission(userId, {
+          'title': 'Ruta Secreta del Oráculo',
+          'description': 'El Oráculo te reveló un camino oculto. Complétalo para obtener su favor.',
+          'objective_type': 'practice_session',
+          'target_value': 1,
+          'xp_reward': 150,
+          'gem_reward': 30,
+        });
+      } else {
+        final mission = await _client
+            .from('mission_instances')
+            .select('target_value')
+            .eq('id', instanceId)
+            .eq('user_id', userId)
+            .maybeSingle();
+        if (mission == null) return false;
+
+        final target = (mission['target_value'] as num?)?.toInt() ?? 1;
+        final Map<String, dynamic> update = {};
+
+        switch (itemCode) {
+          case 'mod_recompensa_x2':
+            update['reward_multiplier'] = 2;
+          case 'mod_piedra_facilidad':
+            update['target_value'] = (target * 0.5).ceil();
+          case 'mod_piedra_desafio':
+            update['target_value'] = (target * 1.5).ceil();
+            update['reward_multiplier'] = 2;
+        }
+
+        update['applied_modifier_code'] = itemCode;
+        await _client.from('mission_instances').update(update).eq('id', instanceId);
+      }
+
+      // Consumir el item
+      await _client.from('player_inventory').delete().eq('id', inventoryItem['id']);
 
       return true;
     } catch (_) {
@@ -354,5 +441,136 @@ class MissionRepository {
           .eq('user_id', userId)
           .lt('claimed_at', DateTime.now().subtract(const Duration(days: 7)).toIso8601String());
     } catch (_) {}
+  }
+
+  // ── Guild Missions (colaborativas) ───────────────────────────────────────
+
+  /// Pool de misiones del gremio (guild_quest_pool) activas.
+  Future<List<GuildQuest>> getGuildQuestPool() async {
+    try {
+      final data = await _client
+          .from('guild_quest_pool')
+          .select()
+          .eq('is_active', true)
+          .order('quest_type')
+          .order('created_at');
+      return (data as List).map((m) => GuildQuest.fromMap(m)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Misiones colaborativas del gremio activas en la ventana temporal.
+  Future<List<GuildMission>> getActiveGuildMissions() async {
+    try {
+      final now = DateTime.now().toIso8601String();
+      final data = await _client
+          .from('guild_collaborative_missions')
+          .select()
+          .eq('is_reward_claimed', false)
+          .gte('expires_at', now)
+          .lte('starts_at', now)
+          .order('created_at');
+      return (data as List).map((m) => GuildMission.fromMap(m)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Incrementa el progreso colectivo de una misión del gremio.
+  Future<bool> updateGuildMissionProgress(String missionId, int delta) async {
+    try {
+      final mission = await _client
+          .from('guild_collaborative_missions')
+          .select('current_value, target_value')
+          .eq('id', missionId)
+          .maybeSingle();
+      if (mission == null) return false;
+
+      final current = (mission['current_value'] as num?)?.toInt() ?? 0;
+      final target = (mission['target_value'] as num?)?.toInt() ?? 1;
+      final next = (current + delta).clamp(0, target);
+
+      await _client
+          .from('guild_collaborative_missions')
+          .update({'current_value': next})
+          .eq('id', missionId);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Raid cooperativa semanal: la misión colaborativa vigente más reciente.
+  Future<Map<String, dynamic>?> getWeeklyRaid() async {
+    try {
+      final now = DateTime.now().toIso8601String();
+      final data = await _client
+          .from('guild_collaborative_missions')
+          .select()
+          .gt('expires_at', now)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (data == null) return null;
+      return Map<String, dynamic>.from(data);
+    } catch (e) {
+      debugPrint('getWeeklyRaid error: $e');
+      return null;
+    }
+  }
+
+  /// Suma [amount] al progreso colectivo de la raid (best-effort, no bloquea).
+  Future<void> contributeToWeeklyRaid(String missionId, int amount) async {
+    try {
+      final mission = await _client
+          .from('guild_collaborative_missions')
+          .select('current_value')
+          .eq('id', missionId)
+          .maybeSingle();
+      if (mission == null) return;
+
+      final current = (mission['current_value'] as num?)?.toInt() ?? 0;
+      await _client
+          .from('guild_collaborative_missions')
+          .update({'current_value': current + amount})
+          .eq('id', missionId);
+    } catch (e) {
+      debugPrint('contributeToWeeklyRaid error: $e');
+    }
+  }
+
+  // ── Global Events ────────────────────────────────────────────────────────
+
+  /// Eventos globales activos (ventana de tiempo).
+  Future<List<GlobalEvent>> getActiveGlobalEvents() async {
+    try {
+      final now = DateTime.now().toIso8601String();
+      final data = await _client
+          .from('global_events')
+          .select()
+          .eq('is_active', true)
+          .gte('expires_at', now)
+          .lte('starts_at', now)
+          .order('created_at');
+      return (data as List).map((m) => GlobalEvent.fromMap(m)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Progreso del jugador en un evento global.
+  Future<Map<String, dynamic>?> getEventProgress(String userId, String eventId) async {
+    try {
+      final data = await _client
+          .from('player_event_progress')
+          .select()
+          .eq('user_id', userId)
+          .eq('event_id', eventId)
+          .maybeSingle();
+      return data == null ? null : Map<String, dynamic>.from(data);
+    } catch (_) {
+      return null;
+    }
   }
 }

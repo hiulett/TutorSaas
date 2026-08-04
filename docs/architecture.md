@@ -139,3 +139,29 @@ Cliente Flutter
 
 Panel separado en React/Vite en `web_admin/` con 6 pÃ¡ginas:
 - Overview, Lessons, CEFR Levels, Users, Subscription Plans, AI Settings
+
+---
+
+## Estado actual (Fases 2-11, 2026-07-30)
+
+### Features implementadas
+| Feature | Ruta/lib | Estado |
+|---|---|---|
+| Onboarding + Oracle conversacional | eatures/onboarding/ | ? Fase 2 |
+| Dashboard + HUD + Mapa mazmorras | eatures/dashboard/ | ? Fase 3 |
+| Conversación (Oráculo, metas, tácticas) | eatures/conversation/ | ? Fase 4 |
+| Motor de misiones + quest boards | eatures/missions/ | ? Fases 5/7 |
+| Economía (gems, oro, fragmentos, items) | eatures/economy/ | ? Fase 6/9 |
+| Guild (salón, mesas, NPC, prestigio) | eatures/chat_rooms/ | ? Fase 7 |
+| l10n + i18n | core/i18n/, l10n/ | ? Fase 2 |
+
+### Nuevos módulos core
+- core/theme/app_motion.dart — tokens de animación (Fase 10).
+- core/widgets/runic_button.dart — botón con micro-interacción (Fase 10).
+- core/widgets/{system_window,segmented_bar,animated_counter,floating_reward}.dart.
+
+### Decisiones de arquitectura (Fases 7-10)
+- Mesas del gremio leídas de DB (sin hardcode, anti N+1) — G-A/G-B.
+- Modelo LLM unificado deepseek-v4-flash (IA-02); ventana móvil en evaluación de metas (IA-03).
+- Items con mission_modifier modifican misiones (eward_multiplier) — MM-01..03.
+- Animaciones tokenizadas vía AppMotion (AN-A..G).

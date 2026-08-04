@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_radius.dart';
 
 class GlassCard extends StatefulWidget {
   final Widget child;
@@ -14,13 +16,14 @@ class GlassCard extends StatefulWidget {
   final Color? backgroundColor;
   final bool showRunicCorners;
   final Color? runicColor;
+  final String? semanticLabel;
 
   const GlassCard({
     super.key,
     required this.child,
-    this.blur = 4.0,
-    this.opacity = 0.94,
-    this.borderRadius = 4.0,
+    this.blur = AppColors.glassBlur,
+    this.opacity = AppColors.glassOpacity,
+    this.borderRadius = AppRadius.sm,
     this.border,
     this.padding,
     this.shadow,
@@ -28,6 +31,7 @@ class GlassCard extends StatefulWidget {
     this.backgroundColor,
     this.showRunicCorners = false,
     this.runicColor,
+    this.semanticLabel,
   });
 
   @override
@@ -43,11 +47,11 @@ class _GlassCardState extends State<GlassCard>
   @override
   void initState() {
     super.initState();
-    _scaleController = AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
+    _scaleController = AnimationController(vsync: this, duration: AppMotion.micro);
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _scaleController, curve: AppMotion.curvePress),
     );
-    _runicController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
+    _runicController = AnimationController(vsync: this, duration: AppMotion.ambient)..repeat(reverse: true);
   }
 
   @override
@@ -80,7 +84,7 @@ class _GlassCardState extends State<GlassCard>
       animation: Listenable.merge([_scaleAnimation, _runicController]),
       builder: (context, child) {
         final runeOpacity = 0.3 + (_runicController.value * 0.7);
-        final card = Container(
+        Widget card = Container(
           decoration: BoxDecoration(
             boxShadow: widget.shadow ?? [BoxShadow(color: bColor.withValues(alpha: 0.3), blurRadius: 8)],
           ),
@@ -91,15 +95,22 @@ class _GlassCardState extends State<GlassCard>
               child: Container(
                 padding: widget.padding ?? const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: widget.backgroundColor ?? AppColors.surface.withValues(alpha: widget.opacity),
+                  color: widget.backgroundColor ?? AppColors.surfaceGlass.withValues(alpha: widget.opacity),
                   borderRadius: BorderRadius.circular(widget.borderRadius),
-                  border: widget.border ?? Border.all(color: bColor.withValues(alpha: 0.8), width: 1),
+                  border: widget.border ?? Border.all(color: bColor.withValues(alpha: AppColors.glassBorderAlpha), width: 1),
                 ),
                 child: widget.child,
               ),
             ),
           ),
         );
+        if (widget.semanticLabel != null) {
+          card = Semantics(
+            label: widget.semanticLabel,
+            container: true,
+            child: card,
+          );
+        }
         if (!widget.showRunicCorners) return Transform.scale(scale: _scaleAnimation.value, child: card);
         return Transform.scale(
           scale: _scaleAnimation.value,
@@ -107,10 +118,10 @@ class _GlassCardState extends State<GlassCard>
             clipBehavior: Clip.none,
             children: [
               card,
-              Positioned(top: -2, left: -2, child: _runicCorner(runeOpacity)),
-              Positioned(top: -2, right: -2, child: RotatedBox(quarterTurns: 1, child: _runicCorner(runeOpacity))),
-              Positioned(bottom: -2, left: -2, child: RotatedBox(quarterTurns: 3, child: _runicCorner(runeOpacity))),
-              Positioned(bottom: -2, right: -2, child: _runicCorner(runeOpacity, rotated: true)),
+              Positioned(top: -2, left: -2, child: ExcludeSemantics(child: _runicCorner(runeOpacity))),
+              Positioned(top: -2, right: -2, child: ExcludeSemantics(child: RotatedBox(quarterTurns: 1, child: _runicCorner(runeOpacity)))),
+              Positioned(bottom: -2, left: -2, child: ExcludeSemantics(child: RotatedBox(quarterTurns: 3, child: _runicCorner(runeOpacity)))),
+              Positioned(bottom: -2, right: -2, child: ExcludeSemantics(child: _runicCorner(runeOpacity, rotated: true))),
             ],
           ),
         );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_radius.dart';
 
 class ConfigurationErrorWidget extends StatelessWidget {
   final String error;
@@ -25,7 +26,7 @@ class ConfigurationErrorWidget extends StatelessWidget {
               Text(
                 'Error de Configuración',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
@@ -35,23 +36,23 @@ class ConfigurationErrorWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.errorRed.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   error,
                   style: const TextStyle(
                     color: AppColors.onSurfaceVariant,
-                    fontFamily: 'SpaceMono',
+                    fontFamily: 'JetBrainsMono',
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'Parece que estás usando claves de Supabase de ejemplo. Para que la app funcione, debes configurar tus propias claves en lib/core/constants/api_constants.dart o mediante --dart-define.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.7)),
                 textAlign: TextAlign.center,
               ),
             ],

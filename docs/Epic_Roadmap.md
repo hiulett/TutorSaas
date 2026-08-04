@@ -1,45 +1,53 @@
 # Epic Roadmap — TutorSaas / Dungeon of English
 
-## Epic-Level Timeline
+> Actualizado: 2026-07-30 — Las Fases 2–6 están **analizadas y documentadas** (ver carpetas por fase en `/docs`).
+> La implementación se realizará en el orden de esta hoja de ruta, fase por fase, sin mezclar.
 
-### Phase 1: Foundation & Infrastructure Sync
-**Target Focus:** Synchronize Supabase schemas and build core layout utilities.
-* **DB-001:** Database Migration Audit and Live Sync
-* **DS-001:** Introduce Danger Token & Spacing Constants
-* **GUILD-001:** Fix Voice Room roomId Non-UUID Crash
+## Fase 2 — Experiencia del Usuario
+**Estado: documentada** (`docs/02_User_Experience/`). Implementación pendiente.
+- [ONB-003] Aplicar l10n en MaterialApp (P0)
+- [ONB-004] Persistir idioma del onboarding (P0)
+- [ONB-005] Migración `user_settings` idioma (P0)
+- [ONB-002] Oracle conversacional con `oracle_questions` (P1)
 
----
+## Fase 3 — Dashboard
+**Estado: documentada** (`docs/03_Dashboard/`). Implementación pendiente.
+- [DSH-003] HUD central (P0)
+- [DSH-002] Mapa de mazmorras (P0)
+- Refinar Hunter Status (tipografía estándar + SegmentedBar) (P1)
+- Accesos rápidos y badges (P1)
 
-### Phase 2: Design Components & Character Setup
-**Target Focus:** Wire character setup steps and provide standard visual containers.
-* **DS-003:** Create SystemWindow Wrapper Widget
-* **ONB-001:** Wire Character Creation Wizard and Class Selection Screen
-* **ONB-002:** Wire Oracle Placement Test Screen
-* **DS-002:** Create Custom QuestCard / RankCard Widget
+## Fase 4 — Conversaciones
+**Estado: documentada** (`docs/04_Conversations/`). Implementación pendiente.
+- Header/HUD del Oráculo (P0)
+- Barra de progreso unificada (P0)
+- Recompensas visuales `FloatingReward` (P1)
+- Coherencia con economía (P1)
 
----
+## Fase 5 — Misiones
+**Estado: documentada** (`docs/05_Missions/`). Implementación pendiente.
+- Misiones de gremio (P0)
+- Eventos globales (P0)
+- Progresión parcial (P1)
+- Mission Board integrado + rotación/timers (P1)
 
-### Phase 3: Hunter Hub & Dungeon Exploration
-**Target Focus:** Launch status portals and gateway maps.
-* **DSH-001:** Build Hunter Status Profile Screen (`/hunter-status`)
-* **DSH-002:** Create Dungeon Gateways Selection Map
-* **CONV-001:** Visual Polish for Combat System Battle Screen
-* **CONV-002:** Integrate Conversational Tactics Selector
+## Fase 6 — Economía
+**Estado: documentada** (`docs/06_Economy/`). Implementación pendiente.
+- Fix `claimDailyReward` (P0)
+- Inventario UI (P0)
+- Battle Pass (P0)
+- Daily rewards UI, oro, drops, integración IA (P1)
+- Balance económico (P2)
 
----
+## Fase 1 (base) — Deuda transversal
+- [DB-001] Auditoría de migraciones y RPCs en live (P0)
+- [GUILD-001] Fix voice room roomId no-UUID (P0)
+- QA: `overflow_test.dart` LeagueLeaderboard (P1)
 
-### Phase 4: Progression Loops & Guild Customization
-**Target Focus:** Shop integrations and voice group modifiers.
-* **ECON-001:** Verify & Integrate Economy Modules
-* **ECON-002:** Build Shop & Shop Inventory Screen
-* **GUILD-002:** Create Guild Room Builder Dialog
-* **SRS-001:** Vocab review Recalibration Modal
-* **ERR-001:** System Mana Disruption Error Screen
-
----
-
-## Roadmap Dependencies
+## Dependencias
 ```
-[Phase 1] ──(Colors, DB & Slugs)──> [Phase 2] ──(QuestCards, Dialogs)──> [Phase 3] ──(Gateways & Profiles)──> [Phase 4]
+[Fase 2 l10n] ──► [Fase 3 HUD] ──► [Fase 4 conv] ──► [Fase 5 misiones] ──► [Fase 6 economía]
+                    │                                     │                     │
+                    └──► [Fase 1 transversal: DB-001, GUILD-001, QA] ◄─────────┘
 ```
-No task in a later phase should be worked on unless its prerequisite modules in preceding phases are fully compiled, verified, and complete.
+Regla: no iniciar una fase hasta que la anterior esté completa (compilación + QA + docs).

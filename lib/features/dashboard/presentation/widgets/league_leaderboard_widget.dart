@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
@@ -41,7 +42,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.emoji_events_rounded,
-                    color: Color(0xFFFFD700),
+                    color: AppColors.trophyGold,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -50,10 +51,10 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                       'Clasificación $activeLeague',
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
-                      style: GoogleFonts.hankenGrotesk(
+                      style: GoogleFonts.spaceGrotesk(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                       ),
                     ),
                   ),
@@ -65,7 +66,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.runeViolet.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
                   color: AppColors.runeViolet.withValues(alpha: 0.4),
                 ),
@@ -85,7 +86,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
 
         GlassCard(
           blur: 20,
-          opacity: 0.05,
+          opacity: AppColors.glassOpacity,
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
@@ -94,10 +95,10 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                 final rank = student['rank'] as int;
                 final stars = student['stars'] as int;
 
-                Color rankColor = Colors.white54;
-                if (rank == 1) rankColor = const Color(0xFFFFD700);
-                if (rank == 2) rankColor = const Color(0xFFC0C0C0);
-                if (rank == 3) rankColor = const Color(0xFFCD7F32);
+                Color rankColor = AppColors.onSurface.withValues(alpha: 0.54);
+                if (rank == 1) rankColor = AppColors.trophyGold;
+                if (rank == 2) rankColor = AppColors.trophySilver;
+                if (rank == 3) rankColor = AppColors.trophyBronze;
 
                 return Column(
                   children: [
@@ -105,7 +106,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: isUser ? AppColors.runeViolet.withValues(alpha: 0.2) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: isUser
                             ? Border.all(color: AppColors.runeViolet.withValues(alpha: 0.5))
                             : null,
@@ -136,21 +137,23 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                               student['name'] as String,
                               style: TextStyle(
                                 fontWeight: isUser ? FontWeight.bold : FontWeight.w500,
-                                color: isUser ? Colors.white : Colors.white70,
+                                color: isUser
+                                    ? AppColors.onSurface
+                                    : AppColors.onSurface.withValues(alpha: 0.7),
                                 fontSize: 13,
                               ),
                             ),
                           ),
                           Row(
                             children: [
-                              const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
+                              const Icon(Icons.star_rounded, color: AppColors.royalGold, size: 14),
                               const SizedBox(width: 2),
                               Text(
                                 '$stars',
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.amber,
+                                  color: AppColors.royalGold,
                                 ),
                               ),
                             ],
@@ -158,7 +161,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                           const SizedBox(width: 10),
                           Text(
                             '${student['xp']} XP',
-                            style: GoogleFonts.hankenGrotesk(
+                            style: GoogleFonts.spaceGrotesk(
                               fontWeight: FontWeight.bold,
                               color: AppColors.manaCyan,
                               fontSize: 12,
@@ -178,7 +181,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                               child: Text(
                                 '🔝 LÍNEA DE ASCENSO A NIVEL SUPERIOR',
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.hankenGrotesk(
+                                style: GoogleFonts.spaceGrotesk(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.manaCyan,

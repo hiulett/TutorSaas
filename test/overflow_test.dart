@@ -59,7 +59,10 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    // pump con duración fija en lugar de pumpAndSettle: evita el timeout por
+    // imágenes de red / animaciones de entrada que nunca se asientan.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
 
     FlutterError.onError = originalOnError;
 

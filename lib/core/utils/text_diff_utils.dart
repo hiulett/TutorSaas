@@ -26,7 +26,7 @@ class TextDiffUtils {
             TextSpan(
               text: '${originalWords[i]} ',
               style: const TextStyle(
-                color: Colors.redAccent,
+                color: AppColors.crimsonRed,
                 decoration: TextDecoration.lineThrough,
               ),
             ),
@@ -47,7 +47,7 @@ class TextDiffUtils {
           TextSpan(
             text: '${originalWords[i]} ',
             style: const TextStyle(
-              color: Colors.redAccent,
+              color: AppColors.crimsonRed,
               decoration: TextDecoration.lineThrough,
             ),
           ),

@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/runic_button.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../domain/models/hunter_class_data.dart';
+import '../providers/hunter_classes_providers.dart';
+import 'class_stats_radar.dart';
 
 class CharacterCreationData {
   final String name;
@@ -10,7 +16,7 @@ class CharacterCreationData {
   final int avatarIndex;
 
   const CharacterCreationData({
-    required this.name,
+    this.name = '',
     required this.playerClass,
     this.avatarIndex = 0,
   });
@@ -25,187 +31,443 @@ class CharacterCreationWizard extends ConsumerStatefulWidget {
   ConsumerState<CharacterCreationWizard> createState() => _CharacterCreationWizardState();
 }
 
-class _CharacterCreationWizardState extends ConsumerState<CharacterCreationWizard> with SingleTickerProviderStateMixin {
-  final _nameController = TextEditingController();
+class _CharacterCreationWizardState extends ConsumerState<CharacterCreationWizard> {
+  final PageController _carouselController = PageController(viewportFraction: 0.72);
   String _selectedClass = 'warrior';
-  int _selectedAvatar = 0;
-  late AnimationController _pulseController;
-
-  final List<Map<String, dynamic>> _classes = [
-    {'id': 'warrior', 'name': 'Berserker', 'icon': Icons.shield_rounded, 'desc': 'Extrovertido, hablas primero y piensas después. Ideal para perder el miedo a hablar.', 'color': Colors.redAccent},
-    {'id': 'mage', 'name': 'Mago Arcano', 'icon': Icons.auto_awesome_rounded, 'desc': 'Analítico, observas y estructuras antes de hablar. Ideal para perfeccionar la gramática.', 'color': AppColors.runeViolet},
-    {'id': 'rogue', 'name': 'Pícaro', 'icon': Icons.explore_rounded, 'desc': 'Práctico, aprendes sobre la marcha y te adaptas rápido. Ideal para vocabulario útil.', 'color': AppColors.emeraldGreen},
-  ];
-
-  final List<Map<String, dynamic>> _avatars = [
-    {'icon': Icons.person, 'color': AppColors.manaCyan},
-    {'icon': Icons.face_3_rounded, 'color': AppColors.runeViolet},
-    {'icon': Icons.face_4_rounded, 'color': AppColors.emeraldGreen},
-    {'icon': Icons.face_5_rounded, 'color': AppColors.royalGold},
-    {'icon': Icons.face_6_rounded, 'color': Colors.pinkAccent},
-    {'icon': Icons.face_2_rounded, 'color': Colors.orangeAccent},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
-  }
+  int _currentIndex = 0;
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _pulseController.dispose();
+    _carouselController.dispose();
     super.dispose();
   }
 
-  bool get _isValid => _nameController.text.trim().length >= 2;
+  void _onPageChanged(int index, List<HunterClassData> classes) {
+    setState(() {
+      _currentIndex = index;
+      if (index < classes.length) {
+        _selectedClass = classes[index].id;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+    final classesAsync = ref.watch(hunterClassesProvider);
+    final classes = classesAsync.value ?? const <HunterClassData>[];
+    final selected = classes.isEmpty
+        ? null
+        : classes.firstWhere(
+            (c) => c.id == _selectedClass,
+            orElse: () => classes.first,
+          );
+
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title
+          // Title (una línea)
           Center(
             child: Text(
-              'CREA TU PERSONAJE',
-              style: GoogleFonts.jetBrainsMono(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2),
+              l10n.character_creation_title,
+              maxLines: 1,
+              style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.medievalAgedGoldLight, letterSpacing: 1),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Center(
             child: Text(
-              'Antes de comenzar tu aventura,\nnecesitamos saber quién eres.',
+              l10n.character_creation_desc,
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 14, color: AppColors.onSurfaceVariant, height: 1.5),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(fontSize: 12, color: AppColors.medievalTextDim, height: 1.3),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
 
-          // Name Field
-          Text('NOMBRE DEL CAZADOR', style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 0.8)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _nameController,
-            style: GoogleFonts.spaceGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Tu nombre aventurero...',
-              hintStyle: GoogleFonts.spaceGrotesk(fontSize: 20, color: Colors.white24),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.05),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: AppColors.manaCyan.withValues(alpha: 0.3)),
+          // CARRUSEL de avatares grandes
+          if (classesAsync.isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: CircularProgressIndicator(color: AppColors.medievalAgedGold, strokeWidth: 2.5),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            )
+          else if (classes.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Text(l10n.character_class_unavailable, style: AppTypography.bodyMuted(context)),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: const BorderSide(color: AppColors.manaCyan),
-              ),
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 24),
-
-          // Avatar Selection
-          Text('AVATAR', style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 0.8)),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(_avatars.length, (i) {
-              final av = _avatars[i];
-              final isSelected = _selectedAvatar == i;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedAvatar = i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 48, height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected ? av['color']!.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.04),
-                    border: Border.all(
-                      color: isSelected ? av['color']! : Colors.white.withValues(alpha: 0.1),
-                      width: isSelected ? 2 : 1,
-                    ),
-                    boxShadow: isSelected ? [BoxShadow(color: av['color']!.withValues(alpha: 0.3), blurRadius: 8)] : null,
-                  ),
-                  child: Icon(av['icon'] as IconData, color: isSelected ? av['color'] : Colors.white38, size: 24),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 24),
-
-          // Class Selection
-          Text('CLASE', style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 0.8)),
-          const SizedBox(height: 10),
-          ..._classes.map((cls) {
-            final isSelected = _selectedClass == cls['id'];
-            final color = cls['color'] as Color;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GestureDetector(
-                onTap: () => setState(() => _selectedClass = cls['id'] as String),
-                child: GlassCard(
-                  blur: 4, opacity: isSelected ? 0.12 : 0.03,
-                  border: Border.all(color: isSelected ? color : Colors.white.withValues(alpha: 0.08), width: isSelected ? 2 : 1),
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
-                        child: Icon(cls['icon'] as IconData, color: color, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(cls['name'] as String, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                            const SizedBox(height: 2),
-                            Text(cls['desc'] as String, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12)),
-                          ],
+            )
+          else ...[
+            SizedBox(
+              height: 240,
+              child: PageView.builder(
+                controller: _carouselController,
+                itemCount: classes.length,
+                onPageChanged: (i) => _onPageChanged(i, classes),
+                itemBuilder: (context, index) {
+                  final cls = classes[index];
+                  final isSelected = _selectedClass == cls.id;
+                  final color = cls.color;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: AnimatedScale(
+                      scale: isSelected ? 1.0 : 0.86,
+                      duration: const Duration(milliseconds: 220),
+                      child: GestureDetector(
+                        onTap: () {
+                          _carouselController.animateToPage(
+                            index,
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeOut,
+                          );
+                          setState(() => _selectedClass = cls.id);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          decoration: BoxDecoration(
+                            color: AppColors.medievalIron.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                            border: Border.all(
+                              color: isSelected ? AppColors.medievalAgedGold : AppColors.medievalStone,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            boxShadow: isSelected
+                                ? [BoxShadow(color: AppColors.medievalAgedGold.withValues(alpha: 0.3), blurRadius: 14)]
+                                : null,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                // Avatar art (fondo #0B0E16, centrado)
+                                Positioned.fill(
+                                  child: Image.asset(
+                                    cls.imageUrl,
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.center,
+                                    filterQuality: FilterQuality.high,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: AppColors.medievalBg,
+                                      child: Icon(cls.icon, color: color, size: 56),
+                                    ),
+                                  ),
+                                ),
+                                // Nombre + rol
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.fromLTRB(10, 18, 10, 8),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [Colors.transparent, AppColors.medievalBg.withValues(alpha: 0.9)],
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          cls.nameFor(locale),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppTypography.subtitle(context).copyWith(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected ? AppColors.medievalAgedGoldLight : AppColors.medievalText,
+                                          ),
+                                        ),
+                                        Text(
+                                          cls.roleFor(locale).toUpperCase(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.jetBrainsMono(fontSize: 9, letterSpacing: 0.8, color: AppColors.medievalTextDim),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.medievalAgedGold,
+                                        boxShadow: [BoxShadow(color: AppColors.medievalAgedGold.withValues(alpha: 0.7), blurRadius: 8)],
+                                      ),
+                                      child: const Icon(Icons.check_rounded, color: AppColors.medievalBg, size: 14),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                      Icon(isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, color: isSelected ? color : Colors.white24, size: 22),
-                    ],
-                  ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Dots
+            const SizedBox(height: 8),
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(classes.length, (i) {
+                  final isActive = i == _currentIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: isActive ? 18 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(3),
+                      color: isActive ? AppColors.medievalAgedGold : AppColors.medievalStone,
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 14),
+
+          // FICHA RPG amplia (radar)
+          if (selected != null)
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, anim) => FadeTransition(
+                opacity: anim,
+                child: SlideTransition(
+                  position: Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(anim),
+                  child: child,
                 ),
               ),
-            );
-          }),
-          const SizedBox(height: 24),
+              child: _ClassSheet(
+                key: ValueKey(selected.id),
+                cls: selected,
+                locale: locale,
+                l10n: l10n,
+              ),
+            ),
 
-          // Continue Button
+          const SizedBox(height: 20),
+
+          // Botón continuar
           Center(
-            child: ElevatedButton(
-              onPressed: _isValid ? () => widget.onComplete(CharacterCreationData(
-                name: _nameController.text.trim(),
-                playerClass: _selectedClass,
-                avatarIndex: _selectedAvatar,
-              )) : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.manaCyan,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-                disabledBackgroundColor: Colors.white12,
-              ),
-              child: Text(
-                'EL ORÁCULO TE ESPERA',
-                style: GoogleFonts.jetBrainsMono(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-              ),
+            child: RunicButton(
+              label: l10n.character_creation_continue,
+              icon: Icons.auto_awesome_rounded,
+              onPressed: () => widget.onComplete(CharacterCreationData(
+                    playerClass: selected?.id ?? 'warrior',
+                    avatarIndex: _currentIndex,
+                  )),
+              isBusy: false,
+              backgroundColor: AppColors.medievalAgedGold,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Ficha oficial del gremio con radar (amplia hacia los lados, centrada).
+class _ClassSheet extends StatelessWidget {
+  final HunterClassData cls;
+  final String locale;
+  final AppLocalizations l10n;
+
+  const _ClassSheet({super.key, required this.cls, required this.locale, required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = cls.color;
+    final abilities = cls.abilitiesFor(locale);
+    return Center(
+      child: Container(
+        width: MediaQuery.of(context).size.width - 8,
+        decoration: BoxDecoration(
+          color: AppColors.medievalBg.withValues(alpha: 0.65),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.medievalAgedGold.withValues(alpha: 0.4), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header: clase · rol · rarity
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cls.nameFor(locale),
+                          style: AppTypography.subtitle(context).copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.medievalAgedGoldLight,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          cls.roleFor(locale),
+                          style: GoogleFonts.jetBrainsMono(fontSize: 9, color: AppColors.medievalTextDim, letterSpacing: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _RarityChip(rarity: cls.rarity, color: color),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // RADAR (amplio)
+              ClassStatsRadar(cls: cls, l10n: l10n),
+              const SizedBox(height: 8),
+
+              // Descripción
+              if (cls.descriptionFor(locale).isNotEmpty)
+                Text(
+                  cls.descriptionFor(locale),
+                  style: AppTypography.body(context).copyWith(fontSize: 11, height: 1.35, color: AppColors.medievalText),
+                ),
+              const SizedBox(height: 8),
+
+              // Especialidad (combate) + afinidad
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (cls.combatTypeFor(locale).isNotEmpty)
+                    _MetaChip(label: l10n.character_combat_label, value: cls.combatTypeFor(locale), color: color),
+                  if (cls.affinityFor(locale).isNotEmpty)
+                    _MetaChip(label: l10n.character_affinity_label, value: cls.affinityFor(locale), color: color),
+                ],
+              ),
+
+              // Habilidades
+              if (abilities.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.character_abilities_label,
+                  style: AppTypography.tiny(context).copyWith(fontWeight: FontWeight.bold, color: AppColors.medievalTextDim, letterSpacing: 0.5),
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: abilities.map((a) => _AbilityChip(text: a, color: color)).toList(),
+                ),
+              ],
+
+              // Estilo de juego
+              if (cls.playstyleFor(locale).isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.play_circle_outline_rounded, size: 14, color: color),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        cls.playstyleFor(locale),
+                        style: AppTypography.tiny(context).copyWith(fontSize: 10, height: 1.3, color: AppColors.medievalTextDim),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RarityChip extends StatelessWidget {
+  final String rarity;
+  final Color color;
+
+  const _RarityChip({required this.rarity, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.medievalAgedGold.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        rarity.toUpperCase(),
+        style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.medievalAgedGoldLight, letterSpacing: 0.6),
+      ),
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _MetaChip({required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.medievalIron.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.medievalStone),
+      ),
+      child: Text(
+        '$label: $value',
+        style: GoogleFonts.jetBrainsMono(fontSize: 9, color: AppColors.medievalText),
+      ),
+    );
+  }
+}
+
+class _AbilityChip extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _AbilityChip({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.medievalStone),
+      ),
+      child: Text(text, style: GoogleFonts.inter(fontSize: 9, color: AppColors.medievalText)),
     );
   }
 }

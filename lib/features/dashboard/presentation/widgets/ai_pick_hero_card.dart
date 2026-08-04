@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../data/models/lesson_catalog.dart';
 
@@ -51,7 +52,7 @@ class AIPickHeroCard extends StatelessWidget {
 
     return GlassCard(
       blur: 30,
-      opacity: 0.14,
+      opacity: AppColors.glassOpacity,
       border: Border.all(
         color: AppColors.manaCyan.withValues(alpha: 0.5),
         width: 1.5,
@@ -76,7 +77,7 @@ class AIPickHeroCard extends StatelessWidget {
                       AppColors.manaCyan.withValues(alpha: 0.2),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(
                     color: AppColors.manaCyan.withValues(alpha: 0.6),
                   ),
@@ -92,7 +93,7 @@ class AIPickHeroCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       'AI PICK DEL DÍA',
-                      style: GoogleFonts.hankenGrotesk(
+                      style: GoogleFonts.spaceGrotesk(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
                         color: AppColors.manaCyan,
@@ -105,10 +106,10 @@ class AIPickHeroCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.accentGreen.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                    color: AppColors.accentGreen.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Text(
@@ -116,7 +117,7 @@ class AIPickHeroCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF10B981),
+                    color: AppColors.accentGreen,
                   ),
                 ),
               ),
@@ -140,7 +141,7 @@ class AIPickHeroCard extends StatelessWidget {
                 ),
                 child: Icon(
                   _getIconData(lesson.iconKey),
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                   size: 28,
                 ),
               ),
@@ -153,7 +154,7 @@ class AIPickHeroCard extends StatelessWidget {
                       lesson.title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                         fontSize: 18,
                       ),
                     ),
@@ -181,8 +182,8 @@ class AIPickHeroCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.onSurface.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             child: Row(
               children: [
@@ -195,8 +196,8 @@ class AIPickHeroCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     matchReason,
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    style: TextStyle(
+                      color: AppColors.onSurface.withValues(alpha: 0.7),
                       fontSize: 11,
                       fontStyle: FontStyle.italic,
                     ),
@@ -218,9 +219,9 @@ class AIPickHeroCard extends StatelessWidget {
               onPressed: onTapPreview,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.runeViolet,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.onSurface,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
               ),
               child: Row(
@@ -231,7 +232,7 @@ class AIPickHeroCard extends StatelessWidget {
                   Flexible(
                     child: Text(
                       'Ver Vista Previa y Objetivos',
-                      style: GoogleFonts.hankenGrotesk(
+                      style: GoogleFonts.spaceGrotesk(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),

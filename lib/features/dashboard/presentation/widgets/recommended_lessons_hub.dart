@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../providers/dashboard_providers.dart';
 import 'ai_pick_hero_card.dart';
@@ -82,6 +84,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final progressAsync = ref.watch(userProgressProvider);
     final progress = progressAsync.value ?? {'level_code': 'B1'};
     final userCefr = (progress['level_code'] as String? ?? 'B1').toUpperCase();
@@ -147,19 +150,19 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                     'Smart Discovery Hub',
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                     ),
                   ),
                 ),
                 ElevatedButton.icon(
                   onPressed: () => context.push('/chat-rooms'),
                   icon: const Icon(Icons.groups_rounded, size: 16),
-                  label: const Text('Salas de Voz', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  label: Text(l10n.lessons_voice_rooms, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.manaCyan,
-                    foregroundColor: const Color(0xFF0F172A),
+                    foregroundColor: AppColors.sheetBackground,
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
                   ),
                 ),
               ],
@@ -180,14 +183,14 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                   _searchQuery = val.trim();
                 });
               },
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Buscar lección, rol o tema...',
                 hintStyle: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
                 prefixIcon: const Icon(Icons.search_rounded, color: AppColors.runeViolet),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, color: Colors.white54, size: 18),
+                        icon: Icon(Icons.clear_rounded, color: AppColors.onSurface.withValues(alpha: 0.54), size: 18),
                         onPressed: () {
                           _searchController.clear();
                           setState(() {
@@ -197,22 +200,22 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.04),
+                fillColor: AppColors.onSurface.withValues(alpha: 0.04),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: AppColors.onSurface.withValues(alpha: 0.08),
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: AppColors.onSurface.withValues(alpha: 0.08),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: const BorderSide(
                     color: AppColors.runeViolet,
                   ),
@@ -242,19 +245,19 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                       avatar: Text(cat['icon']!, style: const TextStyle(fontSize: 12)),
                       label: Text(cat['label']!),
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white70,
+                        color: isSelected ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.7),
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 12,
                       ),
                       selectedColor: AppColors.runeViolet,
-                      backgroundColor: Colors.white.withValues(alpha: 0.04),
+                      backgroundColor: AppColors.onSurface.withValues(alpha: 0.04),
                       side: BorderSide(
                         color: isSelected
                             ? AppColors.runeViolet
-                            : Colors.white.withValues(alpha: 0.08),
+                            : AppColors.onSurface.withValues(alpha: 0.08),
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                     ),
                   );
@@ -293,7 +296,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                         color: isSelected ? AppColors.manaCyan : Colors.transparent,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                     ),
                   );
@@ -322,7 +325,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                     'Catálogo Personalizado (${filteredLessons.length})',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.onSurface,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -344,7 +347,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
             if (filteredLessons.isEmpty)
               const GlassCard(
                 blur: 15,
-                opacity: 0.04,
+                opacity: AppColors.glassOpacity,
                 padding: EdgeInsets.all(24),
                 child: Center(
                   child: Text(
@@ -371,9 +374,9 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
 
                   return GlassCard(
                     blur: 20,
-                    opacity: 0.08,
+                    opacity: AppColors.glassOpacity,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: AppColors.onSurface.withValues(alpha: 0.05),
                       width: 1,
                     ),
                     padding: const EdgeInsets.all(16),
@@ -388,7 +391,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                 shape: BoxShape.circle,
                                 color: AppColors.runeViolet.withValues(alpha: 0.2),
                               ),
-                              child: Icon(iconData, color: Colors.white, size: 20),
+                              child: Icon(iconData, color: AppColors.onSurface, size: 20),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -402,11 +405,11 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: AppColors.runeViolet.withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(AppRadius.md),
                                         ),
                                         child: Text(
                                           'NIVEL ${lesson.level}',
-                                          style: GoogleFonts.hankenGrotesk(
+                                          style: GoogleFonts.spaceGrotesk(
                                             fontSize: 9,
                                             fontWeight: FontWeight.w800,
                                             color: AppColors.manaCyan,
@@ -418,7 +421,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                         style: const TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF10B981),
+                                          color: AppColors.accentGreen,
                                         ),
                                       ),
                                     ],
@@ -429,7 +432,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
-                                      color: Colors.white,
+                                      color: AppColors.onSurface,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -459,15 +462,15 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                               child: OutlinedButton(
                                 onPressed: () => LessonPreviewSheet.show(context, lesson),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
+                                  foregroundColor: AppColors.onSurface,
                                   side: BorderSide(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: AppColors.onSurface.withValues(alpha: 0.2),
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.lg),
                                   ),
                                 ),
-                                child: const Text('Ver Objetivos', style: TextStyle(fontSize: 12)),
+                                child: Text(l10n.lessons_view_goals, style: const TextStyle(fontSize: 12)),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -489,11 +492,11 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                       },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isLocked
-                                      ? Colors.white12
-                                      : (isCompleted ? const Color(0xFF10B981) : AppColors.runeViolet),
-                                  foregroundColor: isLocked ? Colors.white38 : Colors.white,
+                                      ? AppColors.onSurface.withValues(alpha: 0.12)
+                                      : (isCompleted ? AppColors.accentGreen : AppColors.runeViolet),
+                                  foregroundColor: isLocked ? AppColors.onSurface.withValues(alpha: 0.38) : AppColors.onSurface,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.lg),
                                   ),
                                 ),
                                 child: FittedBox(

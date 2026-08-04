@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
+import 'app_spacing.dart';
 
 class AppTheme {
   static ThemeData get darkTheme {
@@ -92,7 +93,7 @@ class AppTheme {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(4.0)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: AppSpacing.button,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -107,14 +108,28 @@ class AppTheme {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(4.0)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: AppSpacing.button,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.manaCyan,
+          textStyle: GoogleFonts.jetBrainsMono(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.0,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(4.0)),
+          ),
+          padding: AppSpacing.button,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceContainerLow,
         labelStyle: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant),
-        hintStyle: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant.withOpacity(0.5)),
+        hintStyle: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.0)),
@@ -142,7 +157,7 @@ class AppTheme {
         }),
         trackColor: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
-            return AppColors.manaCyan.withOpacity(0.3);
+            return AppColors.manaCyan.withValues(alpha: 0.3);
           }
           return AppColors.surfaceContainerHigh;
         }),
@@ -150,8 +165,8 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceContainerLow,
         disabledColor: AppColors.surfaceDim,
-        selectedColor: AppColors.manaCyan.withOpacity(0.2),
-        secondarySelectedColor: AppColors.runeViolet.withOpacity(0.2),
+        selectedColor: AppColors.manaCyan.withValues(alpha: 0.2),
+        secondarySelectedColor: AppColors.runeViolet.withValues(alpha: 0.2),
         labelStyle: GoogleFonts.jetBrainsMono(
           color: AppColors.onSurface,
           fontSize: 12,

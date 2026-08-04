@@ -42,3 +42,21 @@ final inventoryProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>
   final repo = ref.watch(economyRepositoryProvider);
   return repo.getInventory(user.id);
 });
+
+final battlePassProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return {'level': 1, 'xp_progress': 0, 'is_premium': false, 'claimed_rewards': <String>[]};
+  return ref.watch(economyRepositoryProvider).getBattlePass(user.id);
+});
+
+final goldBalanceProvider = FutureProvider.autoDispose<int>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return 0;
+  return ref.watch(economyRepositoryProvider).getGold(user.id);
+});
+
+final fragmentBalanceProvider = FutureProvider.autoDispose<int>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return 0;
+  return ref.watch(economyRepositoryProvider).getFragments(user.id);
+});

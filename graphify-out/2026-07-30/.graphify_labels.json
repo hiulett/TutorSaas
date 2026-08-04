@@ -220,5 +220,16 @@
   "218": "package:flutter_test/flutter_test.dart",
   "219": "@freezed",
   "220": "2.3 AUTH SCREENS",
-  "221": "ConversationRepository"
+  "221": "ConversationRepository",
+  "222": "02 — Design System Audit: Tokens actuales vs `abyssal_interface`",
+  "223": "04 — Technical Debt & Risk Register",
+  "224": "06 — Design Migration Plan",
+  "225": "Epic-Level Timeline",
+  "226": "Implementation Master Plan — TutorSaas / Dungeon of English",
+  "227": "01 — UI Audit: Pantallas actuales vs PlantillaHtml",
+  "228": "03 — Component Inventory",
+  "229": "Task Priorities & Estimates — TutorSaas / Dungeon of English",
+  "230": "build",
+  "231": "2.1 CORE THEME",
+  "232": "EconomyRepository"
 }

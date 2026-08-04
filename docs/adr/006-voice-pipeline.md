@@ -63,3 +63,37 @@ TutorSaas requiere un pipeline de voz que permita conversación natural con IA c
 - [DeepSeek API](https://platform.deepseek.com/)
 - [flutter_tts](https://pub.dev/packages/flutter_tts)
 - [record package](https://pub.dev/packages/record)
+
+---
+
+## Enmienda 2026-08 — Proxy seguro por Edge Function (IA-01)
+
+### Contexto
+Las claves de DeepSeek/Groq estaban compiladas en el APK vía `--dart-define`.
+Aunque `config.json` está gitignored, **las claves incrustadas en el binario son
+extraíbles** (decompilación). Se decide moverlas al servidor.
+
+### Decisión
+- **Edge Function `supabase/functions/llm-proxy`**: recibe las peticiones del
+  cliente autenticado con **JWT de sesión de Supabase** y reenvía a DeepSeek
+  (`/chat`, SSE) y a Groq (`/transcribe`).
+- Las claves viven **solo como Edge Function secrets**
+  (`DEEPSEEK_API_KEY`, `GROQ_API_KEY`). El APK ya **no contiene ninguna clave
+  de IA**.
+- `ConversationRepositoryImpl` (STT, LLM streaming, evaluación de metas) y
+  `PlacementAiEvaluator` (clasificación del Oráculo) llaman al proxy
+  `POST /functions/v1/llm-proxy/{chat,transcribe}`.
+- `ApiConstants.deepseekApiKey/deepseekBaseUrl/groqApiKey/groqSttUrl` quedan
+  **deprecadas** (sin uso en el cliente).
+
+### Consecuencias
+- **Positivas:** claves fuera del APK; cualquier fuga de clave es rotable sin
+  recompilar; el streaming SSE se conserva (el proxy reenvía el stream).
+- **Costos:** la Edge Function usa la cuota del plan (Free 500K invocaciones/
+  mes). El costo real de DeepSeek/Groq no cambia (se paga por tokens igual).
+- **Despliegue:** `supabase functions deploy llm-proxy` + `supabase secrets set`.
+
+### Seguridad
+- El `service_role` key es secreto de servidor: **nunca** en el APK ni en
+  `config.json` del cliente. Usar solo en el CLI/SQL Editor.
+

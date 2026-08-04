@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/quest_card.dart';
+import '../../../../core/widgets/system_snack.dart';
+import '../../../conversation/presentation/widgets/conversational_tactics_navigator.dart';
 import '../../data/models/lesson_catalog.dart';
 
 class LearningPathRoadmap extends StatefulWidget {
@@ -15,7 +19,7 @@ class LearningPathRoadmap extends StatefulWidget {
     this.completedLessonsHistory = const [],
   });
 
-  static const Color accentGreen = Color(0xFF10B981);
+  static const Color accentGreen = AppColors.accentGreen;
 
   @override
   State<LearningPathRoadmap> createState() => _LearningPathRoadmapState();
@@ -118,7 +122,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
                 'Ruta por Etapas (CEFR)',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -161,14 +165,14 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
                           ? AppColors.runeViolet
                           : isUserCurrentLevel
                               ? AppColors.runeViolet.withValues(alpha: 0.15)
-                              : Colors.white.withValues(alpha: 0.04),
-                      borderRadius: BorderRadius.circular(20),
+                              : AppColors.onSurface.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.runeViolet
                             : isUserCurrentLevel
                                 ? AppColors.manaCyan
-                                : Colors.white.withValues(alpha: 0.08),
+                                : AppColors.onSurface.withValues(alpha: 0.08),
                         width: isSelected || isUserCurrentLevel ? 1.5 : 1.0,
                       ),
                     ),
@@ -179,7 +183,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
-                            color: isSelected ? Colors.white : Colors.white70,
+                            color: isSelected ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                         if (isUserCurrentLevel) ...[
@@ -209,7 +213,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
           child: LinearProgressIndicator(
             value: stageProgress,
             minHeight: 4,
-            backgroundColor: Colors.white.withValues(alpha: 0.06),
+            backgroundColor: AppColors.onSurface.withValues(alpha: 0.06),
             valueColor: const AlwaysStoppedAnimation<Color>(AppColors.manaCyan),
           ),
         ),
@@ -219,7 +223,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
         if (stageLessons.isEmpty)
           const GlassCard(
             blur: 15,
-            opacity: 0.05,
+            opacity: AppColors.glassOpacity,
             padding: EdgeInsets.all(20),
             child: Center(
               child: Text(
@@ -235,9 +239,11 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
             itemCount: stageLessons.length,
             itemBuilder: (context, index) {
               final lesson = stageLessons[index];
+              final catalogIndex = LessonCatalog.catalog.indexWhere((l) => l.id == lesson.id);
               final isCompleted = _isLessonCompleted(lesson.id);
               final isNextLesson = !isCompleted &&
-                  (index == 0 || _isLessonCompleted(stageLessons[index - 1].id));
+                  (catalogIndex == 0 ||
+                      (catalogIndex > 0 && _isLessonCompleted(LessonCatalog.catalog[catalogIndex - 1].id)));
               final isLocked = !isCompleted && !isNextLesson;
 
               final score = isCompleted ? _getLessonScore(lesson.id) : null;
@@ -284,7 +290,7 @@ class _RoadmapNodeTile extends StatelessWidget {
     required this.isLast,
   });
 
-  static const Color accentGreen = Color(0xFF10B981);
+  static const Color accentGreen = AppColors.accentGreen;
 
   @override
   Widget build(BuildContext context) {
@@ -298,8 +304,8 @@ class _RoadmapNodeTile extends StatelessWidget {
       nodeColor = AppColors.runeViolet.withValues(alpha: 0.25);
       borderColor = AppColors.manaCyan;
     } else {
-      nodeColor = Colors.white.withValues(alpha: 0.03);
-      borderColor = Colors.white.withValues(alpha: 0.1);
+      nodeColor = AppColors.onSurface.withValues(alpha: 0.03);
+      borderColor = AppColors.onSurface.withValues(alpha: 0.1);
     }
 
     return IntrinsicHeight(
@@ -332,8 +338,8 @@ class _RoadmapNodeTile extends StatelessWidget {
                   child: isCompleted
                       ? const Icon(Icons.check_rounded, color: accentGreen, size: 22)
                       : isNextLesson
-                          ? const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24)
-                          : const Icon(Icons.lock_rounded, color: Colors.white38, size: 18),
+                          ? const Icon(Icons.play_arrow_rounded, color: AppColors.onSurface, size: 24)
+                          : Icon(Icons.lock_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 18),
                 ),
               ),
 
@@ -344,7 +350,7 @@ class _RoadmapNodeTile extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     color: isCompleted
                         ? accentGreen.withValues(alpha: 0.5)
-                        : Colors.white.withValues(alpha: 0.08),
+                        : AppColors.onSurface.withValues(alpha: 0.08),
                   ),
                 ),
             ],
@@ -355,148 +361,28 @@ class _RoadmapNodeTile extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
-              child: GestureDetector(
-                onTap: () {
-                  if (!isLocked) {
-                    context.push(
-                      '/conversation?scenarioId=${lesson.id}&scenarioTitle=${Uri.encodeComponent(lesson.title)}',
-                    );
-                  }
+              child: QuestCard(
+                title: lesson.title,
+                description: lesson.description,
+                rank: isCompleted ? 'S' : (isNextLesson ? 'B' : 'D'),
+                gemReward: isCompleted ? 0 : 15,
+                xpReward: isCompleted ? 0 : 100,
+                progress: isCompleted ? 1.0 : (isNextLesson ? 0.25 : 0.0),
+                progressSegments: 4,
+                onTap: isLocked ? () {
+                  SystemSnack.show(context, '🔒 MAZMORRA BLOQUEADA: Completa los desafíos previos.', type: SystemSnackType.error);
+                } : () {
+                  ConversationalTacticsNavigator.show(
+                    context,
+                    scenarioId: lesson.id,
+                    scenarioTitle: lesson.title,
+                    onStart: (tactic) {
+                      context.push(
+                        '/conversation?scenarioId=${lesson.id}&scenarioTitle=${Uri.encodeComponent(lesson.title)}&tactic=$tactic',
+                      );
+                    },
+                  );
                 },
-                child: GlassCard(
-                  blur: 20,
-                  opacity: isCompleted ? 0.08 : (isNextLesson ? 0.12 : 0.03),
-                  border: Border.all(
-                    color: isNextLesson
-                        ? AppColors.runeViolet.withValues(alpha: 0.4)
-                        : isCompleted
-                            ? accentGreen.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.04),
-                    width: 1,
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Etapa ${lesson.level} • Módulo $index',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: isNextLesson
-                                          ? AppColors.manaCyan
-                                          : AppColors.onSurfaceVariant,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (isNextLesson) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.manaCyan.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      'ACTUAL',
-                                      style: GoogleFonts.hankenGrotesk(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.manaCyan,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              lesson.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: isLocked ? Colors.white38 : Colors.white,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              lesson.description,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isLocked ? Colors.white24 : AppColors.onSurfaceVariant,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      if (isCompleted)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: accentGreen.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: accentGreen.withValues(alpha: 0.3)),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: List.generate(
-                                  3,
-                                  (i) => Icon(
-                                    Icons.star_rounded,
-                                    size: 12,
-                                    color: i < (score != null && score! >= 95 ? 3 : (score != null && score! >= 85 ? 2 : 1))
-                                        ? Colors.amber
-                                        : Colors.white24,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${score ?? 90}%',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: accentGreen,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else if (isNextLesson)
-                        IconButton(
-                          icon: const Icon(
-                            Icons.play_circle_fill_rounded,
-                            color: AppColors.runeViolet,
-                            size: 32,
-                          ),
-                          onPressed: () {
-                            context.push(
-                              '/conversation?scenarioId=${lesson.id}&scenarioTitle=${Uri.encodeComponent(lesson.title)}',
-                            );
-                          },
-                        )
-                      else
-                        const Icon(Icons.lock_rounded, color: Colors.white24, size: 20),
-                    ],
-                  ),
-                ),
               ),
             ),
           ),

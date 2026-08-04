@@ -66,3 +66,28 @@
 - [ ] **Modo B2B corporativo** â€” capacitaciÃ³n de equipos
 - [ ] **ClonaciÃ³n de voz y avatares** fotorrealistas
 - [ ] **Pruebas automatizadas** â€” tests unitarios para LessonCatalog, DashboardRepository
+
+---
+
+## Estado actual (Fases 2-11, 2026-07-30)
+
+### Fases implementadas
+| Fase | Estado | Detalle |
+|---|---|---|
+| 2 — User Experience | ? | l10n, idioma persistente, Oracle conversacional, país |
+| 3 — Dashboard | ? | HUD, mapa de mazmorras, accesos rápidos |
+| 4 — Conversaciones | ? | Oráculo, metas animadas, tácticas, recompensas |
+| 5 — Misiones | ? | Motor completo + rotación + mission board |
+| 6 — Economía | ? | Inventario, battle pass, daily rewards, oro/fragmentos, invocaciones |
+| 7 — Guild | ? | Salón con NPC, quest board, mesas DB, prestigio, práctica IA |
+| 8 — IA | ? | Costos optimizados, plan gratuito, monetización |
+| 9 — RPG | ?? | Items + modificadores implementados; colecciones/trofeos pendientes |
+| 10 — Microinteracciones | ? | Tokens, RunicButton, efectos |
+| 11 — QA | ?? | Auditoría: **lista para beta cerrada**; bloqueadores de seguridad en script |
+
+### Próximos pasos (beta pública)
+1. Aplicar 20260730_phase11_security_fixes.sql (QA-1/2/3).
+2. IA-01: mover API keys a dart-define + rotar.
+3. QA-5: RLS (select auth.uid()) (perf).
+4. Versionar migraciones manuales.
+5. Ampliar tests.

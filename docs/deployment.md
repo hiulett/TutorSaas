@@ -40,10 +40,10 @@ flutter build apk --flavor prod --dart-define-from-file=config.prod.json
 ```json
 {
   "SUPABASE_URL": "https://sipiumfdpvnszthykyog.supabase.co",
-  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIs...",
-  "DEEPSEEK_API_KEY": "sk-592200e11f164db5b054a9421d98bd53",
+  "SUPABASE_ANON_KEY": "<anon-key>",
+  "DEEPSEEK_API_KEY": "<deepseek-api-key>",
   "DEEPSEEK_BASE_URL": "https://api.deepseek.com/v1",
-  "GROQ_API_KEY": "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",
+  "GROQ_API_KEY": "<groq-api-key>",
   "GROQ_STT_URL": "https://api.groq.com/openai/v1/audio/transcriptions"
 }
 ```

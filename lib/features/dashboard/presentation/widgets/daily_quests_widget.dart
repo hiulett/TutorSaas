@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 
@@ -69,10 +70,10 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                 const SizedBox(width: 8),
                 Text(
                   'Misiones Diarias',
-                  style: GoogleFonts.hankenGrotesk(
+                  style: GoogleFonts.spaceGrotesk(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onSurface,
                   ),
                 ),
               ],
@@ -80,20 +81,20 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.orangeAccent.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.3)),
+                color: AppColors.royalGold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.local_fire_department_rounded, color: Colors.orangeAccent, size: 14),
+                  const Icon(Icons.local_fire_department_rounded, color: AppColors.royalGold, size: 14),
                   const SizedBox(width: 4),
                   Text(
                     '${widget.streakDays} Días',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Colors.orangeAccent,
+                      color: AppColors.royalGold,
                     ),
                   ),
                 ],
@@ -111,7 +112,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
             padding: const EdgeInsets.only(bottom: 10.0),
             child: GlassCard(
               blur: 20,
-              opacity: 0.05,
+              opacity: AppColors.glassOpacity,
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
@@ -124,7 +125,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                         Text(
                           quest['title'] as String,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.onSurface,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -143,9 +144,9 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                           child: LinearProgressIndicator(
                             value: progressRatio,
                             minHeight: 4,
-                            backgroundColor: Colors.white10,
+                            backgroundColor: AppColors.onSurface.withValues(alpha: 0.10),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              isCompleted ? const Color(0xFF10B981) : AppColors.runeViolet,
+                              isCompleted ? AppColors.accentGreen : AppColors.runeViolet,
                             ),
                           ),
                         ),
@@ -156,25 +157,28 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                   if (isClaimed)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      child: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 22),
+                      child: const Icon(Icons.check_circle_rounded, color: AppColors.accentGreen, size: 22),
                     )
                   else if (isCompleted)
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          quest['isClaimed'] = true;
-                        });
-                        widget.onClaimReward(quest['xp'] as int);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: Text(
-                        '+${quest['xp']} XP',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            quest['isClaimed'] = true;
+                          });
+                          widget.onClaimReward(quest['xp'] as int);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accentGreen,
+                          foregroundColor: AppColors.onSurface,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                        ),
+                        child: Text(
+                          '+${quest['xp']} XP',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     )
                   else

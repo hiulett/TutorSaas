@@ -31,6 +31,24 @@ mixin _$ConversationState {
   Map<String, bool> get goalEvaluationResults =>
       throw _privateConstructorUsedError;
 
+  /// Counter of goals completed since last build (drives FloatingReward).
+  int get newGoalsCompleted => throw _privateConstructorUsedError;
+
+  /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
+  String get selectedTactic =>
+      throw _privateConstructorUsedError; // ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
+  /// True when this session is the Oracle conversational placement exam.
+  bool get isOracleEvaluation => throw _privateConstructorUsedError;
+
+  /// Language the user is being evaluated in (the language to learn).
+  String get oracleTargetLanguage => throw _privateConstructorUsedError;
+
+  /// The user's native language (used for instructions fallback only).
+  String get oracleNativeLanguage => throw _privateConstructorUsedError;
+
+  /// Non-null once the Oracle finishes the exam; holds the placement result.
+  Map<String, dynamic>? get oracleResult => throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $ConversationStateCopyWith<ConversationState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -51,7 +69,13 @@ abstract class $ConversationStateCopyWith<$Res> {
       String? errorMessage,
       String? activeScenarioId,
       String? activeScenarioName,
-      Map<String, bool> goalEvaluationResults});
+      Map<String, bool> goalEvaluationResults,
+      int newGoalsCompleted,
+      String selectedTactic,
+      bool isOracleEvaluation,
+      String oracleTargetLanguage,
+      String oracleNativeLanguage,
+      Map<String, dynamic>? oracleResult});
 }
 
 /// @nodoc
@@ -76,6 +100,12 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
     Object? activeScenarioId = freezed,
     Object? activeScenarioName = freezed,
     Object? goalEvaluationResults = null,
+    Object? newGoalsCompleted = null,
+    Object? selectedTactic = null,
+    Object? isOracleEvaluation = null,
+    Object? oracleTargetLanguage = null,
+    Object? oracleNativeLanguage = null,
+    Object? oracleResult = freezed,
   }) {
     return _then(_value.copyWith(
       messages: null == messages
@@ -114,6 +144,30 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
           ? _value.goalEvaluationResults
           : goalEvaluationResults // ignore: cast_nullable_to_non_nullable
               as Map<String, bool>,
+      newGoalsCompleted: null == newGoalsCompleted
+          ? _value.newGoalsCompleted
+          : newGoalsCompleted // ignore: cast_nullable_to_non_nullable
+              as int,
+      selectedTactic: null == selectedTactic
+          ? _value.selectedTactic
+          : selectedTactic // ignore: cast_nullable_to_non_nullable
+              as String,
+      isOracleEvaluation: null == isOracleEvaluation
+          ? _value.isOracleEvaluation
+          : isOracleEvaluation // ignore: cast_nullable_to_non_nullable
+              as bool,
+      oracleTargetLanguage: null == oracleTargetLanguage
+          ? _value.oracleTargetLanguage
+          : oracleTargetLanguage // ignore: cast_nullable_to_non_nullable
+              as String,
+      oracleNativeLanguage: null == oracleNativeLanguage
+          ? _value.oracleNativeLanguage
+          : oracleNativeLanguage // ignore: cast_nullable_to_non_nullable
+              as String,
+      oracleResult: freezed == oracleResult
+          ? _value.oracleResult
+          : oracleResult // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -135,7 +189,13 @@ abstract class _$$ConversationStateImplCopyWith<$Res>
       String? errorMessage,
       String? activeScenarioId,
       String? activeScenarioName,
-      Map<String, bool> goalEvaluationResults});
+      Map<String, bool> goalEvaluationResults,
+      int newGoalsCompleted,
+      String selectedTactic,
+      bool isOracleEvaluation,
+      String oracleTargetLanguage,
+      String oracleNativeLanguage,
+      Map<String, dynamic>? oracleResult});
 }
 
 /// @nodoc
@@ -158,6 +218,12 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
     Object? activeScenarioId = freezed,
     Object? activeScenarioName = freezed,
     Object? goalEvaluationResults = null,
+    Object? newGoalsCompleted = null,
+    Object? selectedTactic = null,
+    Object? isOracleEvaluation = null,
+    Object? oracleTargetLanguage = null,
+    Object? oracleNativeLanguage = null,
+    Object? oracleResult = freezed,
   }) {
     return _then(_$ConversationStateImpl(
       messages: null == messages
@@ -196,6 +262,30 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
           ? _value._goalEvaluationResults
           : goalEvaluationResults // ignore: cast_nullable_to_non_nullable
               as Map<String, bool>,
+      newGoalsCompleted: null == newGoalsCompleted
+          ? _value.newGoalsCompleted
+          : newGoalsCompleted // ignore: cast_nullable_to_non_nullable
+              as int,
+      selectedTactic: null == selectedTactic
+          ? _value.selectedTactic
+          : selectedTactic // ignore: cast_nullable_to_non_nullable
+              as String,
+      isOracleEvaluation: null == isOracleEvaluation
+          ? _value.isOracleEvaluation
+          : isOracleEvaluation // ignore: cast_nullable_to_non_nullable
+              as bool,
+      oracleTargetLanguage: null == oracleTargetLanguage
+          ? _value.oracleTargetLanguage
+          : oracleTargetLanguage // ignore: cast_nullable_to_non_nullable
+              as String,
+      oracleNativeLanguage: null == oracleNativeLanguage
+          ? _value.oracleNativeLanguage
+          : oracleNativeLanguage // ignore: cast_nullable_to_non_nullable
+              as String,
+      oracleResult: freezed == oracleResult
+          ? _value._oracleResult
+          : oracleResult // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -212,9 +302,16 @@ class _$ConversationStateImpl implements _ConversationState {
       this.errorMessage,
       this.activeScenarioId,
       this.activeScenarioName,
-      final Map<String, bool> goalEvaluationResults = const {}})
+      final Map<String, bool> goalEvaluationResults = const {},
+      this.newGoalsCompleted = 0,
+      this.selectedTactic = 'fluency',
+      this.isOracleEvaluation = false,
+      this.oracleTargetLanguage = 'en',
+      this.oracleNativeLanguage = 'es',
+      final Map<String, dynamic>? oracleResult})
       : _messages = messages,
-        _goalEvaluationResults = goalEvaluationResults;
+        _goalEvaluationResults = goalEvaluationResults,
+        _oracleResult = oracleResult;
 
   final List<ConversationMessage> _messages;
   @override
@@ -258,9 +355,47 @@ class _$ConversationStateImpl implements _ConversationState {
     return EqualUnmodifiableMapView(_goalEvaluationResults);
   }
 
+  /// Counter of goals completed since last build (drives FloatingReward).
+  @override
+  @JsonKey()
+  final int newGoalsCompleted;
+
+  /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
+  @override
+  @JsonKey()
+  final String selectedTactic;
+// ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
+  /// True when this session is the Oracle conversational placement exam.
+  @override
+  @JsonKey()
+  final bool isOracleEvaluation;
+
+  /// Language the user is being evaluated in (the language to learn).
+  @override
+  @JsonKey()
+  final String oracleTargetLanguage;
+
+  /// The user's native language (used for instructions fallback only).
+  @override
+  @JsonKey()
+  final String oracleNativeLanguage;
+
+  /// Non-null once the Oracle finishes the exam; holds the placement result.
+  final Map<String, dynamic>? _oracleResult;
+
+  /// Non-null once the Oracle finishes the exam; holds the placement result.
+  @override
+  Map<String, dynamic>? get oracleResult {
+    final value = _oracleResult;
+    if (value == null) return null;
+    if (_oracleResult is EqualUnmodifiableMapView) return _oracleResult;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults)';
+    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, selectedTactic: $selectedTactic, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleResult: $oracleResult)';
   }
 
   @override
@@ -285,7 +420,19 @@ class _$ConversationStateImpl implements _ConversationState {
             (identical(other.activeScenarioName, activeScenarioName) ||
                 other.activeScenarioName == activeScenarioName) &&
             const DeepCollectionEquality()
-                .equals(other._goalEvaluationResults, _goalEvaluationResults));
+                .equals(other._goalEvaluationResults, _goalEvaluationResults) &&
+            (identical(other.newGoalsCompleted, newGoalsCompleted) ||
+                other.newGoalsCompleted == newGoalsCompleted) &&
+            (identical(other.selectedTactic, selectedTactic) ||
+                other.selectedTactic == selectedTactic) &&
+            (identical(other.isOracleEvaluation, isOracleEvaluation) ||
+                other.isOracleEvaluation == isOracleEvaluation) &&
+            (identical(other.oracleTargetLanguage, oracleTargetLanguage) ||
+                other.oracleTargetLanguage == oracleTargetLanguage) &&
+            (identical(other.oracleNativeLanguage, oracleNativeLanguage) ||
+                other.oracleNativeLanguage == oracleNativeLanguage) &&
+            const DeepCollectionEquality()
+                .equals(other._oracleResult, _oracleResult));
   }
 
   @override
@@ -299,7 +446,13 @@ class _$ConversationStateImpl implements _ConversationState {
       errorMessage,
       activeScenarioId,
       activeScenarioName,
-      const DeepCollectionEquality().hash(_goalEvaluationResults));
+      const DeepCollectionEquality().hash(_goalEvaluationResults),
+      newGoalsCompleted,
+      selectedTactic,
+      isOracleEvaluation,
+      oracleTargetLanguage,
+      oracleNativeLanguage,
+      const DeepCollectionEquality().hash(_oracleResult));
 
   @JsonKey(ignore: true)
   @override
@@ -319,7 +472,13 @@ abstract class _ConversationState implements ConversationState {
       final String? errorMessage,
       final String? activeScenarioId,
       final String? activeScenarioName,
-      final Map<String, bool> goalEvaluationResults}) = _$ConversationStateImpl;
+      final Map<String, bool> goalEvaluationResults,
+      final int newGoalsCompleted,
+      final String selectedTactic,
+      final bool isOracleEvaluation,
+      final String oracleTargetLanguage,
+      final String oracleNativeLanguage,
+      final Map<String, dynamic>? oracleResult}) = _$ConversationStateImpl;
 
   @override
   List<ConversationMessage> get messages;
@@ -343,6 +502,29 @@ abstract class _ConversationState implements ConversationState {
 
   /// AI-evaluated goal results: key = goal.id, value = achieved
   Map<String, bool> get goalEvaluationResults;
+  @override
+
+  /// Counter of goals completed since last build (drives FloatingReward).
+  int get newGoalsCompleted;
+  @override
+
+  /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
+  String get selectedTactic;
+  @override // ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
+  /// True when this session is the Oracle conversational placement exam.
+  bool get isOracleEvaluation;
+  @override
+
+  /// Language the user is being evaluated in (the language to learn).
+  String get oracleTargetLanguage;
+  @override
+
+  /// The user's native language (used for instructions fallback only).
+  String get oracleNativeLanguage;
+  @override
+
+  /// Non-null once the Oracle finishes the exam; holds the placement result.
+  Map<String, dynamic>? get oracleResult;
   @override
   @JsonKey(ignore: true)
   _$$ConversationStateImplCopyWith<_$ConversationStateImpl> get copyWith =>

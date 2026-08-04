@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../features/dashboard/presentation/screens/hunter_status_screen.dart';
+import '../features/dashboard/presentation/screens/dungeon_map_screen.dart';
 import '../features/conversation/presentation/screens/conversation_screen.dart';
 import '../features/dashboard/presentation/screens/session_summary_screen.dart';
 import '../features/subscription/presentation/screens/paywall_screen.dart';
@@ -11,17 +15,79 @@ import '../features/dashboard/presentation/screens/profile_edit_screen.dart';
 import '../features/chat_rooms/presentation/screens/voice_room_screen.dart';
 import '../features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import '../features/conversation/presentation/screens/level_exam_screen.dart';
+import '../features/economy/presentation/screens/shop_screen.dart';
+import '../features/economy/presentation/screens/inventory_screen.dart';
+import '../features/economy/presentation/screens/battle_pass_screen.dart';
+import '../features/economy/presentation/screens/collections_screen.dart';
+import '../features/economy/presentation/screens/fragments_exchange_screen.dart';
+import '../features/dashboard/presentation/screens/leaderboard_screen.dart';
+import '../core/widgets/system_mana_disruption_screen.dart';
+import '../features/auth/presentation/providers/auth_providers.dart';
+import 'splash_screen.dart';
+import 'navigation_resolver.dart';
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
+/// Router con redirección centralizada (Navigation-Audit · F3).
+///
+/// El `redirect` resuelve la pantalla inicial con el Navigation Decision Engine.
+/// `refreshListenable` re-evalúa el redirect cuando cambia la sesión o el modo dev.
+final routerProvider = Provider<GoRouter>((ref) {
+  // Listenable que notifica al router cuando cambia la sesión o el modo dev.
+  final navigationRefresh = _NavigationRefreshListenable(ref);
+
+  return GoRouter(
+    initialLocation: '/splash',
+    refreshListenable: navigationRefresh,
+    redirect: (context, state) async {
+      final path = state.uri.path;
+      // Rutas internas de onboarding que no deben ser redirigidas.
+      final internalRoutes = const {
+        '/splash',
+        '/onboarding',
+        '/oracle-test',
+        '/disruption',
+      };
+      if (internalRoutes.contains(path)) return null;
+
+      final user = ref.read(currentUserProvider);
+      final devMode = ref.read(devModeProvider);
+      final destination = await NavigationDecisionEngine.resolve(user: user, devMode: devMode);
+      final target = navDestinationToPath(destination);
+
+      if (path == target) return null;
+      return target;
+    },
+    routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/',
       builder: (context, state) => const WelcomeScreen(),
     ),
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: '/oracle-test',
+      builder: (context, state) {
+        final target = state.uri.queryParameters['target'];
+        final native = state.uri.queryParameters['native'];
+        return ConversationScreen(
+          oracleMode: true,
+          oracleTargetLanguage: target,
+          oracleNativeLanguage: native,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/hunter-status',
+      builder: (context, state) => const HunterStatusScreen(),
+    ),
+    GoRoute(
+      path: '/dungeon-map',
+      builder: (context, state) => const DungeonMapScreen(),
     ),
     GoRoute(
       path: '/home',
@@ -76,5 +142,59 @@ final GoRouter appRouter = GoRouter(
         return LevelExamScreen(levelCode: levelCode);
       },
     ),
+    GoRoute(
+      path: '/shop',
+      builder: (context, state) => const ShopScreen(),
+    ),
+    GoRoute(
+      path: '/inventory',
+      builder: (context, state) => const InventoryScreen(),
+    ),
+    GoRoute(
+      path: '/battle-pass',
+      builder: (context, state) => const BattlePassScreen(),
+    ),
+    GoRoute(
+      path: '/collections',
+      builder: (context, state) => const CollectionsScreen(),
+    ),
+    GoRoute(
+      path: '/fragments-exchange',
+      builder: (context, state) => const FragmentsExchangeScreen(),
+    ),
+    GoRoute(
+      path: '/leaderboard',
+      builder: (context, state) => const LeaderboardScreen(),
+    ),
+    GoRoute(
+      path: '/disruption',
+      builder: (context, state) {
+        final message = state.uri.queryParameters['message'] ?? 'DESCONEXIÓN DETECTADA CON LOS CRISTALES DE COMUNICACIÓN';
+        return SystemManaDisruptionScreen(errorMessage: message);
+      },
+    ),
   ],
-);
+  );
+});
+
+/// Listenable que re-evalúa el redirect cuando cambia la sesión o el modo dev.
+class _NavigationRefreshListenable extends ChangeNotifier {
+  _NavigationRefreshListenable(this._ref) {
+    // Observa cambios de sesión (currentUserProvider).
+    _subscription = _ref.listen(authStateProvider, (_, __) => notifyListeners());
+    // Observa cambios del modo desarrollador.
+    _devSub = _ref.listen(devModeProvider, (_, __) => notifyListeners());
+  }
+
+  final Ref _ref;
+  late final ProviderSubscription _subscription;
+  late final ProviderSubscription _devSub;
+
+  @override
+  void dispose() {
+    _subscription.close();
+    _devSub.close();
+    super.dispose();
+  }
+}
+

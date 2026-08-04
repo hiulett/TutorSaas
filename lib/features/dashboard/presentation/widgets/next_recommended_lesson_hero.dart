@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../data/models/lesson_catalog.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class NextRecommendedLessonHero extends StatelessWidget {
   final LessonData lesson;
@@ -49,7 +51,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
 
     return GlassCard(
       blur: 25,
-      opacity: 0.12,
+      opacity: AppColors.glassOpacity,
       border: Border.all(
         color: AppColors.runeViolet.withValues(alpha: 0.4),
         width: 1.5,
@@ -69,7 +71,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 240),
                 decoration: BoxDecoration(
                   color: AppColors.runeViolet.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(
                     color: AppColors.runeViolet.withValues(alpha: 0.5),
                     width: 1,
@@ -89,7 +91,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                         'SIGUIENTE PASO • ETAPA ${lesson.level}',
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
-                        style: GoogleFonts.hankenGrotesk(
+                        style: GoogleFonts.spaceGrotesk(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: AppColors.manaCyan,
@@ -103,8 +105,8 @@ class NextRecommendedLessonHero extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.onSurface.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: Text(
                   '${(stageCompletionPercentage * 100).toInt()}% de etapa superada',
@@ -134,13 +136,13 @@ class NextRecommendedLessonHero extends StatelessWidget {
                     ],
                   ),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: AppColors.onSurface.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   iconData,
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                   size: 26,
                 ),
               ),
@@ -153,7 +155,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                       lesson.title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                         fontSize: 17,
                       ),
                       maxLines: 1,
@@ -185,7 +187,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: AppColors.runeViolet.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
                   color: AppColors.runeViolet.withValues(alpha: 0.3),
                 ),
@@ -202,7 +204,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                     child: Text(
                       'Objetivo: ${lesson.mainObjective}',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -234,9 +236,9 @@ class NextRecommendedLessonHero extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.runeViolet,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.onSurface,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 elevation: 4,
                 shadowColor: AppColors.runeViolet.withValues(alpha: 0.5),
@@ -249,7 +251,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                   Flexible(
                     child: Text(
                       'Iniciar Lección de Voz Ahora',
-                      style: GoogleFonts.hankenGrotesk(
+                      style: GoogleFonts.spaceGrotesk(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                         letterSpacing: 0.2,
@@ -277,8 +279,8 @@ class NextRecommendedLessonHero extends StatelessWidget {
       builder: (context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF0F172A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            color: AppColors.sheetBackground,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -290,8 +292,8 @@ class NextRecommendedLessonHero extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
+                    color: AppColors.onSurface.withValues(alpha: 0.24),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                 ),
               ),
@@ -303,10 +305,10 @@ class NextRecommendedLessonHero extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Objetivo y Metas de la Lección',
-                      style: GoogleFonts.hankenGrotesk(
+                      style: GoogleFonts.spaceGrotesk(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.onSurface,
                       ),
                     ),
                   ),
@@ -318,12 +320,12 @@ class NextRecommendedLessonHero extends StatelessWidget {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: AppColors.runeViolet.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   '🎯 ${lesson.mainObjective}',
-                  style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4, fontWeight: FontWeight.w600),
+                  style: const TextStyle(color: AppColors.onSurface, fontSize: 13, height: 1.4, fontWeight: FontWeight.w600),
                 ),
               ),
               const SizedBox(height: 20),
@@ -344,7 +346,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
                         const Icon(Icons.check_circle_outline_rounded, color: AppColors.manaCyan, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(g.text, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                          child: Text(g.text, style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.7), fontSize: 12)),
                         ),
                       ],
                     ),
@@ -353,7 +355,7 @@ class NextRecommendedLessonHero extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 '💡 Frases Recomendadas (2 y 3 Estrellas ⭐⭐/⭐⭐⭐):',
-                style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(color: AppColors.royalGold, fontWeight: FontWeight.bold, fontSize: 13),
               ),
               const SizedBox(height: 8),
               if (lesson.usefulPhrases.isEmpty)
@@ -365,14 +367,14 @@ class NextRecommendedLessonHero extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.star_border_rounded, color: Colors.amberAccent, size: 16),
+                        const Icon(Icons.star_border_rounded, color: AppColors.royalGold, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: RichText(
                             text: TextSpan(
                               style: const TextStyle(fontSize: 12),
                               children: [
-                                TextSpan(text: '${p.phrase} ', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                TextSpan(text: '${p.phrase} ', style: const TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold)),
                                 TextSpan(text: '(${p.translation})', style: const TextStyle(color: AppColors.onSurfaceVariant)),
                               ],
                             ),
@@ -390,10 +392,10 @@ class NextRecommendedLessonHero extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.runeViolet,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    foregroundColor: AppColors.onSurface,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
                   ),
-                  child: const Text('Entendido', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(AppLocalizations.of(context)!.hero_got_it, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

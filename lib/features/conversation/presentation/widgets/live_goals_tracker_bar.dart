@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_motion.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/segmented_bar.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 
 class LiveGoalsTrackerBar extends StatelessWidget {
@@ -26,31 +28,45 @@ class LiveGoalsTrackerBar extends StatelessWidget {
     return GestureDetector(
       onTap: onTapCompass,
       child: GlassCard(
-        blur: 4, opacity: 0.08,
+        blur: 4, opacity: AppColors.glassOpacity,
         border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.flag_rounded, color: AppColors.emeraldGreen, size: 16),
-            const SizedBox(width: 8),
-            Text('$completedCount/$totalCount', style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: goals.asMap().entries.map((entry) {
-                    final idx = entry.key + 1;
-                    final g = entry.value;
-                    final isDone = goalEvaluationResults[g.id] == true;
-                    return _GoalChip(index: idx, isDone: isDone);
-                  }).toList(),
+            Row(
+              children: [
+                const Icon(Icons.flag_rounded, color: AppColors.emeraldGreen, size: 16),
+                const SizedBox(width: 8),
+                Text('$completedCount/$totalCount', style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: goals.asMap().entries.map((entry) {
+                        final idx = entry.key + 1;
+                        final g = entry.value;
+                        final isDone = goalEvaluationResults[g.id] == true;
+                        return _GoalChip(index: idx, isDone: isDone);
+                      }).toList(),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                const Icon(Icons.explore_rounded, color: AppColors.manaCyanDim, size: 18),
+              ],
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.explore_rounded, color: AppColors.manaCyanDim, size: 18),
+            if (totalCount > 0) ...[
+              const SizedBox(height: 8),
+              SegmentedBar(
+                value: completedCount / totalCount,
+                segments: totalCount,
+                height: 4,
+                color: AppColors.emeraldGreen,
+              ),
+            ],
           ],
         ),
       ),
@@ -78,9 +94,9 @@ class _GoalChipState extends State<_GoalChip>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _controller = AnimationController(vsync: this, duration: AppMotion.standard);
     _scaleAnim = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: Curves.easeOutBack)),
+      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.3, curve: AppMotion.curveSpring)),
     );
     _glowAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.3, 1.0, curve: Curves.easeOut)),
@@ -117,16 +133,16 @@ class _GoalChipState extends State<_GoalChip>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: isDone ? AppColors.emeraldGreen.withValues(alpha: 0.2 + glow * 0.3) : Colors.white.withValues(alpha: 0.04),
+                color: isDone ? AppColors.emeraldGreen.withValues(alpha: 0.2 + glow * 0.3) : AppColors.onSurface.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: isDone ? AppColors.emeraldGreen.withValues(alpha: 0.5 + glow * 0.5) : Colors.white12),
+                border: Border.all(color: isDone ? AppColors.emeraldGreen.withValues(alpha: 0.5 + glow * 0.5) : AppColors.onSurface.withValues(alpha: 0.12)),
                 boxShadow: isDone && glow > 0 ? [BoxShadow(color: AppColors.emeraldGreen.withValues(alpha: glow * 0.4), blurRadius: 8 * glow)] : null,
               ),
               child: Row(
                 children: [
-                  Icon(isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, size: 12, color: isDone ? AppColors.emeraldGreen : Colors.white38),
+                  Icon(isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, size: 12, color: isDone ? AppColors.emeraldGreen : AppColors.onSurface.withValues(alpha: 0.38)),
                   const SizedBox(width: 4),
-                  Text('M${widget.index}', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDone ? AppColors.emeraldGreen : Colors.white70)),
+                  Text('M${widget.index}', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDone ? AppColors.emeraldGreen : AppColors.onSurface.withValues(alpha: 0.7))),
                 ],
               ),
             ),

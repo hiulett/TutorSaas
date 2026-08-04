@@ -22,6 +22,18 @@ class PlacementResult with _$PlacementResult {
     /// Study plan bullet points generated for this level
     required List<String> studyPlan,
     DateTime? completedAt,
+    /// Game rank assigned by the AI placement evaluator (E, D, C, B, A, S, SS, SSS)
+    String? gameRank,
+    /// Dimension scores (0-100) from the AI evaluator
+    Map<String, int>? scores,
+    /// Strengths detected by the AI evaluator
+    List<String>? strengths,
+    /// Weaknesses detected by the AI evaluator
+    List<String>? weaknesses,
+    /// AI explanation of the assigned level
+    String? explanation,
+    /// Recommended focus area from the AI evaluator
+    String? recommendedFocus,
   }) = _PlacementResult;
 
   factory PlacementResult.fromJson(Map<String, dynamic> json) =>
