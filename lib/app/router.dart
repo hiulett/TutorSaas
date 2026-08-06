@@ -53,6 +53,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final destination = await NavigationDecisionEngine.resolve(user: user, devMode: devMode);
       final target = navDestinationToPath(destination);
 
+      if (target == '/home') {
+        // Con perfil → dashboard. La raíz '/' (welcome tras splash) se lleva al
+        // dashboard, pero el resto de secciones navegan libremente.
+        if (path == '/') return '/home';
+        return null;
+      }
+
+      // Sin sesión (welcome) o sin perfil (onboarding): forzar el destino.
       if (path == target) return null;
       return target;
     },

@@ -7,7 +7,8 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/segmented_bar.dart';
 import '../../data/models/lesson_catalog.dart';
-import '../../domain/models/progress_utils.dart';
+import '../../domain/models/lesson_unlock_service.dart';
+import '../../domain/models/mission_progress_service.dart';
 import '../providers/dashboard_providers.dart';
 
 /// Mapa de Mazmorras (paridad con PlantillaHtml/learning_dungeon_map_gateways).
@@ -29,17 +30,18 @@ class DungeonMapScreen extends ConsumerWidget {
     final completedLessonsAsync = ref.watch(completedLessonsProvider);
     final completedLessons = completedLessonsAsync.value ?? [];
 
-    bool isLessonCompleted(String lessonId) {
-      return completedLessons.any(
-        (item) => item['scenario_id'] == lessonId || item['id'] == lessonId,
-      );
-    }
-
     bool isLessonUnlocked(String lessonId) {
-      final catalogIndex = LessonCatalog.catalog.indexWhere((l) => l.id == lessonId);
-      if (catalogIndex == 0) return true;
-      if (catalogIndex < 0) return false;
-      return isLessonCompleted(LessonCatalog.catalog[catalogIndex - 1].id);
+      final lesson = LessonCatalog.catalog.firstWhere(
+        (l) => l.id == lessonId,
+        orElse: () => LessonCatalog.catalog.first,
+      );
+      final state = LessonUnlockService.classify(
+        lesson: lesson,
+        userCefr: cefrCode,
+        completedLessons: completedLessons,
+        catalog: LessonCatalog.catalog,
+      );
+      return state != LessonUnlockState.locked;
     }
 
     // Agrupar catálogo por nivel.
@@ -48,18 +50,30 @@ class DungeonMapScreen extends ConsumerWidget {
       byLevel.putIfAbsent(lesson.level.toUpperCase(), () => []).add(lesson);
     }
 
-    // Progreso real del nivel actual: completadas / total de lecciones del
-    // nivel. Si el nivel actual no tiene lecciones, usa el progreso global.
+    // Progreso real del nivel actual por objetivos completados:
+    // Σ completados(nivel) / Σ totales(nivel). Si el nivel no tiene lecciones,
+    // usa el progreso global de todos los objetivos del catálogo.
+    final completedGoalRows = ref.watch(completedGoalsProvider).value ?? [];
     final List<LessonData> currentLevelLessons =
         byLevel[_levelOrder[effectiveIndex]] ?? const [];
-    final List<String> currentLevelLessonIds =
-        currentLevelLessons.map((l) => l.id).toList();
-    final double headerProgress = currentLevelLessonIds.isEmpty
-        ? ProgressUtils.overallProgress(
-            completedLessons,
-            LessonCatalog.catalog.map((l) => l.id).toList(),
-          )
-        : ProgressUtils.stageProgress(completedLessons, currentLevelLessonIds);
+    final List<LessonData> progressLessons = currentLevelLessons.isEmpty
+        ? LessonCatalog.catalog
+        : currentLevelLessons;
+    final double headerProgress = MissionProgressService.lessonProgress(
+      completedGoals: progressLessons.fold<int>(
+        0,
+        (sum, l) =>
+            sum +
+            MissionProgressService.completedGoalsForScenario(
+              completedGoalRows,
+              l.id,
+            ),
+      ),
+      totalGoals: progressLessons.fold<int>(
+        0,
+        (sum, l) => sum + l.goals.length,
+      ),
+    );
 
     return Scaffold(
       body: CyberManhwaBackground(

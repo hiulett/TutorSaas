@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../features/onboarding/domain/models/cefr_rank.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../models/lesson_catalog.dart';
 
@@ -13,7 +14,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       final response = await _supabaseClient
           .from('user_language_profiles')
-          .select('xp_points, current_streak, languages(code, name, flag_emoji), cefr_levels(code, name)')
+          .select('xp_points, current_streak, game_rank, languages(code, name, flag_emoji), cefr_levels(code, name)')
           .eq('user_id', userId)
           .maybeSingle();
 
@@ -23,6 +24,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
           'streak': 1,
           'level': 'Principiante',
           'level_code': 'A1',
+          'game_rank': 'E',
           'language': 'Inglés',
           'language_emoji': '🇺🇸',
         };
@@ -38,12 +40,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final cefr = response['cefr_levels'] as Map<String, dynamic>?;
       final cefrName = cefr?['name'] as String? ?? 'Principiante';
       final cefrCode = cefr?['code'] as String? ?? 'A1';
+      final gameRank = (response['game_rank'] as String?)?.isNotEmpty == true
+          ? (response['game_rank'] as String)!
+          : CefrRank.gameRankFromCefr(cefrCode);
 
       return {
         'xp': xp,
         'streak': streak,
         'level': cefrName,
         'level_code': cefrCode,
+        'game_rank': gameRank,
         'language': languageName,
         'language_emoji': languageEmoji,
       };
@@ -53,6 +59,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         'streak': 1,
         'level': 'Principiante',
         'level_code': 'A1',
+        'game_rank': 'E',
         'language': 'Inglés',
         'language_emoji': '🇺🇸',
       };

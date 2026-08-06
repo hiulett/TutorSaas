@@ -66,26 +66,34 @@ class _CharacterCreationWizardState extends ConsumerState<CharacterCreationWizar
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Title (una línea)
-          Center(
-            child: Text(
-              l10n.character_creation_title,
-              maxLines: 1,
-              style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.medievalAgedGoldLight, letterSpacing: 1),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Center(
-            child: Text(
-              l10n.character_creation_desc,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(fontSize: 12, color: AppColors.medievalTextDim, height: 1.3),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Text(
+                    l10n.character_creation_title,
+                    maxLines: 1,
+                    style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.medievalAgedGoldLight, letterSpacing: 1),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Center(
+                  child: Text(
+                    l10n.character_creation_desc,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(fontSize: 12, color: AppColors.medievalTextDim, height: 1.3),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -260,27 +268,33 @@ class _CharacterCreationWizardState extends ConsumerState<CharacterCreationWizar
                   child: child,
                 ),
               ),
-              child: _ClassSheet(
-                key: ValueKey(selected.id),
-                cls: selected,
-                locale: locale,
-                l10n: l10n,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: _ClassSheet(
+                  key: ValueKey(selected.id),
+                  cls: selected,
+                  locale: locale,
+                  l10n: l10n,
+                ),
               ),
             ),
 
           const SizedBox(height: 20),
 
           // Botón continuar
-          Center(
-            child: RunicButton(
-              label: l10n.character_creation_continue,
-              icon: Icons.auto_awesome_rounded,
-              onPressed: () => widget.onComplete(CharacterCreationData(
-                    playerClass: selected?.id ?? 'warrior',
-                    avatarIndex: _currentIndex,
-                  )),
-              isBusy: false,
-              backgroundColor: AppColors.medievalAgedGold,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Center(
+              child: RunicButton(
+                label: l10n.character_creation_continue,
+                icon: Icons.auto_awesome_rounded,
+                onPressed: () => widget.onComplete(CharacterCreationData(
+                      playerClass: selected?.id ?? 'warrior',
+                      avatarIndex: _currentIndex,
+                    )),
+                isBusy: false,
+                backgroundColor: AppColors.medievalAgedGold,
+              ),
             ),
           ),
         ],
@@ -301,104 +315,103 @@ class _ClassSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = cls.color;
     final abilities = cls.abilitiesFor(locale);
-    return Center(
-      child: Container(
-        width: MediaQuery.of(context).size.width - 8,
-        decoration: BoxDecoration(
-          color: AppColors.medievalBg.withValues(alpha: 0.65),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.medievalAgedGold.withValues(alpha: 0.4), width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: clase · rol · rarity
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          cls.nameFor(locale),
-                          style: AppTypography.subtitle(context).copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.medievalAgedGoldLight,
-                            fontSize: 16,
-                          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.medievalBg.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.medievalAgedGold.withValues(alpha: 0.4), width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: clase · rol · rarity
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cls.nameFor(locale),
+                        style: AppTypography.subtitle(context).copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.medievalAgedGoldLight,
+                          fontSize: 16,
                         ),
-                        Text(
-                          cls.roleFor(locale),
-                          style: GoogleFonts.jetBrainsMono(fontSize: 9, color: AppColors.medievalTextDim, letterSpacing: 0.5),
-                        ),
-                      ],
-                    ),
+                      ),
+                      Text(
+                        cls.roleFor(locale),
+                        style: GoogleFonts.jetBrainsMono(fontSize: 9, color: AppColors.medievalTextDim, letterSpacing: 0.5),
+                      ),
+                    ],
                   ),
-                  _RarityChip(rarity: cls.rarity, color: color),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // RADAR (amplio)
-              ClassStatsRadar(cls: cls, l10n: l10n),
-              const SizedBox(height: 8),
-
-              // Descripción
-              if (cls.descriptionFor(locale).isNotEmpty)
-                Text(
-                  cls.descriptionFor(locale),
-                  style: AppTypography.body(context).copyWith(fontSize: 11, height: 1.35, color: AppColors.medievalText),
                 ),
-              const SizedBox(height: 8),
+                _RarityChip(rarity: cls.rarity, color: color),
+              ],
+            ),
+            const SizedBox(height: 8),
 
-              // Especialidad (combate) + afinidad
+            // RADAR (amplio)
+            ClassStatsRadar(cls: cls, l10n: l10n),
+            // Separación amplia: evita que el título inferior del radar
+            // (velocidad) se superponga con la descripción.
+            const SizedBox(height: 30),
+
+            // Descripción
+            if (cls.descriptionFor(locale).isNotEmpty)
+              Text(
+                cls.descriptionFor(locale),
+                style: AppTypography.body(context).copyWith(fontSize: 11, height: 1.35, color: AppColors.medievalText),
+              ),
+            const SizedBox(height: 8),
+
+            // Especialidad (combate) + afinidad
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                if (cls.combatTypeFor(locale).isNotEmpty)
+                  _MetaChip(label: l10n.character_combat_label, value: cls.combatTypeFor(locale), color: color),
+                if (cls.affinityFor(locale).isNotEmpty)
+                  _MetaChip(label: l10n.character_affinity_label, value: cls.affinityFor(locale), color: color),
+              ],
+            ),
+
+            // Habilidades
+            if (abilities.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.character_abilities_label,
+                style: AppTypography.tiny(context).copyWith(fontWeight: FontWeight.bold, color: AppColors.medievalTextDim, letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 4),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
+                children: abilities.map((a) => _AbilityChip(text: a, color: color)).toList(),
+              ),
+            ],
+
+            // Estilo de juego
+            if (cls.playstyleFor(locale).isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (cls.combatTypeFor(locale).isNotEmpty)
-                    _MetaChip(label: l10n.character_combat_label, value: cls.combatTypeFor(locale), color: color),
-                  if (cls.affinityFor(locale).isNotEmpty)
-                    _MetaChip(label: l10n.character_affinity_label, value: cls.affinityFor(locale), color: color),
+                  Icon(Icons.play_circle_outline_rounded, size: 14, color: color),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      cls.playstyleFor(locale),
+                      style: AppTypography.tiny(context).copyWith(fontSize: 10, height: 1.3, color: AppColors.medievalTextDim),
+                    ),
+                  ),
                 ],
               ),
-
-              // Habilidades
-              if (abilities.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  l10n.character_abilities_label,
-                  style: AppTypography.tiny(context).copyWith(fontWeight: FontWeight.bold, color: AppColors.medievalTextDim, letterSpacing: 0.5),
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: abilities.map((a) => _AbilityChip(text: a, color: color)).toList(),
-                ),
-              ],
-
-              // Estilo de juego
-              if (cls.playstyleFor(locale).isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.play_circle_outline_rounded, size: 14, color: color),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        cls.playstyleFor(locale),
-                        style: AppTypography.tiny(context).copyWith(fontSize: 10, height: 1.3, color: AppColors.medievalTextDim),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
-          ),
+          ],
         ),
       ),
     );

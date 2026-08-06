@@ -1123,6 +1123,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get hero_got_it => 'Entendi';
 
   @override
+  String get hero_cefr_label => 'CEFR';
+
+  @override
+  String get hero_class_label => 'Classe';
+
+  @override
+  String get hero_member_since => 'Membro desde';
+
+  @override
   String get summary_view_vocab => 'VER VOCABULÁRIO';
 
   @override

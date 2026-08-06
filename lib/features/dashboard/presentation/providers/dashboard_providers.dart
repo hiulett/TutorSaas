@@ -241,6 +241,24 @@ final completedLessonsProvider = FutureProvider.autoDispose<List<Map<String, dyn
   }
 });
 
+/// Fetches the user's completed scenario goals — the single source of truth
+/// for mission progress (`user_scenario_goals`, rows with is_completed=true).
+final completedGoalsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  ref.watch(dashboardRefreshProvider);
+  try {
+    final supabase = ref.read(supabaseClientProvider);
+    final res = await supabase
+        .from('user_scenario_goals')
+        .select('scenario_id, goal_id, is_completed')
+        .eq('user_id', user.id);
+    return List<Map<String, dynamic>>.from(res as List);
+  } catch (_) {
+    return [];
+  }
+});
+
 /// Fetches practice minutes by day for the last 28 days (4 weeks heatmap)
 final practiceHeatmapProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
   final user = ref.watch(currentUserProvider);

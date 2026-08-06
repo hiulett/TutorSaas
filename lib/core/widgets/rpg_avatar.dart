@@ -20,12 +20,25 @@ class RpgAvatar extends StatelessWidget {
     this.hunterClass,
   });
 
+  /// Mapa de clase → asset local del avatar (avatares del onboarding).
+  static const Map<String, String> _classAssets = {
+    'warrior': 'assets/images/avatars/avatar_berserker_01.png',
+    'mage': 'assets/images/avatars/avatar_mage_01.png',
+    'assassin': 'assets/images/avatars/avatar_assassin_01.png',
+    'knight': 'assets/images/avatars/avatar_knight_01.png',
+    'archer': 'assets/images/avatars/avatar_archer_01.png',
+    'summoner': 'assets/images/avatars/avatar_summoner_01.png',
+    'paladin': 'assets/images/avatars/avatar_paladin_01.png',
+    'necromancer': 'assets/images/avatars/avatar_necromancer_01.png',
+  };
+
   @override
   Widget build(BuildContext context) {
     // Ignore DiceBear to enforce RPG immersion
     final bool isDiceBear = avatarUrl?.contains('dicebear.com') ?? false;
-    final bool isClassName = avatarUrl == 'warrior' || avatarUrl == 'mage' || avatarUrl == 'assassin' || avatarUrl == 'necromancer' || avatarUrl == 'priest';
+    final bool isClassName = _classAssets.containsKey(avatarUrl);
     final bool hasValidImage = avatarUrl != null && !isDiceBear && !isClassName && avatarUrl!.isNotEmpty && avatarUrl!.startsWith('http');
+    final String? classAsset = isClassName ? _classAssets[avatarUrl] : null;
 
     final String resolvedClass = hunterClass ?? (isClassName ? avatarUrl! : 'warrior');
 
@@ -55,6 +68,16 @@ class RpgAvatar extends StatelessWidget {
         case 'necromancer':
           borderCol = AppColors.runeViolet;
           break;
+        case 'knight':
+        case 'paladin':
+          borderCol = AppColors.royalGold;
+          break;
+        case 'archer':
+          borderCol = AppColors.emeraldGreen;
+          break;
+        case 'summoner':
+          borderCol = AppColors.blindMagenta;
+          break;
         default:
           borderCol = AppColors.manaCyan;
       }
@@ -83,7 +106,13 @@ class RpgAvatar extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => _buildFallback(resolvedClass),
               )
-            : _buildFallback(resolvedClass),
+            : classAsset != null
+                ? Image.asset(
+                    classAsset,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildFallback(resolvedClass),
+                  )
+                : _buildFallback(resolvedClass),
       ),
     );
   }
@@ -110,8 +139,21 @@ class RpgAvatar extends StatelessWidget {
         iconColor = AppColors.runeViolet;
         break;
       case 'priest':
+      case 'paladin':
         classIcon = Icons.volunteer_activism;
         iconColor = AppColors.emeraldGreen;
+        break;
+      case 'knight':
+        classIcon = Icons.military_tech;
+        iconColor = AppColors.royalGold;
+        break;
+      case 'archer':
+        classIcon = Icons.gps_fixed;
+        iconColor = AppColors.emeraldGreen;
+        break;
+      case 'summoner':
+        classIcon = Icons.auto_fix_high;
+        iconColor = AppColors.blindMagenta;
         break;
       default:
         classIcon = Icons.shield_moon;

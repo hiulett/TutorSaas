@@ -406,6 +406,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return HunterClass.findById(heroClass).getName(l10n);
   }
 
+  /// Formatea una fecha como "dd/MM/yyyy" para la licencia del gremio.
+  String _formatDate(DateTime date) {
+    final dd = date.day.toString().padLeft(2, '0');
+    final mm = date.month.toString().padLeft(2, '0');
+    return '$dd/$mm/${date.year}';
+  }
+
   /// Pantalla final del onboarding (Fase 2 auditoría): tarjeta del héroe.
   /// Resumen del aventurero (nombre, clase, CEFR y rango del juego) antes de
   /// entrar al reino. El guardado ya se completó en [_completeOnboardingAndPurchase].
@@ -447,100 +454,178 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Spacer(),
-                    Text(
-                      l10n.welcome_hunter_prefix,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.headline(context),
-                    ),
-                    Text(
-                      l10n.welcome_hunter_suffix,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.headline(context).copyWith(
-                        color: AppColors.royalGold,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      displayName,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.subtitle(context).copyWith(
-                        color: AppColors.manaCyan,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Tarjeta del héroe destacada (runic corners + royalGold)
-                    GlassCard(
-                      borderColor: AppColors.royalGold,
-                      border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.6), width: 1.5),
-                      showRunicCorners: true,
-                      runicColor: AppColors.royalGold,
-                      opacity: AppColors.glassOpacity,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: classColor.withValues(alpha: 0.18),
-                                border: Border.all(color: classColor.withValues(alpha: 0.5)),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Spacer(),
+                              Text(
+                                l10n.welcome_hunter_prefix,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.headline(context),
                               ),
-                              child: Icon(_heroClassIcon(heroClass), color: classColor, size: 34),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              _heroClassName(heroClass, l10n),
-                              style: AppTypography.title(context).copyWith(color: classColor),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildHeroRankPill(context, 'CEFR', cefrCode),
-                                const SizedBox(width: 12),
-                                _buildHeroRankPill(context, l10n.rank, gameRank),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            Text(
-                              CefrRank.rankDescription(gameRank),
-                              textAlign: TextAlign.center,
-                              style: AppTypography.bodyMuted(context).copyWith(
-                                color: AppColors.onSurface.withValues(alpha: 0.75),
-                                height: 1.4,
+                              Text(
+                                l10n.welcome_hunter_suffix,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.headline(context).copyWith(
+                                  color: AppColors.royalGold,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              Text(
+                                displayName,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.subtitle(context).copyWith(
+                                  color: AppColors.manaCyan,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Tarjeta de Licencia de Gremio (avatar real + nivel IA + detalles)
+                              GlassCard(
+                                borderColor: AppColors.royalGold,
+                                border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.6), width: 1.5),
+                                showRunicCorners: true,
+                                runicColor: AppColors.royalGold,
+                                opacity: AppColors.glassOpacity,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    children: [
+                                      // Avatar real del aventurero (imagen)
+                                      Container(
+                                        width: 120,
+                                        height: 120,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: classColor, width: 2),
+                                          boxShadow: [BoxShadow(color: classColor.withValues(alpha: 0.4), blurRadius: 16)],
+                                        ),
+                                        child: ClipOval(
+                                          child: Image.asset(
+                                            HunterClass.findById(heroClass).avatarAsset,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) => Container(
+                                              color: AppColors.surfaceContainerLow,
+                                              child: Icon(_heroClassIcon(heroClass), color: classColor, size: 44),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 14),
+                                      // Nombre del aventurero
+                                      Text(
+                                        displayName,
+                                        textAlign: TextAlign.center,
+                                        style: AppTypography.headline(context).copyWith(
+                                          color: AppColors.onSurface,
+                                          fontSize: 22,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      // Clase + rol
+                                      Text(
+                                        _heroClassName(heroClass, l10n),
+                                        style: AppTypography.subtitle(context).copyWith(
+                                          color: classColor,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 14),
+                                      // Nivel IA (CEFR + rango)
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          _buildHeroRankPill(context, l10n.hero_cefr_label, cefrCode),
+                                          const SizedBox(width: 12),
+                                          _buildHeroRankPill(context, l10n.rank, gameRank),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // Descripción del rango
+                                      Text(
+                                        CefrRank.rankDescription(gameRank),
+                                        textAlign: TextAlign.center,
+                                        style: AppTypography.bodyMuted(context).copyWith(
+                                          color: AppColors.onSurface.withValues(alpha: 0.75),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 14),
+                                      // Detalles de licencia (clase + fecha)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.3)),
+                                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                                        ),
+                                        child: Wrap(
+                                          alignment: WrapAlignment.center,
+                                          crossAxisAlignment: WrapCrossAlignment.center,
+                                          spacing: 14,
+                                          runSpacing: 6,
+                                          children: [
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.badge_outlined, size: 14, color: AppColors.royalGold),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  '${l10n.hero_class_label}: ${_heroClassName(heroClass, l10n)}',
+                                                  style: AppTypography.tiny(context).copyWith(color: AppColors.onSurfaceVariant),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.calendar_month_outlined, size: 14, color: AppColors.royalGold),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  '${l10n.hero_member_since}: ${_formatDate(DateTime.now())}',
+                                                  style: AppTypography.tiny(context).copyWith(color: AppColors.onSurfaceVariant),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              Text(
+                                l10n.adventure_begins,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.body(context).copyWith(
+                                  color: AppColors.onSurface.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              const Spacer(),
+                              RunicButton(
+                                label: l10n.enter_realm,
+                                icon: Icons.door_front_door_rounded,
+                                backgroundColor: AppColors.royalGold,
+                                foregroundColor: AppColors.voidBg,
+                                onPressed: () => context.go('/home'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
-                    Text(
-                      l10n.adventure_begins,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.body(context).copyWith(
-                        color: AppColors.onSurface.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    const Spacer(),
-                    RunicButton(
-                      label: l10n.enter_realm,
-                      icon: Icons.door_front_door_rounded,
-                      backgroundColor: AppColors.royalGold,
-                      foregroundColor: AppColors.voidBg,
-                      onPressed: () => context.go('/home'),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],

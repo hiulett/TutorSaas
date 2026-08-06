@@ -2188,6 +2188,24 @@ abstract class AppLocalizations {
   /// **'Got it'**
   String get hero_got_it;
 
+  /// No description provided for @hero_cefr_label.
+  ///
+  /// In en, this message translates to:
+  /// **'CEFR'**
+  String get hero_cefr_label;
+
+  /// No description provided for @hero_class_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get hero_class_label;
+
+  /// No description provided for @hero_member_since.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get hero_member_since;
+
   /// No description provided for @summary_view_vocab.
   ///
   /// In en, this message translates to:

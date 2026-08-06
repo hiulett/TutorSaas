@@ -423,8 +423,11 @@ class _LevelExamScreenState extends State<LevelExamScreen> {
                 opacity: AppColors.glassOpacity,
                 border: Border.all(color: AppColors.crimsonRed.withValues(alpha: 0.3)),
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceAround,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     ElevatedButton.icon(
                       onPressed: () {},

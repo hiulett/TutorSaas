@@ -9,6 +9,7 @@ class DraggableMonsterWidget extends StatefulWidget {
   final DungeonMonsterItem monster;
   final bool isSpeaking;
   final double progress; // Value from 0.0 to 1.0 (deals damage to boss HP)
+  final String? avatarAsset;
   final Function(bool isExpanded)? onExpandChanged;
 
   const DraggableMonsterWidget({
@@ -16,6 +17,7 @@ class DraggableMonsterWidget extends StatefulWidget {
     required this.monster,
     this.isSpeaking = false,
     this.progress = 0.0,
+    this.avatarAsset,
     this.onExpandChanged,
   });
 
@@ -78,6 +80,19 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
     if (widget.onExpandChanged != null) {
       widget.onExpandChanged!(_isExpanded);
     }
+  }
+
+  ImageProvider _resolveAvatar() {
+    final asset = widget.avatarAsset;
+    if (asset != null && asset.isNotEmpty) {
+      return AssetImage(asset);
+    }
+    final url = widget.monster.avatarUrl;
+    if (url.isNotEmpty) {
+      return NetworkImage(url);
+    }
+    // Fallback: avatar del catálogo cuando no hay ni asset ni URL.
+    return const AssetImage('assets/images/avatars/oracle_01.png');
   }
 
   @override
@@ -163,7 +178,7 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                                 backgroundColor: AppColors.monsterAvatarBg,
                                 child: CircleAvatar(
                                   radius: 90,
-                                  backgroundImage: NetworkImage(widget.monster.avatarUrl),
+                                  backgroundImage: _resolveAvatar(),
                                 ),
                               ),
                             ),
@@ -353,7 +368,7 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
                         ),
                         child: CircleAvatar(
                           radius: 17,
-                          backgroundImage: NetworkImage(widget.monster.avatarUrl),
+                          backgroundImage: _resolveAvatar(),
                         ),
                       ),
                       const SizedBox(width: 8),

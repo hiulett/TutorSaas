@@ -14,10 +14,9 @@ import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/runic_button.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../missions/presentation/widgets/guild_quest_board.dart';
-import '../widgets/guild_master_npc_banner.dart';
+import '../widgets/guild_master_floating_banner.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
-import '../../../missions/presentation/widgets/mission_board_widget.dart';
 
 /// GUILD-03: conteo de misiones colaborativas completadas por el gremio.
 /// La tabla `guild_collaborative_missions` es global al gremio (no expone
@@ -728,17 +727,13 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
 
                   const SizedBox(height: 28),
 
-                  // 2. MISIONES
+                  // 2. MISIONES (tablón unificado: activas + pool del gremio)
                   const GuildQuestBoard(),
-
-                  const SizedBox(height: 20),
-
-                  const MissionBoardWidget(),
 
                   const SizedBox(height: 28),
 
-                  // 3. NPC Maestre de Mesa
-                  const GuildMasterNpcBanner(),
+                  // 3. NPC Maestre de Mesa → control flotante arrastrable
+                  // (añadido como último hijo del Stack, ver abajo).
 
                   const SizedBox(height: 28),
 
@@ -765,6 +760,9 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
             ),
           ),
         ),
+
+        // NPC Maestre de Mesa — control flotante arrastrable (G-F).
+        const GuildMasterFloatingBanner(),
       ],
     );
 
@@ -787,11 +785,13 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
               ),
               title: Text(
                 l10n.guild_hall.toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.spaceGrotesk(
-                  fontSize: 20,
+                  fontSize: 17,
                   fontWeight: FontWeight.w900,
                   color: AppColors.onSurface,
-                  letterSpacing: 1.0,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -834,58 +834,57 @@ class _GuildHallHeader extends ConsumerWidget {
     final level = (bp['level'] as num?)?.toInt() ?? 1;
     final isPremium = bp['is_premium'] as bool? ?? false;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.guild_hall.toUpperCase(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.onSurface,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'RANGO: $rankLabel · $cefr',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                  color: rankColor,
-                ),
-              ),
-            ],
+        // Título en su propia línea: nunca se corta por el prestigio.
+        Text(
+          l10n.guild_hall.toUpperCase(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: AppColors.onSurface,
+            letterSpacing: 0.8,
           ),
         ),
-        const SizedBox(width: 8),
-        // Prestigio compacto (chip)
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.royalGold.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.4)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.military_tech_rounded, color: AppColors.royalGold, size: 14),
-              const SizedBox(width: 6),
-              Text(l10n.room_prestige('$level'), style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.royalGold)),
-              const SizedBox(width: 6),
-              Text(isPremium ? 'PREMIUM' : 'LIBRE', style: GoogleFonts.jetBrainsMono(fontSize: 8, color: isPremium ? AppColors.manaCyan : AppColors.onSurfaceVariant)),
-            ],
-          ),
+        const SizedBox(height: 4),
+        // Fila secundaria: rango + prestigio compacto.
+        Row(
+          children: [
+            Text(
+              'RANGO: $rankLabel · $cefr',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.8,
+                color: rankColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Prestigio compacto (chip)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.royalGold.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.military_tech_rounded, color: AppColors.royalGold, size: 12),
+                  const SizedBox(width: 4),
+                  Text(l10n.room_prestige('$level'), style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.royalGold)),
+                  const SizedBox(width: 4),
+                  Text(isPremium ? 'PREMIUM' : 'LIBRE', style: GoogleFonts.jetBrainsMono(fontSize: 7, color: isPremium ? AppColors.manaCyan : AppColors.onSurfaceVariant)),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );

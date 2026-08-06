@@ -1378,7 +1378,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Salta el inicio directo a la home y redirige a la pantalla de onboarding para testing.',
+                      'Modo desarrollador. No bloquea la app: solo afecta al onboarding cuando aún no hay perfil. Usa "Reiniciar historial" para volver a probarlo.',
                       style: TextStyle(
                         color: AppColors.onSurfaceVariant,
                         fontSize: 12,

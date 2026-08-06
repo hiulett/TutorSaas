@@ -1119,6 +1119,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hero_got_it => 'Got it';
 
   @override
+  String get hero_cefr_label => 'CEFR';
+
+  @override
+  String get hero_class_label => 'Class';
+
+  @override
+  String get hero_member_since => 'Member since';
+
+  @override
   String get summary_view_vocab => 'VIEW VOCABULARY';
 
   @override

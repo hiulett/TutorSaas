@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../../domain/models/mission_models.dart';
 import '../../domain/repositories/mission_repository.dart';
 
@@ -167,7 +168,7 @@ class MissionRepositoryImpl implements MissionRepository {
     try {
       final instance = await _client
           .from('mission_instances')
-          .select('current_value, target_value, status')
+          .select('current_value, target_value, status, user_id, quest_id')
           .eq('id', instanceId)
           .maybeSingle();
       if (instance == null) return false;
@@ -183,6 +184,16 @@ class MissionRepositoryImpl implements MissionRepository {
         'status': isDone ? 'completed' : 'active',
         if (isDone && !isAlreadyDone) 'completed_at': DateTime.now().toIso8601String(),
       }).eq('id', instanceId);
+
+      // Si es una misión del pool del gremio y se acaba de completar,
+      // regístrala en player_completed_quests (historial / ocultar del pool).
+      if (isDone && !isAlreadyDone) {
+        final questId = instance['quest_id'] as String?;
+        final userId = instance['user_id'] as String?;
+        if (questId != null && userId != null) {
+          await markGuildQuestCompleted(userId, questId);
+        }
+      }
       return true;
     } catch (_) {
       return false;
@@ -446,17 +457,118 @@ class MissionRepositoryImpl implements MissionRepository {
   // ── Guild Missions (colaborativas) ───────────────────────────────────────
 
   /// Pool de misiones del gremio (guild_quest_pool) activas.
-  Future<List<GuildQuest>> getGuildQuestPool() async {
+  Future<List<GuildQuest>> getGuildQuestPool({
+    int? languageId,
+    String? excludeCompletedFor,
+    int? limit,
+  }) async {
     try {
-      final data = await _client
+      var query = _client
           .from('guild_quest_pool')
           .select()
-          .eq('is_active', true)
-          .order('quest_type')
-          .order('created_at');
+          .eq('is_active', true);
+      if (languageId != null) {
+        query = query.eq('language_id', languageId);
+      }
+      if (excludeCompletedFor != null) {
+        final done = await _client
+            .from('player_completed_quests')
+            .select('quest_id')
+            .eq('user_id', excludeCompletedFor);
+        final doneIds = (done as List).map((r) => r['quest_id']).toList();
+        if (doneIds.isNotEmpty) {
+          query = query.not('id', 'in', doneIds);
+        }
+      }
+      final ordered = query.order('game_rank').order('quest_type');
+      final data = limit != null
+          ? await ordered.limit(limit!)
+          : await ordered;
       return (data as List).map((m) => GuildQuest.fromMap(m)).toList();
     } catch (_) {
       return [];
+    }
+  }
+
+  /// Misiones del pool ya completadas por el usuario (historial).
+  Future<List<GuildQuest>> getCompletedGuildQuests(String userId, {int? languageId}) async {
+    try {
+      var query = _client
+          .from('player_completed_quests')
+          .select('quest_id')
+          .eq('user_id', userId);
+      final done = await query;
+      final doneIds = (done as List).map((r) => r['quest_id'] as String).toList();
+      if (doneIds.isEmpty) return [];
+
+      var pool = _client
+          .from('guild_quest_pool')
+          .select()
+          .inFilter('id', doneIds)
+          .eq('is_active', true);
+      if (languageId != null) {
+        pool = pool.eq('language_id', languageId);
+      }
+      final data = await pool.order('game_rank').order('quest_type');
+      return (data as List).map((m) => GuildQuest.fromMap(m)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Registra una misión del pool como completada (idempotente).
+  Future<void> markGuildQuestCompleted(String userId, String questId) async {
+    try {
+      await _client.from('player_completed_quests').upsert(
+        {
+          'user_id': userId,
+          'quest_id': questId,
+          'completed_at': DateTime.now().toIso8601String(),
+        },
+        onConflict: 'user_id, quest_id',
+      );
+    } catch (_) {}
+  }
+
+  /// Acepta una misión del pool del gremio → mission_instance activa.
+  /// Valida el rango del aventurero (gate) y la cuota de misiones activas.
+  Future<MissionInstance?> acceptGuildQuest({
+    required String userId,
+    required String questId,
+    required String playerRank,
+  }) async {
+    try {
+      final quest = await _client
+          .from('guild_quest_pool')
+          .select()
+          .eq('id', questId)
+          .eq('is_active', true)
+          .maybeSingle();
+      if (quest == null) return null;
+      final gq = GuildQuest.fromMap(quest);
+
+      // Gate de rango: no se pueden aceptar misiones de rango superior al suyo.
+      if (!CefrRank.canAcceptRank(playerRank, gq.gameRank)) return null;
+
+      // Cuota de misiones activas.
+      if (!(await canAcceptMission(userId, gq.questType))) return null;
+
+      final data = await _client.from('mission_instances').insert({
+        'user_id': userId,
+        'quest_id': gq.id,
+        'mission_type': gq.questType,
+        'title': gq.title,
+        'description': gq.description,
+        'objective_type': gq.objectiveType,
+        'target_value': gq.targetValue,
+        'xp_reward': gq.xpReward,
+        'gem_reward': gq.gemReward,
+        'item_reward': gq.itemReward,
+        'status': 'active',
+      }).select().single();
+      return MissionInstance.fromMap(data);
+    } catch (_) {
+      return null;
     }
   }
 

@@ -46,6 +46,12 @@ mixin _$ConversationState {
   /// The user's native language (used for instructions fallback only).
   String get oracleNativeLanguage => throw _privateConstructorUsedError;
 
+  /// True while the Oracle AI is running the final classification.
+  bool get oracleEvaluating => throw _privateConstructorUsedError;
+
+  /// True once the classification finished and the closing message was shown.
+  bool get oracleFinished => throw _privateConstructorUsedError;
+
   /// Non-null once the Oracle finishes the exam; holds the placement result.
   Map<String, dynamic>? get oracleResult => throw _privateConstructorUsedError;
 
@@ -75,6 +81,8 @@ abstract class $ConversationStateCopyWith<$Res> {
       bool isOracleEvaluation,
       String oracleTargetLanguage,
       String oracleNativeLanguage,
+      bool oracleEvaluating,
+      bool oracleFinished,
       Map<String, dynamic>? oracleResult});
 }
 
@@ -105,6 +113,8 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
     Object? isOracleEvaluation = null,
     Object? oracleTargetLanguage = null,
     Object? oracleNativeLanguage = null,
+    Object? oracleEvaluating = null,
+    Object? oracleFinished = null,
     Object? oracleResult = freezed,
   }) {
     return _then(_value.copyWith(
@@ -164,6 +174,14 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
           ? _value.oracleNativeLanguage
           : oracleNativeLanguage // ignore: cast_nullable_to_non_nullable
               as String,
+      oracleEvaluating: null == oracleEvaluating
+          ? _value.oracleEvaluating
+          : oracleEvaluating // ignore: cast_nullable_to_non_nullable
+              as bool,
+      oracleFinished: null == oracleFinished
+          ? _value.oracleFinished
+          : oracleFinished // ignore: cast_nullable_to_non_nullable
+              as bool,
       oracleResult: freezed == oracleResult
           ? _value.oracleResult
           : oracleResult // ignore: cast_nullable_to_non_nullable
@@ -195,6 +213,8 @@ abstract class _$$ConversationStateImplCopyWith<$Res>
       bool isOracleEvaluation,
       String oracleTargetLanguage,
       String oracleNativeLanguage,
+      bool oracleEvaluating,
+      bool oracleFinished,
       Map<String, dynamic>? oracleResult});
 }
 
@@ -223,6 +243,8 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
     Object? isOracleEvaluation = null,
     Object? oracleTargetLanguage = null,
     Object? oracleNativeLanguage = null,
+    Object? oracleEvaluating = null,
+    Object? oracleFinished = null,
     Object? oracleResult = freezed,
   }) {
     return _then(_$ConversationStateImpl(
@@ -282,6 +304,14 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
           ? _value.oracleNativeLanguage
           : oracleNativeLanguage // ignore: cast_nullable_to_non_nullable
               as String,
+      oracleEvaluating: null == oracleEvaluating
+          ? _value.oracleEvaluating
+          : oracleEvaluating // ignore: cast_nullable_to_non_nullable
+              as bool,
+      oracleFinished: null == oracleFinished
+          ? _value.oracleFinished
+          : oracleFinished // ignore: cast_nullable_to_non_nullable
+              as bool,
       oracleResult: freezed == oracleResult
           ? _value._oracleResult
           : oracleResult // ignore: cast_nullable_to_non_nullable
@@ -308,6 +338,8 @@ class _$ConversationStateImpl implements _ConversationState {
       this.isOracleEvaluation = false,
       this.oracleTargetLanguage = 'en',
       this.oracleNativeLanguage = 'es',
+      this.oracleEvaluating = false,
+      this.oracleFinished = false,
       final Map<String, dynamic>? oracleResult})
       : _messages = messages,
         _goalEvaluationResults = goalEvaluationResults,
@@ -380,6 +412,16 @@ class _$ConversationStateImpl implements _ConversationState {
   @JsonKey()
   final String oracleNativeLanguage;
 
+  /// True while the Oracle AI is running the final classification.
+  @override
+  @JsonKey()
+  final bool oracleEvaluating;
+
+  /// True once the classification finished and the closing message was shown.
+  @override
+  @JsonKey()
+  final bool oracleFinished;
+
   /// Non-null once the Oracle finishes the exam; holds the placement result.
   final Map<String, dynamic>? _oracleResult;
 
@@ -395,7 +437,7 @@ class _$ConversationStateImpl implements _ConversationState {
 
   @override
   String toString() {
-    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, selectedTactic: $selectedTactic, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleResult: $oracleResult)';
+    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, selectedTactic: $selectedTactic, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleEvaluating: $oracleEvaluating, oracleFinished: $oracleFinished, oracleResult: $oracleResult)';
   }
 
   @override
@@ -431,6 +473,10 @@ class _$ConversationStateImpl implements _ConversationState {
                 other.oracleTargetLanguage == oracleTargetLanguage) &&
             (identical(other.oracleNativeLanguage, oracleNativeLanguage) ||
                 other.oracleNativeLanguage == oracleNativeLanguage) &&
+            (identical(other.oracleEvaluating, oracleEvaluating) ||
+                other.oracleEvaluating == oracleEvaluating) &&
+            (identical(other.oracleFinished, oracleFinished) ||
+                other.oracleFinished == oracleFinished) &&
             const DeepCollectionEquality()
                 .equals(other._oracleResult, _oracleResult));
   }
@@ -452,6 +498,8 @@ class _$ConversationStateImpl implements _ConversationState {
       isOracleEvaluation,
       oracleTargetLanguage,
       oracleNativeLanguage,
+      oracleEvaluating,
+      oracleFinished,
       const DeepCollectionEquality().hash(_oracleResult));
 
   @JsonKey(ignore: true)
@@ -478,6 +526,8 @@ abstract class _ConversationState implements ConversationState {
       final bool isOracleEvaluation,
       final String oracleTargetLanguage,
       final String oracleNativeLanguage,
+      final bool oracleEvaluating,
+      final bool oracleFinished,
       final Map<String, dynamic>? oracleResult}) = _$ConversationStateImpl;
 
   @override
@@ -521,6 +571,14 @@ abstract class _ConversationState implements ConversationState {
 
   /// The user's native language (used for instructions fallback only).
   String get oracleNativeLanguage;
+  @override
+
+  /// True while the Oracle AI is running the final classification.
+  bool get oracleEvaluating;
+  @override
+
+  /// True once the classification finished and the closing message was shown.
+  bool get oracleFinished;
   @override
 
   /// Non-null once the Oracle finishes the exam; holds the placement result.

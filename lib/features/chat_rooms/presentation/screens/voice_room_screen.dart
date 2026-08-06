@@ -1023,10 +1023,13 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                   ],
                 ),
               ),
-              const CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.runeViolet,
-                child: Icon(Icons.smart_toy_rounded, color: AppColors.aiGold, size: 18),
+              ClipOval(
+                child: Image.asset(
+                  'assets/images/avatars/oracle_01.png',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
+                ),
               ),
             ],
           ),

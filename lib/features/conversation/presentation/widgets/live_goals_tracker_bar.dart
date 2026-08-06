@@ -5,6 +5,7 @@ import '../../../../core/theme/app_motion.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/segmented_bar.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
+import '../../../dashboard/domain/models/mission_progress_service.dart';
 
 class LiveGoalsTrackerBar extends StatelessWidget {
   final List<ScenarioGoalItem> goals;
@@ -22,8 +23,12 @@ class LiveGoalsTrackerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (goals.isEmpty) return const SizedBox.shrink();
 
-    final completedCount = goals.where((g) => goalEvaluationResults[g.id] == true).length;
+    final completedCount = MissionProgressService.countCompletedGoals(goalEvaluationResults);
     final totalCount = goals.length;
+    final progressRatio = MissionProgressService.lessonProgress(
+      completedGoals: completedCount,
+      totalGoals: totalCount,
+    );
 
     return GestureDetector(
       onTap: onTapCompass,
@@ -61,7 +66,7 @@ class LiveGoalsTrackerBar extends StatelessWidget {
             if (totalCount > 0) ...[
               const SizedBox(height: 8),
               SegmentedBar(
-                value: completedCount / totalCount,
+                value: progressRatio,
                 segments: totalCount,
                 height: 4,
                 color: AppColors.emeraldGreen,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
@@ -8,8 +8,11 @@ import '../../../../core/widgets/quest_card.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../conversation/presentation/widgets/conversational_tactics_navigator.dart';
 import '../../data/models/lesson_catalog.dart';
+import '../../domain/models/lesson_unlock_service.dart';
+import '../../domain/models/mission_progress_service.dart';
+import '../providers/dashboard_providers.dart';
 
-class LearningPathRoadmap extends StatefulWidget {
+class LearningPathRoadmap extends ConsumerStatefulWidget {
   final String activeUserLevel;
   final List<Map<String, dynamic>> completedLessonsHistory;
 
@@ -22,10 +25,10 @@ class LearningPathRoadmap extends StatefulWidget {
   static const Color accentGreen = AppColors.accentGreen;
 
   @override
-  State<LearningPathRoadmap> createState() => _LearningPathRoadmapState();
+  ConsumerState<LearningPathRoadmap> createState() => _LearningPathRoadmapState();
 }
 
-class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
+class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
   late String _selectedLevel;
   final List<String> _levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -46,26 +49,6 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
         _selectedLevel = widget.activeUserLevel.toUpperCase();
       });
     }
-  }
-
-  bool _isLessonCompleted(String lessonId) {
-    return widget.completedLessonsHistory.any(
-      (item) => item['scenario_id'] == lessonId || item['id'] == lessonId,
-    );
-  }
-
-  int _getLessonScore(String lessonId) {
-    final item = widget.completedLessonsHistory.firstWhere(
-      (element) => element['scenario_id'] == lessonId || element['id'] == lessonId,
-      orElse: () => {},
-    );
-    if (item.containsKey('score')) {
-      return (item['score'] as num).toInt();
-    }
-    if (item.containsKey('fluency_score')) {
-      return (item['fluency_score'] as num).toInt();
-    }
-    return 88;
   }
 
   IconData _getIconData(String iconKey) {
@@ -98,13 +81,29 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final completedGoalRows = ref.watch(completedGoalsProvider).value ?? [];
     final stageLessons = LessonCatalog.catalog
         .where((l) => l.level.toUpperCase() == _selectedLevel)
         .toList();
 
-    final completedCount = stageLessons.where((l) => _isLessonCompleted(l.id)).length;
-    final totalCount = stageLessons.isEmpty ? 1 : stageLessons.length;
-    final stageProgress = (completedCount / totalCount).clamp(0.0, 1.0);
+    // Progreso de etapa por objetivos: Σ completados(etapa) / Σ totales(etapa).
+    final stageCompletedGoals = stageLessons.fold<int>(
+      0,
+      (sum, l) =>
+          sum +
+          MissionProgressService.completedGoalsForScenario(
+            completedGoalRows,
+            l.id,
+          ),
+    );
+    final stageTotalGoals = stageLessons.fold<int>(
+      0,
+      (sum, l) => sum + l.goals.length,
+    );
+    final stageProgress = MissionProgressService.lessonProgress(
+      completedGoals: stageCompletedGoals,
+      totalGoals: stageTotalGoals,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -129,7 +128,7 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
             ),
             const SizedBox(width: 8),
             Text(
-              '$completedCount/$totalCount Superadas',
+              '$stageCompletedGoals/$stageTotalGoals Objetivos',
               style: const TextStyle(
                 color: AppColors.onSurfaceVariant,
                 fontSize: 11,
@@ -239,14 +238,24 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
             itemCount: stageLessons.length,
             itemBuilder: (context, index) {
               final lesson = stageLessons[index];
-              final catalogIndex = LessonCatalog.catalog.indexWhere((l) => l.id == lesson.id);
-              final isCompleted = _isLessonCompleted(lesson.id);
-              final isNextLesson = !isCompleted &&
-                  (catalogIndex == 0 ||
-                      (catalogIndex > 0 && _isLessonCompleted(LessonCatalog.catalog[catalogIndex - 1].id)));
-              final isLocked = !isCompleted && !isNextLesson;
+              final state = LessonUnlockService.classify(
+                lesson: lesson,
+                userCefr: widget.activeUserLevel,
+                completedLessons: widget.completedLessonsHistory,
+                catalog: LessonCatalog.catalog,
+              );
+              final isCompleted = state == LessonUnlockState.completedByPlayer;
+              final isNextLesson = state == LessonUnlockState.nextAvailable;
+              final isUnlockedByOracle = state == LessonUnlockState.unlockedByOracle;
+              final isLocked = state == LessonUnlockState.locked;
 
-              final score = isCompleted ? _getLessonScore(lesson.id) : null;
+              final lessonCompletedGoals = MissionProgressService
+                  .completedGoalsForScenario(completedGoalRows, lesson.id);
+              final lessonTotalGoals = lesson.goals.length;
+              final lessonProgress = MissionProgressService.lessonProgress(
+                completedGoals: lessonCompletedGoals,
+                totalGoals: lessonTotalGoals,
+              );
               final iconData = _getIconData(lesson.iconKey);
 
               return _RoadmapNodeTile(
@@ -255,8 +264,10 @@ class _LearningPathRoadmapState extends State<LearningPathRoadmap> {
                 total: stageLessons.length,
                 isCompleted: isCompleted,
                 isNextLesson: isNextLesson,
+                isUnlockedByOracle: isUnlockedByOracle,
                 isLocked: isLocked,
-                score: score,
+                progress: lessonProgress,
+                progressSegments: lessonTotalGoals <= 0 ? 1 : lessonTotalGoals,
                 iconData: iconData,
                 isLast: index == stageLessons.length - 1,
               );
@@ -273,8 +284,10 @@ class _RoadmapNodeTile extends StatelessWidget {
   final int total;
   final bool isCompleted;
   final bool isNextLesson;
+  final bool isUnlockedByOracle;
   final bool isLocked;
-  final int? score;
+  final double progress;
+  final int progressSegments;
   final IconData iconData;
   final bool isLast;
 
@@ -284,8 +297,10 @@ class _RoadmapNodeTile extends StatelessWidget {
     required this.total,
     required this.isCompleted,
     required this.isNextLesson,
+    required this.isUnlockedByOracle,
     required this.isLocked,
-    required this.score,
+    required this.progress,
+    required this.progressSegments,
     required this.iconData,
     required this.isLast,
   });
@@ -303,6 +318,9 @@ class _RoadmapNodeTile extends StatelessWidget {
     } else if (isNextLesson) {
       nodeColor = AppColors.runeViolet.withValues(alpha: 0.25);
       borderColor = AppColors.manaCyan;
+    } else if (isUnlockedByOracle) {
+      nodeColor = AppColors.runeViolet.withValues(alpha: 0.12);
+      borderColor = AppColors.runeViolet;
     } else {
       nodeColor = AppColors.onSurface.withValues(alpha: 0.03);
       borderColor = AppColors.onSurface.withValues(alpha: 0.1);
@@ -336,10 +354,12 @@ class _RoadmapNodeTile extends StatelessWidget {
                 ),
                 child: Center(
                   child: isCompleted
-                      ? const Icon(Icons.check_rounded, color: accentGreen, size: 22)
+                      ? const Icon(Icons.emoji_events_rounded, color: accentGreen, size: 20)
                       : isNextLesson
                           ? const Icon(Icons.play_arrow_rounded, color: AppColors.onSurface, size: 24)
-                          : Icon(Icons.lock_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 18),
+                          : isUnlockedByOracle
+                              ? const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 18)
+                              : Icon(Icons.lock_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 18),
                 ),
               ),
 
@@ -350,7 +370,9 @@ class _RoadmapNodeTile extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     color: isCompleted
                         ? accentGreen.withValues(alpha: 0.5)
-                        : AppColors.onSurface.withValues(alpha: 0.08),
+                        : isUnlockedByOracle
+                            ? AppColors.runeViolet.withValues(alpha: 0.3)
+                            : AppColors.onSurface.withValues(alpha: 0.08),
                   ),
                 ),
             ],
@@ -364,11 +386,13 @@ class _RoadmapNodeTile extends StatelessWidget {
               child: QuestCard(
                 title: lesson.title,
                 description: lesson.description,
-                rank: isCompleted ? 'S' : (isNextLesson ? 'B' : 'D'),
+                rank: isCompleted
+                    ? 'S'
+                    : (isNextLesson ? 'B' : (isUnlockedByOracle ? 'O' : 'D')),
                 gemReward: isCompleted ? 0 : 15,
                 xpReward: isCompleted ? 0 : 100,
-                progress: isCompleted ? 1.0 : (isNextLesson ? 0.25 : 0.0),
-                progressSegments: 4,
+                progress: progress,
+                progressSegments: progressSegments,
                 onTap: isLocked ? () {
                   SystemSnack.show(context, '🔒 MAZMORRA BLOQUEADA: Completa los desafíos previos.', type: SystemSnackType.error);
                 } : () {

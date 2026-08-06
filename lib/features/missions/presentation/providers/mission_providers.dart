@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/i18n/language_settings.dart';
 import '../../data/repositories/mission_repository.dart';
 import '../../domain/repositories/mission_repository.dart';
 import '../../domain/models/mission_models.dart';
@@ -133,8 +134,42 @@ final guildMissionsProvider = FutureProvider.autoDispose<List<GuildMission>>((re
 });
 
 final guildQuestPoolProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref) async {
-  return ref.watch(missionRepositoryProvider).getGuildQuestPool();
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  final langSettings = ref.watch(userLanguageProvider);
+  final langId = _languageCodeToId(langSettings.learningLanguage);
+  // Excluye las ya completadas por el usuario y muestra solo 3 (rotación):
+  // al completarse se ocultan y aparecen las siguientes.
+  return ref.watch(missionRepositoryProvider).getGuildQuestPool(
+        languageId: langId,
+        excludeCompletedFor: user.id,
+        limit: 3,
+      );
 });
+
+/// Misiones del pool completadas por el usuario (filtro "cumplidas").
+final completedGuildQuestsProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  final langSettings = ref.watch(userLanguageProvider);
+  final langId = _languageCodeToId(langSettings.learningLanguage);
+  return ref.watch(missionRepositoryProvider).getCompletedGuildQuests(user.id, languageId: langId);
+});
+
+/// Mapea el código de idioma de aprendizaje de la app (en/fr/de/it) al
+/// language_id de la BD (1..4). Fallback a 1 (en).
+int _languageCodeToId(String code) {
+  switch (code.toLowerCase()) {
+    case 'fr':
+      return 2;
+    case 'de':
+      return 3;
+    case 'it':
+      return 4;
+    default:
+      return 1;
+  }
+}
 
 final globalEventsProvider = FutureProvider.autoDispose<List<GlobalEvent>>((ref) async {
   return ref.watch(missionRepositoryProvider).getActiveGlobalEvents();

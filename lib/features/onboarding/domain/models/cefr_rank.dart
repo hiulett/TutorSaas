@@ -60,4 +60,24 @@ class CefrRank {
     final normalized = rank.trim().toUpperCase();
     return _rankDescriptions[normalized] ?? 'Rango misterioso — sigue entrenando.';
   }
+
+  /// Orden de rangos del gremio (E más bajo → SSS más alto).
+  static const List<String> _rankOrder = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
+
+  /// Índice de un rango en la escala; -1 si no se reconoce.
+  static int rankIndex(String rank) {
+    return _rankOrder.indexOf(rank.trim().toUpperCase());
+  }
+
+  /// ¿El rango [player] es suficiente para aceptar una misión que exige
+  /// [requiredRank]? Devuelve true si no hay rango requerido o el jugador
+  /// tiene un rango igual o superior.
+  static bool canAcceptRank(String playerRank, String? requiredRank) {
+    if (requiredRank == null || requiredRank.trim().isEmpty) return true;
+    final p = rankIndex(playerRank);
+    final r = rankIndex(requiredRank);
+    if (p < 0) return false; // rango de jugador desconocido → no permite
+    if (r < 0) return true;  // rango requerido desconocido → no restringe
+    return p >= r;
+  }
 }

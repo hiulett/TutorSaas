@@ -12,9 +12,10 @@ enum NavDestination { welcome, onboarding, home }
 ///   1. Sin sesión activa → / (WelcomeScreen: login/registro). Esto aplica
 ///      SIEMPRE, incluso con devAlwaysShowOnboarding: sin JWT de Supabase el
 ///      pipeline de voz (llm-proxy) no puede autenticarse.
-///   2. Modo Desarrollo (devAlwaysShowOnboarding) Y sesión activa → /onboarding.
-///   3. Con sesión y SIN perfil → /onboarding.
-///   4. Con sesión y CON perfil → /home (dashboard).
+///   2. Con sesión y SIN perfil → /onboarding. El modo desarrollador NO fuerza
+///      el onboarding si el usuario ya completó su perfil: con perfil, siempre
+///      se accede a /home (toda la aplicación).
+///   3. Con sesión y CON perfil → /home (dashboard).
 class NavigationDecisionEngine {
   NavigationDecisionEngine._();
 
@@ -28,19 +29,16 @@ class NavigationDecisionEngine {
       return NavDestination.welcome;
     }
 
-    // 2. Modo desarrollo con sesión → onboarding (ignora perfil).
-    if (devMode) {
-      debugPrint('[Nav] Modo desarrollo con sesión → Onboarding');
-      return NavDestination.onboarding;
-    }
-
+    // 2/3. Con sesión: si no hay perfil → onboarding; si hay perfil → dashboard.
+    // El modo desarrollador solo afecta al onboarding cuando NO hay perfil aún
+    // (permite probarlo), pero NUNCA bloquea el acceso al resto de la app.
     final hasProfile = await _hasProfile(user.id);
     if (!hasProfile) {
-      debugPrint('[Nav] Sesión sin perfil → Onboarding');
+      debugPrint('[Nav] Sesión sin perfil → Onboarding${devMode ? ' (dev)' : ''}');
       return NavDestination.onboarding;
     }
 
-    debugPrint('[Nav] Sesión con perfil → Dashboard');
+    debugPrint('[Nav] Sesión con perfil → Dashboard${devMode ? ' (dev mode activo)' : ''}');
     return NavDestination.home;
   }
 

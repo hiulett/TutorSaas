@@ -350,8 +350,10 @@ No markdown, no explanation, no code blocks.
           .order('created_at', ascending: true);
 
       return (res as List).map((row) {
-        final role = row['role'] as String? ?? 'user';
-        final contentText = row['content_text'] as String? ?? '';
+        // Esquema vivo: `sender_role` + `text`. Fallback al esquema antiguo
+        // (`role` + `content_text`) por compatibilidad con migraciones previas.
+        final role = row['sender_role'] as String? ?? row['role'] as String? ?? 'user';
+        final contentText = row['text'] as String? ?? row['content_text'] as String? ?? '';
         return ConversationMessage(
           sender: role == 'user' ? 'user' : 'tutor',
           text: contentText,

@@ -38,7 +38,7 @@ class ClassStatsRadar extends StatelessWidget {
     };
 
     return SizedBox(
-      height: 205,
+      height: 210,
       width: double.infinity,
       child: RadarChart(
         RadarChartData(
@@ -49,14 +49,14 @@ class ClassStatsRadar extends StatelessWidget {
           ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 0),
           titleTextStyle: TextStyle(
             color: AppColors.medievalText,
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: FontWeight.w700,
-            height: 1.1,
+            height: 1.05,
           ),
           tickBorderData: BorderSide(color: AppColors.outlineVariant, width: 1),
-          // 0.5 deja espacio para el título inferior (velocidad) sin pisar
-          // la descripción que va debajo del radar.
-          titlePositionPercentageOffset: 0.5,
+          // 0.35 acerca los títulos al centro del radar, manteniéndolos
+          // dentro de la tarjeta (sin salirse por arriba/abajo/lados).
+          titlePositionPercentageOffset: 0.35,
           getTitle: (index, angle) {
             final idx = index % labels.length;
             return RadarChartTitle(

@@ -17,6 +17,7 @@ import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../../core/ai/placement_ai.dart';
 import '../../../../core/i18n/language_settings.dart';
 import '../../../../core/utils/text_diff_utils.dart';
+import '../../../onboarding/domain/models/cefr_rank.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Providers
@@ -52,6 +53,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   String? _userId;
   DateTime? _recordingStartTimestamp;
   int? _assessmentStart;
+  String? _assessmentId;
+  int _turnCounter = 0;
+  DateTime? _lastOracleQuestionAt;
 
   ConversationNotifier(this._repository, this._ref)
       : super(ConversationState.initial()) {
@@ -63,6 +67,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   Future<void> initSession({String? scenarioId, String? scenarioTitle}) async {
     final user = _ref.read(currentUserProvider);
     _userId = user?.id ?? 'guest_user';
+
+    // Reset completo del estado: nunca debe heredar flags de una sesión previa
+    // (p.ej. isOracleEvaluation=true de la Evaluación del Oráculo del onboarding).
+    state = ConversationState.initial();
 
     // Fetch latest scenario fields from Supabase DB to sync any edits saved from web_admin
     if (scenarioId != null || scenarioTitle != null) {
@@ -100,10 +108,15 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       // 2. If resuming, load historical messages from Supabase
       if (_conversationId != null) {
         final savedMessages = await _repository.loadConversationMessages(_conversationId!);
-        if (savedMessages.isNotEmpty) {
+        // Garantiza que el tutor inicia la conversación: solo reutiliza los
+        // mensajes guardados si existe al menos un mensaje de tutor con texto
+        // (evita chats vacíos por esquemas/cache viejos).
+        final hasTutorMessage = savedMessages.any((m) => m.sender == 'tutor' && m.text.trim().isNotEmpty);
+        if (savedMessages.isNotEmpty && hasTutorMessage) {
           state = state.copyWith(messages: savedMessages);
         } else if (lesson != null) {
-          // First time: set initial assistant message
+          // First time (or broken history): set initial assistant message,
+          // graded to the mission's CEFR level (from the catalog).
           state = state.copyWith(messages: [
             ConversationMessage(
               sender: 'tutor',
@@ -167,7 +180,29 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     );
     _conversationId = null;
     _assessmentStart = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    _turnCounter = 0;
+    _assessmentId = null;
     _ref.read(activeConversationIdProvider.notifier).state = null;
+
+    // Crea la sesión de evaluación en oracle_assessments para poder registrar
+    // turnos (oracle_turns) durante la conversación.
+    if (_userId != null && !_userId!.startsWith('guest_')) {
+      try {
+        final client = Supabase.instance.client;
+        final row = await client.from('oracle_assessments').insert({
+          'user_id': _userId,
+          'cefr_level': 'A1',
+          'game_rank': 'E',
+          'target_language': target,
+          'native_language': native,
+          'ai_model': 'deepseek-v4-flash',
+          'prompt_version': 'v2',
+        }).select('id').single();
+        _assessmentId = row['id'] as String?;
+      } catch (e) {
+        debugPrint('Oracle assessment session create failed: $e');
+      }
+    }
 
     // Persistencia de la conversación reutilizando la tabla `conversations`.
     try {
@@ -417,11 +452,30 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       state = state.copyWith(isProcessing: false);
       _hasProcessedThisTurn = false;
 
+      // 4b. Registrar el turno (respuesta del usuario + pregunta del Oráculo).
+      if (userText.isNotEmpty) {
+        await _recordOracleTurn(
+          userText: userText,
+          oracleResponse: fullOracleResponse,
+        );
+      }
+
       // 5. Evaluate completion: the Oracle signals the end of the exam with
       //    the [EVALUATION_COMPLETE] marker, then the classifier runs.
       if (fullOracleResponse.contains('[EVALUATION_COMPLETE]')) {
+        // Extraer el resultado declarado por el Oráculo (lo que el usuario vio).
+        String? declaredCefr;
+        String? declaredRank;
+        final resultMatch = RegExp(r'\[RESULT:CEFR=([ABC][12]),RANK=([A-Z]+)\]')
+            .firstMatch(fullOracleResponse);
+        if (resultMatch != null) {
+          declaredCefr = resultMatch.group(1)?.toUpperCase();
+          declaredRank = resultMatch.group(2)?.toUpperCase();
+        }
+
         final cleaned = fullOracleResponse
             .replaceAll('[EVALUATION_COMPLETE]', '')
+            .replaceAll(RegExp(r'\[RESULT:[^\]]*\]'), '')
             .trim();
         if (cleaned.isNotEmpty) {
           final updatedMessages = List<ConversationMessage>.from(state.messages);
@@ -432,12 +486,16 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
             await _repository.saveMessage(_conversationId!, 'assistant', cleaned);
           }
         }
-        await _finalizeOracleEvaluation();
+        await _finalizeOracleEvaluation(
+          declaredCefr: declaredCefr,
+          declaredRank: declaredRank,
+        );
         return;
       }
 
       // 6. Otherwise speak the question and persist.
       if (fullOracleResponse.isNotEmpty) {
+        _lastOracleQuestionAt = DateTime.now();
         _speakTts(fullOracleResponse);
       }
       if (_conversationId != null && fullOracleResponse.isNotEmpty) {
@@ -453,29 +511,94 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     }
   }
 
+  /// Registra un turno de la evaluación en `oracle_turns` (best-effort).
+  /// Guarda la pregunta del Oráculo, la respuesta del usuario, el tiempo de
+  /// respuesta y una evaluación parcial simple basada en la longitud de la
+  /// respuesta (la evaluación fina la hace la IA al cerrar).
+  Future<void> _recordOracleTurn({
+    required String userText,
+    required String oracleResponse,
+  }) async {
+    if (_assessmentId == null) return;
+    try {
+      final question = state.messages
+          .where((m) => m.sender == 'tutor' && m.text.isNotEmpty)
+          .lastOrNull
+          ?.text;
+      // Pregunta real = la respuesta del Oráculo inmediatamente anterior a la
+      // respuesta del usuario actual (no la placeholder).
+      final prevTutor = state.messages
+          .where((m) => m.sender == 'tutor' && m.text.isNotEmpty && m.text != oracleResponse)
+          .lastOrNull
+          ?.text;
+
+      final responseTime = _lastOracleQuestionAt != null
+          ? DateTime.now().difference(_lastOracleQuestionAt!).inMilliseconds / 1000.0
+          : null;
+      final wordCount = userText.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
+      // Heurística parcial: 0-100 según longitud y variedad de la respuesta.
+      final partial = (wordCount * 6).clamp(0, 100);
+
+      _turnCounter++;
+      final client = Supabase.instance.client;
+      await client.from('oracle_turns').insert({
+        'assessment_id': _assessmentId,
+        'turn_order': _turnCounter,
+        'cefr_level': 'A1', // nivel real lo fija la IA en el cierre; provisional
+        'question_text': prevTutor ?? question ?? '',
+        'answer_transcript': userText,
+        'response_time_sec': responseTime,
+        'partial_score': partial,
+      });
+    } catch (e) {
+      debugPrint('Oracle turn record failed (non-blocking): $e');
+    }
+  }
+
   /// Construye el historial de mensajes para el examinador Oráculo, con el
-  /// system prompt de examen oral adaptativo CEFR (A1→C2).
+  /// system prompt de examen oral adaptativo CEFR (A1→C2) — v2.
   List<Map<String, String>> _buildOracleHistory() {
     final target = state.oracleTargetLanguage;
     final native = state.oracleNativeLanguage;
     final systemPrompt = '''
-You are the Oracle of the Guild, an ancient and wise being that examines young adventurers with a natural spoken conversation, never like a form. You are conducting an ORAL PLACEMENT EXAM in $target for a student whose native language is $native.
+You are the Oracle of the Guild, an ancient and wise being that examines young adventurers with a natural spoken conversation. You are conducting an ORAL PLACEMENT EXAM in $target for a student whose native language is $native. The exam must feel like a pleasant chat with a guild mentor, never like a form or a test.
+
+OPENING (FIRST TURN ONLY):
+Say exactly this warm greeting, then ask if they are ready:
+"Hello! Welcome to the Adventurer's Guild. My name is Oracle. Before assigning your first missions I'd like to know you a little better. Don't worry — this isn't an exam, just speak naturally. Are you ready?"
 
 CONVERSATION RULES:
 - Always speak ONLY in $target. Never use $native (except one short hint if the student is completely stuck).
-- Start with simple warm-up questions (A1: introduce yourself, name, family, likes/hobbies).
-- After every answer, silently assess it. Raise the difficulty one CEFR band at a time (A1 → A2 → B1 → B2 → C1 → C2) when the student answers well; lower it if they struggle.
-- Ask 2-3 questions per band. Adapt dynamically: follow up, ask for clarification, change topic or deepen based on what the student says. Never read a fixed list.
-- Keep each turn short (1-2 sentences plus one question). Sound like a mystical examiner: warm, objective, encouraging.
+- Be warm, friendly and encouraging. Never make the student feel judged.
+- Adapt dynamically: ask follow-ups related to the previous answer, clarify, deepen, or change topic naturally. Never read a fixed list.
+- Keep each turn short (1-2 sentences plus one question).
 - Do NOT correct or teach during the exam. You are assessing, not tutoring.
 
-METRICS TO TRACK SILENTLY (never mention them to the student): pronunciation, fluency, grammar, vocabulary, listening comprehension, ability to keep the conversation going, naturalness, correctness of the answers, language complexity, confidence, response time, coherence between questions and answers.
+CEFR PROGRESSION (ask ~5 questions per band, adapting to the student's level):
+- A1 (basic vocabulary): name, where from, age, likes, family.
+- A2 (simple sentences, past simple, more vocabulary): daily routine, what did you do yesterday, family, favorite food, hometown.
+- B1 (opinions, narrations, everyday topics): a difficult situation you solved, free time, dream vacation, ideal job, opinion about learning languages.
+- B2 (structured thought, argumentation): pros and cons of remote work, a memorable experience, an important decision, convince someone to visit your country, important skills today.
+- C1 (complex language, connectors, abstraction): impact of AI, technology in education, an ethical dilemma, compare two cultures, what makes a good leader.
+- C2 (fully natural, advanced, abstract): freedom vs responsibility, culture shapes identity, globalization effects, success: effort vs opportunity, society in 50 years.
+
+PROGRESSION RULES:
+- Start at A1. After each answer, silently assess it.
+- Move to the NEXT band only when the student answers well (roughly 3 of the last 5 with sufficient fluency and comprehension).
+- If the student gives very short answers (1-2 words), repeats errors, or clearly struggles on 2 consecutive questions in the current band, STOP: the student's level is the last band they dominated. Do NOT push to a higher band they cannot handle.
+- Never advance just because you reached a count of questions — advance based on ability.
+
+METRICS TO TRACK SILENTLY (never mention them to the student): pronunciation, fluency, grammar, vocabulary, listening comprehension, ability to keep the conversation going, naturalness, correctness, language complexity, confidence, response time, coherence between questions and answers.
 
 ENDING:
-- Once you have gathered enough evidence (roughly 10-16 student turns, adapting to performance), close the exam. Your FINAL message must:
-  1. Say a short mystical closing line in $target.
-  2. End with EXACTLY this token on its own line: [EVALUATION_COMPLETE]
-- Never use the token before the final message.''';
+- Once you have determined the final level (either by climbing to C2 or by the student struggling on 2 consecutive questions), close the exam.
+- Your FINAL message must:
+  1. Congratulate the student in an immersive, mystical tone and state the assigned CEFR level and Guild rank (use the scale E, D, C, B, A, S, SS, SSS where A1=E, A2=D, B1=C, B2=B, C1=A, C2=S).
+  2. Say a short mystical closing line in $target.
+  3. End with EXACTLY this machine-readable token on its own line, with NO extra text after it:
+[EVALUATION_COMPLETE][RESULT:CEFR=B1,RANK=C]
+  (replace B1/C with the real assigned level/rank — for example A1/E, A2/D, B2/B, C1/A, C2/S)
+- Never use either token before the final message.''';
 
     return [
       {'role': 'system', 'content': systemPrompt},
@@ -486,12 +609,16 @@ ENDING:
     ];
   }
 
-  /// Clasifica el resultado del examen (PlacementAiEvaluator), lo persiste en
-  /// `user_language_profiles` / `oracle_assessments` y lo expone en el estado
-  /// para que la pantalla lo devuelva al onboarding.
-  Future<void> _finalizeOracleEvaluation() async {
+  /// Clasifica el resultado del examen. Usa como fuente PRINCIPAL el nivel y
+  /// rango que el propio Oráculo declaró en su mensaje final
+  /// ([RESULT:CEFR=..,RANK=..]) — lo que el usuario vio en la conversación.
+  /// `PlacementAiEvaluator` se usa solo como respaldo si faltan o son inválidos.
+  Future<void> _finalizeOracleEvaluation({
+    String? declaredCefr,
+    String? declaredRank,
+  }) async {
     try {
-      state = state.copyWith(isProcessing: true);
+      state = state.copyWith(isProcessing: true, oracleEvaluating: true);
 
       final answers = state.messages
           .where((m) => m.sender == 'user')
@@ -506,8 +633,24 @@ ENDING:
         ai = await PlacementAiEvaluator.evaluatePlacement(answers, dio: dio);
       } catch (_) {}
 
-      final cefrLevel = _stringField(ai, 'cefr_level', 'A1');
-      final gameRank = _stringField(ai, 'game_rank', 'E');
+      final validCefrs = const ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      final aiCefr = _stringField(ai, 'cefr_level', '').toUpperCase();
+      final aiRank = _stringField(ai, 'game_rank', '').toUpperCase();
+
+      // Prioridad: lo declarado por el Oráculo > evaluación IA > fallback A1/E.
+      String cefrLevel = (declaredCefr != null && validCefrs.contains(declaredCefr))
+          ? declaredCefr
+          : (validCefrs.contains(aiCefr) ? aiCefr : 'A1');
+      String gameRank = (declaredRank != null && declaredRank.isNotEmpty)
+          ? declaredRank
+          : (aiRank.isNotEmpty ? aiRank : CefrRank.gameRankFromCefr(cefrLevel));
+
+      // Validación cruzada: si el rango declarado no es coherente con el CEFR
+      // (marcador mal formado), se deriva del CEFR elegido.
+      if (declaredRank == null || declaredRank.isEmpty) {
+        gameRank = CefrRank.gameRankFromCefr(cefrLevel);
+      }
+
       final explanation = _stringField(
         ai,
         'explanation',
@@ -543,14 +686,47 @@ ENDING:
         );
       }
 
+      // Mensaje épico del Oráculo con el resultado, narrado con su voz.
+      final closing = _buildOracleClosingMessage(
+        cefrLevel: cefrLevel,
+        gameRank: gameRank,
+      );
+
+      final updatedMessages = [
+        ...state.messages.where((m) => m.text.isNotEmpty),
+        ConversationMessage(sender: 'tutor', text: closing),
+      ];
+      if (_conversationId != null) {
+        try {
+          await _repository.saveMessage(_conversationId!, 'assistant', closing);
+        } catch (_) {}
+      }
+
       state = state.copyWith(
+        messages: updatedMessages,
         isProcessing: false,
+        oracleEvaluating: false,
+        oracleFinished: true,
         oracleResult: result,
       );
+
+      // Narrar el resultado con la voz del Oráculo.
+      _speakTts(closing);
     } catch (e) {
       debugPrint('Oracle evaluation finalize error: $e');
-      state = state.copyWith(isProcessing: false);
+      state = state.copyWith(isProcessing: false, oracleEvaluating: false);
     }
+  }
+
+  /// Construye el mensaje épico y breve de cierre del Oráculo con el resultado.
+  String _buildOracleClosingMessage({
+    required String cefrLevel,
+    required String gameRank,
+  }) {
+    // Mensaje corto y directo: nivel + rango, sin extender.
+    return 'Excellent. Your communication level is $cefrLevel. '
+        'You will begin as a Rank $gameRank Adventurer. '
+        'Welcome to the Guild.';
   }
 
   /// Upsert de la clasificación del Oráculo. Silencioso si la BD aún no tiene
@@ -595,8 +771,12 @@ ENDING:
 
     try {
       final client = Supabase.instance.client;
-      await client.from('oracle_assessments').insert({
-        'user_id': userId,
+      final Map<String, dynamic> scoresMap =
+          scores is Map ? Map<String, dynamic>.from(scores) : const {};
+      int _score(String key) =>
+          (scoresMap[key] as num?)?.toInt() ?? 0;
+
+      final payload = <String, dynamic>{
         'cefr_level': cefrLevel,
         'game_rank': gameRank,
         'target_language': state.oracleTargetLanguage,
@@ -605,11 +785,34 @@ ENDING:
         'strengths': strengths,
         'weaknesses': weaknesses,
         'explanation': explanation,
+        'ai_model': 'deepseek-v4-flash',
+        'prompt_version': 'v2',
+        'stopped_at_cefr': cefrLevel,
+        'duration_seconds': _assessmentDurationSeconds,
+        if (_score('pronunciation') > 0) 'scores_pronunciation': _score('pronunciation'),
+        if (_score('fluency') > 0) 'scores_fluency': _score('fluency'),
+        if (_score('grammar') > 0) 'scores_grammar': _score('grammar'),
+        if (_score('vocabulary') > 0) 'scores_vocabulary': _score('vocabulary'),
+        if (_score('listening') > 0) 'scores_comprehension': _score('listening'),
+        if (_score('naturalness') > 0) 'scores_naturalness': _score('naturalness'),
         if (recommendedFocus.isNotEmpty)
           'recommended_focus': recommendedFocus,
         'answers': answers,
-        'duration_seconds': _assessmentDurationSeconds,
-      });
+      };
+
+      if (_assessmentId != null) {
+        // Actualiza la sesión creada en initOracleSession (guarda los turns).
+        await client
+            .from('oracle_assessments')
+            .update(payload)
+            .eq('id', _assessmentId!);
+      } else {
+        // Fallback: si no había sesión previa, inserta una.
+        await client.from('oracle_assessments').insert({
+          'user_id': userId,
+          ...payload,
+        });
+      }
     } catch (_) {}
   }
 

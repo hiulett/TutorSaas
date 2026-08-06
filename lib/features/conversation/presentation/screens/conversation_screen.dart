@@ -10,13 +10,14 @@ import '../../domain/models/conversation_state.dart';
 import '../providers/conversation_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
-import '../../../dashboard/domain/models/progress_utils.dart';
+import '../../../dashboard/domain/models/mission_progress_service.dart';
 import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/live_goals_tracker_bar.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
 import '../../../../core/widgets/mana_meter_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
+import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../dashboard/data/models/hunter_catalog.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -100,6 +101,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
   @override
   void dispose() {
+    // Detener cualquier narración TTS en curso (p.ej. la del Oráculo) al salir
+    // de la pantalla, para que no siga sonando en dashboard/otras páginas.
+    try {
+      ref.read(conversationStateProvider.notifier).stopTts();
+    } catch (_) {}
     _textController.dispose();
     try {
       ref.read(dashboardRefreshProvider.notifier).state++;
@@ -573,34 +579,25 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
         SystemSnack.show(context, next.errorMessage!, type: SystemSnackType.error);
       }
-      // Examen del Oráculo terminado: devolver el resultado al onboarding.
-      if (isOracle && next.oracleResult != null && next.oracleResult != prev?.oracleResult) {
-        Future<void>.delayed(const Duration(milliseconds: 600), () {
-          if (!mounted) return;
-          final navigator = Navigator.of(context);
-          if (navigator.canPop()) {
-            navigator.pop(next.oracleResult);
-          } else {
-            context.go('/home');
-          }
-        });
+      // Examen del Oráculo terminado: mostrar botón para continuar
+      // (ya no hacemos pop automático; el usuario decide cuándo salir).
+      if (isOracle && next.oracleFinished && !(prev?.oracleFinished ?? false)) {
+        // Nada automático: la UI muestra el botón "CONTINUAR".
       }
     });
 
-    // Progress ratio: max(saved from completed conversations, current messages / 10) — coherente con el roadmap
-    final completedLessons = ref.watch(completedLessonsProvider).value ?? [];
-    final double savedProgress = ProgressUtils.lessonProgress(
-      completedLessons,
-      conversationState.activeScenarioId ?? '',
-    );
-    // Subtract the initial tutor greeting so it doesn't inflate the student's progress
-    final int progressMessages = (conversationState.messages.length - 1).clamp(0, 999);
-    final double currentProgress = (progressMessages / 10.0).clamp(0.0, 1.0);
-    final double realProgressRatio = savedProgress > currentProgress ? savedProgress : currentProgress;
-
+    // Progress ratio: objetivos completados (estado en memoria, persistido en
+    // user_scenario_goals en el mismo turno) / objetivos totales del catálogo.
+    // Fuente única de verdad: MissionProgressService (ver Docs/MissionProgressAudit).
     final currentLesson = LessonCatalog.getLessonById(
       conversationState.activeScenarioId,
       title: widget.scenarioTitle,
+    );
+    final double realProgressRatio = MissionProgressService.lessonProgress(
+      completedGoals: MissionProgressService.countCompletedGoals(
+        conversationState.goalEvaluationResults,
+      ),
+      totalGoals: currentLesson?.goals.length ?? 0,
     );
 
     return Scaffold(
@@ -666,6 +663,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ClipOval(
+                              child: Image.asset(
+                                'assets/images/avatars/oracle_01.png',
+                                width: 30,
+                                height: 30,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ],
@@ -825,28 +831,63 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
                         Widget bubble;
                         if (!isUser) {
+                          final bubbleContent = ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.78,
+                            ),
+                            child: _buildTutorBubble(context, message, conversationNotifier),
+                          );
+                          // El tutor (Oráculo) muestra su avatar junto a cada mensaje
+                          // en todas las conversaciones (misiones y evaluación).
                           bubble = Padding(
                             padding: const EdgeInsets.only(bottom: 24.0),
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth: MediaQuery.of(context).size.width * 0.78,
-                                ),
-                                child: _buildTutorBubble(context, message, conversationNotifier),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipOval(
+                                    child: Image.asset(
+                                      'assets/images/avatars/oracle_01.png',
+                                      width: 42,
+                                      height: 42,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: bubbleContent),
+                                ],
                               ),
                             ),
                           );
                         } else {
+                          final bubbleContent = ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.78,
+                            ),
+                            child: _buildUserBubble(context, message),
+                          );
+                          // El aventurero muestra su avatar (clase del jugador)
+                          // junto a cada mensaje, espejo del avatar del tutor.
+                          final heroClass =
+                              ref.watch(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior';
                           bubble = Padding(
                             padding: const EdgeInsets.only(bottom: 24.0),
                             child: Align(
                               alignment: Alignment.centerRight,
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth: MediaQuery.of(context).size.width * 0.78,
-                                ),
-                                child: _buildUserBubble(context, message),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(child: bubbleContent),
+                                  const SizedBox(width: 10),
+                                  RpgAvatar(
+                                    avatarUrl: heroClass,
+                                    hunterClass: heroClass,
+                                    initials: 'HÉROE',
+                                    size: 42,
+                                  ),
+                                ],
                               ),
                             ),
                           );
@@ -973,38 +1014,76 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           },
                         ),
 
-                        // Icon 3: Center Floating White Mic (Tap-to-Talk)
-                        GestureDetector(
-                          onTap: () {
-                            if (conversationState.isPlaying) {
-                              conversationNotifier.stopTts();
-                            } else if (conversationState.isRecording) {
-                              conversationNotifier.stopRecording();
-                            } else if (!conversationState.isProcessing) {
-                              conversationNotifier.startRecording();
-                            }
-                          },
-                          child: Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                        // Icon 3: Mic (Tap-to-Talk) — o botón CONTINUAR al terminar el Oráculo
+                        if (isOracle && conversationState.oracleFinished)
+                          GestureDetector(
+                            onTap: () {
+                              final navigator = Navigator.of(context);
+                              if (navigator.canPop()) {
+                                navigator.pop(conversationState.oracleResult);
+                              } else {
+                                context.go('/home');
+                              }
+                            },
+                            child: Container(
+                              width: 120,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24),
+                                color: AppColors.medievalAgedGold,
+                                boxShadow: [
+                                  BoxShadow(color: AppColors.medievalAgedGold.withValues(alpha: 0.5), blurRadius: 12),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.auto_awesome_rounded, color: AppColors.medievalBg, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'CONTINUAR',
+                                    style: GoogleFonts.jetBrainsMono(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.medievalBg,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: Icon(
-                              conversationState.isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-                              color: const Color(0xFF0F172A),
-                              size: 36,
+                          )
+                        else
+                          GestureDetector(
+                            onTap: () {
+                              if (conversationState.isPlaying) {
+                                conversationNotifier.stopTts();
+                              } else if (conversationState.isRecording) {
+                                conversationNotifier.stopRecording();
+                              } else if (!conversationState.isProcessing) {
+                                conversationNotifier.startRecording();
+                              }
+                            },
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                conversationState.isRecording ? Icons.stop_rounded : Icons.mic_rounded,
+                                color: const Color(0xFF0F172A),
+                                size: 36,
+                              ),
                             ),
                           ),
-                        ),
 
                         // Icon 4: Fingerprint (Huella de Voz & Biometría)
                         IconButton(
@@ -1033,11 +1112,59 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               ),
             ),
 
+            // Overlay: el Oráculo está evaluando la conversación
+            if (isOracle && conversationState.oracleEvaluating)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  color: AppColors.medievalBg.withValues(alpha: 0.82),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: CircularProgressIndicator(
+                            color: AppColors.medievalAgedGold,
+                            strokeWidth: 3,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'EL ORÁCULO ESTÁ EVALUANDO TU CONVERSACIÓN...',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            color: AppColors.medievalText,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Analizando tu nivel de comunicación...',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppColors.medievalTextDim,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
             // Floating Draggable & Collapsible Monster Overlay
             if (!isOracle)
               DraggableMonsterWidget(
                 monster: HunterCatalog.regularMonsters.first,
                 isSpeaking: conversationState.isPlaying || conversationState.isProcessing,
+                avatarAsset: 'assets/images/avatars/oracle_01.png',
               ),
           ],
         ),

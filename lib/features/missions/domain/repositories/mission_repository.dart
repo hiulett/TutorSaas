@@ -70,7 +70,34 @@ abstract class MissionRepository {
   // ── Guild Missions (colaborativas) ───────────────────────────────────────
 
   /// Pool de misiones del gremio (guild_quest_pool) activas.
-  Future<List<GuildQuest>> getGuildQuestPool();
+  ///
+  /// Filtra por [languageId] (1=en, 2=fr, 3=de, 4=it) cuando se indica y, si
+  /// [excludeCompletedFor] no es null, excluye las misiones que el usuario ya
+  /// completó (registradas en `player_completed_quests`). [limit] recorta a
+  /// las primeras N (p.ej. mostrar solo 3).
+  Future<List<GuildQuest>> getGuildQuestPool({
+    int? languageId,
+    String? excludeCompletedFor,
+    int? limit,
+  });
+
+  /// Misiones del pool ya completadas por el usuario (`player_completed_quests`),
+  /// unidas con `guild_quest_pool` para mostrar el historial (filtro "cumplidas").
+  Future<List<GuildQuest>> getCompletedGuildQuests(String userId, {int? languageId});
+
+  /// Registra una misión del pool como completada por el usuario.
+  /// Idempotente: si ya existe la fila, no duplica.
+  Future<void> markGuildQuestCompleted(String userId, String questId);
+
+  /// Acepta una misión del pool del gremio, creando una `mission_instance`
+  /// activa para el jugador. Valida que el rango del aventurero sea suficiente
+  /// ([playerRank]) para el rango requerido de la misión. Devuelve null si la
+  /// misión no existe, el rango no es suficiente o la cuota está llena.
+  Future<MissionInstance?> acceptGuildQuest({
+    required String userId,
+    required String questId,
+    required String playerRank,
+  });
 
   /// Misiones colaborativas del gremio activas en la ventana temporal.
   Future<List<GuildMission>> getActiveGuildMissions();

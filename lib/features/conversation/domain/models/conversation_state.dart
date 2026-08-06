@@ -35,6 +35,12 @@ class ConversationState with _$ConversationState {
     /// The user's native language (used for instructions fallback only).
     @Default('es') String oracleNativeLanguage,
 
+    /// True while the Oracle AI is running the final classification.
+    @Default(false) bool oracleEvaluating,
+
+    /// True once the classification finished and the closing message was shown.
+    @Default(false) bool oracleFinished,
+
     /// Non-null once the Oracle finishes the exam; holds the placement result.
     Map<String, dynamic>? oracleResult,
   }) = _ConversationState;

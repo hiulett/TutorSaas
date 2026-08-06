@@ -53,6 +53,10 @@ class MissionInstance {
   final String id;
   final String userId;
   final String? templateId;
+
+  /// ID de la misión del pool del gremio que originó esta instancia
+  /// (guild_quest_pool.id). Null si la misión no viene del pool.
+  final String? questId;
   final String missionType;
   final String title;
   final String description;
@@ -72,6 +76,7 @@ class MissionInstance {
     required this.id,
     required this.userId,
     this.templateId,
+    this.questId,
     required this.missionType,
     required this.title,
     this.description = '',
@@ -97,6 +102,7 @@ class MissionInstance {
     id: m['id'] as String? ?? '',
     userId: m['user_id'] as String? ?? '',
     templateId: m['template_id'] as String?,
+    questId: m['quest_id'] as String?,
     missionType: m['mission_type'] as String? ?? 'daily',
     title: m['title'] as String? ?? '',
     description: m['description'] as String? ?? '',
@@ -233,6 +239,17 @@ class GuildQuest {
   final int gemReward;
   final String? itemReward;
   final String? minCefrLevel;
+  final String? maxCefrLevel;
+
+  /// Rango mínimo del gremio requerido para aceptar la misión (E, D, C, B, A, S...).
+  final String? gameRank;
+
+  /// Categoría de la misión (combate, magia, velocidad, apoyo, supervivencia...).
+  final String? category;
+
+  /// Idioma del contenido (1=en, 2=fr, 3=de, 4=it). Null en datos legacy.
+  final int? languageId;
+
   final bool isActive;
 
   const GuildQuest({
@@ -246,6 +263,10 @@ class GuildQuest {
     this.gemReward = 0,
     this.itemReward,
     this.minCefrLevel,
+    this.maxCefrLevel,
+    this.gameRank,
+    this.category,
+    this.languageId,
     this.isActive = true,
   });
 
@@ -260,6 +281,10 @@ class GuildQuest {
     gemReward: (m['gem_reward'] as num?)?.toInt() ?? 0,
     itemReward: m['item_reward'] as String?,
     minCefrLevel: m['min_cefr_level'] as String?,
+    maxCefrLevel: m['max_cefr_level'] as String?,
+    gameRank: m['game_rank'] as String?,
+    category: m['category'] as String?,
+    languageId: (m['language_id'] as num?)?.toInt(),
     isActive: m['is_active'] as bool? ?? true,
   );
 }
