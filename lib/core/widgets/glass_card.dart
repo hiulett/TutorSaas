@@ -18,6 +18,11 @@ class GlassCard extends StatefulWidget {
   final Color? runicColor;
   final String? semanticLabel;
 
+  /// Callback al tocar la tarjeta. Se integra en el GestureDetector interno
+  /// (junto a la animación de prensado) para que el tap no quede "tragado"
+  /// por el hijo y los `onTap` de los padres nunca lleguen a dispararse.
+  final VoidCallback? onTap;
+
   const GlassCard({
     super.key,
     required this.child,
@@ -32,6 +37,7 @@ class GlassCard extends StatefulWidget {
     this.showRunicCorners = false,
     this.runicColor,
     this.semanticLabel,
+    this.onTap,
   });
 
   @override
@@ -80,57 +86,57 @@ class _GlassCardState extends State<GlassCard>
   @override
   Widget build(BuildContext context) {
     final bColor = widget.borderColor ?? AppColors.manaCyan;
-    return AnimatedBuilder(
-      animation: Listenable.merge([_scaleAnimation, _runicController]),
-      builder: (context, child) {
-        final runeOpacity = 0.3 + (_runicController.value * 0.7);
-        Widget card = Container(
-          decoration: BoxDecoration(
-            boxShadow: widget.shadow ?? [BoxShadow(color: bColor.withValues(alpha: 0.3), blurRadius: 8)],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: widget.blur, sigmaY: widget.blur),
-              child: Container(
-                padding: widget.padding ?? const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: widget.backgroundColor ?? AppColors.surfaceGlass.withValues(alpha: widget.opacity),
-                  borderRadius: BorderRadius.circular(widget.borderRadius),
-                  border: widget.border ?? Border.all(color: bColor.withValues(alpha: AppColors.glassBorderAlpha), width: 1),
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => _scaleController.forward(),
+      onTapUp: (_) => _scaleController.reverse(),
+      onTapCancel: () => _scaleController.reverse(),
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_scaleAnimation, _runicController]),
+        builder: (context, child) {
+          final runeOpacity = 0.3 + (_runicController.value * 0.7);
+          Widget card = Container(
+            decoration: BoxDecoration(
+              boxShadow: widget.shadow ?? [BoxShadow(color: bColor.withValues(alpha: 0.3), blurRadius: 8)],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: widget.blur, sigmaY: widget.blur),
+                child: Container(
+                  padding: widget.padding ?? const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: widget.backgroundColor ?? AppColors.surfaceGlass.withValues(alpha: widget.opacity),
+                    borderRadius: BorderRadius.circular(widget.borderRadius),
+                    border: widget.border ?? Border.all(color: bColor.withValues(alpha: AppColors.glassBorderAlpha), width: 1),
+                  ),
+                  child: widget.child,
                 ),
-                child: widget.child,
               ),
             ),
-          ),
-        );
-        if (widget.semanticLabel != null) {
-          card = Semantics(
-            label: widget.semanticLabel,
-            container: true,
-            child: card,
           );
-        }
-        if (!widget.showRunicCorners) return Transform.scale(scale: _scaleAnimation.value, child: card);
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              card,
-              Positioned(top: -2, left: -2, child: ExcludeSemantics(child: _runicCorner(runeOpacity))),
-              Positioned(top: -2, right: -2, child: ExcludeSemantics(child: RotatedBox(quarterTurns: 1, child: _runicCorner(runeOpacity)))),
-              Positioned(bottom: -2, left: -2, child: ExcludeSemantics(child: RotatedBox(quarterTurns: 3, child: _runicCorner(runeOpacity)))),
-              Positioned(bottom: -2, right: -2, child: ExcludeSemantics(child: _runicCorner(runeOpacity, rotated: true))),
-            ],
-          ),
-        );
-      },
-      child: GestureDetector(
-        onTapDown: (_) => _scaleController.forward(),
-        onTapUp: (_) => _scaleController.reverse(),
-        onTapCancel: () => _scaleController.reverse(),
-        child: const SizedBox.shrink(),
+          if (widget.semanticLabel != null) {
+            card = Semantics(
+              label: widget.semanticLabel,
+              container: true,
+              child: card,
+            );
+          }
+          if (!widget.showRunicCorners) return Transform.scale(scale: _scaleAnimation.value, child: card);
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                card,
+                Positioned(top: -2, left: -2, child: ExcludeSemantics(child: _runicCorner(runeOpacity))),
+                Positioned(top: -2, right: -2, child: ExcludeSemantics(child: RotatedBox(quarterTurns: 1, child: _runicCorner(runeOpacity)))),
+                Positioned(bottom: -2, left: -2, child: ExcludeSemantics(child: RotatedBox(quarterTurns: 3, child: _runicCorner(runeOpacity)))),
+                Positioned(bottom: -2, right: -2, child: ExcludeSemantics(child: _runicCorner(runeOpacity, rotated: true))),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

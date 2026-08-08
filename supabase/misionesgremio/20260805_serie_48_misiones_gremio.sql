@@ -596,3 +596,22 @@ CREATE INDEX IF NOT EXISTS idx_guild_pool_lang_rank ON public.guild_quest_pool (
 -- Verificación
 -- SELECT game_rank, COUNT(*) FROM public.guild_quest_pool GROUP BY game_rank;  -- 6 por rango × 4 idiomas = 24
 -- SELECT language_id, COUNT(*) FROM public.guild_quest_pool GROUP BY language_id; -- 48 por idioma
+-- 3. Políticas RLS para player_completed_quests (historial / ocultar cumplidas)
+-- El UPSERT (markGuildQuestCompleted) necesita UPDATE además de SELECT/INSERT.
+ALTER POLICY "select_own_completed_quests" ON public.player_completed_quests TO authenticated USING (auth.uid() = user_id);
+ALTER POLICY "insert_own_completed_quests" ON public.player_completed_quests TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "update_own_completed_quests" ON public.player_completed_quests;
+CREATE POLICY "update_own_completed_quests" ON public.player_completed_quests
+  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- Índice para consultar el historial por usuario
+CREATE INDEX IF NOT EXISTS idx_completed_quests_user ON public.player_completed_quests (user_id, completed_at DESC);
+
+-- 4. Rareza editorial de misión (opcional): permite control por BD en vez de
+-- derivarla del rango. Valores: common|uncommon|rare|epic|legendary|guild.
+ALTER TABLE public.guild_quest_pool ADD COLUMN IF NOT EXISTS rarity VARCHAR(20);
+UPDATE public.guild_quest_pool SET rarity = CASE game_rank
+  WHEN 'E' THEN 'common' WHEN 'D' THEN 'uncommon' WHEN 'C' THEN 'rare'
+  WHEN 'B' THEN 'epic' WHEN 'A' THEN 'legendary'
+  ELSE 'guild' END
+WHERE rarity IS NULL;

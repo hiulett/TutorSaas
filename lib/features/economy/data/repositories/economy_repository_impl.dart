@@ -259,7 +259,6 @@ class EconomyRepositoryImpl implements EconomyRepository {
       if (!spent) return false;
 
       if (isConsumable) {
-        // Handle specific consumable effects
         final today = DateTime.now().toIso8601String().split('T').first;
         final dailyState = await getDailyState(userId);
         final currentMax = (dailyState['invocations_max'] as int?) ?? 20;
@@ -276,6 +275,18 @@ class EconomyRepositoryImpl implements EconomyRepository {
               .update({'invocations_max': currentMax + 20})
               .eq('user_id', userId)
               .eq('date', today);
+        } else if (itemCode == 'consumible_pergamino10') {
+          // +10 pergaminos de repaso al máximo diario.
+          await _client.rpc('increment_pergaminos_max', params: {
+            'p_user_id': userId,
+            'p_amount': 10,
+          });
+        } else if (itemCode == 'consumible_pergamino50') {
+          // +50 pergaminos de repaso al máximo diario.
+          await _client.rpc('increment_pergaminos_max', params: {
+            'p_user_id': userId,
+            'p_amount': 50,
+          });
         }
       } else {
         await _client.from('player_inventory').insert({
@@ -585,5 +596,33 @@ class EconomyRepositoryImpl implements EconomyRepository {
         'p_amount': amount,
       });
     } catch (_) {}
+  }
+
+  /// Maná del Oráculo extra según el plan contratado.
+  /// Escala con monthly_audio_minutes_limit del subscription_plans:
+  ///   free (30 min) → +0, monthly (300 min) → +20, annual/lifetime (1200 min) → +40.
+  @override
+  Future<int> getPlanManaBonus(String userId) async {
+    try {
+      final sub = await _client
+          .from('user_subscriptions')
+          .select('plan_id')
+          .eq('user_id', userId)
+          .maybeSingle();
+      final planId = sub?['plan_id'] as String?;
+      if (planId == null || planId == 'free') return 0;
+
+      final plan = await _client
+          .from('subscription_plans')
+          .select('monthly_audio_minutes_limit')
+          .eq('id', planId)
+          .maybeSingle();
+      final minutes = (plan?['monthly_audio_minutes_limit'] as num?)?.toInt() ?? 0;
+      if (minutes >= 1200) return 40;
+      if (minutes >= 300) return 20;
+      return 0;
+    } catch (_) {
+      return 0;
+    }
   }
 }

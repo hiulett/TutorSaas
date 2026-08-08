@@ -19,6 +19,9 @@ import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../dashboard/data/models/hunter_catalog.dart';
+import '../../../economy/presentation/widgets/nucleo_arcano_limit_screen.dart';
+import '../../../economy/presentation/providers/economy_providers.dart';
+import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../../../../l10n/app_localizations.dart';
 
 
@@ -54,6 +57,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   bool _isTypingMode = false;
   int _usedMana = 15;
   final TextEditingController _textController = TextEditingController();
+  // Auto-scroll de la conversación: baja hasta el último mensaje al avanzar.
+  final ScrollController _chatScrollController = ScrollController();
 
   final List<Map<String, String>> _randomTopics = const [
     {'icon': '💼', 'title': 'Tech & AI'},
@@ -107,6 +112,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       ref.read(conversationStateProvider.notifier).stopTts();
     } catch (_) {}
     _textController.dispose();
+    _chatScrollController.dispose();
     try {
       ref.read(dashboardRefreshProvider.notifier).state++;
       ref.invalidate(userProgressProvider);
@@ -117,6 +123,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       ref.invalidate(learnedVocabularyProvider);
     } catch (_) {}
     super.dispose();
+  }
+
+  void _scrollChatToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_chatScrollController.hasClients) return;
+      _chatScrollController.animateTo(
+        _chatScrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   void _onTopicSelected(String topicTitle) {
@@ -576,14 +593,52 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final isOracle = conversationState.isOracleEvaluation;
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
+      // Núcleo Arcano agotado → abrir el modal de recarga/premium en vez de un snack.
       if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
-        SystemSnack.show(context, next.errorMessage!, type: SystemSnackType.error);
+        final isNucleoDepleted =
+            next.errorMessage!.contains('NÚCLEO ARCANO AGOTADO');
+        if (isNucleoDepleted) {
+          final dailyState = ref.read(dailyStateProvider).value ?? {};
+          final invocationsUsed =
+              (dailyState['invocations_used'] as num?)?.toInt() ?? 0;
+          final invocationsMax =
+              (dailyState['invocations_max'] as num?)?.toInt() ?? 20;
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => NucleoArcanoLimitScreen(
+                  invocationsUsed: invocationsUsed,
+                  invocationsMax: invocationsMax,
+                ),
+              ),
+            );
+          }
+        } else {
+          SystemSnack.show(context, next.errorMessage!, type: SystemSnackType.error);
+        }
       }
       // Examen del Oráculo terminado: mostrar botón para continuar
       // (ya no hacemos pop automático; el usuario decide cuándo salir).
       if (isOracle && next.oracleFinished && !(prev?.oracleFinished ?? false)) {
         // Nada automático: la UI muestra el botón "CONTINUAR".
       }
+      // Auto-scroll: al llegar un nuevo mensaje (o crecer el streaming),
+      // baja la conversación hasta el final para ver la última respuesta.
+      final prevLen = prev?.messages.length ?? 0;
+      final nextLen = next.messages.length;
+      final lastChanged = nextLen > 0 &&
+          prevLen == nextLen &&
+          (prev?.messages.isNotEmpty ?? false) &&
+          prev!.messages.last.text != next.messages.last.text &&
+          next.messages.last.sender != 'user';
+      if (prevLen < nextLen || lastChanged) {
+        _scrollChatToBottom();
+      }
+    });
+
+    // Scroll inicial al último mensaje (reanudar conversación / entrar).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollChatToBottom();
     });
 
     // Progress ratio: objetivos completados (estado en memoria, persistido en
@@ -730,6 +785,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           physics: const BouncingScrollPhysics(),
                           child: Row(
                             children: [
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                child: SizedBox(
+                                  width: 120,
+                                  child: OracleManaBar(showLabel: true, compact: true),
+                                ),
+                              ),
                               ManaMeterWidget(
                                 currentMana: (450 - _usedMana).clamp(0, 500),
                                 usedInSession: _usedMana,
@@ -823,6 +885,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   // Conversation Messages Canvas
                   Expanded(
                     child: ListView.builder(
+                      controller: _chatScrollController,
                       padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 100.0),
                       itemCount: conversationState.messages.length,
                       itemBuilder: (context, index) {

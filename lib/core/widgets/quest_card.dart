@@ -45,14 +45,15 @@ class QuestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final rankColor = _getRankColor();
 
-    return GestureDetector(
+    return GlassCard(
+      showRunicCorners: true,
+      runicColor: rankColor,
+      borderColor: rankColor.withValues(alpha: 0.4),
+      padding: const EdgeInsets.all(16),
+      // onTap integrado en el GestureDetector interno del GlassCard para que
+      // el tap no quede atrapado por la animación de prensado.
       onTap: onTap,
-      child: GlassCard(
-        showRunicCorners: true,
-        runicColor: rankColor,
-        borderColor: rankColor.withValues(alpha: 0.4),
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Top Row: Rank Badge and Title
@@ -157,7 +158,6 @@ class QuestCard extends StatelessWidget {
             ],
           ],
         ),
-      ),
     );
   }
 }

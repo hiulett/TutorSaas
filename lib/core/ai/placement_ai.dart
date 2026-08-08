@@ -59,6 +59,7 @@ class PlacementAiEvaluator {
           ],
           'stream': false,
           'temperature': 0.3,
+          'max_tokens': 600,
         },
         options: Options(
           headers: {

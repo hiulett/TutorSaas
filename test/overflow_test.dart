@@ -3,8 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
+import 'package:tutorsaas/features/chat_rooms/presentation/providers/chat_rooms_providers.dart';
+import 'package:tutorsaas/features/missions/presentation/providers/mission_providers.dart';
+import 'package:tutorsaas/features/economy/presentation/providers/economy_providers.dart';
 import 'package:tutorsaas/features/dashboard/presentation/widgets/league_leaderboard_widget.dart';
 import 'package:tutorsaas/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:tutorsaas/l10n/app_localizations.dart';
 
 void main() {
   setUpAll(() async {
@@ -120,5 +125,68 @@ void main() {
         .where((e) => e.toString().contains('overflowed'))
         .toList();
     expect(overflows, isEmpty, reason: 'No RenderFlex overflows at 312px width');
+  });
+
+  testWidgets('ChatRoomsScreen does not overflow or fail layout at width 312', (WidgetTester tester) async {
+    // Set screen size to 312 width (smallest common budget Android)
+    tester.binding.window.physicalSizeTestValue = const Size(312 * 3.0, 800 * 3.0);
+    tester.binding.window.devicePixelRatioTestValue = 3.0;
+
+    final List<dynamic> exceptions = [];
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final msg = details.toString();
+      // Capture layout errors
+      if (!msg.contains('NetworkImageLoadException') &&
+          !msg.contains('HTTP request failed') &&
+          !msg.contains('semantics') &&
+          !msg.contains('parentData')) {
+        exceptions.add(details.exception);
+        originalOnError?.call(details);
+      }
+    };
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          chatRoomsListProvider.overrideWith((ref) => Future.value([
+            {
+              'id': 'room_1',
+              'title': 'Test Room',
+              'category': 'travel',
+              'speakers_count': 2,
+              'listeners_count': 5,
+              'room_type': 'ai_practice',
+              'max_speakers': 6,
+            }
+          ])),
+          guildAnnouncementsProvider.overrideWith((ref) => Future.value([])),
+          weeklyRaidProvider.overrideWith((ref) => Future.value(null)),
+          battlePassProvider.overrideWith((ref) => Future.value({'level': 1, 'xp_progress': 0, 'is_premium': false, 'claimed_rewards': []})),
+          guildCompletedMissionsProvider.overrideWith((ref) => Future.value(0)),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('es'),
+          home: Scaffold(
+            body: SizedBox(
+              width: 312,
+              child: ExcludeSemantics(
+                child: ChatRoomsScreen(isTab: true),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    FlutterError.onError = originalOnError;
+
+    expect(exceptions, isEmpty, reason: 'No exceptions should be thrown');
   });
 }

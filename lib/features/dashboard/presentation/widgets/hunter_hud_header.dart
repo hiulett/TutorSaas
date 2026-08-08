@@ -11,6 +11,7 @@ import '../../../../core/widgets/floating_reward.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
+import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../providers/dashboard_providers.dart';
 import '../../data/models/hunter_catalog.dart';
 
@@ -170,7 +171,10 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
+          // Barra de maná del Oráculo (plan + artículos aplicados).
+          const OracleManaBar(showLabel: true),
+          const SizedBox(height: 4),
           Row(
             children: [
               Container(

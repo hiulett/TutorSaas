@@ -11,25 +11,32 @@ class LeagueLeaderboardWidget extends StatelessWidget {
   final int userXp;
   final String userLevelCode;
 
+  /// Datos reales del leaderboard (desde `get_leaderboard`). Si está vacío,
+  /// se muestran entradas de demostración (fallback visual).
+  final List<Map<String, dynamic>> entries;
+
   const LeagueLeaderboardWidget({
     super.key,
     this.activeLeague = 'Liga de Nivel',
     required this.userRank,
     required this.userXp,
     this.userLevelCode = 'B1',
+    this.entries = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     final String level = userLevelCode.toUpperCase();
 
-    final List<Map<String, dynamic>> leaderboard = [
-      {'rank': 1, 'name': 'Elena Rostova', 'xp': 3240, 'stars': 15, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Elena', 'isUser': false},
-      {'rank': 2, 'name': 'Tú (Estudiante)', 'xp': userXp, 'stars': 12, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Profile', 'isUser': true},
-      {'rank': 3, 'name': 'Marco Silva', 'xp': 2890, 'stars': 9, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Marco', 'isUser': false},
-      {'rank': 4, 'name': 'Sophie Martin', 'xp': 2100, 'stars': 7, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Sophie', 'isUser': false},
-      {'rank': 5, 'name': 'Klaus Webber', 'xp': 1850, 'stars': 5, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Klaus', 'isUser': false},
-    ];
+    final List<Map<String, dynamic>> leaderboard = entries.isNotEmpty
+        ? entries.take(5).toList()
+        : [
+            {'rank': 1, 'name': 'Elena Rostova', 'xp': 3240, 'stars': 15, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Elena', 'isUser': false},
+            {'rank': 2, 'name': 'Tú (Estudiante)', 'xp': userXp, 'stars': 12, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Profile', 'isUser': true},
+            {'rank': 3, 'name': 'Marco Silva', 'xp': 2890, 'stars': 9, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Marco', 'isUser': false},
+            {'rank': 4, 'name': 'Sophie Martin', 'xp': 2100, 'stars': 7, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Sophie', 'isUser': false},
+            {'rank': 5, 'name': 'Klaus Webber', 'xp': 1850, 'stars': 5, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Klaus', 'isUser': false},
+          ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

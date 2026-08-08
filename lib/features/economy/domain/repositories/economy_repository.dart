@@ -64,4 +64,8 @@ abstract class EconomyRepository {
 
   /// Add fragments (loot drops)
   Future<void> addFragments(String userId, int amount);
+
+  /// Maná del Oráculo otorgado por el plan contratado, en función de los
+  /// minutos de audio IA mensuales (30 → +0, 300 → +20, 1200 → +40).
+  Future<int> getPlanManaBonus(String userId);
 }

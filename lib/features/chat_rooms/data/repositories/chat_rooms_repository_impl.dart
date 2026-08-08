@@ -452,4 +452,21 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
       return [];
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getGuildAnnouncements() async {
+    try {
+      final data = await _supabaseClient
+          .from('guild_announcements')
+          .select('id, message, icon_emoji, sort_order')
+          .eq('is_active', true)
+          .order('sort_order');
+      return (data as List)
+          .map((row) => Map<String, dynamic>.from(row))
+          .toList();
+    } catch (e) {
+      debugPrint('getGuildAnnouncements error: $e');
+      return [];
+    }
+  }
 }

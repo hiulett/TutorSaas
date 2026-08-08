@@ -6,17 +6,19 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/tavern_music_service.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/system_window.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/chat_rooms_providers.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/runic_button.dart';
+import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../missions/presentation/widgets/guild_quest_board.dart';
 import '../widgets/guild_master_floating_banner.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../missions/presentation/providers/mission_providers.dart';
 
 /// GUILD-03: conteo de misiones colaborativas completadas por el gremio.
 /// La tabla `guild_collaborative_missions` es global al gremio (no expone
@@ -64,6 +66,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
     'Nuevos cazadores han despertado hoy. ¡Bienvenidos!',
   ];
   int _currentAnnouncement = 0;
+  bool _musicPlaying = false;
   Timer? _announcementTimer;
 
   int _connectedCount(List<Map<String, dynamic>> rooms) {
@@ -73,6 +76,69 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
       count += (r['listeners_count'] as int? ?? 0);
     }
     return count;
+  }
+
+  /// Roster de clases de cazadores "en línea" (hasta 5) derivado de las salas
+  /// activas. Fallback a clases representativas si no hay salas.
+  List<String> _onlineRoster(List<Map<String, dynamic>> rooms) {
+    const classes = ['warrior', 'mage', 'assassin', 'knight', 'archer'];
+    final result = <String>[];
+    for (var i = 0; i < classes.length; i++) {
+      result.add(classes[(i + _currentAnnouncement) % classes.length]);
+    }
+    return result;
+  }
+
+  /// Badge de ocupación de una sala: color/etiqueta según llenado.
+  Widget _occupancyBadge(int speakers, int maxSpeakers) {
+    final ratio = maxSpeakers > 0 ? speakers / maxSpeakers : 0.0;
+    final (String label, Color color) = ratio >= 1.0
+        ? ('LLENA', AppColors.crimsonRed)
+        : ratio >= 0.66
+            ? ('CASI LLENA', AppColors.royalGold)
+            : ratio >= 0.33
+                ? ('OCUPADA', AppColors.manaCyan)
+                : ('ESPACIO', AppColors.emeraldGreen);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(2),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.jetBrainsMono(
+          fontSize: 8,
+          fontWeight: FontWeight.bold,
+          color: color,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+
+  /// Texto del anuncio rotativo: usa los anuncios persistidos en BD si hay,
+  /// luego el raid/evento semanal, y si no cae a los anuncios estáticos.
+  String _currentAnnouncementText(WidgetRef ref) {
+    final announcements = ref.read(guildAnnouncementsProvider).value ?? const [];
+    if (announcements.isNotEmpty && _currentAnnouncement < announcements.length) {
+      final a = announcements[_currentAnnouncement % announcements.length];
+      final emoji = a['icon_emoji'] as String? ?? '📜';
+      final message = a['message'] as String? ?? '';
+      return '$emoji $message';
+    }
+    final raid = ref.read(weeklyRaidProvider).value;
+    if (raid != null && raid['title'] != null) {
+      return '⚔️ ${raid['title']} — ${raid['description']}';
+    }
+    return _guildAnnouncements[_currentAnnouncement % _guildAnnouncements.length];
+  }
+
+  /// Alterna la música de la taberna (toggle manual, desacoplado del initState).
+  Future<void> _toggleMusic() async {
+    final playing = await TavernMusicService.instance.toggle();
+    if (mounted) setState(() => _musicPlaying = playing);
   }
 
   // Mapeo slug → etiqueta para las categorías (G-H: dinámicas desde DB).
@@ -108,6 +174,8 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
         debugPrint('Error removing realtime channel: $e');
       }
     }
+    // Libera la referencia de música si estuviera activa (toggle manual).
+    TavernMusicService.instance.stop();
     super.dispose();
   }
 
@@ -425,32 +493,111 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
 
                   const SizedBox(height: 10),
 
-                  // F4: Banner de "gremio vivo" — conectados + anuncio rotativo
+                  // F4: Banner de "gremio vivo" — roster en línea + anuncio rotativo
                   GlassCard(
                     blur: 20,
                     opacity: AppColors.glassOpacity,
                     border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.2)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.people_alt_rounded, color: AppColors.manaCyan, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${_connectedCount(roomsAsync.value ?? [])} CONECTADOS',
-                          style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan, letterSpacing: 0.6),
+                        // ── Roster de cazadores en línea ────────────────────
+                        Row(
+                          children: [
+                            const Icon(Icons.people_alt_rounded, color: AppColors.manaCyan, size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${_connectedCount(roomsAsync.value ?? [])} CONECTADOS',
+                              style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan, letterSpacing: 0.6),
+                            ),
+                            const Spacer(),
+                            // Mini-roster: avatares de cazadores en línea.
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (var i = 0; i < _onlineRoster(roomsAsync.value ?? []).length; i++)
+                                  Padding(
+                                    padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
+                                    child: RpgAvatar(
+                                      avatarUrl: _onlineRoster(roomsAsync.value ?? [])[i],
+                                      hunterClass: _onlineRoster(roomsAsync.value ?? [])[i],
+                                      initials: 'C',
+                                      size: 26,
+                                      borderColor: AppColors.manaCyan,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        const Icon(Icons.campaign_rounded, color: AppColors.royalGold, size: 14),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            _guildAnnouncements[_currentAnnouncement % _guildAnnouncements.length],
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant),
-                          ),
+                        const SizedBox(height: 6),
+                        // ── Anuncio rotativo (dinámico si hay evento/raid) ──
+                        Row(
+                          children: [
+                            const Icon(Icons.campaign_rounded, color: AppColors.royalGold, size: 14),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                _currentAnnouncementText(ref),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── Atajos rápidos (hub del gremio) ──────────────────────
+                  SizedBox(
+                    height: 48,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _GuildShortcut(
+                            title: 'MISIONES',
+                            icon: Icons.assignment_rounded,
+                            accent: AppColors.medievalAgedGold,
+                            onTap: () => context.push('/guild-quest-board'),
+                          ),
+                          const SizedBox(width: 8),
+                          _GuildShortcut(
+                            title: 'PASE DEL GREMIO',
+                            icon: Icons.workspace_premium_rounded,
+                            accent: AppColors.runeViolet,
+                            onTap: () => context.push('/battle-pass'),
+                          ),
+                          const SizedBox(width: 8),
+                          _GuildShortcut(
+                            title: 'RANGO',
+                            icon: Icons.military_tech_rounded,
+                            accent: AppColors.royalGold,
+                            onTap: () => _showRankModal(context, ref),
+                          ),
+                          const SizedBox(width: 8),
+                          _GuildShortcut(
+                            title: 'COLECCIONES',
+                            icon: Icons.collections_bookmark_rounded,
+                            accent: AppColors.emeraldGreen,
+                            onTap: () => context.push('/collections'),
+                          ),
+                          const SizedBox(width: 8),
+                          // ── Música de la taberna (toggle manual) ──────────
+                          _GuildShortcut(
+                            title: _musicPlaying ? 'MÚSICA ON' : 'MÚSICA',
+                            icon: _musicPlaying ? Icons.music_note_rounded : Icons.music_off_rounded,
+                            accent: _musicPlaying ? AppColors.manaCyan : AppColors.onSurfaceVariant,
+                            onTap: _toggleMusic,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -680,6 +827,12 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                             ),
                                           ],
                                         ),
+                                        const SizedBox(height: 4),
+                                        // ── Estado de ocupación de la sala ──
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: _occupancyBadge(speakersCount, room['max_speakers'] as int? ?? 6),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -727,8 +880,8 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
 
                   const SizedBox(height: 28),
 
-                  // 2. MISIONES (tablón unificado: activas + pool del gremio)
-                  const GuildQuestBoard(),
+                  // 2. TABLÓN DE MISIONES → accesible desde los atajos rápidos
+                  // (hub) arriba. Se elimina el poster duplicado.
 
                   const SizedBox(height: 28),
 
@@ -742,18 +895,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
 
                   const SizedBox(height: 28),
 
-                  // 5. Acceso a Tabla de Rango (modal)
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: _GuildPoster(
-                      title: 'TABLA DE RANGO',
-                      caption: 'Progreso y rango de cazador.',
-                      icon: Icons.military_tech_rounded,
-                      accent: AppColors.royalGold,
-                      onTap: () => _showRankModal(context, ref),
-                    ),
-                  ),
-
+                  // 5. Tabla de Rango → accesible desde los atajos rápidos (hub).
                   const SizedBox(height: 100),
                 ],
               ),
@@ -891,69 +1033,50 @@ class _GuildHallHeader extends ConsumerWidget {
   }
 }
 
-/// Cartel decorativo RPG del gremio (GUILD-01).
-/// Con `onTap` se comporta como acceso a una sección (p. ej. /hunter-status);
-/// sin `onTap` permanece como elemento visual junto a la lista de salas.
-class _GuildPoster extends StatelessWidget {
-  const _GuildPoster({
+/// Atajo compacto horizontal (hub del gremio): icono + título en una fila.
+/// Ocupa poco espacio vertical y permite agrupar accesos rápidos.
+class _GuildShortcut extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color accent;
+  final VoidCallback? onTap;
+
+  const _GuildShortcut({
     required this.title,
-    required this.caption,
     required this.icon,
     required this.accent,
     this.onTap,
   });
 
-  final String title;
-  final String caption;
-  final IconData icon;
-  final Color accent;
-  final VoidCallback? onTap;
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: GlassCard(
-        blur: 12,
-        opacity: AppColors.glassOpacity,
-        borderColor: accent,
-        showRunicCorners: true,
-        runicColor: accent,
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      // Container estático (sin GlassCard animado): evita relayouts continuos
+      // dentro del scroll horizontal (causa de "RenderBox was not laid out").
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.onSurface.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: accent.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: accent.withValues(alpha: 0.5)),
-                  ),
-                  child: Icon(icon, color: accent, size: 20),
-                ),
-                const Spacer(),
-                if (onTap != null)
-                  Icon(Icons.arrow_forward_ios_rounded, color: accent.withValues(alpha: 0.6), size: 12),
-              ],
-            ),
-            const SizedBox(height: 12),
+            Icon(icon, color: accent, size: 16),
+            const SizedBox(width: 8),
             Text(
               title,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 13,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 9,
                 fontWeight: FontWeight.bold,
                 color: AppColors.onSurface,
-                letterSpacing: 0.5,
+                letterSpacing: 0.4,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              caption,
-              style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant, height: 1.3),
-            ),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right_rounded, color: accent.withValues(alpha: 0.5), size: 12),
           ],
         ),
       ),

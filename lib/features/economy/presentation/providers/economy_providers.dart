@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../data/repositories/economy_repository_impl.dart';
 import '../../domain/repositories/economy_repository.dart';
 
@@ -59,4 +60,49 @@ final fragmentBalanceProvider = FutureProvider.autoDispose<int>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return 0;
   return ref.watch(economyRepositoryProvider).getFragments(user.id);
+});
+
+/// Maná del Oráculo: total = invocaciones (base 20 + racha + consumibles) +
+/// bonus por plan contratado (free +0 / monthly +20 / annual/lifetime +40).
+/// Muestra cuánto maná queda para hablar con el Oráculo hoy.
+final oracleManaProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) {
+    return {'manaMax': 20, 'manaUsed': 0, 'manaLeft': 20, 'planBonus': 0, 'planMinutes': 0};
+  }
+  final repo = ref.watch(economyRepositoryProvider);
+  final dailyState = await repo.getDailyState(user.id);
+  final planBonus = await repo.getPlanManaBonus(user.id);
+
+  final baseMax = (dailyState['invocations_max'] as num?)?.toInt() ?? 20;
+  final used = (dailyState['invocations_used'] as num?)?.toInt() ?? 0;
+  final manaMax = baseMax + planBonus;
+  final manaLeft = (manaMax - used).clamp(0, manaMax);
+
+  return {
+    'manaMax': manaMax,
+    'manaUsed': used,
+    'manaLeft': manaLeft,
+    'planBonus': planBonus,
+  };
+});
+
+/// Maná mensual del Oráculo: minutos de audio IA consumidos del plan
+/// (vía RPC check_ai_audio_quota → user_subscriptions.used_audio_seconds).
+final monthlyManaProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) {
+    return {'usedSeconds': 0, 'limitSeconds': 1800, 'remainingSeconds': 1800, 'planName': 'free'};
+  }
+  final repo = ref.watch(conversationRepositoryProvider);
+  final quota = await repo.checkAiAudioQuota(user.id);
+  final used = (quota['used_seconds'] as num?)?.toInt() ?? 0;
+  final limit = (quota['limit_seconds'] as num?)?.toInt() ?? 1800;
+  final remaining = (quota['remaining_seconds'] as num?)?.toInt() ?? (limit - used);
+  return {
+    'usedSeconds': used,
+    'limitSeconds': limit,
+    'remainingSeconds': remaining,
+    'planName': quota['plan_name'] as String? ?? 'free',
+  };
 });

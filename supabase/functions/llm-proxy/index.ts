@@ -18,6 +18,13 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY') ?? '';
 const deepseekBaseUrl = Deno.env.get('DEEPSEEK_BASE_URL') ?? 'https://api.deepseek.com/v1';
+
+// Límites estrictos de tokens de salida (evitan bucles del modelo y
+// explicaciones excesivamente largas). El proxy aplica SIEMPRE un tope:
+// respeta `max_tokens` del cliente solo si está dentro del rango válido;
+// si el cliente no lo envía o lo excede, usa los valores siguientes.
+const DEFAULT_MAX_TOKENS = 200;
+const MAX_TOKENS_CAP = 600;
 const groqApiKey = Deno.env.get('GROQ_API_KEY') ?? '';
 const groqSttUrl = Deno.env.get('GROQ_STT_URL') ?? 'https://api.groq.com/openai/v1/audio/transcriptions';
 
@@ -108,11 +115,16 @@ async function handleChat(req: Request): Promise<Response> {
   const stream = body?.stream ?? true;
   const model = body?.model ?? 'deepseek-v4-flash';
   const temperature = body?.temperature;
+  const requestedMaxTokens = typeof body?.max_tokens === 'number'
+    ? body.max_tokens
+    : DEFAULT_MAX_TOKENS;
+  const maxTokens = Math.min(Math.max(requestedMaxTokens, 1), MAX_TOKENS_CAP);
 
   const payload: Record<string, unknown> = {
     model,
     messages,
     stream,
+    max_tokens: maxTokens,
   };
   if (typeof temperature === 'number') payload.temperature = temperature;
 

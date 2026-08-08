@@ -1141,6 +1141,22 @@ ENDING:
           final gems = completedGoals * (2 + levelBonus);
           await economyRepo.addFragments(_userId!, fragments);
           await economyRepo.addGems(_userId!, gems);
+
+          // Bonus de stats RPG (STR/INT/DEX/LUK → XP real):
+          // cada punto por encima de la base (5) suma XP por meta completada.
+          final profile = _ref.read(userProfileProvider).value;
+          final str = (profile?['str_stat'] as num?)?.toInt() ?? 5;
+          final intt = (profile?['int_stat'] as num?)?.toInt() ?? 5;
+          final dex = (profile?['dex_stat'] as num?)?.toInt() ?? 5;
+          final luk = (profile?['luk_stat'] as num?)?.toInt() ?? 5;
+          final statBonus = ((str - 5) + (intt - 5) + (dex - 5) + (luk - 5)) * completedGoals;
+          if (statBonus > 0) {
+            final client = Supabase.instance.client;
+            await client.rpc('add_xp', params: {
+              'p_user_id': _userId,
+              'p_amount': statBonus,
+            });
+          }
         }
         await economyRepo.updateStreak(_userId!);
       } catch (_) {}

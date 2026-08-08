@@ -11,14 +11,9 @@ import '../providers/dashboard_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../widgets/learning_path_roadmap.dart';
-import '../widgets/completed_lessons_history_list.dart';
-import '../widgets/recommended_lessons_hub.dart';
-import '../widgets/daily_quests_widget.dart';
-import '../widgets/league_leaderboard_widget.dart';
 import '../widgets/hunter_hud_header.dart';
 import '../widgets/progress_tab_view.dart';
 import '../../../economy/presentation/widgets/daily_reward_modal.dart';
-import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
 import 'settings_screen.dart';
 import 'package:tutorsaas/features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -42,6 +37,8 @@ class DashboardScreen extends ConsumerWidget {
     final isPremium = ref.watch(isPremiumProvider);
     final gemsAsync = ref.watch(gemBalanceProvider);
     final gems = gemsAsync.value ?? 0;
+    final dailyStateAsync = ref.watch(dailyStateProvider);
+    final dailyClaimed = (dailyStateAsync.value?['daily_reward_claimed'] as bool?) ?? false;
     final progressAsync = ref.watch(userProgressProvider);
     final achievementsAsync = ref.watch(userAchievementsProvider);
     final currentTab = ref.watch(dashboardTabProvider);
@@ -94,7 +91,7 @@ class DashboardScreen extends ConsumerWidget {
           SafeArea(
             child: Column(
               children: [
-                // Top App Bar
+                // Top App Bar — identidad del cazador (avatar + nombre + nivel)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                   child: Row(
@@ -104,20 +101,39 @@ class DashboardScreen extends ConsumerWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.language_rounded,
-                              color: AppColors.runeViolet,
-                              size: 28,
+                            RpgAvatar(
+                              avatarUrl: profile['avatar_url'] as String? ?? 'warrior',
+                              hunterClass: profile['avatar_url'] as String? ?? 'warrior',
+                              initials: _displayInitials(profile),
+                              size: 32,
+                              borderColor: AppColors.manaCyan,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'TutorSaaS',
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.onSurface,
-                                letterSpacing: -0.5,
+                            const SizedBox(width: 10),
+                            Flexible(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    (profile['display_name'] as String? ?? 'Hunter').toUpperCase(),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.onSurface,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  Text(
+                                    'CEFR $cefrCode',
+                                    style: GoogleFonts.jetBrainsMono(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.0,
+                                      color: AppColors.manaCyan.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -310,12 +326,12 @@ class DashboardScreen extends ConsumerWidget {
                                           icon: Icons.military_tech_rounded,
                                           label: 'RANGO',
                                           color: AppColors.emeraldGreen,
-                                          onTap: () => context.push('/level-exam'),
+                                          onTap: () => context.push('/hunter-status'),
                                         ),
                                         _buildQuickAccess(
-                                          icon: Icons.card_giftcard_rounded,
-                                          label: 'DIARIA',
-                                          color: AppColors.royalGold,
+                                          icon: dailyClaimed ? Icons.check_circle_rounded : Icons.card_giftcard_rounded,
+                                          label: dailyClaimed ? 'RECLAMADO' : 'DIARIA',
+                                          color: dailyClaimed ? AppColors.emeraldGreen : AppColors.royalGold,
                                           onTap: () => DailyRewardModal.show(context),
                                         ),
                                       ],
@@ -437,6 +453,12 @@ class DashboardScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _displayInitials(Map<String, dynamic> profile) {
+    final name = profile['display_name'] as String? ?? '';
+    if (name.trim().isNotEmpty) return name.trim().substring(0, 1).toUpperCase();
+    return 'H';
   }
 
   Widget _buildQuickAccess({

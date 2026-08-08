@@ -250,6 +250,10 @@ class GuildQuest {
   /// Idioma del contenido (1=en, 2=fr, 3=de, 4=it). Null en datos legacy.
   final int? languageId;
 
+  /// Rareza editorial (opcional, desde BD): common|uncommon|rare|epic|legendary|guild.
+  /// Si es null, la rareza se deriva del rango en la UI.
+  final String? rarity;
+
   final bool isActive;
 
   const GuildQuest({
@@ -267,6 +271,7 @@ class GuildQuest {
     this.gameRank,
     this.category,
     this.languageId,
+    this.rarity,
     this.isActive = true,
   });
 
@@ -285,6 +290,7 @@ class GuildQuest {
     gameRank: m['game_rank'] as String?,
     category: m['category'] as String?,
     languageId: (m['language_id'] as num?)?.toInt(),
+    rarity: m['rarity'] as String?,
     isActive: m['is_active'] as bool? ?? true,
   );
 }

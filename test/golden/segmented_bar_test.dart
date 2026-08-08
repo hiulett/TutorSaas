@@ -10,8 +10,9 @@ void main() {
   });
 
   testWidgets('SegmentedBar golden test', (WidgetTester tester) async {
-    tester.binding.window.physicalSizeTestValue = const Size(400 * 3.0, 300 * 3.0);
-    tester.binding.window.devicePixelRatioTestValue = 3.0;
+    tester.view.physicalSize = const Size(400 * 3.0, 300 * 3.0);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
       const MaterialApp(

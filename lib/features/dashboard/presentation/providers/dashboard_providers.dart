@@ -259,6 +259,18 @@ final completedGoalsProvider = FutureProvider.autoDispose<List<Map<String, dynam
   }
 });
 
+/// Leaderboard real de XP desde la RPC `get_leaderboard` (Top N).
+final leaderboardProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  ref.watch(dashboardRefreshProvider);
+  try {
+    final supabase = ref.read(supabaseClientProvider);
+    final res = await supabase.rpc('get_leaderboard', params: {'p_limit': 10});
+    return List<Map<String, dynamic>>.from(res as List);
+  } catch (_) {
+    return [];
+  }
+});
+
 /// Fetches practice minutes by day for the last 28 days (4 weeks heatmap)
 final practiceHeatmapProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
   final user = ref.watch(currentUserProvider);

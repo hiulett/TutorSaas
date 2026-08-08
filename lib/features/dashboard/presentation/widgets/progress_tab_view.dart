@@ -8,6 +8,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
 import '../providers/dashboard_providers.dart';
@@ -29,7 +30,9 @@ class ProgressTabView extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final weeklyPracticeAsync = ref.watch(weeklyPracticeProvider);
     final learnedVocabularyAsync = ref.watch(learnedVocabularyProvider);
-    final String avatarUrl = profile['avatar_url'] as String? ?? 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Profile';
+    final leaderboardAsync = ref.watch(leaderboardProvider);
+    final currentUser = ref.watch(currentUserProvider);
+    final String avatarUrl = profile['avatar_url'] as String? ?? 'warrior';
     final String displayName = profile['display_name'] as String? ?? 'Estudiante TutorSaaS';
     final String cefrCode = progress['level_code'] as String? ?? 'B1';
     final String cefrName = progress['level'] as String? ?? 'Intermedio';
@@ -74,7 +77,7 @@ class ProgressTabView extends ConsumerWidget {
                     avatarUrl: avatarUrl,
                     initials: displayName.isNotEmpty ? displayName.substring(0, displayName.length > 1 ? 2 : 1) : 'H',
                     size: 64,
-                    hunterClass: 'assassin',
+                    hunterClass: avatarUrl,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -330,6 +333,11 @@ class ProgressTabView extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
+            // Atributos del Cazador (matriz de 11, datos reales)
+            _HunterAttributesSection(),
+
+            const SizedBox(height: 24),
+
             // Weekly Practice Chart Title & Card
             const Text(
               'Práctica Semanal (Minutos de Voz)',
@@ -423,12 +431,13 @@ class ProgressTabView extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
-            // League Leaderboard Gamification Widget
-            LeagueLeaderboardWidget(
-              activeLeague: 'Liga Plata 🥈',
-              userRank: 3,
-              userXp: xp,
-              userLevelCode: cefrCode,
+            // League Leaderboard (datos reales desde get_leaderboard)
+            LeaderboardSection(
+              entries: leaderboardAsync.value ?? const [],
+              currentUserId: currentUser?.id,
+              currentDisplayName: displayName,
+              currentXp: xp,
+              currentLevel: cefrCode,
             ),
 
             const SizedBox(height: 24),
@@ -671,4 +680,151 @@ class ProgressTabView extends ConsumerWidget {
   }
 
 
+}
+
+/// Matriz de 11 atributos del cazador (datos reales de `hunterAttributesProvider`).
+class _HunterAttributesSection extends ConsumerWidget {
+  const _HunterAttributesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final attrsAsync = ref.watch(hunterAttributesProvider);
+    final attrs = attrsAsync.value ?? const <String, double>{};
+
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'ATRIBUTOS DEL CAZADOR',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (attrs.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: CircularProgressIndicator(color: AppColors.runeViolet, strokeWidth: 2),
+              ),
+            )
+          else
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 4.5,
+              children: hunterAttributeMeta.keys.map((key) {
+                final raw = attrs[key] ?? 0.0;
+                final color = hunterAttributeColor(key);
+                final meta = hunterAttributeMeta[key]!;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: color.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(meta['icon'] ?? '', style: const TextStyle(fontSize: 13)),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          (meta['name'] ?? key).toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        hunterAttributeValueText(key, raw),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sección de clasificación con datos reales de `get_leaderboard`.
+/// Convierte las filas (user_id, xp_points) al formato de LeagueLeaderboardWidget.
+class LeaderboardSection extends StatelessWidget {
+  final List<Map<String, dynamic>> entries;
+  final String? currentUserId;
+  final String currentDisplayName;
+  final int currentXp;
+  final String currentLevel;
+
+  const LeaderboardSection({
+    super.key,
+    required this.entries,
+    this.currentUserId,
+    required this.currentDisplayName,
+    required this.currentXp,
+    required this.currentLevel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Map<String, dynamic>>[];
+    final ranked = [...entries];
+    if (ranked.isEmpty) {
+      // Sin datos de BD → solo el usuario (vista mínima real).
+      rows.add({'rank': 1, 'name': currentDisplayName, 'xp': currentXp, 'stars': 0, 'avatar': null, 'isUser': true});
+    } else {
+      for (var i = 0; i < ranked.length; i++) {
+        final e = ranked[i];
+        final isUser = e['user_id']?.toString() == currentUserId;
+        rows.add({
+          'rank': i + 1,
+          'name': isUser ? currentDisplayName : 'Cazador ${e['user_id'].toString().substring(0, 4).toUpperCase()}',
+          'xp': (e['xp_points'] as num?)?.toInt() ?? 0,
+          'stars': 0,
+          'avatar': isUser ? null : null,
+          'isUser': isUser,
+        });
+      }
+    }
+    return LeagueLeaderboardWidget(
+      activeLeague: 'Rango de XP',
+      userRank: rows.indexWhere((r) => r['isUser'] == true) + 1,
+      userXp: currentXp,
+      userLevelCode: currentLevel,
+      entries: rows,
+    );
+  }
 }

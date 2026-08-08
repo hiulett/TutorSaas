@@ -85,6 +85,9 @@ abstract class MissionRepository {
   /// unidas con `guild_quest_pool` para mostrar el historial (filtro "cumplidas").
   Future<List<GuildQuest>> getCompletedGuildQuests(String userId, {int? languageId});
 
+  /// Obtiene una misión del pool del gremio por su id (para la pantalla de detalle).
+  Future<GuildQuest?> getGuildQuestById(String questId);
+
   /// Registra una misión del pool como completada por el usuario.
   /// Idempotente: si ya existe la fila, no duplica.
   Future<void> markGuildQuestCompleted(String userId, String questId);

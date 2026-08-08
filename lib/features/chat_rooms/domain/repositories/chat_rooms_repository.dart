@@ -32,4 +32,7 @@ abstract class ChatRoomsRepository {
   Future<void> joinRoomAsCurrentUser(String roomId);
   Future<void> leaveRoomAsCurrentUser(String roomId);
   Future<List<Map<String, dynamic>>> getRecentRooms(int limit);
+
+  /// Anuncios activos del gremio, persistidos en BD (`guild_announcements`).
+  Future<List<Map<String, dynamic>>> getGuildAnnouncements();
 }

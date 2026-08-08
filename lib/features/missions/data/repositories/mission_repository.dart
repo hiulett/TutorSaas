@@ -9,6 +9,8 @@ class MissionRepositoryImpl implements MissionRepository {
   
   // Max misiones activas por jugador
   static const int maxActiveMissions = 10;
+  // Max misiones del pool del gremio activas simultáneas (cuota propia)
+  static const int maxActiveGuildQuests = 3;
   // Max misiones secretas activas simultáneas (reutiliza slots)
   static const int maxSecretMissions = 3;
   // Días para considerar una misión como "muy antigua" y eliminarla
@@ -516,6 +518,22 @@ class MissionRepositoryImpl implements MissionRepository {
     }
   }
 
+  /// Obtiene una misión del pool del gremio por su id (para la pantalla de detalle).
+  Future<GuildQuest?> getGuildQuestById(String questId) async {
+    try {
+      final data = await _client
+          .from('guild_quest_pool')
+          .select()
+          .eq('id', questId)
+          .eq('is_active', true)
+          .maybeSingle();
+      if (data == null) return null;
+      return GuildQuest.fromMap(data);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Registra una misión del pool como completada (idempotente).
   Future<void> markGuildQuestCompleted(String userId, String questId) async {
     try {
@@ -531,7 +549,7 @@ class MissionRepositoryImpl implements MissionRepository {
   }
 
   /// Acepta una misión del pool del gremio → mission_instance activa.
-  /// Valida el rango del aventurero (gate) y la cuota de misiones activas.
+  /// Valida el rango del aventurero (gate) y la cuota de misiones del gremio.
   Future<MissionInstance?> acceptGuildQuest({
     required String userId,
     required String questId,
@@ -550,8 +568,15 @@ class MissionRepositoryImpl implements MissionRepository {
       // Gate de rango: no se pueden aceptar misiones de rango superior al suyo.
       if (!CefrRank.canAcceptRank(playerRank, gq.gameRank)) return null;
 
-      // Cuota de misiones activas.
-      if (!(await canAcceptMission(userId, gq.questType))) return null;
+      // Cuota ESPECÍFICA del gremio: máximo 3 misiones del pool activas a la
+      // vez. NO compite con las misiones diarias automáticas (máx 10 globales).
+      final guildActive = await _client
+          .from('mission_instances')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .not('quest_id', 'is', null);
+      if ((guildActive as List).length >= maxActiveGuildQuests) return null;
 
       final data = await _client.from('mission_instances').insert({
         'user_id': userId,

@@ -14,6 +14,8 @@ import '../features/dashboard/presentation/screens/settings_screen.dart';
 import '../features/dashboard/presentation/screens/profile_edit_screen.dart';
 import '../features/chat_rooms/presentation/screens/voice_room_screen.dart';
 import '../features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
+import '../features/missions/presentation/screens/guild_mission_board_screen.dart';
+import '../features/missions/presentation/screens/mission_detail_screen.dart';
 import '../features/conversation/presentation/screens/level_exam_screen.dart';
 import '../features/economy/presentation/screens/shop_screen.dart';
 import '../features/economy/presentation/screens/inventory_screen.dart';
@@ -142,6 +144,17 @@ final routerProvider = Provider<GoRouter>((ref) {
     GoRoute(
       path: '/chat-rooms',
       builder: (context, state) => const ChatRoomsScreen(),
+    ),
+    GoRoute(
+      path: '/guild-quest-board',
+      builder: (context, state) => const GuildMissionBoardScreen(),
+    ),
+    GoRoute(
+      path: '/guild-quest-detail',
+      builder: (context, state) {
+        final questId = state.uri.queryParameters['questId'] ?? '';
+        return MissionDetailScreen(questId: questId);
+      },
     ),
     GoRoute(
       path: '/level-exam',

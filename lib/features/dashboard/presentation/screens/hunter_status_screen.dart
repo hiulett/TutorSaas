@@ -39,13 +39,19 @@ class _HunterStatusScreenState extends ConsumerState<HunterStatusScreen> {
     super.initState();
     Future.microtask(() {
       final profile = ref.read(userProfileProvider).value;
-      if (profile != null) {
-        _parseBio(profile['bio'] as String? ?? '');
-      }
       final progress = ref.read(userProgressProvider).value;
-      if (progress != null) {
+      if (profile != null) {
+        // Stats desde columnas reales (con fallback a los valores base).
         setState(() {
-          _equippedTitleCode = progress['equipped_title_code'] as String? ?? 'oido_halcon_abismo_c';
+          _str = (profile['str_stat'] as num?)?.toInt() ?? 5;
+          _int = (profile['int_stat'] as num?)?.toInt() ?? 5;
+          _dex = (profile['dex_stat'] as num?)?.toInt() ?? 5;
+          _luk = (profile['luk_stat'] as num?)?.toInt() ?? 5;
+          _equippedTitleCode = progress?['equipped_title_code'] as String? ?? 'oido_halcon_abismo_c';
+          _bioText = profile['bio'] as String? ?? '';
+          final totalUsed = (_str - 5) + (_int - 5) + (_dex - 5) + (_luk - 5);
+          _pointsPool = 10 - totalUsed;
+          if (_pointsPool < 0) _pointsPool = 0;
         });
       }
     });
@@ -97,16 +103,88 @@ class _HunterStatusScreenState extends ConsumerState<HunterStatusScreen> {
           displayName: profile['display_name'] as String?,
           avatarUrl: profile['avatar_url'] as String?,
           nativeLanguage: profile['native_language'] as String?,
-          bio: _formatBio(),
+          bio: _bioText.trim().isEmpty ? profile['bio'] as String? : _bioText.trim(),
+          strStat: _str,
+          intStat: _int,
+          dexStat: _dex,
+          lukStat: _luk,
+          equippedTitleCode: _equippedTitleCode,
         );
 
         ref.invalidate(userProfileProvider);
+        ref.invalidate(userProgressProvider);
         if (mounted) {
           SystemSnack.show(context, 'ESTADÍSTICAS DEL CAZADOR ACTUALIZADAS ⚡', type: SystemSnackType.success);
         }
       }
     } catch (_) {}
     if (mounted) setState(() => _isSaving = false);
+  }
+
+  /// Modal para elegir y equipar un título de la colección del cazador.
+  Future<void> _showEquipTitleModal(BuildContext context) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.sheetBackground,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'EQUIPAR TÍTULO',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: HunterCatalog.titles.length,
+                  separatorBuilder: (context, index) => Divider(color: AppColors.onSurface.withValues(alpha: 0.08), height: 1),
+                  itemBuilder: (context, index) {
+                    final title = HunterCatalog.titles[index];
+                    final isEquipped = title.code == _equippedTitleCode;
+                    return ListTile(
+                      leading: Text(title.icon, style: const TextStyle(fontSize: 20)),
+                      title: Text(
+                        title.name,
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 13,
+                          fontWeight: isEquipped ? FontWeight.bold : FontWeight.w500,
+                          color: isEquipped ? AppColors.royalGold : AppColors.onSurface,
+                        ),
+                      ),
+                      subtitle: Text(
+                        title.description,
+                        style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                      ),
+                      trailing: isEquipped
+                          ? const Icon(Icons.check_circle_rounded, color: AppColors.royalGold, size: 20)
+                          : null,
+                      onTap: () => Navigator.pop(context, title.code),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selected != null && selected != _equippedTitleCode && mounted) {
+      setState(() => _equippedTitleCode = selected);
+      await _saveStats();
+    }
   }
 
   @override
@@ -120,6 +198,9 @@ class _HunterStatusScreenState extends ConsumerState<HunterStatusScreen> {
     final userAvatarUrl = profile['avatar_url'] as String? ?? 'warrior';
     final cefrCode = progress['level_code'] as String? ?? 'A1';
     final xp = progress['xp'] as int? ?? 0;
+    final String initials = displayName.trim().isNotEmpty
+        ? displayName.trim().substring(0, 1).toUpperCase()
+        : 'H';
 
     final activeTitle = HunterCatalog.titles.firstWhere(
       (t) => t.code == _equippedTitleCode,
@@ -168,7 +249,7 @@ class _HunterStatusScreenState extends ConsumerState<HunterStatusScreen> {
                           children: [
                             RpgAvatar(
                               avatarUrl: userAvatarUrl,
-                              initials: displayName.substring(0, 1).toUpperCase(),
+                              initials: initials,
                               size: 56,
                               hunterClass: userAvatarUrl,
                             ),
@@ -207,6 +288,55 @@ class _HunterStatusScreenState extends ConsumerState<HunterStatusScreen> {
                                   ),
                                 ],
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Título equipado + botón para equipar
+                      GlassCard(
+                        borderColor: AppColors.royalGold.withValues(alpha: 0.4),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.workspace_premium_rounded, color: AppColors.royalGold, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'TÍTULO EQUIPADO',
+                                    style: GoogleFonts.jetBrainsMono(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    activeTitle.name.toUpperCase(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.royalGold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () => _showEquipTitleModal(context),
+                              icon: const Icon(Icons.swap_horiz_rounded, size: 16),
+                              label: Text(
+                                'EQUIPAR',
+                                style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                              style: TextButton.styleFrom(foregroundColor: AppColors.manaCyan),
                             ),
                           ],
                         ),

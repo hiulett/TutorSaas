@@ -12,6 +12,11 @@ final chatRoomsListProvider = FutureProvider.autoDispose<List<Map<String, dynami
   return ref.read(chatRoomsRepositoryProvider).getRooms();
 });
 
+/// Anuncios del gremio persistidos en BD (`guild_announcements`).
+final guildAnnouncementsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  return ref.read(chatRoomsRepositoryProvider).getGuildAnnouncements();
+});
+
 final chatRoomParticipantsProvider = StreamProvider.family.autoDispose<List<Map<String, dynamic>>, String>((ref, roomId) {
   return ref.read(chatRoomsRepositoryProvider).streamParticipants(roomId);
 });

@@ -14,7 +14,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       final response = await _supabaseClient
           .from('user_language_profiles')
-          .select('xp_points, current_streak, game_rank, languages(code, name, flag_emoji), cefr_levels(code, name)')
+          .select('xp_points, current_streak, game_rank, equipped_title_code, languages(code, name, flag_emoji), cefr_levels(code, name)')
           .eq('user_id', userId)
           .maybeSingle();
 
@@ -52,6 +52,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         'game_rank': gameRank,
         'language': languageName,
         'language_emoji': languageEmoji,
+        'equipped_title_code': response['equipped_title_code'] as String? ?? 'oido_halcon_abismo_c',
       };
     } catch (_) {
       return {
@@ -780,12 +781,39 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<void> updateUserProfile(String userId, {String? displayName, String? avatarUrl, String? nativeLanguage, String? bio}) async {
+  Future<void> updateUserProfile(
+    String userId, {
+    String? displayName,
+    String? avatarUrl,
+    String? nativeLanguage,
+    String? bio,
+    int? strStat,
+    int? intStat,
+    int? dexStat,
+    int? lukStat,
+    String? equippedTitleCode,
+  }) async {
+    // equipped_title_code es canónico en user_language_profiles (no en users).
+    if (equippedTitleCode != null) {
+      try {
+        await _supabaseClient
+            .from('user_language_profiles')
+            .update({'equipped_title_code': equippedTitleCode})
+            .eq('user_id', userId);
+      } catch (_) {
+        // Ignorar fallos del título; el resto del perfil continúa.
+      }
+    }
+
     final Map<String, dynamic> updates = {};
     if (displayName != null) updates['display_name'] = displayName;
     if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
     if (nativeLanguage != null) updates['native_language'] = nativeLanguage;
     if (bio != null) updates['bio'] = bio;
+    if (strStat != null) updates['str_stat'] = strStat;
+    if (intStat != null) updates['int_stat'] = intStat;
+    if (dexStat != null) updates['dex_stat'] = dexStat;
+    if (lukStat != null) updates['luk_stat'] = lukStat;
     updates['updated_at'] = DateTime.now().toIso8601String();
 
     await _supabaseClient.from('users').update(updates).eq('id', userId);

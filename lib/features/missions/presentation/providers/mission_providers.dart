@@ -147,6 +147,19 @@ final guildQuestPoolProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref
       );
 });
 
+/// Pool COMPLETO del gremio (sin límite de 3) para el tablón inmersivo.
+/// Excluye las misiones ya completadas por el usuario.
+final fullGuildQuestPoolProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  final langSettings = ref.watch(userLanguageProvider);
+  final langId = _languageCodeToId(langSettings.learningLanguage);
+  return ref.watch(missionRepositoryProvider).getGuildQuestPool(
+        languageId: langId,
+        excludeCompletedFor: user.id,
+      );
+});
+
 /// Misiones del pool completadas por el usuario (filtro "cumplidas").
 final completedGuildQuestsProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref) async {
   final user = ref.watch(currentUserProvider);
@@ -155,6 +168,16 @@ final completedGuildQuestsProvider = FutureProvider.autoDispose<List<GuildQuest>
   final langId = _languageCodeToId(langSettings.learningLanguage);
   return ref.watch(missionRepositoryProvider).getCompletedGuildQuests(user.id, languageId: langId);
 });
+
+/// Detalle de una misión del gremio por id (pantalla de detalle).
+final guildQuestByIdProvider = FutureProvider.autoDispose<GuildQuest?>((ref) async {
+  final questId = ref.watch(guildQuestIdProvider);
+  if (questId == null || questId.isEmpty) return null;
+  return ref.watch(missionRepositoryProvider).getGuildQuestById(questId);
+});
+
+/// ID de la misión seleccionada para el detalle (set desde la ruta).
+final guildQuestIdProvider = StateProvider<String?>((ref) => null);
 
 /// Mapea el código de idioma de aprendizaje de la app (en/fr/de/it) al
 /// language_id de la BD (1..4). Fallback a 1 (en).

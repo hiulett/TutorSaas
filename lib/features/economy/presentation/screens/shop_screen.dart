@@ -26,21 +26,21 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       'name': '+5 INVOCACIONES AL ORÁCULO',
       'desc': 'Restaura 5 de Maná diario para conversar con el Oráculo.',
       'price': 50,
-      'icon': Icons.bolt_rounded,
+      'image': 'assets/images/shop/shop_invocation_potion.png',
     },
     {
       'id': 'consumible_invocacion20',
       'name': '+20 INVOCACIONES AL ORÁCULO',
       'desc': 'Restaura 20 de Maná diario para conversar con el Oráculo.',
       'price': 180,
-      'icon': Icons.offline_bolt_rounded,
+      'image': 'assets/images/shop/shop_invocation_potion.png',
     },
     {
       'id': 'consumible_pergamino10',
       'name': '10 PERGAMINOS DE SABIDURÍA',
       'desc': 'Agrega pergaminos a tu inventario de repaso.',
       'price': 100,
-      'icon': Icons.menu_book_rounded,
+      'image': 'assets/images/shop/shop_scroll_sage.png',
     },
   ];
 
@@ -50,21 +50,21 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       'name': 'ELOCUENTE DEL GREMIO',
       'desc': 'Título exclusivo de Cazador. Otorga prestigio.',
       'price': 500,
-      'icon': Icons.military_tech_rounded,
+      'image': 'assets/images/shop/shop_title_eloquent.png',
     },
     {
       'id': 'title_cazador_sombras',
       'name': 'CAZADOR DE SOMBRAS',
       'desc': 'Título rúnico de Cazador de Nivel A.',
       'price': 800,
-      'icon': Icons.gavel_rounded,
+      'image': 'assets/images/shop/shop_title_shadow.png',
     },
     {
       'id': 'frame_escudo',
       'name': 'ESCUDO DEL GREMIO',
       'desc': 'Marco cosmético metálico para tu avatar.',
       'price': 600,
-      'icon': Icons.verified_user_rounded,
+      'image': 'assets/images/shop/shop_frame_guild.png',
     },
   ];
 
@@ -75,7 +75,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       'desc': 'Entrena con el Oráculo: +5 invocaciones al núcleo arcano del día.',
       'price': 100,
       'bonus': 5,
-      'icon': Icons.self_improvement_rounded,
+      'image': 'assets/images/shop/shop_training_fluency.png',
     },
     {
       'id': 'entrenamiento_elite',
@@ -83,16 +83,21 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       'desc': 'Rutina intensiva: +15 invocaciones al núcleo arcano del día.',
       'price': 250,
       'bonus': 15,
-      'icon': Icons.local_fire_department_rounded,
+      'image': 'assets/images/shop/shop_training_elite.png',
     },
   ];
 
+  /// Ruta del asset de imagen de un ítem (fallback a icono si no hay imagen).
+  String _itemImage(Map<String, dynamic> item) =>
+      item['image'] as String? ?? 'assets/images/shop/shop_invocation_potion.png';
+
+  /// Ofertas del día: dos ítems deterministas que cambian por fecha real.
   List<Map<String, dynamic>> _getDailyOffers() {
     final pool = <Map<String, dynamic>>[..._consumables, ..._cosmetics];
     final length = pool.length;
     if (length == 0) return const [];
     final date = DateTime.now().toIso8601String().split('T').first;
-    final seed = '\$fecha-$date';
+    final seed = 'shop-$date';
     var hash = 0x811c9dc5;
     for (final unit in seed.codeUnits) {
       hash ^= unit;
@@ -105,7 +110,49 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     return [pool[first], pool[second]];
   }
 
-  Future<void> _buyItem(String itemId, int price) async {
+  /// Diálogo de confirmación antes de comprar.
+  Future<bool> _confirmPurchase(
+    String name,
+    String priceLabel,
+    IconData icon,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.medievalStone,
+        title: Row(
+          children: [
+            Icon(icon, color: AppColors.manaCyan, size: 20),
+            const SizedBox(width: 8),
+            const Text('CONFIRMAR COMPRA', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+          ],
+        ),
+        content: Text(
+          '¿Adquirir "$name" por $priceLabel?',
+          style: GoogleFonts.inter(fontSize: 12, color: AppColors.onSurface.withValues(alpha: 0.85), height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('CANCELAR', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('COMPRAR', style: TextStyle(color: AppColors.royalGold, fontWeight: FontWeight.bold, fontSize: 11)),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<void> _buyItem(String itemId, int price, {String? name}) async {
+    final confirmed = await _confirmPurchase(
+      name ?? 'este objeto',
+      '$price GEMAS',
+      Icons.diamond_rounded,
+    );
+    if (!confirmed || !mounted) return;
     setState(() => _isBuying = true);
     try {
       final user = ref.read(currentUserProvider);
@@ -129,7 +176,13 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     if (mounted) setState(() => _isBuying = false);
   }
 
-  Future<void> _buyTraining(String itemId, int price, int bonus) async {
+  Future<void> _buyTraining(String itemId, int price, int bonus, {String? name}) async {
+    final confirmed = await _confirmPurchase(
+      name ?? 'este entrenamiento',
+      '$price ORO',
+      Icons.monetization_on_rounded,
+    );
+    if (!confirmed || !mounted) return;
     setState(() => _isBuying = true);
     try {
       final user = ref.read(currentUserProvider);
@@ -273,6 +326,39 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 ),
               ),
 
+              // Cabecera decorativa del mercado arcano
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0B0E16),
+                      border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.25)),
+                    ),
+                    child: Image.asset(
+                      'assets/images/shop/shop_bg_header.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF0B0E16),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'MERCADO ARCANO',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.manaCyan.withValues(alpha: 0.4),
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
               // Tab Selector
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -315,14 +401,28 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
+                            // Imagen del producto (fondo sólido #0B0E16 integrado)
                             Container(
-                              padding: const EdgeInsets.all(10),
+                              width: 56,
+                              height: 56,
                               decoration: BoxDecoration(
-                                color: AppColors.onSurface.withValues(alpha: 0.03),
+                                color: const Color(0xFF0B0E16),
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: AppColors.onSurface.withValues(alpha: 0.10)),
+                                border: Border.all(
+                                  color: isOwned ? AppColors.emeraldGreen.withValues(alpha: 0.4) : accent.withValues(alpha: 0.3),
+                                ),
                               ),
-                              child: Icon(item['icon'] as IconData, color: isOwned ? AppColors.emeraldGreen : accent, size: 24),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(3),
+                                child: Image.asset(
+                                  _itemImage(item),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: const Color(0xFF0B0E16),
+                                    child: Icon(Icons.inventory_2_rounded, color: accent, size: 24),
+                                  ),
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -372,9 +472,18 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                             ElevatedButton(
                               onPressed: (isOwned || _isBuying) ? null : () {
                                 if (isTraining) {
-                                  _buyTraining(item['id'] as String, item['price'] as int, item['bonus'] as int);
+                                  _buyTraining(
+                                    item['id'] as String,
+                                    item['price'] as int,
+                                    item['bonus'] as int,
+                                    name: item['name'] as String?,
+                                  );
                                 } else {
-                                  _buyItem(item['id'] as String, item['price'] as int);
+                                  _buyItem(
+                                    item['id'] as String,
+                                    item['price'] as int,
+                                    name: item['name'] as String?,
+                                  );
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -456,37 +565,59 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     final accent = AppColors.manaCyan;
     return GestureDetector(
       onTap: (isOwned || _isBuying) ? null : () {
-        _buyItem(item['id'] as String, item['price'] as int);
+        _buyItem(item['id'] as String, item['price'] as int, name: item['name'] as String?);
       },
       child: Container(
         height: 150,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.royalGold.withValues(alpha: 0.12),
-              AppColors.voidBg.withValues(alpha: 0.35),
-            ],
-          ),
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: AppColors.royalGold, width: 1.2),
+          // Textura de madera oscura como fondo (integra con la temática)
+          image: DecorationImage(
+            image: const AssetImage('assets/images/shop/shop_bg_panel.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              AppColors.voidBg.withValues(alpha: 0.55),
+              BlendMode.darken,
+            ),
+          ),
         ),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         child: Stack(
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(item['icon'] as IconData, color: accent, size: 22),
-                const Spacer(),
+                // Imagen del producto (fondo sólido integrado)
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B0E16),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.4)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: Image.asset(
+                      _itemImage(item),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF0B0E16),
+                        child: const Icon(Icons.diamond_rounded, color: AppColors.royalGold, size: 20),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Text(
                   item['name'] as String,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.spaceGrotesk(
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: 11,
                     color: AppColors.onSurface,
                     height: 1.2,
                   ),
@@ -494,29 +625,34 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.diamond_rounded, color: AppColors.royalGold, size: 13),
+                    const Icon(Icons.diamond_rounded, color: AppColors.royalGold, size: 12),
                     const SizedBox(width: 4),
-                    Text(
-                      '${item['price']} GEMAS',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.royalGold,
+                    Flexible(
+                      child: Text(
+                        '${item['price']} GEMAS',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.royalGold,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   isOwned
                       ? 'ADQUIRIDO'
                       : canAfford
                           ? 'TOCAR PARA COMPRAR'
                           : 'MANÁ INSUFICIENTE',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.spaceGrotesk(
-                    fontSize: 9,
+                    fontSize: 8,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.4,
                     color: isOwned
                         ? AppColors.emeraldGreen
                         : canAfford
@@ -526,22 +662,23 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 ),
               ],
             ),
+            // Sello de oferta (imagen del sello dorado)
             Positioned(
               top: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                width: 34,
+                height: 34,
                 decoration: BoxDecoration(
-                  color: AppColors.royalGold,
-                  borderRadius: BorderRadius.circular(4),
+                  color: const Color(0xFF0B0E16),
+                  borderRadius: BorderRadius.circular(17),
+                  border: Border.all(color: AppColors.royalGold, width: 1.2),
                 ),
-                child: Text(
-                  '-OFR-',
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.voidBg,
-                    letterSpacing: 0.5,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/shop/shop_offer_banner.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.local_offer_rounded, color: AppColors.royalGold, size: 16),
                   ),
                 ),
               ),

@@ -117,6 +117,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
             'model': 'deepseek-v4-flash',
             'messages': history,
             'stream': true,
+            'max_tokens': 200,
           },
           options: Options(
             headers: await _proxyHeaders(await _authToken()),
@@ -265,6 +266,7 @@ No markdown, no explanation, no code blocks.
           ],
           'stream': false,
           'temperature': 0.3,
+          'max_tokens': 400,
         },
         options: Options(
           headers: await _proxyHeaders(await _authToken()),
