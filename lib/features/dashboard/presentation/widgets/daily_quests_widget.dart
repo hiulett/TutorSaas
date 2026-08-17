@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class DailyQuestsWidget extends StatefulWidget {
   final int streakDays;
@@ -54,6 +55,34 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    String questTitle(String id) {
+      switch (id) {
+        case 'quest_1':
+          return l10n?.quest_speak_10min ?? 'Habla 10 minutos de voz';
+        case 'quest_2':
+          return l10n?.quest_learn_5_words ?? 'Aprende 5 palabras nuevas';
+        case 'quest_3':
+          return l10n?.quest_85_pronunciation ?? 'Logra >85% en Pronunciación';
+        default:
+          return id;
+      }
+    }
+
+    String questDescription(String id) {
+      switch (id) {
+        case 'quest_1':
+          return l10n?.quest_desc_session ?? 'Completa una sesión conversacional fluida';
+        case 'quest_2':
+          return l10n?.quest_desc_vocab ?? 'Acumula vocabulario en tus llamadas';
+        case 'quest_3':
+          return l10n?.quest_desc_pronunciation ?? 'Supera una prueba de huella de voz';
+        default:
+          return id;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -69,7 +98,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Misiones Diarias',
+                  l10n?.quest_daily_title ?? 'Misiones Diarias',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -90,7 +119,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                   const Icon(Icons.local_fire_department_rounded, color: AppColors.royalGold, size: 14),
                   const SizedBox(width: 4),
                   Text(
-                    '${widget.streakDays} Días',
+                    '${widget.streakDays} ${l10n?.days ?? 'Días'}',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -123,7 +152,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          quest['title'] as String,
+                          questTitle(quest['id'] as String),
                           style: const TextStyle(
                             color: AppColors.onSurface,
                             fontWeight: FontWeight.bold,
@@ -132,7 +161,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          quest['description'] as String,
+                          questDescription(quest['id'] as String),
                           style: const TextStyle(
                             color: AppColors.onSurfaceVariant,
                             fontSize: 11,

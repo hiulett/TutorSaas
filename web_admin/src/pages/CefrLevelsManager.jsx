@@ -1,127 +1,132 @@
 import React, { useState } from 'react';
 import GlassCard from '../components/GlassCard';
-import { Layers, Plus, Users, BookOpen, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Layers, Plus, Edit3, Trash2, Save, X } from 'lucide-react';
 
-export default function CefrLevelsManager({ levels, onAddLevel }) {
+const EMPTY_FORM = {
+  code: '',
+  name: '',
+  description: '',
+  color: '#a855f7',
+  difficultyRange: '1 - 2',
+};
+
+export default function CefrLevelsManager({ cefrLevels = [], onSaveLevel, onDeleteLevel }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [code, setCode] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [color, setColor] = useState('#a855f7');
-  const [difficultyRange, setDifficultyRange] = useState('1 - 2');
+  const [editingLevel, setEditingLevel] = useState(null); // nivel o null (crear)
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  const openCreate = () => {
+    setEditingLevel(null);
+    setForm(EMPTY_FORM);
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (lvl) => {
+    setEditingLevel(lvl);
+    setForm({
+      code: lvl.code,
+      name: lvl.name,
+      description: lvl.description || '',
+      color: lvl.color || '#a855f7',
+      difficultyRange: lvl.difficultyRange || '1 - 2',
+    });
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newLvl = {
-      code,
-      name,
-      description,
-      color,
-      badgeClass: `badge-${code.toLowerCase()}`,
-      activeLessons: 0,
-      enrolledStudents: 0,
-      difficultyRange,
-      icon: '⭐',
-    };
-    onAddLevel(newLvl);
+    if (!form.code.trim() || !form.name.trim()) return;
+    if (onSaveLevel) onSaveLevel(form);
     setIsModalOpen(false);
   };
 
+  const handleDelete = (lvl) => {
+    const ok = window.confirm(`¿Eliminar el nivel ${lvl.code} (${lvl.name})?`);
+    if (ok && onDeleteLevel) onDeleteLevel(lvl.code);
+  };
+
+  const input = (key, label, placeholder) => (
+    <div>
+      <label className="form-label">{label}</label>
+      <input
+        type="text"
+        value={form[key]}
+        placeholder={placeholder}
+        required={key === 'code' || key === 'name'}
+        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+        className="cyber-input"
+      />
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#fff' }}>Gestión de Niveles CEFR</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>
-            Administra los niveles del marco europeo (A1 a C2), crea nuevos niveles personalizados y configura las reglas de recomendación automática.
+            Administra los niveles del marco europeo (A1 a C2): crea, edita y elimina.
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
+        <button className="btn-primary" onClick={openCreate}>
           <Plus style={{ width: '18px', height: '18px' }} />
           <span>Crear Nuevo Nivel CEFR</span>
         </button>
       </div>
 
-      {/* Levels Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-        {levels.map((lvl) => (
-          <GlassCard key={lvl.code} interactive padding="24px">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  background: `${lvl.color}22`,
-                  border: `1px solid ${lvl.color}66`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '20px',
-                }}>
-                  {lvl.icon || '🎓'}
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>
-                    {lvl.code} — {lvl.name}
-                  </h3>
-                  <span style={{ fontSize: '11px', color: lvl.color, fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
-                    Rango Dificultad: {lvl.difficultyRange}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px', minHeight: '40px' }}>
-              {lvl.description}
-            </p>
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              paddingTop: '16px',
-              borderTop: '1px solid var(--border-glass)',
-              fontSize: '13px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)' }}>
-                <BookOpen style={{ width: '16px', height: '16px', color: 'var(--primary-purple)' }} />
-                <span><strong>{lvl.activeLessons}</strong> Lecciones</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)' }}>
-                <Users style={{ width: '16px', height: '16px', color: 'var(--secondary-teal)' }} />
-                <span><strong>{lvl.enrolledStudents}</strong> Alumnos</span>
-              </div>
-            </div>
-          </GlassCard>
-        ))}
-      </div>
-
-      {/* Recommendation Algorithm Card */}
-      <GlassCard padding="24px">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-          <Sparkles style={{ color: 'var(--secondary-teal)', width: '22px', height: '22px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>Motor de Recomendación Inteligente de Lecciones</h3>
+      {cefrLevels.length === 0 ? (
+        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', border: '1px dashed var(--border-glass)', borderRadius: '12px' }}>
+          No hay niveles CEFR en la base de datos.
         </div>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-          Las lecciones recomendadas en el Dashboard del estudiante se seleccionan dinámicamente mapeando el nivel CEFR actual del usuario y sus intereses seleccionados en Onboarding.
-        </p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+          {cefrLevels.map((lvl) => (
+            <GlassCard key={lvl.code} interactive padding="24px">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    background: `${lvl.color}22`,
+                    border: `1px solid ${lvl.color}66`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '20px',
+                  }}>
+                    {lvl.icon || '🎓'}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>
+                      {lvl.code} — {lvl.name}
+                    </h3>
+                    <span style={{ fontSize: '11px', color: lvl.color, fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
+                      Rango Dificultad: {lvl.difficultyRange}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-          <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(6, 13, 32, 0.5)', border: '1px solid var(--border-glass)' }}>
-            <div style={{ fontSize: '12px', color: 'var(--secondary-teal)', fontFamily: 'var(--font-mono)' }}>Estrategia A1/A2</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginTop: '4px' }}>Progresión Directa</div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Muestra lecciones del nivel actual más 1 lección del nivel superior inmediato.</p>
-          </div>
-          <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(6, 13, 32, 0.5)', border: '1px solid var(--border-glass)' }}>
-            <div style={{ fontSize: '12px', color: 'var(--primary-purple)', fontFamily: 'var(--font-mono)' }}>Estrategia B1/B2</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginTop: '4px' }}>Misiones de Negocio & Tech</div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Prioriza entrevistas de trabajo, negociación y temas de alta demanda laboral.</p>
-          </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px', minHeight: '40px' }}>
+                {lvl.description}
+              </p>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn-primary" onClick={() => openEdit(lvl)} style={{ flex: 1, justifyContent: 'center' }}>
+                  <Edit3 style={{ width: '16px', height: '16px' }} />
+                  <span>Editar</span>
+                </button>
+                <button className="btn-secondary" onClick={() => handleDelete(lvl)} style={{ justifyContent: 'center', color: '#fca5a5' }}>
+                  <Trash2 style={{ width: '16px', height: '16px' }} />
+                  <span>Eliminar</span>
+                </button>
+              </div>
+            </GlassCard>
+          ))}
         </div>
-      </GlassCard>
+      )}
 
-      {/* Modal New Level */}
       {isModalOpen && (
         <div style={{
           position: 'fixed',
@@ -134,24 +139,45 @@ export default function CefrLevelsManager({ levels, onAddLevel }) {
           justifyContent: 'center',
           padding: '24px',
         }}>
-          <GlassCard style={{ width: '100%', maxWidth: '500px', padding: '32px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#fff', marginBottom: '20px' }}>Crear Nuevo Nivel CEFR</h2>
+          <GlassCard style={{ width: '100%', maxWidth: '520px', padding: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#fff' }}>
+                {editingLevel ? `Editar Nivel ${editingLevel.code}` : 'Crear Nuevo Nivel CEFR'}
+              </h2>
+              <button className="btn-secondary" onClick={() => setIsModalOpen(false)}><X style={{ width: '16px', height: '16px' }} /></button>
+            </div>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>Código de Nivel (ej. C2)</label>
-                <input type="text" value={code} onChange={(e) => setCode(e.target.value)} required className="cyber-input" placeholder="C2" />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {input('code', 'Código (ej. C2)', 'C2')}
+                {input('name', 'Nombre', 'Maestría')}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label className="form-label">Color</label>
+                  <input
+                    type="color"
+                    value={form.color}
+                    onChange={(e) => setForm({ ...form, color: e.target.value })}
+                    style={{ width: '100%', height: '40px', border: '1px solid var(--border-glass)', borderRadius: '8px', background: 'transparent', cursor: 'pointer' }}
+                  />
+                </div>
+                {input('difficultyRange', 'Rango Dificultad', '1 - 2')}
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>Nombre del Nivel (ej. Maestría)</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="cyber-input" placeholder="Maestría" />
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>Descripción pedagógica</label>
-                <textarea rows="3" value={description} onChange={(e) => setDescription(e.target.value)} className="cyber-input" />
+                <label className="form-label">Descripción pedagógica</label>
+                <textarea
+                  rows="3"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="cyber-input"
+                />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Guardar Nivel</button>
+                <button type="submit" className="btn-primary">
+                  <Save style={{ width: '16px', height: '16px' }} />
+                  <span>Guardar Nivel</span>
+                </button>
               </div>
             </form>
           </GlassCard>

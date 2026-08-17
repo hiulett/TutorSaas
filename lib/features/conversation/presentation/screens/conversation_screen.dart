@@ -20,7 +20,6 @@ import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../dashboard/data/models/hunter_catalog.dart';
 import '../../../economy/presentation/widgets/nucleo_arcano_limit_screen.dart';
-import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -108,8 +107,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   void dispose() {
     // Detener cualquier narración TTS en curso (p.ej. la del Oráculo) al salir
     // de la pantalla, para que no siga sonando en dashboard/otras páginas.
+    // `suppress` además impide que un turno de la IA que termine después de la
+    // salida dispare una nueva narración.
     try {
-      ref.read(conversationStateProvider.notifier).stopTts();
+      ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
     } catch (_) {}
     _textController.dispose();
     _chatScrollController.dispose();
@@ -204,7 +205,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         const Icon(Icons.explore_rounded, color: AppColors.runeViolet, size: 28),
                         const SizedBox(width: 10),
                         Text(
-                          'Guía de Misión y Contexto',
+                          AppLocalizations.of(context)?.convo_mission_guide ?? 'Guía de Misión y Contexto',
                           style: GoogleFonts.hankenGrotesk(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -222,12 +223,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.scenarioTitle ?? lesson?.title ?? 'Práctica de Conversación',
+                            widget.scenarioTitle ?? lesson?.title ?? (AppLocalizations.of(context)?.convo_practice_title ?? 'Práctica de Conversación'),
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Objetivo: ${lesson?.mainObjective ?? 'Practica tu conversación en el idioma seleccionado.'}',
+                            AppLocalizations.of(context)?.convo_objective(
+                                  lesson?.mainObjective ?? 'Practica tu conversación en el idioma seleccionado.',
+                                ) ??
+                                'Objetivo: ${lesson?.mainObjective ?? 'Practica tu conversación en el idioma seleccionado.'}',
                             style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
                           ),
                         ],
@@ -248,11 +252,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         );
                       }),
                     ] else
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
-                          'Selecciona una lección para ver las metas específicas.',
-                          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+                          AppLocalizations.of(context)?.convo_select_goals ?? 'Selecciona una lección para ver las metas específicas.',
+                          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
                         ),
                       ),
                     const SizedBox(height: 20),
@@ -270,11 +274,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         ),
                       )
                     else
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
-                          'Selecciona una lección para ver frases clave sugeridas.',
-                          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+                          AppLocalizations.of(context)?.convo_select_phrases ?? 'Selecciona una lección para ver frases clave sugeridas.',
+                          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
                         ),
                       ),
                     const SizedBox(height: 24),
@@ -492,12 +496,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Huella de Voz & Pronunciación',
+                        AppLocalizations.of(context)?.convo_voice_print ?? 'Huella de Voz & Pronunciación',
                         style: GoogleFonts.hankenGrotesk(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
+                          height: 1.2,
                         ),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -506,17 +512,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildMetricCard('Claridad Fonética', phoneticClarityValue, Icons.graphic_eq_rounded, AppColors.manaCyan)),
+                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_phonetic_clarity ?? 'Claridad Fonética', phoneticClarityValue, Icons.graphic_eq_rounded, AppColors.manaCyan)),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildMetricCard('Velocidad Habla', wpmText, Icons.speed_rounded, AppColors.manaCyan)),
+                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_speech_speed ?? 'Velocidad Habla', wpmText, Icons.speed_rounded, AppColors.manaCyan)),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Expanded(child: _buildMetricCard('Palabras Habladas', '$wordCount', Icons.chat_bubble_outline_rounded, const Color(0xFFFFD700))),
+                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_words_spoken ?? 'Palabras Habladas', '$wordCount', Icons.chat_bubble_outline_rounded, const Color(0xFFFFD700))),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildMetricCard('Nivel CEFR', cefrText, Icons.auto_awesome_rounded, AppColors.runeViolet)),
+                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_cefr_level ?? 'Nivel CEFR', cefrText, Icons.auto_awesome_rounded, AppColors.runeViolet)),
                   ],
                 ),
                 const SizedBox(height: 18),
@@ -552,9 +558,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               Expanded(
                 child: Text(
                   label,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11, height: 1.2),
                 ),
               ),
             ],
@@ -593,23 +599,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final isOracle = conversationState.isOracleEvaluation;
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
-      // Núcleo Arcano agotado → abrir el modal de recarga/premium en vez de un snack.
+      // Maná agotado → abrir la pantalla SIN MANÁ (compra/espera) en vez de un snack.
       if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
-        final isNucleoDepleted =
-            next.errorMessage!.contains('NÚCLEO ARCANO AGOTADO');
-        if (isNucleoDepleted) {
-          final dailyState = ref.read(dailyStateProvider).value ?? {};
-          final invocationsUsed =
-              (dailyState['invocations_used'] as num?)?.toInt() ?? 0;
-          final invocationsMax =
-              (dailyState['invocations_max'] as num?)?.toInt() ?? 20;
+        final isManaDepleted = next.errorMessage!.contains('SIN MANÁ');
+        if (isManaDepleted) {
           if (mounted) {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => NucleoArcanoLimitScreen(
-                  invocationsUsed: invocationsUsed,
-                  invocationsMax: invocationsMax,
-                ),
+                builder: (_) => const NucleoArcanoLimitScreen(),
               ),
             );
           }
@@ -661,13 +658,33 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         child: PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, result) async {
+          // Al salir (pop), suprimir y detener el TTS de inmediato, antes del
+          // dispose, para que ningún turno en vuelo narre en otras pantallas.
+          if (didPop) {
+            ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
+          }
           if (didPop && !isOracle) {
+            // Capturamos el router antes de cualquier await: tras cerrar la
+            // sesión esta pantalla ya se está removiendo y su contexto muere.
+            final router = GoRouter.of(context);
+
+            // Solo hay resumen si hubo interacción real (al menos un turno del
+            // usuario). Si se entra y se sale sin hablar, se regresa al dashboard
+            // directamente sin summary ni registro de práctica.
+            final latest = ref.read(conversationStateProvider);
+            final hasUserTurns = latest.messages.any((m) => m.sender == 'user');
+            if (!hasUserTurns) return;
+
             final duration = DateTime.now().difference(_startTime);
             final minutes = duration.inMinutes;
             final minutesToSave = minutes > 0 ? minutes : 1;
             await ref.read(conversationStateProvider.notifier).endSession(
               practiceMinutes: minutesToSave,
             );
+            // Navegar al resumen post-sesión usando el router capturado.
+            try {
+              router.push('/summary');
+            } catch (_) {}
           }
         },
         child: Stack(
@@ -715,8 +732,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
+                                  height: 1.2,
                                 ),
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -756,12 +774,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               const SizedBox(width: 8),
                               SizedBox(
                                 width: 36,
-                                child: Text(
-                                  '${(realProgressRatio * 100).round()}%',
-                                  style: const TextStyle(
-                                    color: Color(0xFFF1C40F),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    '${(realProgressRatio * 100).round()}%',
+                                    style: const TextStyle(
+                                      color: Color(0xFFF1C40F),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -821,7 +843,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                       Text(_isBlindListening ? '🙈' : '👁️', style: const TextStyle(fontSize: 12)),
                                       const SizedBox(width: 4),
                                       Text(
-                                        _isBlindListening ? 'Chat Oculto (4ª/5ª Estrella 🌟)' : 'Chat Visible',
+                                        _isBlindListening
+                                            ? (AppLocalizations.of(context)?.convo_hidden_chat ?? 'Chat Oculto (4ª/5ª Estrella 🌟)')
+                                            : (AppLocalizations.of(context)?.convo_visible_chat ?? 'Chat Visible'),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
@@ -858,7 +882,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                       Text(_isTypingMode ? '⌨️' : '🎙️', style: const TextStyle(fontSize: 12)),
                                       const SizedBox(width: 4),
                                       Text(
-                                        _isTypingMode ? 'Modo Escritura' : 'Modo Voz',
+                                        _isTypingMode
+                                            ? (AppLocalizations.of(context)?.convo_write_mode ?? 'Modo Escritura')
+                                            : (AppLocalizations.of(context)?.convo_voice_mode ?? 'Modo Voz'),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
@@ -1017,7 +1043,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               controller: _textController,
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                hintText: 'Escribe tu mensaje en inglés...',
+                                hintText: AppLocalizations.of(context)?.convo_input_hint ?? 'Escribe tu mensaje en inglés...',
                                 hintStyle: const TextStyle(color: Colors.white38),
                                 filled: true,
                                 fillColor: Colors.white.withValues(alpha: 0.08),
@@ -1104,7 +1130,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   const Icon(Icons.auto_awesome_rounded, color: AppColors.medievalBg, size: 18),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'CONTINUAR',
+                                    AppLocalizations.of(context)?.convo_continue ?? 'CONTINUAR',
                                     style: GoogleFonts.jetBrainsMono(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -1198,7 +1224,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'EL ORÁCULO ESTÁ EVALUANDO TU CONVERSACIÓN...',
+                          AppLocalizations.of(context)?.convo_oracle_evaluating ?? 'EL ORÁCULO ESTÁ EVALUANDO TU CONVERSACIÓN...',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 12,
@@ -1209,7 +1235,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Analizando tu nivel de comunicación...',
+                          AppLocalizations.of(context)?.convo_analyzing_level ?? 'Analizando tu nivel de comunicación...',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 12,

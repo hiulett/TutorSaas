@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/cache/cached_future_controller.dart';
 import 'package:tutorsaas/features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import 'package:tutorsaas/features/chat_rooms/presentation/providers/chat_rooms_providers.dart';
 import 'package:tutorsaas/features/missions/presentation/providers/mission_providers.dart';
@@ -149,18 +150,24 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          chatRoomsListProvider.overrideWith((ref) => Future.value([
-            {
-              'id': 'room_1',
-              'title': 'Test Room',
-              'category': 'travel',
-              'speakers_count': 2,
-              'listeners_count': 5,
-              'room_type': 'ai_practice',
-              'max_speakers': 6,
-            }
-          ])),
-          guildAnnouncementsProvider.overrideWith((ref) => Future.value([])),
+          chatRoomsListProvider.overrideWith((ref) => CachedFutureController<List<Map<String, dynamic>>>(
+                userIdGetter: () => 'test',
+                fetcher: () async => [
+                  {
+                    'id': 'room_1',
+                    'title': 'Test Room',
+                    'category': 'travel',
+                    'speakers_count': 2,
+                    'listeners_count': 5,
+                    'room_type': 'ai_practice',
+                    'max_speakers': 6,
+                  }
+                ],
+              )),
+          guildAnnouncementsProvider.overrideWith((ref) => CachedFutureController<List<Map<String, dynamic>>>(
+                userIdGetter: () => 'test',
+                fetcher: () async => [],
+              )),
           weeklyRaidProvider.overrideWith((ref) => Future.value(null)),
           battlePassProvider.overrideWith((ref) => Future.value({'level': 1, 'xp_progress': 0, 'is_premium': false, 'claimed_rewards': []})),
           guildCompletedMissionsProvider.overrideWith((ref) => Future.value(0)),

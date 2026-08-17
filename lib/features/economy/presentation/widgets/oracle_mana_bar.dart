@@ -4,141 +4,104 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/segmented_bar.dart';
 import '../../../../core/widgets/animated_counter.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/economy_providers.dart';
 
-/// Panel de maná del Oráculo. Muestra dos barras:
-///  1. MANÁ MENSUAL: minutos de audio IA consumidos del plan (30/300/1200 min).
-///  2. USO DIARIO: invocaciones restantes hoy (base 20 + racha + consumibles
-///     + bonus del plan).
+/// Barra única de MANÁ (FASE B).
+///
+/// Saldo = asignación mensual del plan + maná comprado (porciones/gemas) − usado.
+/// Toda acción IA descuenta el costo configurable (ai_action_costs); nada se
+/// gana jugando. Se recarga al renovar el ciclo (expira en `expires_at`).
 class OracleManaBar extends ConsumerWidget {
   final bool showLabel;
   final bool compact;
 
   const OracleManaBar({super.key, this.showLabel = true, this.compact = false});
 
-  String _formatMinutes(int seconds) {
-    final minutes = (seconds / 60).ceil();
-    if (minutes >= 60) {
-      final h = minutes ~/ 60;
-      final m = minutes % 60;
-      return m > 0 ? '${h}h ${m}m' : '${h}h';
-    }
-    return '${minutes}m';
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return '';
+    final dd = dt.day.toString().padLeft(2, '0');
+    final mm = dt.month.toString().padLeft(2, '0');
+    return '$dd/$mm';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Maná mensual (audio del plan)
-    final monthlyAsync = ref.watch(monthlyManaProvider);
-    final monthly = monthlyAsync.value ?? const {
-      'usedSeconds': 0,
-      'limitSeconds': 1800,
-      'remainingSeconds': 1800,
-      'planName': 'free',
-    };
-    final int usedSec = monthly['usedSeconds'] as int? ?? 0;
-    final int limitSec = monthly['limitSeconds'] as int? ?? 1800;
-    final int remainingSec = monthly['remainingSeconds'] as int? ?? 0;
-    final double monthlyProgress =
-        limitSec > 0 ? (remainingSec / limitSec).clamp(0.0, 1.0) : 0.0;
-    final bool monthlyExhausted = remainingSec <= 0;
-
-    // Maná diario (invocaciones)
-    final manaAsync = ref.watch(oracleManaProvider);
+    final l10n = AppLocalizations.of(context);
+    final manaAsync = ref.watch(manaStateProvider);
     final mana = manaAsync.value ?? const {
-      'manaMax': 20,
-      'manaUsed': 0,
-      'manaLeft': 20,
-      'planBonus': 0,
+      'allowance': 1800,
+      'purchased': 0,
+      'used': 0,
+      'remaining': 1800,
+      'expires_at': null,
+      'plan': 'Plan Gratuito',
     };
-    final int manaMax = mana['manaMax'] as int? ?? 20;
-    final int manaLeft = mana['manaLeft'] as int? ?? 0;
-    final int planBonus = mana['planBonus'] as int? ?? 0;
-    final double dailyProgress = manaMax > 0 ? (manaLeft / manaMax).clamp(0.0, 1.0) : 0.0;
+    final int allowance = mana['allowance'] as int? ?? 1800;
+    final int purchased = mana['purchased'] as int? ?? 0;
+    final int remaining = mana['remaining'] as int? ?? 0;
+    final int available = allowance + purchased;
+    final DateTime? expiresAt = mana['expires_at'] is String
+        ? DateTime.tryParse(mana['expires_at'] as String)
+        : null;
+
+    final double progress = available > 0 ? (remaining / available).clamp(0.0, 1.0) : 0.0;
+    final bool exhausted = remaining <= 0;
 
     final double titleSize = compact ? 9 : 10;
-    final double labelSize = compact ? 9 : 10;
     final double numSize = compact ? 10 : 11;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ── MANÁ MENSUAL (minutos de audio del plan) ──
         if (showLabel) ...[
           Row(
             children: [
-              const Icon(Icons.hourglass_bottom_rounded, color: AppColors.manaCyan, size: 13),
+              const Icon(Icons.bolt_rounded, color: AppColors.runeViolet, size: 13),
               const SizedBox(width: 6),
-              Text(
-                'MANÁ MENSUAL · AUDIO',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: titleSize,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                  color: AppColors.onSurfaceVariant,
+              Expanded(
+                child: Text(
+                  l10n?.mana_label ?? 'MANÁ',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
-                '${_formatMinutes(remainingSec)} / ${_formatMinutes(limitSec)}',
+                '$remaining / $available',
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: numSize,
                   fontWeight: FontWeight.bold,
-                  color: monthlyExhausted ? AppColors.crimsonRed : AppColors.manaCyan,
+                  color: exhausted ? AppColors.crimsonRed : AppColors.runeViolet,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
         ],
-        SegmentedBar(
-          value: monthlyProgress,
-          segments: compact ? 10 : 20,
-          height: compact ? 5 : 7,
-          color: monthlyExhausted ? AppColors.crimsonRed : AppColors.manaCyan,
-        ),
-        SizedBox(height: showLabel ? 10 : 6),
-
-        // ── USO DIARIO (invocaciones del Núcleo Arcano) ──
-        if (showLabel) ...[
-          Row(
-            children: [
-              const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 13),
-              const SizedBox(width: 6),
-              Text(
-                'USO DIARIO · INVOCACIONES',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: titleSize,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '$manaLeft/$manaMax',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: numSize,
-                  fontWeight: FontWeight.bold,
-                  color: manaLeft == 0 ? AppColors.crimsonRed : AppColors.runeViolet,
-                ),
-              ),
-            ],
+        Tooltip(
+          message: l10n?.mana_tooltip ??
+              'MANÁ: energía para toda acción IA (Oráculo, mazmorras, chats). '
+                  'Se adquiere con tu plan y porciones/gemas; expira con el ciclo.',
+          child: SegmentedBar(
+            value: progress,
+            segments: compact ? 10 : 20,
+            height: compact ? 5 : 7,
+            color: exhausted ? AppColors.crimsonRed : AppColors.runeViolet,
           ),
-          const SizedBox(height: 4),
-        ],
-        SegmentedBar(
-          value: dailyProgress,
-          segments: compact ? 10 : 20,
-          height: compact ? 5 : 7,
-          color: manaLeft == 0 ? AppColors.crimsonRed : AppColors.runeViolet,
         ),
         if (showLabel) ...[
           const SizedBox(height: 4),
           Row(
             children: [
               AnimatedCounter(
-                target: manaLeft,
+                target: remaining,
                 duration: const Duration(milliseconds: 600),
                 style: GoogleFonts.jetBrainsMono(
                   fontWeight: FontWeight.bold,
@@ -147,20 +110,26 @@ class OracleManaBar extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Text(
-                'invocaciones restantes hoy',
-                style: TextStyle(fontSize: labelSize, color: AppColors.onSurfaceVariant),
+              Expanded(
+                child: Text(
+                  l10n?.mana_available ?? 'maná disponible',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: titleSize, color: AppColors.onSurfaceVariant),
+                ),
               ),
-              const Spacer(),
-              if (planBonus > 0)
+              if (expiresAt != null) ...[
+                const SizedBox(width: 8),
                 Text(
-                  '+$planBonus por plan',
+                  l10n?.mana_expires(_formatDate(expiresAt)) ??
+                      'expira ${_formatDate(expiresAt)}',
                   style: GoogleFonts.jetBrainsMono(
-                    fontSize: labelSize,
+                    fontSize: titleSize,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.emeraldGreen,
+                    color: AppColors.onSurfaceVariant,
                   ),
                 ),
+              ],
             ],
           ),
         ],

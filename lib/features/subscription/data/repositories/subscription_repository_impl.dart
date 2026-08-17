@@ -17,7 +17,7 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
 
       if (response != null) {
         final planId = response['plan_id'] as String?;
-        return planId != null && planId != 'free';
+        return planId != null && planId != 'plebeyo';
       }
       return false;
     } catch (_) {
@@ -30,101 +30,92 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
     try {
       final response = await _supabaseClient
           .from('subscription_plans')
-          .select('id, name, price, billing_cycle, monthly_audio_minutes_limit, order_index, description, badge_tag, features')
+          .select('id, name, price, price_annual, billing_cycle, monthly_audio_minutes_limit, order_index, description, badge_tag, features, class_name, mana_allowance, stripe_price_id, stripe_price_annual_id')
           .eq('is_active', true)
           .order('order_index', ascending: true);
 
       if (response.isNotEmpty) {
         return List<Map<String, dynamic>>.from(response).map((p) {
-          final String id = p['id'] as String? ?? 'free';
-          final String billingCycle = p['billing_cycle'] as String? ?? 'monthly';
-          String billingText = 'Facturado cada mes';
-          if (billingCycle == 'annual') {
-            billingText = 'Facturado cada año';
-          } else if (billingCycle == 'lifetime') {
-            billingText = 'Pago único para siempre';
-          }
+          final String id = p['id'] as String? ?? 'plebeyo';
+          final int mana = (p['mana_allowance'] as num?)?.toInt() ?? 1800;
 
           return {
             'id': id,
             'title': p['name'] as String? ?? 'Plan $id',
             'price': p['price'] as String? ?? '\$9.99',
-            'billing': billingText,
+            'priceAnnual': p['price_annual'] as String?,
+            'billing': 'Mensual o Anual',
             'tag': p['badge_tag'] as String?,
+            'class': p['class_name'] as String? ?? 'plebeyo',
+            'mana': mana,
             'minutesLimit': p['monthly_audio_minutes_limit'] as int? ?? 300,
+            'stripePriceId': p['stripe_price_id'] as String?,
+            'stripePriceAnnualId': p['stripe_price_annual_id'] as String?,
             'features': List<String>.from(p['features'] ?? []),
           };
         }).toList();
       }
     } catch (_) {}
 
-    // Fallback if DB table is initializing
+    // Fallback si la tabla no está disponible: estamentos del diseño D2.
     return [
       {
-        'id': 'monthly',
-        'title': 'Plan Mensual',
-        'price': '\$9.99',
-        'billing': 'Facturado cada mes',
-        'tag': null,
+        'id': 'noble',
+        'title': 'NOBLE',
+        'price': '\$4.99',
+        'priceAnnual': '\$49.99',
+        'billing': 'Mensual o Anual',
+        'tag': 'PREMIUM 1',
+        'class': 'noble',
+        'mana': 18000,
         'minutesLimit': 300,
+        'stripePriceId': null,
+        'stripePriceAnnualId': null,
         'features': [
-          '300 min/mes de conversación IA',
-          'Tutor IA disponible 24/7',
+          '18,000 maná/mes (300 min de IA)',
+          'Techo de prestigio: Gran Duque',
           'Corrección gramatical avanzada',
         ],
       },
       {
-        'id': 'annual',
-        'title': 'Plan Anual',
-        'price': '\$79.99',
-        'billing': 'Facturado cada año (\$6.66/mes)',
-        'tag': 'AHORRA 33%',
+        'id': 'realeza',
+        'title': 'REALEZA',
+        'price': '\$14.99',
+        'priceAnnual': '\$149.99',
+        'billing': 'Mensual o Anual',
+        'tag': 'PREMIUM 2',
+        'class': 'realeza',
+        'mana': 72000,
         'minutesLimit': 1200,
+        'stripePriceId': null,
+        'stripePriceAnnualId': null,
         'features': [
-          '1,200 min/mes de audio IA (20 hrs)',
-          'Voces HD ultra realistas',
-          'Speech DNA y biometría fonética completa',
-        ],
-      },
-      {
-        'id': 'lifetime',
-        'title': 'Acceso Vitalicio',
-        'price': '\$149.99',
-        'billing': 'Pago único para siempre',
-        'tag': 'MEJOR VALOR',
-        'minutesLimit': 3600,
-        'features': [
-          '3,600 min/mes de audio IA (60 hrs)',
-          'Acceso ilimitado a lecciones futuras',
-          'Prioridad máxima en servidores de voz',
+          '72,000 maná/mes (1,200 min de IA)',
+          'Techo de prestigio: Emperador + Legendario',
+          'Voces HD y prioridad en servidores de voz',
         ],
       },
     ];
   }
 
   @override
-  Future<bool> purchasePackage(String packageId) async {
+  Future<String?> purchasePackage(String packageId, String billingCycle) async {
     final userId = _supabaseClient.auth.currentUser?.id;
-    if (userId != null) {
-      try {
-        await _supabaseClient.functions.invoke(
-          'create-stripe-checkout',
-          body: {
-            'price_id': packageId,
-            'user_id': userId,
-          },
-        );
-      } catch (_) {}
-      try {
-        await _supabaseClient.from('user_subscriptions').upsert({
-          'user_id': userId,
+    if (userId == null) return null;
+    try {
+      final res = await _supabaseClient.functions.invoke(
+        'stripe-checkout',
+        body: {
+          'type': 'subscription',
           'plan_id': packageId,
-          'status': 'active',
-          'updated_at': DateTime.now().toIso8601String(),
-        });
-      } catch (_) {}
+          'billing_cycle': billingCycle,
+        },
+      );
+      final data = (res.data as Map?) ?? const {};
+      return data['url'] as String?;
+    } catch (_) {
+      return null;
     }
-    return true;
   }
 
   @override

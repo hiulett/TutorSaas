@@ -58,47 +58,31 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
   RealtimeChannel? _roomsChannel;
   SupabaseClient? _supabaseClient;
 
-  // F4: anuncios rotativos del gremio (sensación de comunidad viva).
-  static const List<String> _guildAnnouncements = [
-    'El Gremio caza en equipo: únete a una mesa y practica en voz.',
-    'Raid de vocabulario esta semana: gana doble XP.',
-    'El Oráculo recomienda: 15 min de práctica diaria.',
-    'Nuevos cazadores han despertado hoy. ¡Bienvenidos!',
-  ];
   int _currentAnnouncement = 0;
   bool _musicPlaying = false;
   Timer? _announcementTimer;
 
+  /// Conteo REAL de cazadores conectados en todas las mesas activas.
   int _connectedCount(List<Map<String, dynamic>> rooms) {
     var count = 0;
     for (final r in rooms) {
-      count += (r['speakers_count'] as int? ?? 0);
-      count += (r['listeners_count'] as int? ?? 0);
+      count += (r['seated_count'] as int? ?? r['speakers_count'] as int? ?? 0);
+      count += (r['standing_count'] as int? ?? 0);
     }
     return count;
   }
 
-  /// Roster de clases de cazadores "en línea" (hasta 5) derivado de las salas
-  /// activas. Fallback a clases representativas si no hay salas.
-  List<String> _onlineRoster(List<Map<String, dynamic>> rooms) {
-    const classes = ['warrior', 'mage', 'assassin', 'knight', 'archer'];
-    final result = <String>[];
-    for (var i = 0; i < classes.length; i++) {
-      result.add(classes[(i + _currentAnnouncement) % classes.length]);
-    }
-    return result;
-  }
-
   /// Badge de ocupación de una sala: color/etiqueta según llenado.
   Widget _occupancyBadge(int speakers, int maxSpeakers) {
+    final l10n = AppLocalizations.of(context);
     final ratio = maxSpeakers > 0 ? speakers / maxSpeakers : 0.0;
     final (String label, Color color) = ratio >= 1.0
-        ? ('LLENA', AppColors.crimsonRed)
+        ? (l10n?.chat_status_full ?? 'LLENA', AppColors.crimsonRed)
         : ratio >= 0.66
-            ? ('CASI LLENA', AppColors.royalGold)
+            ? (l10n?.chat_status_nearly_full ?? 'CASI LLENA', AppColors.royalGold)
             : ratio >= 0.33
-                ? ('OCUPADA', AppColors.manaCyan)
-                : ('ESPACIO', AppColors.emeraldGreen);
+                ? (l10n?.chat_status_occupied ?? 'OCUPADA', AppColors.manaCyan)
+                : (l10n?.chat_status_space ?? 'ESPACIO', AppColors.emeraldGreen);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -119,10 +103,10 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
   }
 
   /// Texto del anuncio rotativo: usa los anuncios persistidos en BD si hay,
-  /// luego el raid/evento semanal, y si no cae a los anuncios estáticos.
+  /// luego el raid/evento semanal. Vacío si no hay nada (se oculta).
   String _currentAnnouncementText(WidgetRef ref) {
     final announcements = ref.read(guildAnnouncementsProvider).value ?? const [];
-    if (announcements.isNotEmpty && _currentAnnouncement < announcements.length) {
+    if (announcements.isNotEmpty) {
       final a = announcements[_currentAnnouncement % announcements.length];
       final emoji = a['icon_emoji'] as String? ?? '📜';
       final message = a['message'] as String? ?? '';
@@ -132,7 +116,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
     if (raid != null && raid['title'] != null) {
       return '⚔️ ${raid['title']} — ${raid['description']}';
     }
-    return _guildAnnouncements[_currentAnnouncement % _guildAnnouncements.length];
+    return '';
   }
 
   /// Alterna la música de la taberna (toggle manual, desacoplado del initState).
@@ -158,7 +142,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
     _announcementTimer = Timer.periodic(const Duration(seconds: 8), (_) {
       if (mounted) {
         setState(() {
-          _currentAnnouncement = (_currentAnnouncement + 1) % _guildAnnouncements.length;
+          _currentAnnouncement++;
         });
       }
     });
@@ -190,6 +174,29 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
           callback: (payload) {
             if (mounted) {
               ref.invalidate(chatRoomsListProvider);
+            }
+          },
+        )
+        // Presencia en mesas: refresca los conteos en vivo al unirse/salir.
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'chat_room_participants',
+          callback: (payload) {
+            if (mounted) {
+              ref.invalidate(chatRoomsListProvider);
+              ref.invalidate(guildOnlineUsersProvider);
+            }
+          },
+        )
+        // Cola de petición de silla: refresca el roster/ocupación en vivo.
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'seat_requests',
+          callback: (payload) {
+            if (mounted) {
+              ref.invalidate(guildOnlineUsersProvider);
             }
           },
         );
@@ -251,8 +258,8 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: SystemWindow(
-          title: 'ESTADO DE RANGO',
-          subtitle: 'DETALLES DE CAZADOR',
+          title: AppLocalizations.of(context)?.chat_rank_status ?? 'ESTADO DE RANGO',
+          subtitle: AppLocalizations.of(context)?.chat_hunter_details ?? 'DETALLES DE CAZADOR',
           icon: Icons.military_tech_rounded,
           accentColor: AppColors.royalGold,
           showCloseButton: true,
@@ -264,7 +271,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
               const Icon(Icons.shield_rounded, color: AppColors.royalGold, size: 50),
               const SizedBox(height: 12),
               Text(
-                'RANGO $cefrCode',
+                AppLocalizations.of(context)?.chat_rank_level(cefrCode) ?? 'RANGO $cefrCode',
                 style: GoogleFonts.spaceGrotesk(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.royalGold),
               ),
               Text(
@@ -502,51 +509,58 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Roster de cazadores en línea ────────────────────
-                        Row(
-                          children: [
-                            const Icon(Icons.people_alt_rounded, color: AppColors.manaCyan, size: 16),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${_connectedCount(roomsAsync.value ?? [])} CONECTADOS',
-                              style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan, letterSpacing: 0.6),
-                            ),
-                            const Spacer(),
-                            // Mini-roster: avatares de cazadores en línea.
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                for (var i = 0; i < _onlineRoster(roomsAsync.value ?? []).length; i++)
-                                  Padding(
-                                    padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
-                                    child: RpgAvatar(
-                                      avatarUrl: _onlineRoster(roomsAsync.value ?? [])[i],
-                                      hunterClass: _onlineRoster(roomsAsync.value ?? [])[i],
-                                      initials: 'C',
-                                      size: 26,
-                                      borderColor: AppColors.manaCyan,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        // ── Anuncio rotativo (dinámico si hay evento/raid) ──
-                        Row(
-                          children: [
-                            const Icon(Icons.campaign_rounded, color: AppColors.royalGold, size: 14),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                _currentAnnouncementText(ref),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant),
+                        // ── Roster de cazadores en línea (presencia REAL) ──
+                        Consumer(builder: (context, ref, _) {
+                          final online = ref.watch(guildOnlineUsersProvider).value ?? const <Map<String, dynamic>>[];
+                          final total = online.isEmpty ? _connectedCount(roomsAsync.value ?? []) : online.length;
+                          return Row(
+                            children: [
+                              const Icon(Icons.people_alt_rounded, color: AppColors.manaCyan, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$total CONECTADOS',
+                                style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan, letterSpacing: 0.6),
                               ),
-                            ),
-                          ],
-                        ),
+                              const Spacer(),
+                              // Mini-roster: avatares de cazadores reales.
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (var i = 0; i < online.length && i < 5; i++)
+                                    Padding(
+                                      padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
+                                      child: RpgAvatar(
+                                        avatarUrl: online[i]['avatar_url'] as String? ?? 'warrior',
+                                        hunterClass: online[i]['avatar_url'] as String? ?? 'warrior',
+                                        initials: (online[i]['display_name'] as String? ?? 'C')
+                                            .substring(0, 1)
+                                            .toUpperCase(),
+                                        size: 26,
+                                        borderColor: AppColors.manaCyan,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          );
+                        }),
+                        const SizedBox(height: 6),
+                        // ── Anuncio rotativo (dinámico: BD o raid semanal) ──
+                        if (_currentAnnouncementText(ref).isNotEmpty)
+                          Row(
+                            children: [
+                              const Icon(Icons.campaign_rounded, color: AppColors.royalGold, size: 14),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _currentAnnouncementText(ref),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant, height: 1.3),
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ),
@@ -562,36 +576,24 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                       child: Row(
                         children: [
                           _GuildShortcut(
-                            title: 'MISIONES',
-                            icon: Icons.assignment_rounded,
-                            accent: AppColors.medievalAgedGold,
-                            onTap: () => context.push('/guild-quest-board'),
-                          ),
-                          const SizedBox(width: 8),
-                          _GuildShortcut(
-                            title: 'PASE DEL GREMIO',
-                            icon: Icons.workspace_premium_rounded,
-                            accent: AppColors.runeViolet,
-                            onTap: () => context.push('/battle-pass'),
-                          ),
-                          const SizedBox(width: 8),
-                          _GuildShortcut(
-                            title: 'RANGO',
+                            title: AppLocalizations.of(context)?.chat_rank ?? 'RANGO',
                             icon: Icons.military_tech_rounded,
                             accent: AppColors.royalGold,
                             onTap: () => _showRankModal(context, ref),
                           ),
                           const SizedBox(width: 8),
                           _GuildShortcut(
-                            title: 'COLECCIONES',
-                            icon: Icons.collections_bookmark_rounded,
+                            title: AppLocalizations.of(context)?.inventory ?? 'INVENTARIO',
+                            icon: Icons.inventory_2_rounded,
                             accent: AppColors.emeraldGreen,
-                            onTap: () => context.push('/collections'),
+                            onTap: () => context.push('/inventory'),
                           ),
                           const SizedBox(width: 8),
                           // ── Música de la taberna (toggle manual) ──────────
                           _GuildShortcut(
-                            title: _musicPlaying ? 'MÚSICA ON' : 'MÚSICA',
+                            title: _musicPlaying
+                                ? (AppLocalizations.of(context)?.chat_music_on ?? 'MÚSICA ON')
+                                : (AppLocalizations.of(context)?.chat_music ?? 'MÚSICA'),
                             icon: _musicPlaying ? Icons.music_note_rounded : Icons.music_off_rounded,
                             accent: _musicPlaying ? AppColors.manaCyan : AppColors.onSurfaceVariant,
                             onTap: _toggleMusic,
@@ -727,8 +729,9 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                         separatorBuilder: (context, index) => const SizedBox(height: 14),
                         itemBuilder: (context, index) {
                           final room = filtered[index];
-                          final speakersCount = room['speakers_count'] as int? ?? 1;
-                          final listenersCount = room['listeners_count'] as int? ?? 0;
+                          final seatsCount = room['seated_count'] as int? ?? 0;
+                          final maxSeats = room['max_seats'] as int? ?? 8;
+                          final standingCount = room['standing_count'] as int? ?? 0;
                           final title = room['title'] as String? ?? 'Free Discussion';
 
                           return GestureDetector(
@@ -768,8 +771,9 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                                   color: AppColors.onSurface,
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 13,
+                                                  height: 1.2,
                                                 ),
-                                                maxLines: 1,
+                                                maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
@@ -779,13 +783,13 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                               final String label;
                                               final Color color;
                                               if (type == 'mentorship') {
-                                                label = 'MENTORÍA';
+                                                label = AppLocalizations.of(context)?.chat_type_mentorship ?? 'MENTORÍA';
                                                 color = AppColors.runeViolet;
                                               } else if (type == 'event') {
-                                                label = 'EVENTO';
+                                                label = AppLocalizations.of(context)?.chat_type_event ?? 'EVENTO';
                                                 color = AppColors.royalGold;
                                               } else {
-                                                label = 'IA';
+                                                label = AppLocalizations.of(context)?.chat_type_ai ?? 'IA';
                                                 color = AppColors.manaCyan;
                                               }
                                               return Container(
@@ -813,15 +817,15 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                             const Icon(Icons.record_voice_over_rounded, size: 12, color: AppColors.manaCyan),
                                             const SizedBox(width: 4),
                                             Flexible(
-                                              child: Text('$speakersCount/6', overflow: TextOverflow.ellipsis,
+                                              child: Text('$seatsCount/$maxSeats', overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.jetBrainsMono(color: AppColors.manaCyan, fontSize: 10, fontWeight: FontWeight.bold),
                                               ),
                                             ),
                                             const Spacer(),
-                                            const Icon(Icons.people_alt_rounded, size: 12, color: AppColors.onSurfaceVariant),
+                                            const Icon(Icons.accessibility_new_rounded, size: 12, color: AppColors.onSurfaceVariant),
                                             const SizedBox(width: 4),
                                             Flexible(
-                                              child: Text('$listenersCount', overflow: TextOverflow.ellipsis,
+                                              child: Text('$standingCount', overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant, fontSize: 10),
                                               ),
                                             ),
@@ -831,7 +835,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                         // ── Estado de ocupación de la sala ──
                                         Align(
                                           alignment: Alignment.centerLeft,
-                                          child: _occupancyBadge(speakersCount, room['max_speakers'] as int? ?? 6),
+                                          child: _occupancyBadge(seatsCount, maxSeats),
                                         ),
                                       ],
                                     ),
@@ -952,15 +956,15 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
 class _GuildHallHeader extends ConsumerWidget {
   const _GuildHallHeader();
 
-  (String, Color) _rankForCefr(String cefr) {
+  (String, Color) _rankForCefr(String cefr, AppLocalizations l10n) {
     final band = cefr.isEmpty ? 'A' : cefr.substring(0, 1).toUpperCase();
     switch (band) {
       case 'B':
-        return ('PLATA', AppColors.manaCyan);
+        return (l10n.chat_rank_silver, AppColors.manaCyan);
       case 'C':
-        return ('ORO', AppColors.royalGold);
+        return (l10n.chat_rank_gold, AppColors.royalGold);
       default:
-        return ('HIERRO', AppColors.emeraldGreen);
+        return (l10n.chat_rank_iron, AppColors.emeraldGreen);
     }
   }
 
@@ -969,7 +973,7 @@ class _GuildHallHeader extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final progress = ref.watch(userProgressProvider).value ?? {};
     final cefr = progress['level_code'] as String? ?? 'A';
-    final (rankLabel, rankColor) = _rankForCefr(cefr);
+    final (rankLabel, rankColor) = _rankForCefr(cefr, l10n);
 
     final bpAsync = ref.watch(battlePassProvider);
     final bp = bpAsync.value ?? {};
@@ -996,7 +1000,7 @@ class _GuildHallHeader extends ConsumerWidget {
         Row(
           children: [
             Text(
-              'RANGO: $rankLabel · $cefr',
+              l10n.chat_rank_line(rankLabel, cefr),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.jetBrainsMono(
@@ -1022,7 +1026,7 @@ class _GuildHallHeader extends ConsumerWidget {
                   const SizedBox(width: 4),
                   Text(l10n.room_prestige('$level'), style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.royalGold)),
                   const SizedBox(width: 4),
-                  Text(isPremium ? 'PREMIUM' : 'LIBRE', style: GoogleFonts.jetBrainsMono(fontSize: 7, color: isPremium ? AppColors.manaCyan : AppColors.onSurfaceVariant)),
+                  Text(isPremium ? l10n.premium : l10n.chat_free, style: GoogleFonts.jetBrainsMono(fontSize: 7, color: isPremium ? AppColors.manaCyan : AppColors.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -1069,7 +1073,7 @@ class _GuildShortcut extends StatelessWidget {
             Text(
               title,
               style: GoogleFonts.jetBrainsMono(
-                fontSize: 9,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 color: AppColors.onSurface,
                 letterSpacing: 0.4,

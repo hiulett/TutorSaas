@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/repositories/chat_rooms_repository.dart';
-
 class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
   final SupabaseClient _supabaseClient;
 
@@ -19,16 +18,7 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
 
   void _initLocalRoom(String roomId) {
     if (!_localParticipants.containsKey(roomId)) {
-      _localParticipants[roomId] = [
-        {
-          'id': 'system_ai_participant',
-          'room_id': roomId,
-          'user_id': 'system_ai',
-          'is_speaker': true,
-          'speaker_slot': 1,
-          'joined_at': DateTime.now().toIso8601String(),
-        }
-      ];
+      _localParticipants[roomId] = [];
     }
     if (!_localMessages.containsKey(roomId)) {
       _localMessages[roomId] = [
@@ -69,21 +59,24 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
       final roomIds = rooms.map((r) => r['id'] as String).toList();
       final countsData = await _supabaseClient
           .from('chat_room_participants')
-          .select('room_id, is_speaker')
+          .select('room_id, is_speaker, presence_state')
           .inFilter('room_id', roomIds);
 
-      final Map<String, int> speakerCount = {};
-      final Map<String, int> listenerCount = {};
+      final Map<String, int> seatedCount = {};
+      final Map<String, int> standingCount = {};
       for (final p in countsData) {
         final rid = p['room_id'] as String;
-        if (p['is_speaker'] == true) {
-          speakerCount[rid] = (speakerCount[rid] ?? 0) + 1;
+        // Fuente de verdad: presence_state (los RPC nuevos solo actualizan este
+        // campo). Fallback al esquema antiguo solo para filas legacy.
+        final presence = p['presence_state'] as String? ?? (p['is_speaker'] == true ? 'seated' : 'standing');
+        if (presence == 'seated') {
+          seatedCount[rid] = (seatedCount[rid] ?? 0) + 1;
         } else {
-          listenerCount[rid] = (listenerCount[rid] ?? 0) + 1;
+          standingCount[rid] = (standingCount[rid] ?? 0) + 1;
         }
       }
 
-      final maxSpeakers = rooms.map((r) => (r['max_speakers'] as num?)?.toInt() ?? 6).toList();
+      final maxSpeakers = rooms.map((r) => (r['max_seats'] as num?)?.toInt() ?? (r['max_speakers'] as num?)?.toInt() ?? 8).toList();
 
       return List.generate(rooms.length, (i) {
         final room = rooms[i];
@@ -99,8 +92,12 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
           'has_ai_moderator': room['has_ai_moderator'] as bool? ?? false,
           'mana_cost_per_min': (room['mana_cost_per_min'] as num?)?.toInt() ?? 0,
           'max_speakers': maxSpeakers[i],
-          'speakers_count': speakerCount[rid] ?? 0,
-          'listeners_count': listenerCount[rid] ?? 0,
+          'speakers_count': seatedCount[rid] ?? 0,
+          'listeners_count': standingCount[rid] ?? 0,
+          'seated_count': seatedCount[rid] ?? 0,
+          'standing_count': standingCount[rid] ?? 0,
+          'max_seats': maxSpeakers[i],
+          'max_standing': (room['max_standing'] as num?)?.toInt() ?? 8,
           'created_at': room['created_at'] as String?,
         };
       });
@@ -195,6 +192,19 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
       list.removeWhere((p) => p['user_id'] == userId);
       _participantsControllers[roomId]!.add(List.from(list));
       return;
+    }
+
+    // RPC leave_table: libera la silla, auto-asienta al primero de la cola y
+    // elimina la mesa si queda vacía. Fallback al borrado directo si el RPC
+    // aún no existe en el proyecto (migración pendiente).
+    try {
+      await _supabaseClient.rpc('leave_table', params: {
+        'p_room_id': roomId,
+        'p_user_id': userId,
+      });
+      return;
+    } catch (e) {
+      debugPrint('leave_table RPC failed (fallback a delete): $e');
     }
 
     await _supabaseClient
@@ -420,6 +430,172 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
     }
   }
 
+    // ── Mesas del gremio: presencia de pie/sentado (RPC server-side) ────────────
+
+  @override
+  Future<void> joinTable(String roomId) async {
+    if (_isLocalRoom(roomId)) {
+      _initLocalRoom(roomId);
+      final list = _localParticipants[roomId]!;
+      list.removeWhere((p) => p['user_id'] == _currentUserId());
+      list.add({
+        'id': 'local_${_currentUserId()}_$roomId',
+        'room_id': roomId,
+        'user_id': _currentUserId(),
+        'is_speaker': false,
+        'speaker_slot': null,
+        'presence_state': 'standing',
+        'joined_at': DateTime.now().toIso8601String(),
+      });
+      _participantsControllers[roomId]!.add(List.from(list));
+      return;
+    }
+    final uid = _currentUserId();
+    await _supabaseClient.rpc('join_table', params: {
+      'p_room_id': roomId,
+      'p_user_id': uid,
+    });
+  }
+
+  @override
+  Future<void> sitDown(String roomId, int seat) async {
+    if (_isLocalRoom(roomId)) {
+      _initLocalRoom(roomId);
+      final list = _localParticipants[roomId]!;
+      if (list.any((p) => p['speaker_slot'] == seat && p['presence_state'] == 'seated')) {
+        throw const ChatRoomException('seat_taken', 'La silla ya está ocupada.');
+      }
+      list.removeWhere((p) => p['user_id'] == _currentUserId());
+      list.add({
+        'id': 'local_${_currentUserId()}_$roomId',
+        'room_id': roomId,
+        'user_id': _currentUserId(),
+        'is_speaker': true,
+        'speaker_slot': seat,
+        'presence_state': 'seated',
+        'joined_at': DateTime.now().toIso8601String(),
+      });
+      _participantsControllers[roomId]!.add(List.from(list));
+      return;
+    }
+    final res = await _supabaseClient.rpc('claim_seat', params: {
+      'p_room_id': roomId,
+      'p_user_id': _currentUserId(),
+      'p_seat': seat,
+    });
+    final code = res as String? ?? 'ok';
+    if (code != 'ok') {
+      throw ChatRoomException(code, _seatError(code));
+    }
+  }
+
+  @override
+  Future<String> requestSeat(String roomId) async {
+    if (_isLocalRoom(roomId)) {
+      await sitDown(roomId, _firstFreeLocalSeat(roomId));
+      return 'seated';
+    }
+    final res = await _supabaseClient.rpc('request_seat', params: {
+      'p_room_id': roomId,
+      'p_user_id': _currentUserId(),
+    });
+    return res as String? ?? 'queued';
+  }
+
+  @override
+  Future<void> standUp(String roomId) async {
+    if (_isLocalRoom(roomId)) {
+      _initLocalRoom(roomId);
+      final list = _localParticipants[roomId]!;
+      list.removeWhere((p) => p['user_id'] == _currentUserId());
+      list.add({
+        'id': 'local_${_currentUserId()}_$roomId',
+        'room_id': roomId,
+        'user_id': _currentUserId(),
+        'is_speaker': false,
+        'speaker_slot': null,
+        'presence_state': 'standing',
+        'joined_at': DateTime.now().toIso8601String(),
+      });
+      _participantsControllers[roomId]!.add(List.from(list));
+      return;
+    }
+    await _supabaseClient.rpc('stand_up', params: {
+      'p_room_id': roomId,
+      'p_user_id': _currentUserId(),
+    });
+  }
+
+  @override
+  Future<bool> moderatorStand(String roomId, String targetUserId) async {
+    final res = await _supabaseClient.rpc('moderator_stand', params: {
+      'p_room_id': roomId,
+      'p_target_user_id': targetUserId,
+      'p_moderator_id': _currentUserId(),
+    });
+    return res == true;
+  }
+
+  @override
+  Future<void> touchPresence(String roomId) async {
+    if (_isLocalRoom(roomId)) return;
+    try {
+      await _supabaseClient.rpc('touch_presence', params: {
+        'p_room_id': roomId,
+        'p_user_id': _currentUserId(),
+      });
+    } catch (e) {
+      debugPrint('touch_presence falló (no bloqueante): $e');
+    }
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> streamSeatRequests(String roomId) {
+    if (_isLocalRoom(roomId)) {
+      return const Stream.empty();
+    }
+    return _supabaseClient
+        .from('seat_requests')
+        .stream(primaryKey: ['id'])
+        .eq('room_id', roomId)
+        .map((list) {
+          return list
+              .where((item) => item['status'] == 'pending')
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList();
+        });
+  }
+
+  String _currentUserId() => _supabaseClient.auth.currentUser?.id ?? 'guest_user';
+
+  int _firstFreeLocalSeat(String roomId) {
+    final occupied = _localParticipants[roomId]!
+        .where((p) => p['speaker_slot'] != null && p['presence_state'] == 'seated')
+        .map((p) => p['speaker_slot'] as int)
+        .toSet();
+    for (var i = 1; i <= 8; i++) {
+      if (!occupied.contains(i)) return i;
+    }
+    throw const ChatRoomException('table_full', 'La mesa está llena.');
+  }
+
+  String _seatError(String code) {
+    switch (code) {
+      case 'seat_taken':
+        return 'La silla ya está ocupada.';
+      case 'table_full':
+        return 'Las 8 sillas están ocupadas. Solicita una silla para entrar a la cola.';
+      case 'seated_elsewhere':
+        return 'Ya estás sentado en otra mesa.';
+      case 'not_in_room':
+        return 'No formas parte de esta mesa.';
+      case 'invalid_seat':
+        return 'Silla inválida (1-8).';
+      default:
+        return 'No se pudo completar la acción.';
+    }
+  }
+
   @override
   Future<List<Map<String, dynamic>>> getRecentRooms(int limit) async {
     try {
@@ -466,6 +642,70 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
           .toList();
     } catch (e) {
       debugPrint('getGuildAnnouncements error: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<Map<String, Map<String, dynamic>>> getParticipantProfiles(List<String> userIds) async {
+    final map = <String, Map<String, dynamic>>{};
+    if (userIds.isEmpty) return map;
+    try {
+      final res = await _supabaseClient
+          .from('users')
+          .select('id, display_name, avatar_url')
+          .inFilter('id', userIds);
+      for (final u in res) {
+        map[u['id'] as String] = {
+          'display_name': u['display_name'] as String? ?? '',
+          'avatar_url': u['avatar_url'] as String? ?? 'warrior',
+        };
+      }
+    } catch (_) {}
+    return map;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getOnlineGuildUsers({int limit = 8}) async {
+    try {
+      // 1. Mesas activas (no borradas).
+      final rooms = await _supabaseClient
+          .from('chat_rooms')
+          .select('id')
+          .eq('is_active', true)
+          .isFilter('deleted_at', null);
+
+      if (rooms.isEmpty) return [];
+
+      // 2. Participantes presentes en esas mesas (una mesa por sesión ⇒ cada
+      //    usuario aparece como máximo una vez; se deduplica por si hay legacy).
+      final roomIds = rooms.map((r) => r['id'] as String).toList();
+      final participants = await _supabaseClient
+          .from('chat_room_participants')
+          .select('user_id')
+          .inFilter('room_id', roomIds);
+
+      final userIds = participants
+          .map((p) => p['user_id'] as String?)
+          .whereType<String>()
+          .toSet()
+          .take(limit)
+          .toList();
+
+      if (userIds.isEmpty) return [];
+
+      // 3. Perfiles de esos usuarios.
+      final profiles = await getParticipantProfiles(userIds);
+      return userIds.map((id) {
+        final profile = profiles[id] ?? const <String, dynamic>{};
+        return {
+          'user_id': id,
+          'display_name': profile['display_name'] as String? ?? '',
+          'avatar_url': profile['avatar_url'] as String? ?? 'warrior',
+        };
+      }).toList();
+    } catch (e) {
+      debugPrint('getOnlineGuildUsers error: $e');
       return [];
     }
   }

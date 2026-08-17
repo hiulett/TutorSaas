@@ -18,6 +18,10 @@ abstract class ConversationRepository {
     List<Map<String, dynamic>> goalItems,
   );
 
+  /// Evalúa la "carisma" conversacional (coherencia, naturalidad, confianza,
+  /// continuidad) de las respuestas del estudiante. Devuelve 0-100.
+  Future<int> evaluateCarismaScore(List<String> userTexts);
+
   // Goal & Phrase Persistence
   Future<void> saveCompletedGoal(String userId, String scenarioId, String? conversationId, String goalId, String goalText);
   Future<Map<String, bool>> loadCompletedGoals(String userId, String scenarioId);

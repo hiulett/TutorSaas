@@ -293,6 +293,64 @@ No markdown, no explanation, no code blocks.
     }
   }
 
+  /// Evalúa la "carisma" conversacional (coherencia, naturalidad, confianza,
+  /// continuidad) de las respuestas del estudiante. Devuelve 0-100.
+  @override
+  Future<int> evaluateCarismaScore(List<String> userTexts) async {
+    try {
+      final transcript = userTexts.asMap().entries
+          .map((e) => 'Respuesta ${e.key + 1}: "${e.value}"')
+          .join('\n');
+      final url = '${ApiConstants.llmProxyBaseUrl}/chat';
+
+      final systemPrompt = '''
+You are a warm, objective evaluator of spoken conversational English (speaking, not writing).
+Assess the STUDENT's conversational charisma from their replies: coherence, naturalness, confidence, ability to keep the conversation going, and relevance to what the tutor asked.
+Guidelines:
+- One-word or very short answers lower the score.
+- Flowing, relevant, natural replies raise it.
+- If the student barely spoke, score low (20-40).
+Return ONLY a valid JSON object with a single key "carisma_score": an integer 0-100.
+No markdown, no explanation, no code blocks.
+''';
+
+      final response = await _dio.post(
+        url,
+        data: {
+          'model': 'deepseek-v4-flash',
+          'messages': [
+            {'role': 'system', 'content': systemPrompt},
+            {'role': 'user', 'content': transcript},
+          ],
+          'stream': false,
+          'temperature': 0.3,
+          'max_tokens': 200,
+        },
+        options: Options(
+          headers: await _proxyHeaders(await _authToken()),
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 60),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        final choices = data['choices'] as List?;
+        if (choices != null && choices.isNotEmpty) {
+          final content = choices[0]?['message']?['content'] as String? ?? '';
+          final cleaned = content.trim();
+          final parsed = jsonDecode(cleaned) as Map<String, dynamic>;
+          final score = (parsed['carisma_score'] as num?)?.toInt() ?? 0;
+          return score.clamp(0, 100);
+        }
+      }
+      return 0;
+    } catch (e) {
+      debugPrint('Carisma evaluation failed (non-blocking): $e');
+      return 0;
+    }
+  }
+
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Database Persistence & Analysis Methods
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

@@ -1,6 +1,6 @@
 {
-    "name": "tutorsaas",
-    "short_name": "tutorsaas",
+    "name": "DungeonSpeak",
+    "short_name": "DungeonSpeak",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

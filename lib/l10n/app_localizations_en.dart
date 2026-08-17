@@ -505,12 +505,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get nucleo_recharge => 'RECHARGE +5';
-
-  @override
-  String get nucleo_premium => 'GO PREMIUM';
-
-  @override
   String get nucleo_rest => 'Rest until tomorrow — the Core will recharge';
 
   @override
@@ -617,7 +611,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get conversation_replay => 'REPLAY';
 
   @override
-  String get guild_master => '★ GUILD MASTER';
+  String get guild_master => 'GUILD MASTER';
 
   @override
   String get guild_online => 'ONLINE';
@@ -1050,6 +1044,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get srs_easy => 'EASY';
 
   @override
+  String get nucleo_recharge => 'RECHARGE +5';
+
+  @override
+  String get nucleo_premium => 'GO PREMIUM';
+
+  @override
   String get nucleo_unlimited => 'Unlimited Invocations — Elite Hunter';
 
   @override
@@ -1152,7 +1152,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_vocab_error => 'Error loading vocabulary';
 
   @override
-  String get profile_vocab_empty => 'No vocabulary to show';
+  String get profile_vocab_empty =>
+      'You haven\'t learned vocabulary in conversations yet.';
 
   @override
   String get profile_close => 'Close';
@@ -1174,4 +1175,1856 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chart_latency => 'Latency (s)';
+
+  @override
+  String get aura_title => 'AURA';
+
+  @override
+  String get aura_locked => 'AURA LOCKED';
+
+  @override
+  String get aura_locked_desc =>
+      'Complete the Basic Stage (PRE-A1 + A1 + A2) to awaken your power.';
+
+  @override
+  String get aura_awakened => 'AURA USER';
+
+  @override
+  String get aura_basic_stage => 'BASIC STAGE';
+
+  @override
+  String get aura_power => 'POWER';
+
+  @override
+  String get aura_tier_latente => 'LATENT';
+
+  @override
+  String get aura_tier_revelada => 'REVEALED';
+
+  @override
+  String get aura_tier_abierta => 'OPEN';
+
+  @override
+  String get aura_tier_dominante => 'DOMINANT';
+
+  @override
+  String get aura_tier_abisal => 'ABYSSAL';
+
+  @override
+  String get aura_awakening_banner_title => 'THE SYSTEM HAS SPOKEN';
+
+  @override
+  String get aura_awakening_banner_desc =>
+      'You have awakened as an Aura User. Your power will grow with your skills.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get shop => 'SHOP';
+
+  @override
+  String get map => 'MAP';
+
+  @override
+  String get claimed => 'CLAIMED';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get missions => 'Missions';
+
+  @override
+  String get oracle => 'ORACLE';
+
+  @override
+  String get pro_badge => 'PRO';
+
+  @override
+  String get go_pro => 'GO PRO';
+
+  @override
+  String get logout_confirm_title => 'LOG OUT?';
+
+  @override
+  String get logout_confirm_desc =>
+      'Your progress is saved. You will need to log in again to continue.';
+
+  @override
+  String get splash_system_hud => 'SYSTEM HUD · AWAKENING';
+
+  @override
+  String splash_connecting(int pct) {
+    return '$pct% · CONNECTING TO THE GREAT REALM';
+  }
+
+  @override
+  String get connecting_realm => 'CONNECTING TO THE GREAT REALM...';
+
+  @override
+  String get system_hunter_connected => 'HUNTER SYSTEM — CONNECTED';
+
+  @override
+  String cefr_level(String code) {
+    return 'CEFR $code';
+  }
+
+  @override
+  String level_up_banner(int level) {
+    return '¡LEVEL UP! $level';
+  }
+
+  @override
+  String title_earned_banner(String title) {
+    return '🏅 TITLE EARNED: $title';
+  }
+
+  @override
+  String get mana_label => 'MANA';
+
+  @override
+  String get mana_available => 'mana available';
+
+  @override
+  String mana_balance(int remaining, int total) {
+    return '$remaining / $total mana';
+  }
+
+  @override
+  String plus_mana(int count) {
+    return '+$count mana';
+  }
+
+  @override
+  String purchase_confirm_question(String name, String price) {
+    return 'Acquire \"$name\" for $price?';
+  }
+
+  @override
+  String get mana_tooltip =>
+      'MANA: energy for every AI action (Oracle, dungeons, chats). Acquired with your plan and potions/gems; expires with the cycle.';
+
+  @override
+  String mana_expires(String date) {
+    return 'expires $date';
+  }
+
+  @override
+  String get aura_locked_tooltip =>
+      'BASIC STAGE: complete the PRE-A1, A1 and A2 mission objectives to awaken your Aura.';
+
+  @override
+  String get aura_awakened_tooltip =>
+      'AURA: uncapped merit. Keep accumulating with every evaluated session.';
+
+  @override
+  String aura_xp(int xp) {
+    return 'AURA XP $xp';
+  }
+
+  @override
+  String aura_next_rank(int pct) {
+    return '$pct% to next rank';
+  }
+
+  @override
+  String get aura_rank_mismatch => '⚠ RANK INCONSISTENT WITH CEFR';
+
+  @override
+  String get daily_reward_title => 'DAILY REWARD';
+
+  @override
+  String daily_reward_streak(int streak) {
+    return 'CURRENT STREAK: $streak DAYS';
+  }
+
+  @override
+  String daily_reward_gems(int gems) {
+    return '$gems GEMS';
+  }
+
+  @override
+  String get daily_reward_by_streak => 'BY STREAK';
+
+  @override
+  String daily_reward_parchments(int count) {
+    return '+$count SCROLLS';
+  }
+
+  @override
+  String get daily_reward_cap => 'DAILY CAP';
+
+  @override
+  String get daily_reward_keep_streak =>
+      'KEEP YOUR STREAK: AT 7 DAYS YOU EARN 50 GEMS AND 5 SCROLLS';
+
+  @override
+  String get daily_reward_at_14 => 'AT 14 DAYS: 100 GEMS AND 8 SCROLLS';
+
+  @override
+  String get daily_reward_at_30 => 'AT 30 DAYS: 300 GEMS AND 15 SCROLLS';
+
+  @override
+  String get daily_reward_max_streak => 'MAX STREAK REACHED!';
+
+  @override
+  String get claiming => 'CLAIMING...';
+
+  @override
+  String get daily_reward_claimed_today => 'DAILY REWARD CLAIMED TODAY';
+
+  @override
+  String get daily_reward_claim => 'CLAIM REWARD';
+
+  @override
+  String get no_mana => 'NO MANA';
+
+  @override
+  String mana_exhausted_desc(String renew) {
+    return 'Every AI action costs mana. Your balance ran out.\n\nMana is acquired with your plan or potions/gems.\n$renew';
+  }
+
+  @override
+  String mana_renews_on(String date) {
+    return 'Your cycle renews on $date.';
+  }
+
+  @override
+  String get more_mana_monthly => 'MORE MONTHLY MANA BY RANK';
+
+  @override
+  String get wait_plan_renewal => 'Wait for my plan renewal';
+
+  @override
+  String get hunter_collections => 'HUNTER COLLECTIONS';
+
+  @override
+  String get no_trophies => 'NO TROPHIES RECORDED';
+
+  @override
+  String get confirm_purchase => 'CONFIRM PURCHASE';
+
+  @override
+  String get buy => 'BUY';
+
+  @override
+  String get purchase_error_stripe =>
+      'Could not start payment. Check Stripe configuration.';
+
+  @override
+  String get checkout_error => 'Could not open checkout.';
+
+  @override
+  String get cosmetic_purchased => 'COSMETIC ACQUIRED! 🪙';
+
+  @override
+  String get gold_insufficient => 'INSUFFICIENT GOLD OR ALREADY OWNED ❌';
+
+  @override
+  String get cosmetic_title => 'TITLE';
+
+  @override
+  String get cosmetic_frame => 'FRAME';
+
+  @override
+  String get cosmetic_aura => 'AURA';
+
+  @override
+  String get cosmetic_pet => 'COMPANION';
+
+  @override
+  String get cosmetic_emote => 'EMOTE';
+
+  @override
+  String get cosmetic_theme => 'THEME';
+
+  @override
+  String get arcane_shop => 'ARCANE SHOP';
+
+  @override
+  String get gold_shop_tab => 'GOLD SHOP';
+
+  @override
+  String get redeem => 'REDEEM';
+
+  @override
+  String get my_items => 'MY ITEMS';
+
+  @override
+  String get mana_potions_title => 'MANA POTIONS';
+
+  @override
+  String get mana_potions_desc =>
+      'Mana is the energy of every AI action. It is acquired with real money: your rank includes a monthly allowance and potions extend it.';
+
+  @override
+  String get mana_gems_packs_title => 'MANA GEM PACKS';
+
+  @override
+  String get gold_shop_unavailable =>
+      'The Gold Shop is not available yet.\nApply the price_gold migration in the SQL Editor.';
+
+  @override
+  String get owned => 'OWNED';
+
+  @override
+  String price_gold(String price) {
+    return '$price GOLD';
+  }
+
+  @override
+  String get fragments_insufficient => 'INSUFFICIENT FRAGMENTS ❌';
+
+  @override
+  String get redeem_error => 'EXCHANGE ERROR ❌';
+
+  @override
+  String get fragments_exchange_title => 'FRAGMENT EXCHANGE';
+
+  @override
+  String get fragments_exchange_desc =>
+      'FRAGMENTS ARE THE EXCHANGE CURRENCY. CHOOSE WISELY, HUNTER.';
+
+  @override
+  String battle_reward_claimed_tier(int tier) {
+    return 'TIER $tier REWARD CLAIMED';
+  }
+
+  @override
+  String get not_available => 'NOT AVAILABLE';
+
+  @override
+  String get battle_pass => 'BATTLE PASS';
+
+  @override
+  String get premium => 'PREMIUM';
+
+  @override
+  String get free_tier => 'FREE';
+
+  @override
+  String battle_level(int level) {
+    return 'LEVEL $level';
+  }
+
+  @override
+  String get battle_progress_label => 'Battle Pass progress: ';
+
+  @override
+  String get rewards => 'REWARDS';
+
+  @override
+  String reward_claimed_tier(int tier) {
+    return 'Reward level $tier claimed';
+  }
+
+  @override
+  String reward_unlocked_tier(int tier) {
+    return 'Reward level $tier unlocked';
+  }
+
+  @override
+  String reward_locked_tier(int tier) {
+    return 'Reward level $tier locked, unlock at level $tier';
+  }
+
+  @override
+  String battle_tier(int tier) {
+    return 'TIER $tier';
+  }
+
+  @override
+  String get reward_unlocked => 'Reward unlocked';
+
+  @override
+  String unlock_at_level(int tier) {
+    return 'Unlock at level $tier';
+  }
+
+  @override
+  String battle_claim_reward(int tier) {
+    return 'Claim level $tier reward';
+  }
+
+  @override
+  String get equipment_updated => 'EQUIPMENT UPDATED';
+
+  @override
+  String get inventory => 'INVENTORY';
+
+  @override
+  String get unequip => 'UNEQUIP';
+
+  @override
+  String get equip => 'EQUIP';
+
+  @override
+  String get chat_category_all => 'All';
+
+  @override
+  String get chat_cat_general => 'General';
+
+  @override
+  String get chat_cat_travel => 'Travel';
+
+  @override
+  String get chat_cat_business => 'Business';
+
+  @override
+  String get chat_cat_technology => 'Technology';
+
+  @override
+  String get chat_cat_art => 'Art';
+
+  @override
+  String get chat_cat_cooking => 'Cooking';
+
+  @override
+  String get chat_rank_status => 'RANK STATUS';
+
+  @override
+  String get chat_hunter_details => 'HUNTER DETAILS';
+
+  @override
+  String chat_rank_level(String code) {
+    return 'RANK $code';
+  }
+
+  @override
+  String get chat_establish_table => 'ESTABLISH GUILD TABLE';
+
+  @override
+  String get chat_create_room => 'CREATE NEW CHAT ROOM';
+
+  @override
+  String get chat_table_title => 'GUILD TABLE TITLE';
+
+  @override
+  String get chat_category_path => 'CATEGORY PATH';
+
+  @override
+  String get chat_table_type => 'TABLE TYPE';
+
+  @override
+  String get chat_missions => 'MISSIONS';
+
+  @override
+  String get chat_guild_pass => 'GUILD PASS';
+
+  @override
+  String get chat_rank => 'RANK';
+
+  @override
+  String get chat_collections => 'COLLECTIONS';
+
+  @override
+  String get chat_music_on => 'MUSIC ON';
+
+  @override
+  String get chat_music => 'MUSIC';
+
+  @override
+  String get chat_status_full => 'FULL';
+
+  @override
+  String get chat_status_nearly_full => 'NEARLY FULL';
+
+  @override
+  String get chat_status_occupied => 'OCCUPIED';
+
+  @override
+  String get chat_status_space => 'SPACE';
+
+  @override
+  String get chat_type_mentorship => 'MENTORSHIP';
+
+  @override
+  String get chat_type_ai => 'AI';
+
+  @override
+  String get chat_type_event => 'EVENT';
+
+  @override
+  String chat_rank_line(String rank, String cefr) {
+    return 'RANK: $rank · $cefr';
+  }
+
+  @override
+  String get chat_free => 'FREE';
+
+  @override
+  String get chat_rank_silver => 'SILVER';
+
+  @override
+  String get chat_rank_gold => 'GOLD';
+
+  @override
+  String get chat_rank_iron => 'IRON';
+
+  @override
+  String get voice_seat_to_speak => 'SIT DOWN TO SPEAK';
+
+  @override
+  String voice_seated_in(String seat) {
+    return 'YOU SAT IN SEAT $seat';
+  }
+
+  @override
+  String get voice_seat_assigned => 'SEAT ASSIGNED. Welcome!';
+
+  @override
+  String get voice_seats_full_queue => 'SEATS FULL: YOU ENTER THE QUEUE';
+
+  @override
+  String get voice_seat_freed => 'SEAT FREED. STANDING';
+
+  @override
+  String get voice_standing => 'HUNTER STANDING UP';
+
+  @override
+  String get voice_not_moderator => 'YOU ARE NOT THE MODERATOR OF THIS TABLE';
+
+  @override
+  String get voice_chamber_chat => 'CHAMBER TEXT CHAT';
+
+  @override
+  String get voice_free_mission => 'FREE MISSION';
+
+  @override
+  String get voice_guild_chamber => 'GUILD VOICE CHAMBER';
+
+  @override
+  String get voice_moderated => 'Moderated by AI Tutor in Real Time';
+
+  @override
+  String get voice_leave => 'Leave the room';
+
+  @override
+  String get voice_demo_banner =>
+      'GUILD AUDIO: DEMO — hunters connected live. Voice practice is 1:1.';
+
+  @override
+  String get voice_demo_banner_alt => 'AUDIO DEMO — TAP FOR DETAILS';
+
+  @override
+  String get voice_room_mission => 'ROOM MISSION';
+
+  @override
+  String get voice_resonance => 'RESONANCE';
+
+  @override
+  String get voice_your_seat => 'YOUR SEAT';
+
+  @override
+  String voice_seat_number(String slot) {
+    return 'SEAT $slot';
+  }
+
+  @override
+  String get voice_tap_to_sit => 'TAP TO SIT';
+
+  @override
+  String get voice_you => 'YOU';
+
+  @override
+  String voice_hunter_slot(String slot) {
+    return 'HUNTER $slot';
+  }
+
+  @override
+  String get voice_speaking => 'SPEAKING';
+
+  @override
+  String get voice_seated => 'SEATED';
+
+  @override
+  String voice_standing_count(int count) {
+    return 'STANDING ($count/8)';
+  }
+
+  @override
+  String get voice_you_standing => 'You (standing)';
+
+  @override
+  String get voice_standing_hunter => 'Standing hunter';
+
+  @override
+  String voice_chat_title(int count) {
+    return 'Chamber Text Chat ($count)';
+  }
+
+  @override
+  String get voice_mic_on => 'MIC ON';
+
+  @override
+  String get voice_mic_off => 'MIC OFF';
+
+  @override
+  String get voice_stand_up => 'STAND UP';
+
+  @override
+  String voice_in_queue(int pos) {
+    return 'IN QUEUE #$pos';
+  }
+
+  @override
+  String get voice_seat => 'SEAT';
+
+  @override
+  String get voice_exit => 'EXIT';
+
+  @override
+  String get guild_rec_beginner =>
+      'I recommend the Apprentice Tavern: the perfect table for novice hunters.';
+
+  @override
+  String get guild_rec_intermediate =>
+      'The Tactics Round Table awaits: debates and intermediate fluency.';
+
+  @override
+  String get guild_rec_master =>
+      'The Supreme Council of High Hunters is your place: master-level eloquence.';
+
+  @override
+  String get guild_rec_default =>
+      'Choose a table and start your conversation raid.';
+
+  @override
+  String get guild_table_beginner => 'Apprentice';
+
+  @override
+  String get guild_table_tactics => 'Tactics';
+
+  @override
+  String get guild_table_council => 'Council';
+
+  @override
+  String guild_rank_level(String cefr) {
+    return 'RANK SSS — Level $cefr';
+  }
+
+  @override
+  String get guild_follow_suggestion => 'FOLLOW MY SUGGESTION —>';
+
+  @override
+  String guild_ask_master(String cefr) {
+    return 'Ask the Master (Level $cefr):';
+  }
+
+  @override
+  String get guild_ask_hint =>
+      'Ask me which table to practice, which mission to take or how to improve your rank.';
+
+  @override
+  String get guild_input_hint => 'Write your question...';
+
+  @override
+  String get guild_meditating => 'The Table Master is meditating... Try again.';
+
+  @override
+  String get mission_board_title => 'MISSION BOARD';
+
+  @override
+  String mission_board_player_rank(String playerRank) {
+    return 'ADVENTURER · RANK $playerRank';
+  }
+
+  @override
+  String get mission_completed_active => '✓ COMPLETED';
+
+  @override
+  String get mission_completed => 'COMPLETED';
+
+  @override
+  String get mission_filter_all => 'ALL';
+
+  @override
+  String get mission_filter_daily => 'DAILY';
+
+  @override
+  String get mission_filter_weekly => 'WEEKLY';
+
+  @override
+  String get mission_filter_collaborative => 'COLLABORATIVE';
+
+  @override
+  String get mission_filter_rarity_all => 'RARITY: ALL';
+
+  @override
+  String get mission_search_hint => 'Search mission by name...';
+
+  @override
+  String get mission_board_empty_filtered =>
+      'No guild missions match these filters.';
+
+  @override
+  String mission_view_more(int count) {
+    return 'VIEW MORE MISSIONS ($count remaining)';
+  }
+
+  @override
+  String get mission_completed_empty =>
+      'You haven\'t completed any guild missions yet.';
+
+  @override
+  String get mission_login_required => 'Log in to accept missions.';
+
+  @override
+  String mission_insufficient_rank(String rank) {
+    return '🔒 INSUFFICIENT RANK: you need rank $rank.';
+  }
+
+  @override
+  String mission_accept_success(String title) {
+    return '✅ Mission accepted: $title';
+  }
+
+  @override
+  String get mission_accept_failed =>
+      'Could not accept (quota full or insufficient rank).';
+
+  @override
+  String get mission_high_rank_title => 'HIGH RANK MISSION';
+
+  @override
+  String mission_high_rank_confirm(String title, String rank) {
+    return 'Are you sure you want to undertake \"$title\" (rank $rank)? It is an elite guild mission.';
+  }
+
+  @override
+  String mission_reward_earned(int xp, int gems) {
+    return '+$xp XP  ·  +$gems 💎';
+  }
+
+  @override
+  String get mission_claim_failed => 'Could not claim the reward.';
+
+  @override
+  String get mission_npc_collaborative => 'Table Master · Guild';
+
+  @override
+  String get mission_npc_vocabulary => 'Guild Librarian';
+
+  @override
+  String get mission_npc_writing => 'Royal Scribe';
+
+  @override
+  String get mission_npc_argumentation => 'Debate Consul';
+
+  @override
+  String get mission_npc_default => 'Table Master';
+
+  @override
+  String get mission_difficulty_unknown => 'Unknown';
+
+  @override
+  String mission_difficulty_label(String rank) {
+    return 'Rank $rank';
+  }
+
+  @override
+  String get mission_time_daily => '~10-15 min';
+
+  @override
+  String get mission_time_weekly => '~45-60 min';
+
+  @override
+  String get mission_time_collaborative => '~30 min';
+
+  @override
+  String get mission_time_default => '~20 min';
+
+  @override
+  String get mission_load_error => 'Could not load the mission.';
+
+  @override
+  String get mission_not_found => 'Mission not found.';
+
+  @override
+  String get mission_detail_title => 'MISSION DETAIL';
+
+  @override
+  String mission_rarity_type_label(String rarity, String type) {
+    return '$rarity · $type';
+  }
+
+  @override
+  String get mission_section_description => 'DESCRIPTION';
+
+  @override
+  String get mission_npc_label => 'NPC';
+
+  @override
+  String get mission_stat_level => 'LEVEL';
+
+  @override
+  String get mission_stat_xp => 'XP';
+
+  @override
+  String get mission_stat_gold => 'GOLD';
+
+  @override
+  String get mission_stat_time => 'TIME';
+
+  @override
+  String get mission_stat_objective => 'OBJECTIVE';
+
+  @override
+  String get mission_section_objectives => 'OBJECTIVES';
+
+  @override
+  String mission_objectives_goal(int target, String objectiveType) {
+    return 'Complete $target of $objectiveType.';
+  }
+
+  @override
+  String get mission_claiming => 'CLAIMING...';
+
+  @override
+  String get mission_in_progress_chat => 'IN PROGRESS · GO TO CHAT';
+
+  @override
+  String get mission_reject => 'REJECT';
+
+  @override
+  String mission_rank_required(String rank) {
+    return 'RANK $rank REQUIRED';
+  }
+
+  @override
+  String get mission_rarity_common => 'COMMON';
+
+  @override
+  String get mission_rarity_uncommon => 'UNCOMMON';
+
+  @override
+  String get mission_rarity_rare => 'RARE';
+
+  @override
+  String get mission_rarity_epic => 'EPIC';
+
+  @override
+  String get mission_rarity_legendary => 'LEGENDARY';
+
+  @override
+  String get mission_rarity_guild => 'GUILD SPECIAL';
+
+  @override
+  String get mission_status_available => 'AVAILABLE';
+
+  @override
+  String get mission_status_accepted => 'ACCEPTED';
+
+  @override
+  String get mission_status_in_progress => 'IN PROGRESS';
+
+  @override
+  String get mission_status_completed => 'COMPLETED';
+
+  @override
+  String get mission_status_repeatable => 'REPEATABLE';
+
+  @override
+  String get mission_status_blocked => 'BLOCKED';
+
+  @override
+  String get mission_status_recommended => 'RECOMMENDED';
+
+  @override
+  String get mission_status_special => 'SPECIAL';
+
+  @override
+  String get session_title => 'Summary';
+
+  @override
+  String get session_completed => 'SESSION COMPLETED';
+
+  @override
+  String get session_good_job => 'Great job!';
+
+  @override
+  String session_words_spoken(int count) {
+    return 'You spoke $count words with good pacing.';
+  }
+
+  @override
+  String get session_ready => 'Practice ready to start.';
+
+  @override
+  String get session_excellent_performance => 'Excellent performance!';
+
+  @override
+  String get session_ready_first => 'Ready for your first session!';
+
+  @override
+  String get session_duration => 'DURATION';
+
+  @override
+  String get session_words => 'WORDS';
+
+  @override
+  String get session_accuracy => 'ACCURACY';
+
+  @override
+  String get session_fluency => 'Fluency';
+
+  @override
+  String get session_pronunciation => 'Pronunciation';
+
+  @override
+  String get session_feedback => 'Feedback';
+
+  @override
+  String get session_no_errors =>
+      'No grammar or phonetics errors were recorded.';
+
+  @override
+  String get session_talk_tutor => 'Talk with the AI tutor to get feedback.';
+
+  @override
+  String get session_performance => 'Performance';
+
+  @override
+  String get session_excellent => 'Excellent';
+
+  @override
+  String get session_correction => 'Correction';
+
+  @override
+  String get session_grammar => 'Grammar';
+
+  @override
+  String get session_bonus => 'Session Bonus';
+
+  @override
+  String get session_maintained => 'Maintained';
+
+  @override
+  String get profile_status_panel => 'STATUS PANEL';
+
+  @override
+  String get profile_hunter_window => 'HUNTER STATUS WINDOW';
+
+  @override
+  String profile_learning(String language, String emoji) {
+    return 'Learning $language $emoji';
+  }
+
+  @override
+  String get profile_weekly_minutes => 'Weekly Practice Minutes';
+
+  @override
+  String get profile_vocab_learned => 'Vocabulary Learned';
+
+  @override
+  String get profile_explore => 'Explore';
+
+  @override
+  String get profile_learn => 'Learn';
+
+  @override
+  String get profile_title => 'Profile';
+
+  @override
+  String get quest_daily_title => 'Daily Quests';
+
+  @override
+  String get quest_speak_10min => 'Speak 10 minutes of voice';
+
+  @override
+  String get quest_desc_session => 'Complete a fluid conversational session';
+
+  @override
+  String get quest_learn_5_words => 'Learn 5 new words';
+
+  @override
+  String get quest_desc_vocab => 'Accumulate vocabulary in your calls';
+
+  @override
+  String get quest_85_pronunciation => 'Achieve >85% in Pronunciation';
+
+  @override
+  String get quest_desc_pronunciation => 'Pass a voice-print test';
+
+  @override
+  String get league_level_title => 'Level League';
+
+  @override
+  String get league_you => 'You (Student)';
+
+  @override
+  String league_ranking(String league) {
+    return 'Ranking $league';
+  }
+
+  @override
+  String league_top5(String level) {
+    return 'Top 5 · Level $level';
+  }
+
+  @override
+  String get recommended_title => 'Smart Discovery Hub';
+
+  @override
+  String get recommended_desc =>
+      'Personalized lessons based on your level, interests and onboarding goals';
+
+  @override
+  String get recommended_search_hint => 'Search lesson, role or topic...';
+
+  @override
+  String get recommended_cat_all => 'All';
+
+  @override
+  String get recommended_cat_tech => 'Technology';
+
+  @override
+  String get recommended_cat_business => 'Business';
+
+  @override
+  String get recommended_cat_travel => 'Travel';
+
+  @override
+  String get recommended_cat_social => 'Social';
+
+  @override
+  String get recommended_cat_food => 'Food';
+
+  @override
+  String get recommended_all_levels => 'All Levels';
+
+  @override
+  String recommended_level(String lvl) {
+    return 'Level $lvl';
+  }
+
+  @override
+  String recommended_catalog(int count) {
+    return 'Personalized Catalog ($count)';
+  }
+
+  @override
+  String recommended_suggested_level(String cefr) {
+    return 'Suggested level: $cefr';
+  }
+
+  @override
+  String get recommended_hero_match =>
+      '100% match with your Career goal and interest in Technology';
+
+  @override
+  String recommended_filter(String cefr) {
+    return 'Filter: $cefr';
+  }
+
+  @override
+  String get recommended_empty => 'No lessons found with the selected filters.';
+
+  @override
+  String recommended_lesson_level(String level) {
+    return 'LEVEL $level';
+  }
+
+  @override
+  String get recommended_locked_hint =>
+      'Complete the previous lesson in your path to unlock.';
+
+  @override
+  String get recommended_blocked => 'Locked';
+
+  @override
+  String get recommended_review => 'Review';
+
+  @override
+  String get recommended_speak => 'Speak';
+
+  @override
+  String get path_roadmap_title => 'Stage Path (CEFR)';
+
+  @override
+  String get path_stage_empty => 'No lessons recorded for this stage yet.';
+
+  @override
+  String get profile_edit_photo_ok => 'PHOTO UPLOADED SUCCESSFULLY';
+
+  @override
+  String get profile_edit_choose_photo => 'CHOOSE CUSTOM PHOTO PATH';
+
+  @override
+  String get profile_edit_license_registry => 'HUNTER LICENSE REGISTRY';
+
+  @override
+  String get profile_edit_hunter_name => 'HUNTER NAME';
+
+  @override
+  String profile_edit_class_path(String path) {
+    return 'CLASS PATH: $path';
+  }
+
+  @override
+  String get profile_edit_select_class => 'SELECT CLASS PATH';
+
+  @override
+  String get profile_edit_stat_allocation => 'STAT POINTS ALLOCATION';
+
+  @override
+  String profile_edit_stat_pool(int points) {
+    return 'POOL: $points PT';
+  }
+
+  @override
+  String get profile_edit_full_name => 'HUNTER FULL NAME';
+
+  @override
+  String get profile_edit_name_empty => 'NAME CANNOT BE EMPTY';
+
+  @override
+  String get profile_edit_memoir => 'MEMOIR / OBJECTIVES';
+
+  @override
+  String get profile_edit_license_updated =>
+      'LICENSE REGISTRY UPDATED SUCCESSFULLY';
+
+  @override
+  String get profile_edit_save => 'SAVE LICENSE REGISTRY';
+
+  @override
+  String get profile_edit_class_warrior => 'WARRIOR';
+
+  @override
+  String get profile_edit_class_warrior_desc =>
+      'Physical strength & high defense';
+
+  @override
+  String get profile_edit_class_mage => 'MAGE';
+
+  @override
+  String get profile_edit_class_mage_desc =>
+      'Spell casting & mana manipulation';
+
+  @override
+  String get profile_edit_class_assassin => 'ASSASSIN';
+
+  @override
+  String get profile_edit_class_assassin_desc =>
+      'Stealth, speed & critical strikes';
+
+  @override
+  String get profile_edit_class_necromancer => 'NECROMANCER';
+
+  @override
+  String get profile_edit_class_necromancer_desc =>
+      'Summoning the dead & dark magic';
+
+  @override
+  String get profile_edit_class_priest => 'PRIEST';
+
+  @override
+  String get profile_edit_class_priest_desc => 'Healing, buffing & holy light';
+
+  @override
+  String get profile_edit_stat_str_desc => 'Strength & muscle power';
+
+  @override
+  String get profile_edit_stat_int_desc => 'Spellcasting & parsing speed';
+
+  @override
+  String get profile_edit_stat_dex_desc => 'Agility & response rhythm';
+
+  @override
+  String get profile_edit_stat_luk_desc => 'Critical correction avoidance';
+
+  @override
+  String get convo_mission_guide => 'Mission Guide and Context';
+
+  @override
+  String get convo_practice_title => 'Conversation Practice';
+
+  @override
+  String convo_objective(String objective) {
+    return 'Objective: $objective';
+  }
+
+  @override
+  String get convo_select_goals => 'Select a lesson to see specific goals.';
+
+  @override
+  String get convo_select_phrases =>
+      'Select a lesson to see suggested key phrases.';
+
+  @override
+  String get convo_voice_print => 'Voice Print & Pronunciation';
+
+  @override
+  String get convo_phonetic_clarity => 'Phonetic Clarity';
+
+  @override
+  String get convo_speech_speed => 'Speech Speed';
+
+  @override
+  String get convo_words_spoken => 'Words Spoken';
+
+  @override
+  String get convo_cefr_level => 'CEFR Level';
+
+  @override
+  String get convo_hidden_chat => 'Hidden Chat (4th/5th Star)';
+
+  @override
+  String get convo_visible_chat => 'Visible Chat';
+
+  @override
+  String get convo_write_mode => 'Write Mode';
+
+  @override
+  String get convo_voice_mode => 'Voice Mode';
+
+  @override
+  String get convo_input_hint => 'Write your message in English...';
+
+  @override
+  String get convo_continue => 'CONTINUE';
+
+  @override
+  String get convo_oracle_evaluating =>
+      'THE ORACLE IS EVALUATING YOUR CONVERSATION...';
+
+  @override
+  String get convo_analyzing_level => 'Analyzing your communication level...';
+
+  @override
+  String get settings_system_config => 'SYSTEM CONFIG';
+
+  @override
+  String get settings_target_cefr => 'TARGET LANGUAGE & CEFR LEVEL';
+
+  @override
+  String get settings_language => 'LANGUAGE';
+
+  @override
+  String get settings_ai_parameters => 'AI TUTOR PARAMETERS';
+
+  @override
+  String get settings_audio_comms => 'AUDIO & COMMUNICATIONS';
+
+  @override
+  String get settings_account => 'ACCOUNT';
+
+  @override
+  String get settings_aligned => 'CONFIGURATION ALIGNED SUCCESSFULLY';
+
+  @override
+  String get settings_save => 'SAVE CONFIGURATION';
+
+  @override
+  String get settings_target_language => 'TARGET LANGUAGE';
+
+  @override
+  String get settings_cefr_practice => 'CEFR PRACTICE LEVEL';
+
+  @override
+  String get settings_logout_dungeon => 'LOG OUT OF DUNGEON';
+
+  @override
+  String get settings_select_path => 'SELECT TARGET PATH';
+
+  @override
+  String get settings_select_cefr => 'SELECT CEFR LEVEL PATH';
+
+  @override
+  String get settings_correction_scope => 'AI CORRECTION SCOPE';
+
+  @override
+  String get settings_tutor_personality => 'TUTOR PERSONALITY';
+
+  @override
+  String get settings_correction_cadence => 'CORRECTION CADENCE';
+
+  @override
+  String get settings_quest_focus => 'DAILY QUEST FOCUS';
+
+  @override
+  String get settings_sfx_channels => 'AUDIO SFX CHANNELS';
+
+  @override
+  String get settings_alerts => 'DAILY ALERT EMISSIONS';
+
+  @override
+  String get settings_alert_time => 'ALERTS DISPATCH TIME';
+
+  @override
+  String get settings_select_correction => 'SELECT CORRECTION LEVEL';
+
+  @override
+  String get settings_select_personality => 'SELECT TUTOR PERSONALITY';
+
+  @override
+  String get settings_select_cadence => 'SELECT CORRECTION CADENCE';
+
+  @override
+  String get settings_select_quest => 'SELECT DAILY QUEST FOCUS';
+
+  @override
+  String get settings_follow_device => 'USE DEVICE LANGUAGE';
+
+  @override
+  String get settings_force_onboarding => 'Force Continuous Onboarding';
+
+  @override
+  String get settings_dev_desc =>
+      'Developer mode. It does not block the app: it only affects onboarding when there is no profile yet. Use \"Reset history\" to test it again.';
+
+  @override
+  String get settings_profile_deleted =>
+      'Hunter profile deleted. Restarting...';
+
+  @override
+  String get settings_reset_onboarding => 'RESET ONBOARDING HISTORY';
+
+  @override
+  String onboarding_device_lang(String lang) {
+    return 'We detected that your device uses $lang. The app will be shown in that language.';
+  }
+
+  @override
+  String get onboarding_start_eval => 'START EVALUATION';
+
+  @override
+  String get onboarding_beginner => 'I AM AN ABSOLUTE BEGINNER (PRE-A1)';
+
+  @override
+  String get onboarding_beginner_desc =>
+      'I cannot form sentences yet: only loose words and minimal vocabulary. You will start in Fundamentals without an exam.';
+
+  @override
+  String get hunter_equip_title => 'EQUIP TITLE';
+
+  @override
+  String get hunter_skill_titles => 'SKILL TITLES';
+
+  @override
+  String hunter_cefr_xp(String code, int xp) {
+    return 'CEFR $code · $xp XP';
+  }
+
+  @override
+  String get hunter_equipped_title => 'EQUIPPED TITLE';
+
+  @override
+  String get hunter_equip => 'EQUIP';
+
+  @override
+  String get hunter_fluency_analysis => 'FLUENCY ANALYSIS';
+
+  @override
+  String get hunter_holographic_radar => 'HOLOGRAPHIC RADAR';
+
+  @override
+  String get hunter_practice_consistency => 'PRACTICE CONSISTENCY';
+
+  @override
+  String hunter_points_pool(int points) {
+    return 'AVAILABLE POINTS: $points';
+  }
+
+  @override
+  String get hunter_str => 'STR (STRENGTH)';
+
+  @override
+  String get hunter_luk => 'LUK (LUCK)';
+
+  @override
+  String get hunter_distribute_points => 'DISTRIBUTE POINTS';
+
+  @override
+  String get hunter_no_title => 'NO TITLE';
+
+  @override
+  String get hunter_max_level => 'MAX LEVEL REACHED';
+
+  @override
+  String get dungeon_choose_portal => 'CHOOSE A PORTAL ACCORDING TO YOUR RANK';
+
+  @override
+  String dungeon_current_portal(String level) {
+    return 'CURRENT PORTAL — LEVEL $level';
+  }
+
+  @override
+  String dungeon_level(Object level) {
+    return 'LEVEL $level';
+  }
+
+  @override
+  String get progress_edit_profile => 'Edit Profile';
+
+  @override
+  String get progress_hunter_status => 'Hunter Status';
+
+  @override
+  String progress_streak_hint(int streak, String days) {
+    return 'Practice today to keep your $streak day streak $days';
+  }
+
+  @override
+  String get progress_practice => 'PRACTICE';
+
+  @override
+  String get progress_streak_at_risk => 'STREAK AT RISK!';
+
+  @override
+  String get progress_hunter_desc =>
+      'View the 11-attribute matrix, equipped titles and power radar';
+
+  @override
+  String get progress_weekly_voice => 'Weekly Practice (Voice Minutes)';
+
+  @override
+  String progress_vocab_learned(int count) {
+    return 'Vocabulary Learned ($count)';
+  }
+
+  @override
+  String get progress_vocab_empty =>
+      'You haven\'t accumulated vocabulary in voice calls yet.';
+
+  @override
+  String get progress_vocab_section => 'Vocabulary';
+
+  @override
+  String get progress_hunter_attributes => 'HUNTER ATTRIBUTES';
+
+  @override
+  String get progress_xp_rank => 'XP Rank';
+
+  @override
+  String get settings_opt_sfx_desc =>
+      'Combat, mana charges, and level calibration sfx';
+
+  @override
+  String get settings_opt_strict_title => 'STRICT ACTION';
+
+  @override
+  String get settings_opt_strict_desc =>
+      'AI will only correct critical structural breaks.';
+
+  @override
+  String get settings_opt_compact_title => 'COMPACT FEEDBACK';
+
+  @override
+  String get settings_opt_compact_desc =>
+      'Quick corrections with single line annotations.';
+
+  @override
+  String get settings_opt_moderate_title => 'MODERATE EXPLANATION';
+
+  @override
+  String get settings_opt_moderate_desc =>
+      'Balanced corrections with 1 to 3 detail sentences.';
+
+  @override
+  String get settings_opt_detailed_title => 'DETAILED BREAKDOWN';
+
+  @override
+  String get settings_opt_detailed_desc =>
+      'In-depth grammar blueprints with contextual examples.';
+
+  @override
+  String get settings_opt_oracle_title => 'ORACLE MASTER MODE';
+
+  @override
+  String get settings_opt_oracle_desc =>
+      'Complete analysis of error blueprints.';
+
+  @override
+  String get settings_opt_companion_title => 'COMPANION RATE';
+
+  @override
+  String get settings_opt_companion_desc =>
+      'Patient, warm, and highly supportive responses.';
+
+  @override
+  String get settings_opt_commander_title => 'COMMANDER BRIEF';
+
+  @override
+  String get settings_opt_commander_desc =>
+      'Formal, highly structured, and structured corrections.';
+
+  @override
+  String get settings_opt_boss_title => 'BOSS CALIBER CHALLENGE';
+
+  @override
+  String get settings_opt_boss_desc =>
+      'High-level vocabulary demands and strict responses.';
+
+  @override
+  String get settings_opt_strict_style_title => 'STRICT ACTION';
+
+  @override
+  String get settings_opt_strict_style_desc =>
+      'Interrupts and repairs errors instantly.';
+
+  @override
+  String get settings_opt_balanced_title => 'BALANCED COMPASS';
+
+  @override
+  String get settings_opt_balanced_desc =>
+      'Maintains dialogue speed with structured correction feedback.';
+
+  @override
+  String get settings_opt_immersive_title => 'IMMERSIVE RAIDS';
+
+  @override
+  String get settings_opt_immersive_desc =>
+      'Keeps speaking flow; repairs only terminal breaks.';
+
+  @override
+  String get settings_opt_casual_title => 'CASUAL RUN (10 MIN)';
+
+  @override
+  String get settings_opt_casual_desc => 'Quick entry practice daily.';
+
+  @override
+  String get settings_opt_regular_title => 'REGULAR RAID (15 MIN)';
+
+  @override
+  String get settings_opt_regular_desc => 'Solid learning rate path.';
+
+  @override
+  String get settings_opt_serious_title => 'SERIOUS CAMPAIGN (30 MIN)';
+
+  @override
+  String get settings_opt_serious_desc =>
+      'Acquire fluent skill markers rapidly.';
+
+  @override
+  String get settings_opt_overload_title => 'OVERLOAD OVERCLOCK (60 MIN)';
+
+  @override
+  String get settings_opt_overload_desc => 'Complete immersion overdrive.';
+
+  @override
+  String get hunter_title_orco_caverna_f => 'Cave Orc Writing';
+
+  @override
+  String get hunter_title_orco_caverna_f_desc =>
+      'First steps making mistakes with courage.';
+
+  @override
+  String get hunter_title_escriba_novato_e => 'Novice Scribe';
+
+  @override
+  String get hunter_title_escriba_novato_e_desc => '50% clean sentences.';
+
+  @override
+  String get hunter_title_escriba_ciudad_d => 'City Scribe';
+
+  @override
+  String get hunter_title_escriba_ciudad_d_desc => '65% grammar accuracy.';
+
+  @override
+  String get hunter_title_escriba_imperial_c => 'Imperial Library Scribe';
+
+  @override
+  String get hunter_title_escriba_imperial_c_desc => '75% grammar accuracy.';
+
+  @override
+  String get hunter_title_pluma_erudito_b => 'Royal Scholar Quill';
+
+  @override
+  String get hunter_title_pluma_erudito_b_desc => '85% grammar accuracy.';
+
+  @override
+  String get hunter_title_pluma_archimago_a => 'Archmage Arcanist Quill';
+
+  @override
+  String get hunter_title_pluma_archimago_a_desc => '92% grammar accuracy.';
+
+  @override
+  String get hunter_title_pluma_celestial_s => 'Celestial Quill of the Sage';
+
+  @override
+  String get hunter_title_pluma_celestial_s_desc => '97% grammar accuracy.';
+
+  @override
+  String get hunter_title_monarca_sintaxis_ss => 'Monarch of Sacred Syntax';
+
+  @override
+  String get hunter_title_monarca_sintaxis_ss_desc => '99% grammar accuracy.';
+
+  @override
+  String get hunter_title_creador_abismo_sss => 'Creator of Abyssal Languages';
+
+  @override
+  String get hunter_title_creador_abismo_sss_desc =>
+      '100% flawless grammar accuracy.';
+
+  @override
+  String get hunter_title_murcielago_ciego_f => 'Blind Bat';
+
+  @override
+  String get hunter_title_murcielago_ciego_f_desc =>
+      'Initial listens with text chat.';
+
+  @override
+  String get hunter_title_oido_halcon_novato_d => 'Novice Hawk Hearing';
+
+  @override
+  String get hunter_title_oido_halcon_novato_d_desc =>
+      '2 lessons without chat.';
+
+  @override
+  String get hunter_title_oido_halcon_abismo_c => 'Abyss Hawk Hearing';
+
+  @override
+  String get hunter_title_oido_halcon_abismo_c_desc =>
+      '4 blind-cleared lessons.';
+
+  @override
+  String get hunter_title_sonar_monarca_sombras_s =>
+      'Absolute Sonar of the Shadow Monarch';
+
+  @override
+  String get hunter_title_sonar_monarca_sombras_s_desc =>
+      '16 blind-cleared lessons.';
+
+  @override
+  String get hunter_title_oidor_susurros_sss =>
+      'Hearer of the Universe Whispers';
+
+  @override
+  String get hunter_title_oidor_susurros_sss_desc =>
+      'Over 30 blind-cleared lessons.';
+
+  @override
+  String get hunter_title_monarca_impecable_5star =>
+      'Immaculate Monarch of Perfection';
+
+  @override
+  String get hunter_title_monarca_impecable_5star_desc =>
+      'Awarded for achieving the 5th Mythic Star (0 blind errors).';
+
+  @override
+  String get skill_fluidez_1 => 'Word Apprentice';
+
+  @override
+  String get skill_fluidez_1_desc =>
+      'You begin to express yourself with continuity.';
+
+  @override
+  String get skill_fluidez_2 => 'The Swift Courier';
+
+  @override
+  String get skill_fluidez_2_desc =>
+      'You speak with notable rhythm and fluency.';
+
+  @override
+  String get skill_fluidez_3 => 'Herald of the Gale';
+
+  @override
+  String get skill_fluidez_3_desc => 'Your speech flows effortlessly.';
+
+  @override
+  String get skill_fluidez_4 => 'Spokesperson of the Gods';
+
+  @override
+  String get skill_fluidez_4_desc => 'Almost divine fluency when conversing.';
+
+  @override
+  String get skill_fonetica_1 => 'Voice Apprentice';
+
+  @override
+  String get skill_fonetica_1_desc => 'Your pronunciation is becoming clear.';
+
+  @override
+  String get skill_fonetica_2 => 'Echo of the Coliseum';
+
+  @override
+  String get skill_fonetica_2_desc =>
+      'You pronounce with remarkable precision.';
+
+  @override
+  String get skill_fonetica_3 => 'Crystal Choir';
+
+  @override
+  String get skill_fonetica_3_desc => 'Your phonetics are clean and bright.';
+
+  @override
+  String get skill_fonetica_4 => 'Celestial Tuner';
+
+  @override
+  String get skill_fonetica_4_desc => 'Phonetic clarity from another plane.';
+
+  @override
+  String get skill_lexico_1 => 'Word Gatherer';
+
+  @override
+  String get skill_lexico_1_desc => 'You add your first mastered words.';
+
+  @override
+  String get skill_lexico_2 => 'Village Librarian';
+
+  @override
+  String get skill_lexico_2_desc => 'Your vocabulary grows solidly.';
+
+  @override
+  String get skill_lexico_3 => 'Abyss Scribe';
+
+  @override
+  String get skill_lexico_3_desc => 'You master an extensive vocabulary.';
+
+  @override
+  String get skill_lexico_4 => 'Eternal Lexicographer';
+
+  @override
+  String get skill_lexico_4_desc => 'Your lexicon knows no bounds.';
+
+  @override
+  String get skill_precision_1 => 'Rules Apprentice';
+
+  @override
+  String get skill_precision_1_desc => 'Simple structures are already solid.';
+
+  @override
+  String get skill_precision_2 => 'Rune Apprentice';
+
+  @override
+  String get skill_precision_2_desc => 'Your grammar gains consistency.';
+
+  @override
+  String get skill_precision_3 => 'Coliseum Grammarian';
+
+  @override
+  String get skill_precision_3_desc => 'You build sentences with mastery.';
+
+  @override
+  String get skill_precision_4 => 'Syntax Forger';
+
+  @override
+  String get skill_precision_4_desc =>
+      'Your grammatical precision is legendary.';
+
+  @override
+  String get skill_constancia_1 => 'Steady Apprentice';
+
+  @override
+  String get skill_constancia_1_desc => 'Three consecutive days of practice.';
+
+  @override
+  String get skill_constancia_2 => 'Fire Guardian';
+
+  @override
+  String get skill_constancia_2_desc => 'One uninterrupted week.';
+
+  @override
+  String get skill_constancia_3 => 'Dawn Sentinel';
+
+  @override
+  String get skill_constancia_3_desc => 'A month of iron consistency.';
+
+  @override
+  String get skill_constancia_4 => 'Streak Legend';
+
+  @override
+  String get skill_constancia_4_desc =>
+      'A hundred days of absolute dedication.';
+
+  @override
+  String get skill_carisma_1 => 'Guild Novice';
+
+  @override
+  String get skill_carisma_1_desc => 'You navigate conversations with ease.';
+
+  @override
+  String get skill_carisma_2 => 'Soul of the Tavern';
+
+  @override
+  String get skill_carisma_2_desc => 'You connect naturally with others.';
+
+  @override
+  String get skill_carisma_3 => 'Realm Ambassador';
+
+  @override
+  String get skill_carisma_3_desc => 'You lead the conversation smoothly.';
+
+  @override
+  String get skill_carisma_4 => 'Lesser Oracle';
+
+  @override
+  String get skill_carisma_4_desc =>
+      'Your conversational charisma is out of this world.';
+
+  @override
+  String get paywall_upgrade_title => 'UPGRADE TO PREMIUM';
+
+  @override
+  String get paywall_upgrade_subtitle =>
+      'Your estate defines your monthly mana and prestige ceiling. Effort (Aura) decides your title.';
+
+  @override
+  String get paywall_f_monthly => 'MENSUAL';
+
+  @override
+  String get paywall_f_annual => 'ANUAL';
+
+  @override
+  String get paywall_subscribe => 'SUBSCRIBE NOW';
+
+  @override
+  String get paywall_restore => 'RESTORE';
+
+  @override
+  String get paywall_legal =>
+      'Cancel anytime via App Store / Play Store. Terms and Conditions apply.';
+
+  @override
+  String get paywall_err_stripe =>
+      'Could not start the payment. Check the Stripe configuration.';
+
+  @override
+  String get paywall_err_checkout => 'Could not open the checkout.';
+
+  @override
+  String get paywall_feature_mana =>
+      'Realtime Mana consumption & voice metrics tracker';
+
+  @override
+  String get paywall_feature_titles =>
+      'Unlock the 63 Rank Titles Inventory (from F to SSS Rank)';
+
+  @override
+  String get paywall_feature_rooms =>
+      '24/7 access to the Grand Discussion Hall voice rooms';
+
+  @override
+  String get paywall_feature_modes =>
+      'Tactical selector between Voice Mode and Writing Mode';
+
+  @override
+  String get paywall_feature_missions =>
+      'Premium missions & weekly raid rewards';
+
+  @override
+  String get paywall_active_title => 'YOUR CURRENT PLAN';
+
+  @override
+  String get paywall_active_subtitle =>
+      'You already have Premium. Manage or change your plan here.';
+
+  @override
+  String get paywall_load_error => 'Could not load the plans.';
+
+  @override
+  String get paywall_no_packages =>
+      'No plans available for this billing cycle.';
+
+  @override
+  String get paywall_nothing_restored => 'No purchases to restore.';
+
+  @override
+  String get paywall_current_plan => 'CURRENT PLAN';
+
+  @override
+  String get paywall_manage_subscription => 'MANAGE SUBSCRIPTION';
 }

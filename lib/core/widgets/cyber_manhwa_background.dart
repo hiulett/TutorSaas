@@ -104,6 +104,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
         return AppColors.trophyGold;
       default:
         switch (widget.levelCode.toUpperCase()) {
+          case 'PRE-A1': return AppColors.cefrPreA1;
           case 'A1': return AppColors.cefrA1;
           case 'A2': return AppColors.cefrA2;
           case 'B1': return AppColors.cefrB1;
@@ -144,6 +145,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
       case CyberBgMode.dynamicLevel:
         if (widget.isBossArena) return 'assets/images/dungeon_boss_arena_bg.jpg';
         switch (widget.levelCode.toUpperCase()) {
+          case 'PRE-A1': return 'assets/images/dungeon_forest_a1_bg.jpg';
           case 'A1': return 'assets/images/dungeon_forest_a1_bg.jpg';
           case 'A2': return 'assets/images/dungeon_ruins_a2_bg.jpg';
           case 'B1': return 'assets/images/dungeon_wind_b1_bg.jpg';

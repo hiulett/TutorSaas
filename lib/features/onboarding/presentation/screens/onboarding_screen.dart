@@ -18,6 +18,7 @@ import '../../../../core/i18n/language_settings.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/country_catalog.dart';
 import '../../domain/models/hunter_class.dart';
+import '../../../../app/navigation_resolver.dart';
 
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -74,16 +75,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
+    // Primer inicio: si la interfaz sigue al dispositivo, pre-selecciona el
+    // idioma nativo según el locale del dispositivo (si está soportado).
+    final settings = ref.read(userLanguageProvider);
+    final deviceLang = ref.read(deviceLocaleProvider);
+    final nativeCodes = _nativeLanguages.map((l) => l['code']).toSet();
+    if (settings.followDeviceLanguage && nativeCodes.contains(deviceLang)) {
+      _selectedNativeLanguageCode = deviceLang;
+    }
     // Detección automática del idioma del dispositivo (primer inicio).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final settings = ref.read(userLanguageProvider);
-      final deviceLang = ref.read(deviceLocaleProvider);
       if (settings.followDeviceLanguage) {
         SystemSnack.show(
           context,
-          'Hemos detectado que tu dispositivo utiliza ${deviceLang.toUpperCase()}. '
-          'La aplicación se mostrará en ese idioma.',
+          AppLocalizations.of(context)?.onboarding_device_lang(deviceLang.toUpperCase()) ??
+              'Hemos detectado que tu dispositivo utiliza ${deviceLang.toUpperCase()}. '
+              'La aplicación se mostrará en ese idioma.',
           type: SystemSnackType.info,
           duration: const Duration(milliseconds: 3000),
         );
@@ -162,6 +170,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  /// Opción manual para hablantes super-básicos: asigna PRE-A1 (rango F) sin
+  /// pasar el examen del Oráculo.
+  void _skipOracleAsPreA1() {
+    setState(() {
+      _selectedCefrCode = 'PRE-A1';
+      _gameRank = 'F';
+      _currentPage = 4;
+    });
+    _pageController.animateToPage(
+      4,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   Future<void> _completeOnboardingAndPurchase() async {
     setState(() => _isSaving = true);
     try {
@@ -185,6 +208,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             primaryObstacle: _selectedObstacle,
             learningStyle: 'auditory_interactive',
           );
+
+      // El perfil ya existe: marca la caché del Navigation Decision Engine
+      // (en memoria + persistida) para que el redirect no vuelva a forzar el
+      // onboarding ni consulte la DB.
+      await NavigationDecisionEngine.markProfileExists(targetUserId);
 
       final languageNotifier = ref.read(userLanguageProvider.notifier);
       await languageNotifier.setLearningLanguage(_selectedLanguageCode);
@@ -379,7 +407,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
                             )
                           : Text(
-                              _currentPage == 3 ? 'INICIAR EVALUACIÓN' : l10n.btn_continue,
+                              _currentPage == 3 ? l10n.onboarding_start_eval : l10n.btn_continue,
                               style: AppTypography.title(context),
                             ),
                     ),
@@ -783,19 +811,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 24),
 
-          Text(
-            'Country of Origin',
-            style: AppTypography.body(context).copyWith(fontWeight: FontWeight.bold, color: AppColors.manaCyan),
-          ),
-          const SizedBox(height: 12),
-
-          const SizedBox(height: 16),
-          Text(
-            'Busca tu país en el catálogo completo.',
-            style: AppTypography.bodyMuted(context).copyWith(color: AppColors.onSurface.withValues(alpha: 0.6)),
-          ),
-          const SizedBox(height: 8),
-
           // Dropdown con buscador sobre el catálogo completo de países
           Builder(
             builder: (context) {
@@ -990,6 +1005,44 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     style: AppTypography.body(context).copyWith(
                       color: AppColors.onSurface.withValues(alpha: 0.8),
                       height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: _skipOracleAsPreA1,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.manaCyan.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.5)),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.eco_rounded, color: AppColors.manaCyan, size: 24),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppLocalizations.of(context)?.onboarding_beginner ?? 'SOY PRINCIPIANTE ABSOLUTO (PRE-A1)',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.subtitle(context).copyWith(
+                      color: AppColors.manaCyan,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppLocalizations.of(context)?.onboarding_beginner_desc ??
+                        'Aún no sé formar oraciones: solo palabras sueltas y vocabulario mínimo. Empezaré en Fundamentos sin examen.',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodyMuted(context).copyWith(
+                      fontSize: 11,
+                      color: AppColors.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],

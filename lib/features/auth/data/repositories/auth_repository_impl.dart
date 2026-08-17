@@ -23,10 +23,12 @@ class AuthRepositoryImpl implements AuthRepository {
       final googleSignIn = GoogleSignIn(
         serverClientId: '466224796344-6t32htovvg5o9lqem38npfu1og3larjp.apps.googleusercontent.com',
       );
-      final googleUser = await googleSignIn.signIn();
+      // Timeouts: si Google/Supabase no responde, se lanza y el UI lo captura
+      // (snackbar) en vez de dejar el spinner bloqueado para siempre.
+      final googleUser = await googleSignIn.signIn().timeout(const Duration(seconds: 25));
       if (googleUser == null) return null;
 
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = await googleUser.authentication.timeout(const Duration(seconds: 15));
       final accessToken = googleAuth.accessToken;
       final idToken = googleAuth.idToken;
 
@@ -38,7 +40,7 @@ class AuthRepositoryImpl implements AuthRepository {
         provider: OAuthProvider.google,
         idToken: idToken,
         accessToken: accessToken,
-      );
+      ).timeout(const Duration(seconds: 15));
       return response.user;
     } else {
       // Perform Google Sign In through Supabase OAuth flow

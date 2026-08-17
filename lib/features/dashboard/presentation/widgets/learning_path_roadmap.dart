@@ -6,9 +6,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/quest_card.dart';
 import '../../../../core/widgets/system_snack.dart';
-import '../../../conversation/presentation/widgets/conversational_tactics_navigator.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
+import '../../domain/models/lesson_halo.dart';
 import '../../domain/models/mission_progress_service.dart';
 import '../providers/dashboard_providers.dart';
 
@@ -30,7 +31,7 @@ class LearningPathRoadmap extends ConsumerStatefulWidget {
 
 class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
   late String _selectedLevel;
-  final List<String> _levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  final List<String> _levels = ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
   @override
   void initState() {
@@ -118,7 +119,7 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Ruta por Etapas (CEFR)',
+                AppLocalizations.of(context)?.path_roadmap_title ?? 'Ruta por Etapas (CEFR)',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.onSurface,
@@ -220,14 +221,14 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
         const SizedBox(height: 16),
 
         if (stageLessons.isEmpty)
-          const GlassCard(
+          GlassCard(
             blur: 15,
             opacity: AppColors.glassOpacity,
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Center(
               child: Text(
-                'No hay lecciones registradas para esta etapa aún.',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                AppLocalizations.of(context)?.path_stage_empty ?? 'No hay lecciones registradas para esta etapa aún.',
+                style: const TextStyle(color: AppColors.onSurfaceVariant),
               ),
             ),
           )
@@ -241,7 +242,7 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
               final state = LessonUnlockService.classify(
                 lesson: lesson,
                 userCefr: widget.activeUserLevel,
-                completedLessons: widget.completedLessonsHistory,
+                goalRows: completedGoalRows,
                 catalog: LessonCatalog.catalog,
               );
               final isCompleted = state == LessonUnlockState.completedByPlayer;
@@ -256,6 +257,7 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                 completedGoals: lessonCompletedGoals,
                 totalGoals: lessonTotalGoals,
               );
+              final isMastered = lessonProgress >= 1.0;
               final iconData = _getIconData(lesson.iconKey);
 
               return _RoadmapNodeTile(
@@ -266,6 +268,10 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                 isNextLesson: isNextLesson,
                 isUnlockedByOracle: isUnlockedByOracle,
                 isLocked: isLocked,
+                isMastered: isMastered,
+                haloColor: LessonHalo.colorFor(lessonProgress),
+                haloAlpha: LessonHalo.intensityFor(lessonProgress),
+                haloBlur: LessonHalo.blurFor(lessonProgress),
                 progress: lessonProgress,
                 progressSegments: lessonTotalGoals <= 0 ? 1 : lessonTotalGoals,
                 iconData: iconData,
@@ -278,7 +284,7 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
   }
 }
 
-class _RoadmapNodeTile extends StatelessWidget {
+class _RoadmapNodeTile extends StatefulWidget {
   final LessonData lesson;
   final int index;
   final int total;
@@ -286,6 +292,10 @@ class _RoadmapNodeTile extends StatelessWidget {
   final bool isNextLesson;
   final bool isUnlockedByOracle;
   final bool isLocked;
+  final bool isMastered;
+  final Color haloColor;
+  final double haloAlpha;
+  final double haloBlur;
   final double progress;
   final int progressSegments;
   final IconData iconData;
@@ -299,26 +309,122 @@ class _RoadmapNodeTile extends StatelessWidget {
     required this.isNextLesson,
     required this.isUnlockedByOracle,
     required this.isLocked,
+    required this.isMastered,
+    required this.haloColor,
+    required this.haloAlpha,
+    required this.haloBlur,
     required this.progress,
     required this.progressSegments,
     required this.iconData,
     required this.isLast,
   });
 
+  @override
+  State<_RoadmapNodeTile> createState() => _RoadmapNodeTileState();
+}
+
+class _RoadmapNodeTileState extends State<_RoadmapNodeTile>
+    with SingleTickerProviderStateMixin {
   static const Color accentGreen = AppColors.accentGreen;
+
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+    _pulse = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    if (widget.isMastered) {
+      _pulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _RoadmapNodeTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isMastered && !_pulseController.isAnimating) {
+      _pulseController.repeat(reverse: true);
+    } else if (!widget.isMastered && _pulseController.isAnimating) {
+      _pulseController.stop();
+      _pulseController.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  /// Halo según el % de metas: dorado pulsante (maestría 100%), violeta
+  /// (superada ≥70%), cian (en progreso) o brillo de arranque (siguiente).
+  List<BoxShadow>? _buildGlow() {
+    if (widget.isMastered) {
+      final t = _pulse.value;
+      return [
+        BoxShadow(
+          color: AppColors.royalGold.withValues(alpha: 0.75 + 0.20 * t),
+          blurRadius: 18 + 8 * t,
+          spreadRadius: 2 + 2 * t,
+        ),
+      ];
+    }
+    if (widget.haloAlpha > 0) {
+      return [
+        BoxShadow(
+          color: widget.haloColor.withValues(alpha: widget.haloAlpha),
+          blurRadius: widget.haloBlur,
+          spreadRadius: widget.haloBlur > 16 ? 2 : 0,
+        ),
+      ];
+    }
+    if (widget.isNextLesson) {
+      return [
+        BoxShadow(
+          color: AppColors.runeViolet.withValues(alpha: 0.4),
+          blurRadius: 10,
+          spreadRadius: 2,
+        ),
+      ];
+    }
+    return null;
+  }
+
+  Widget _buildIcon() {
+    if (widget.isCompleted) {
+      return Icon(
+        Icons.emoji_events_rounded,
+        color: widget.isMastered ? AppColors.royalGold : accentGreen,
+        size: 20,
+      );
+    }
+    if (widget.isNextLesson) {
+      return const Icon(Icons.play_arrow_rounded, color: AppColors.onSurface, size: 24);
+    }
+    if (widget.isUnlockedByOracle) {
+      return const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 18);
+    }
+    return Icon(Icons.lock_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 18);
+  }
 
   @override
   Widget build(BuildContext context) {
     Color nodeColor;
     Color borderColor;
 
-    if (isCompleted) {
+    if (widget.isCompleted) {
       nodeColor = accentGreen.withValues(alpha: 0.2);
-      borderColor = accentGreen;
-    } else if (isNextLesson) {
+      borderColor = widget.isMastered ? AppColors.royalGold : accentGreen;
+    } else if (widget.isNextLesson) {
       nodeColor = AppColors.runeViolet.withValues(alpha: 0.25);
       borderColor = AppColors.manaCyan;
-    } else if (isUnlockedByOracle) {
+    } else if (widget.isUnlockedByOracle) {
       nodeColor = AppColors.runeViolet.withValues(alpha: 0.12);
       borderColor = AppColors.runeViolet;
     } else {
@@ -340,37 +446,23 @@ class _RoadmapNodeTile extends StatelessWidget {
                   color: nodeColor,
                   border: Border.all(
                     color: borderColor,
-                    width: isNextLesson ? 2.0 : 1.5,
+                    width: widget.isNextLesson ? 2.0 : 1.5,
                   ),
-                  boxShadow: isNextLesson
-                      ? [
-                          BoxShadow(
-                            color: AppColors.runeViolet.withValues(alpha: 0.4),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                      : null,
+                  boxShadow: _buildGlow(),
                 ),
-                child: Center(
-                  child: isCompleted
-                      ? const Icon(Icons.emoji_events_rounded, color: accentGreen, size: 20)
-                      : isNextLesson
-                          ? const Icon(Icons.play_arrow_rounded, color: AppColors.onSurface, size: 24)
-                          : isUnlockedByOracle
-                              ? const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 18)
-                              : Icon(Icons.lock_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 18),
-                ),
+                child: Center(child: _buildIcon()),
               ),
 
-              if (!isLast)
+              if (!widget.isLast)
                 Expanded(
                   child: Container(
                     width: 2,
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    color: isCompleted
-                        ? accentGreen.withValues(alpha: 0.5)
-                        : isUnlockedByOracle
+                    color: widget.isCompleted
+                        ? (widget.isMastered
+                            ? AppColors.royalGold.withValues(alpha: 0.6)
+                            : accentGreen.withValues(alpha: 0.5))
+                        : widget.isUnlockedByOracle
                             ? AppColors.runeViolet.withValues(alpha: 0.3)
                             : AppColors.onSurface.withValues(alpha: 0.08),
                   ),
@@ -384,27 +476,20 @@ class _RoadmapNodeTile extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: QuestCard(
-                title: lesson.title,
-                description: lesson.description,
-                rank: isCompleted
+                title: widget.lesson.title,
+                description: widget.lesson.description,
+                rank: widget.isCompleted
                     ? 'S'
-                    : (isNextLesson ? 'B' : (isUnlockedByOracle ? 'O' : 'D')),
-                gemReward: isCompleted ? 0 : 15,
-                xpReward: isCompleted ? 0 : 100,
-                progress: progress,
-                progressSegments: progressSegments,
-                onTap: isLocked ? () {
+                    : (widget.isNextLesson ? 'B' : (widget.isUnlockedByOracle ? 'O' : 'D')),
+                gemReward: widget.isCompleted ? 0 : 15,
+                xpReward: widget.isCompleted ? 0 : 100,
+                progress: widget.progress,
+                progressSegments: widget.progressSegments,
+                onTap: widget.isLocked ? () {
                   SystemSnack.show(context, '🔒 MAZMORRA BLOQUEADA: Completa los desafíos previos.', type: SystemSnackType.error);
                 } : () {
-                  ConversationalTacticsNavigator.show(
-                    context,
-                    scenarioId: lesson.id,
-                    scenarioTitle: lesson.title,
-                    onStart: (tactic) {
-                      context.push(
-                        '/conversation?scenarioId=${lesson.id}&scenarioTitle=${Uri.encodeComponent(lesson.title)}&tactic=$tactic',
-                      );
-                    },
+                  context.push(
+                    '/conversation?scenarioId=${widget.lesson.id}&scenarioTitle=${Uri.encodeComponent(widget.lesson.title)}',
                   );
                 },
               ),

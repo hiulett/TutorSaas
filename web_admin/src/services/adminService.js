@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabaseClient';
-import { INITIAL_LESSONS } from '../data/catalogData';
 
 function toNumericId(idStr) {
   if (!idStr) return 101;
@@ -28,13 +27,14 @@ export const adminService = {
         .from('scenarios')
         .select('*', { count: 'exact', head: true });
 
+      // Estimación: 15 min de práctica por conversación registrada.
       const practiceHours = Math.round(((totalConversationsCount || 0) * 15) / 60);
 
       return {
         totalUsers: totalUsersCount || 0,
         totalHours: practiceHours,
         totalLessons: totalScenariosCount || 0,
-        aiLatency: '1.1s',
+        totalConversations: totalConversationsCount || 0,
       };
     } catch (err) {
       console.error('Error fetching overview metrics:', err);
@@ -42,7 +42,7 @@ export const adminService = {
         totalUsers: 0,
         totalHours: 0,
         totalLessons: 0,
-        aiLatency: '1.1s',
+        totalConversations: 0,
       };
     }
   },
@@ -59,8 +59,7 @@ export const adminService = {
         console.warn('Scenarios read query warning:', error.message);
       }
 
-      const existingRows = dbData || [];
-      const dbMapped = existingRows.map((sc) => ({
+      return (dbData || []).map((sc) => ({
         id: sc.id.toString(),
         title: sc.title || 'Escenario Supabase',
         category: sc.category || 'general',
@@ -71,24 +70,46 @@ export const adminService = {
         userRole: sc.user_role || 'Estudiante',
         initialAssistantMessage: sc.initial_assistant_message || "Hello! Let's start practice.",
         mainObjective: sc.main_objective || sc.title,
-        goals: sc.goals || [
-          { id: 'g1', text: 'Saludar e iniciar diálogo', keyword: 'hello' },
-          { id: 'g2', text: 'Responder preguntas', keyword: 'yes' },
-          { id: 'g3', text: 'Despedirte adecuadamente', keyword: 'bye' },
-        ],
-        usefulPhrases: sc.useful_phrases || [
-          { phrase: 'Could you repeat that?', translation: '¿Podrías repetir eso?' },
-          { phrase: 'In my opinion...', translation: 'En mi opinión...' },
-        ],
+        goals: sc.goals || [],
+        usefulPhrases: sc.useful_phrases || [],
       }));
-
-      const currentIds = new Set(dbMapped.map((m) => m.id.toString()));
-      const unseededCatalog = INITIAL_LESSONS.filter((item) => !currentIds.has(item.id.toString()) && !currentIds.has(toNumericId(item.id).toString()));
-      
-      return [...dbMapped, ...unseededCatalog];
     } catch (err) {
       console.error('Error fetching scenarios:', err);
-      return INITIAL_LESSONS;
+      return [];
+    }
+  },
+
+  /// Distribución real de usuarios por nivel CEFR (counts desde la DB).
+  async getCefrDistribution() {
+    try {
+      const { data: profiles } = await supabase
+        .from('user_language_profiles')
+        .select('cefr_level_id');
+
+      const { data: levels } = await supabase
+        .from('cefr_levels')
+        .select('id, code, name, color');
+
+      const levelMap = new Map((levels || []).map((l) => [l.id, l]));
+      const counts = new Map();
+      (profiles || []).forEach((p) => {
+        const lvl = p.cefr_level_id != null ? levelMap.get(p.cefr_level_id) : null;
+        if (lvl?.code) counts.set(lvl.code, (counts.get(lvl.code) || 0) + 1);
+      });
+
+      const total = [...counts.values()].reduce((a, b) => a + b, 0);
+      return (levels || [])
+        .map((l) => ({
+          code: l.code,
+          name: l.name,
+          color: l.color || '#a855f7',
+          count: counts.get(l.code) || 0,
+          pct: total > 0 ? Math.round(((counts.get(l.code) || 0) / total) * 100) : 0,
+        }))
+        .filter((x) => x.count > 0);
+    } catch (err) {
+      console.error('Error fetching CEFR distribution:', err);
+      return [];
     }
   },
 
@@ -156,19 +177,15 @@ export const adminService = {
           description: lvl.description || 'Nivel del Marco Común Europeo',
           color: lvl.color || '#a855f7',
           difficultyRange: lvl.difficulty_range || '1 - 5',
-          activeLessons: 15,
+          activeLessons: 0,
           enrolledStudents: 0,
         }));
       }
-    } catch (_) {}
+    } catch (err) {
+      console.error('Error fetching CEFR levels:', err);
+    }
 
-    return [
-      { code: 'A1', name: 'Principiante', description: 'Expresiones cotidianas y necesidades inmediatas.', color: '#60a5fa', difficultyRange: '1 - 2', activeLessons: 12, enrolledStudents: 0 },
-      { code: 'A2', name: 'Elemental', description: 'Comida, compras, hoteles y transporte.', color: '#38bdf8', difficultyRange: '2 - 3', activeLessons: 18, enrolledStudents: 0 },
-      { code: 'B1', name: 'Intermedio', description: 'Entrevistas laborales y trabajo colaborativo.', color: '#c084fc', difficultyRange: '3 - 4', activeLessons: 24, enrolledStudents: 0 },
-      { code: 'B2', name: 'Intermedio Alto', description: 'Debates, proyectos e hipótesis complejas.', color: '#f472b6', difficultyRange: '4', activeLessons: 15, enrolledStudents: 0 },
-      { code: 'C1', name: 'Avanzado', description: 'Discurso académico y jerga profesional.', color: '#fbbf24', difficultyRange: '5', activeLessons: 10, enrolledStudents: 0 },
-    ];
+    return [];
   },
 
   async saveCefrLevel(levelObj) {
@@ -183,6 +200,15 @@ export const adminService = {
       });
     } catch (err) {
       console.error('Error saving CEFR level:', err);
+    }
+  },
+
+  async deleteCefrLevel(code) {
+    try {
+      const { error } = await supabase.from('cefr_levels').delete().eq('code', code);
+      if (error) console.warn('CEFR delete error:', error.message);
+    } catch (err) {
+      console.error('Error deleting CEFR level:', err);
     }
   },
 
@@ -205,10 +231,11 @@ export const adminService = {
               xp: u.xp_points || u.xp || 0,
               streak: u.current_streak || u.streak || 0,
               practiceMinutes: 0,
-              plan: 'Free',
-              clarityScore: 88,
-              wpm: 110,
-              problemPhonemes: ['/th/'],
+              plan: null,
+              clarityScore: null,
+              wpm: null,
+              problemPhonemes: [],
+              nativeLanguage: u.native_language || '',
               lastActive: 'Registrado en users',
             });
           });
@@ -238,9 +265,9 @@ export const adminService = {
         const rawDisplayName = p.display_name || existing.displayName || p.full_name || p.name;
         const displayName = (rawDisplayName && rawDisplayName !== 'Sin display_name') ? rawDisplayName : (existing.displayName || 'Sin display_name');
 
-        const planName = sub?.subscription_plans?.name || (xp > 1000 ? 'Plan Anual ($79.99)' : 'Plan Gratuito');
-        const audioLimitMinutes = sub?.subscription_plans?.monthly_audio_minutes_limit || (xp > 1000 ? 1200 : 30);
-        const usedAudioMinutes = sub?.used_audio_seconds ? Math.round(sub.used_audio_seconds / 60) : (bio?.total_practice_minutes || Math.floor(xp / 10));
+        const planName = sub?.subscription_plans?.name || (sub ? 'Plan Gratuito' : null);
+        const audioLimitMinutes = sub?.subscription_plans?.monthly_audio_minutes_limit ?? null;
+        const usedAudioMinutes = sub?.used_audio_seconds ? Math.round(sub.used_audio_seconds / 60) : (bio?.total_practice_minutes ?? null);
 
         userMap.set(uid, {
           id: uid,
@@ -252,12 +279,13 @@ export const adminService = {
           streak: p.current_streak || 0,
           practiceMinutes: usedAudioMinutes,
           audioLimitMinutes: audioLimitMinutes,
-          remainingMinutes: Math.max(0, audioLimitMinutes - usedAudioMinutes),
+          remainingMinutes: (audioLimitMinutes != null && usedAudioMinutes != null) ? Math.max(0, audioLimitMinutes - usedAudioMinutes) : null,
           plan: planName,
-          planId: sub?.plan_id || (xp > 1000 ? 'annual' : 'free'),
-          clarityScore: bio?.phonetic_clarity_score || Math.min(99, 82 + Math.floor(xp / 100)),
-          wpm: bio?.speaking_wpm || 105 + (xp % 30),
-          problemPhonemes: bio?.problem_phonemes || ['/th/', '/r/'],
+          planId: sub?.plan_id || null,
+          clarityScore: bio?.phonetic_clarity_score ?? null,
+          wpm: bio?.speaking_wpm ?? null,
+          problemPhonemes: bio?.problem_phonemes || [],
+          nativeLanguage: existing.nativeLanguage || p.native_language || '',
           lastActive: 'Registrado en Supabase',
         });
       });
@@ -301,12 +329,24 @@ export const adminService = {
     }
   },
 
+  async deleteUserProfile(userId) {
+    try {
+      await supabase.from('user_language_profiles').delete().eq('user_id', userId);
+    } catch (err) {
+      console.error('Error deleting user profile:', err);
+    }
+    try {
+      await supabase.from('users').delete().eq('id', userId);
+    } catch (_) {}
+  },
+
   // ── 5. SUBSCRIPTION PLANS CRUD (STRICTLY REAL DB DATA ONLY) ───────────────────
   async getSubscriptionPlans() {
     try {
       const { data, error } = await supabase
         .from('subscription_plans')
         .select('*')
+        .eq('is_active', true)
         .order('order_index', { ascending: true })
         .order('id', { ascending: true });
 
@@ -315,14 +355,21 @@ export const adminService = {
           id: p.id,
           name: p.name,
           price: p.price,
+          priceAnnual: p.price_annual || '',
           billingCycle: p.billing_cycle || 'monthly',
-          billing: p.billing_cycle === 'monthly' ? 'Facturado cada mes' : (p.billing_cycle === 'annual' ? 'Facturado cada año' : 'Pago único para siempre'),
+          billing: 'Mensual o Anual (el ciclo se elige al comprar)',
           monthlyAudioMinutesLimit: p.monthly_audio_minutes_limit || 300,
           orderIndex: p.order_index || 1,
           description: p.description || '',
           tag: p.badge_tag,
           features: p.features || [],
           isActive: p.is_active ?? true,
+          className: p.class_name || 'plebeyo',
+          manaAllowance: p.mana_allowance || (p.monthly_audio_minutes_limit || 300) * 60,
+          stripePriceId: p.stripe_price_id || '',
+          stripePriceAnnualId: p.stripe_price_annual_id || '',
+          updatedBy: p.updated_by || '',
+          updatedAt: p.updated_at || '',
         }));
       }
     } catch (err) {
@@ -338,13 +385,18 @@ export const adminService = {
         id: planObj.id,
         name: planObj.name,
         price: planObj.price,
-        billing_cycle: planObj.billingCycle || (planObj.id === 'annual' ? 'annual' : (planObj.id === 'lifetime' ? 'lifetime' : 'monthly')),
+        price_annual: planObj.priceAnnual || null,
+        billing_cycle: 'monthly', // el ciclo real se elige en la compra
         monthly_audio_minutes_limit: parseInt(planObj.monthlyAudioMinutesLimit, 10) || 300,
         order_index: parseInt(planObj.orderIndex, 10) || 1,
         description: planObj.description,
         badge_tag: planObj.tag,
         features: planObj.features,
         is_active: planObj.isActive ?? true,
+        class_name: planObj.className || 'plebeyo',
+        mana_allowance: parseInt(planObj.manaAllowance, 10) || ((planObj.monthlyAudioMinutesLimit || 300) * 60),
+        stripe_price_id: planObj.stripePriceId || null,
+        stripe_price_annual_id: planObj.stripePriceAnnualId || null,
       };
 
       const { data, error } = await supabase.from('subscription_plans').upsert(payload);
@@ -352,6 +404,20 @@ export const adminService = {
       return data;
     } catch (err) {
       console.error('Error saving subscription plan:', err);
+    }
+  },
+
+  /// Elimina (desactiva) un plan. Soft-delete: is_active=false para no romper
+  /// las FKs de user_subscriptions ni perder el histórico.
+  async deleteSubscriptionPlan(planId) {
+    try {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .update({ is_active: false })
+        .eq('id', planId);
+      if (error) console.warn('Subscription plan deactivate error:', error.message);
+    } catch (err) {
+      console.error('Error deactivating subscription plan:', err);
     }
   },
 

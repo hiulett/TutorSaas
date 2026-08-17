@@ -12,10 +12,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
 import '../providers/dashboard_providers.dart';
-import 'charts/fluency_latency_chart.dart';
-import 'charts/skills_radar_chart.dart';
-import 'charts/practice_heatmap.dart';
-import 'hunter_hud_header.dart';
+import '../screens/dashboard_screen.dart';
 import 'daily_quests_widget.dart';
 import 'league_leaderboard_widget.dart';
 
@@ -111,12 +108,7 @@ class ProgressTabView extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.edit_rounded, color: AppColors.runeViolet, size: 20),
                         onPressed: () => context.push('/profile-edit'),
-                        tooltip: 'Editar Perfil',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.military_tech_rounded, color: AppColors.royalGold, size: 20),
-                        onPressed: () => context.push('/hunter-status'),
-                        tooltip: 'Estado de Cazador',
+                        tooltip: AppLocalizations.of(context)?.progress_edit_profile ?? 'Editar Perfil',
                       ),
                     ],
                   ),
@@ -154,7 +146,7 @@ class ProgressTabView extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '¡RACHA EN RIESGO!',
+                            AppLocalizations.of(context)?.progress_streak_at_risk ?? '¡RACHA EN RIESGO!',
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -164,7 +156,11 @@ class ProgressTabView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Practica hoy para mantener tu racha de $streak ${streak == 1 ? 'día' : 'días'}.',
+                            AppLocalizations.of(context)?.progress_streak_hint(
+                                  streak,
+                                  streak == 1 ? (AppLocalizations.of(context)?.days ?? 'día') : (AppLocalizations.of(context)?.days ?? 'días'),
+                                ) ??
+                                'Practica hoy para mantener tu racha de $streak ${streak == 1 ? 'día' : 'días'}.',
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               color: AppColors.onSurfaceVariant,
@@ -175,10 +171,10 @@ class ProgressTabView extends ConsumerWidget {
                             width: double.infinity,
                             height: 42,
                             child: ElevatedButton.icon(
-                              onPressed: () => context.push('/dungeon-map'),
+                              onPressed: () => ref.read(dashboardTabProvider.notifier).state = 0,
                               icon: const Icon(Icons.mic_rounded, size: 16),
                               label: Text(
-                                'PRACTICAR',
+                                AppLocalizations.of(context)?.progress_practice ?? 'PRACTICAR',
                                 style: GoogleFonts.jetBrainsMono(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -203,60 +199,6 @@ class ProgressTabView extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
             ],
-
-            // 📜 Botón Épico: Ventana de Estado del Cazador (HUD Holográfico)
-            GlassCard(
-              blur: 25,
-              opacity: AppColors.glassOpacity,
-              border: Border.all(color: AppColors.manaCyan, width: 1.5),
-              padding: const EdgeInsets.all(16),
-              child: GestureDetector(
-                onTap: () => context.push('/hunter-status'),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.manaCyan.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.manaCyan),
-                      ),
-                      child: const Icon(
-                        Icons.military_tech_rounded,
-                        color: AppColors.manaCyan,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '📜 VENTANA DE ESTADO DEL MONARCA',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.onSurface,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Ver matriz de 11 atributos, títulos equipados y radar de poder',
-                            style: TextStyle(
-                              color: AppColors.onSurfaceVariant,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.open_in_full_rounded, color: AppColors.manaCyan, size: 18),
-                  ],
-                ),
-              ),
-            ),
 
             const SizedBox(height: 20),
 
@@ -339,8 +281,8 @@ class ProgressTabView extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // Weekly Practice Chart Title & Card
-            const Text(
-              'Práctica Semanal (Minutos de Voz)',
+            Text(
+              AppLocalizations.of(context)?.progress_weekly_voice ?? 'Práctica Semanal (Minutos de Voz)',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -455,7 +397,7 @@ class ProgressTabView extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Vocabulario Aprendido (${vocabList.length})',
+                            AppLocalizations.of(context)?.progress_vocab_learned(vocabList.length) ?? 'Vocabulario Aprendido (\)',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -489,14 +431,14 @@ class ProgressTabView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     if (displayList.isEmpty)
-                      const GlassCard(
+                      GlassCard(
                         blur: 20,
                         opacity: AppColors.glassOpacity,
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         child: Center(
                           child: Text(
-                            'Aún no has acumulado vocabulario en las llamadas de voz.',
-                            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                            AppLocalizations.of(context)?.progress_vocab_empty ?? 'Aún no has acumulado vocabulario en las llamadas de voz.',
+                            style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
                           ),
                         ),
                       )
@@ -543,7 +485,7 @@ class ProgressTabView extends ConsumerWidget {
                                       borderRadius: BorderRadius.circular(AppRadius.md),
                                     ),
                                     child: Text(
-                                      item['category'] as String? ?? 'Vocabulario',
+                                      item['category'] as String? ?? (AppLocalizations.of(context)?.progress_vocab_section ?? 'Vocabulario'),
                                       style: const TextStyle(
                                         color: AppColors.manaCyan,
                                         fontSize: 10,
@@ -601,7 +543,7 @@ class ProgressTabView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Vocabulario Aprendido (${vocabList.length})',
+                    AppLocalizations.of(context)?.progress_vocab_learned(vocabList.length) ?? 'Vocabulario Aprendido (\)',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -656,7 +598,7 @@ class ProgressTabView extends ConsumerWidget {
                                   borderRadius: BorderRadius.circular(AppRadius.md),
                                 ),
                                 child: Text(
-                                  item['category'] as String? ?? 'Vocabulario',
+                                  item['category'] as String? ?? (AppLocalizations.of(context)?.progress_vocab_section ?? 'Vocabulario'),
                                   style: const TextStyle(
                                     color: AppColors.manaCyan,
                                     fontSize: 10,
@@ -704,7 +646,7 @@ class _HunterAttributesSection extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'ATRIBUTOS DEL CAZADOR',
+                  AppLocalizations.of(context)?.progress_hunter_attributes ?? 'ATRIBUTOS DEL CAZADOR',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -820,7 +762,7 @@ class LeaderboardSection extends StatelessWidget {
       }
     }
     return LeagueLeaderboardWidget(
-      activeLeague: 'Rango de XP',
+      activeLeague: AppLocalizations.of(context)?.progress_xp_rank ?? 'Rango de XP',
       userRank: rows.indexWhere((r) => r['isUser'] == true) + 1,
       userXp: currentXp,
       userLevelCode: currentLevel,

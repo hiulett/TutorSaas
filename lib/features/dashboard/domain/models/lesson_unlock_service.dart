@@ -1,8 +1,11 @@
+import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../../data/models/lesson_catalog.dart';
+import 'mission_progress_service.dart';
 
 /// Estado de desbloqueo de una lección en la Ruta por Etapas.
 enum LessonUnlockState {
-  /// El jugador completó la lección (fila en `conversations`).
+  /// El jugador superó la lección (≥ [LessonUnlockService.passThreshold] de
+  /// sus metas en `user_scenario_goals`).
   completedByPlayer,
 
   /// Desbloqueada automáticamente por el nivel demostrado en el Oráculo
@@ -16,13 +19,6 @@ enum LessonUnlockState {
   locked,
 }
 
-/// Resultado del desbloqueo de una lección concreta.
-class LessonUnlock {
-  final LessonUnlockState state;
-
-  const LessonUnlock(this.state);
-}
-
 /// Servicio centralizado de desbloqueo de lecciones por nivel CEFR.
 ///
 /// Regla: si el usuario fue clasificado en nivel N (por el Oráculo), demuestra
@@ -30,40 +26,51 @@ class LessonUnlock {
 /// actual solo la primera lección disponible; el resto secuencial. Los niveles
 /// superiores quedan bloqueados.
 ///
+/// Una lección se considera "superada" (desbloquea la siguiente) al alcanzar el
+/// [passThreshold] (70%) de sus metas; la maestría (100%) puede completarse
+/// después volviendo a la lección.
+///
 /// Helper puro — sin widgets ni dependencias de Flutter. Fuente única: la
-/// evaluación del Oráculo (nivel CEFR persistido) + historial de `conversations`.
+/// evaluación del Oráculo (nivel CEFR persistido) + `user_scenario_goals`.
 class LessonUnlockService {
   const LessonUnlockService._();
 
-  static const List<String> _order = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  /// Umbral de metas (0..1) para considerar una lección superada.
+  static const double passThreshold = 0.70;
 
   /// Índice canónico del nivel; -1 si no se reconoce.
+  /// Orden CEFR centralizado en [CefrRank.cefrOrder].
   static int _levelIndex(String level) {
-    final idx = _order.indexOf(level.trim().toUpperCase());
-    return idx;
+    return CefrRank.cefrOrder.indexOf(level.trim().toUpperCase());
   }
 
-  /// ¿Existe una fila en el historial para esta lección?
-  static bool _isCompleted(
-    List<Map<String, dynamic>> completedLessons,
-    String lessonId,
+  /// Ratio de metas completadas de una lección (0..1) desde las filas de
+  /// `user_scenario_goals`. Una lección sin metas se considera superada.
+  static double completionRatio(
+    List<Map<String, dynamic>> goalRows,
+    LessonData lesson,
   ) {
-    for (final item in completedLessons) {
-      if (item['scenario_id'] == lessonId || item['id'] == lessonId) {
-        return true;
-      }
-    }
-    return false;
+    if (lesson.goals.isEmpty) return 1.0;
+    final done = MissionProgressService.completedGoalsForScenario(goalRows, lesson.id);
+    return (done / lesson.goals.length).clamp(0.0, 1.0);
+  }
+
+  /// ¿La lección está "superada"? (≥ [passThreshold] de sus metas).
+  static bool _isCompleted(
+    List<Map<String, dynamic>> goalRows,
+    LessonData lesson,
+  ) {
+    return completionRatio(goalRows, lesson) >= passThreshold;
   }
 
   /// Clasifica el estado de una lección según el nivel del usuario.
   static LessonUnlockState classify({
     required LessonData lesson,
     required String userCefr,
-    required List<Map<String, dynamic>> completedLessons,
+    required List<Map<String, dynamic>> goalRows,
     required List<LessonData> catalog,
   }) {
-    if (_isCompleted(completedLessons, lesson.id)) {
+    if (_isCompleted(goalRows, lesson)) {
       return LessonUnlockState.completedByPlayer;
     }
 
@@ -71,7 +78,7 @@ class LessonUnlockService {
     final lessonIdx = _levelIndex(lesson.level);
     if (userIdx < 0 || lessonIdx < 0) {
       // Nivel desconocido: comportamiento conservador (secuencial global).
-      return _sequentialFallback(lesson, catalog, completedLessons);
+      return _sequentialFallback(lesson, catalog, goalRows);
     }
 
     // Niveles anteriores al asignado → desbloqueadas por el Oráculo.
@@ -86,7 +93,7 @@ class LessonUnlockService {
 
     // Nivel actual: la primera lección no completada del nivel está disponible.
     // Solo las lecciones del MISMO nivel que aparecen ANTES en el catálogo
-    // deben estar completadas para desbloquear la actual.
+    // deben estar superadas para desbloquear la actual.
     final lessonCatalogIdx = catalog.indexWhere((l) => l.id == lesson.id);
     final priorSameLevel = <LessonData>[];
     for (int i = 0; i < lessonCatalogIdx; i++) {
@@ -96,7 +103,7 @@ class LessonUnlockService {
       }
     }
     final allPriorCompleted = priorSameLevel.every(
-      (l) => _isCompleted(completedLessons, l.id),
+      (l) => _isCompleted(goalRows, l),
     );
     return allPriorCompleted
         ? LessonUnlockState.nextAvailable
@@ -107,12 +114,12 @@ class LessonUnlockService {
   static LessonUnlockState _sequentialFallback(
     LessonData lesson,
     List<LessonData> catalog,
-    List<Map<String, dynamic>> completedLessons,
+    List<Map<String, dynamic>> goalRows,
   ) {
     final index = catalog.indexWhere((l) => l.id == lesson.id);
     if (index <= 0) return LessonUnlockState.nextAvailable;
     final prior = catalog[index - 1];
-    return _isCompleted(completedLessons, prior.id)
+    return _isCompleted(goalRows, prior)
         ? LessonUnlockState.nextAvailable
         : LessonUnlockState.locked;
   }

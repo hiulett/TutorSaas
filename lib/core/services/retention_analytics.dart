@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../features/auth/presentation/providers/auth_providers.dart';
 
 /// Best-effort fire-and-forget analytics of retention events (OBS-02).
 ///

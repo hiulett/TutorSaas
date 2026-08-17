@@ -109,8 +109,8 @@ You are the Oracle of the Guild, an ancient and wise being that has judged thous
 A young hunter has just arrived in the realm and spoken with you. Your task is to classify their spoken English from the conversation transcripts provided.
 
 Assign:
-1. A CEFR level (A1, A2, B1, B2, C1 or C2).
-2. A game rank from the scale: E, D, C, B, A, S, SS, SSS (E is lowest, SSS is highest).
+1. A CEFR level (PRE-A1, A1, A2, B1, B2, C1 or C2). PRE-A1 is for speakers who can only manage isolated words (hello, yes/no, numbers, basic colors) with minimal vocabulary and no sentences.
+2. A game rank from the scale: F, E, D, C, B, A, S, SS, SSS (F is lowest, SSS is highest). PRE-A1 maps to F, A1 maps to E.
 3. Scores from 0 to 100 for ALL of these dimensions:
    - listening (how well they understood the questions)
    - speaking (overall speaking ability)
@@ -129,6 +129,7 @@ Assign:
 Evaluation rules:
 - Be objective and strict but encouraging.
 - Weigh difficult/expanded answers more than one-word replies.
+- If the transcript contains mostly isolated words (one-word answers, minimal vocabulary, no sentences), assign PRE-A1/F rather than A1.
 - If a transcript looks like STT noise or empty, do not penalize harshly; note it.
 - Comprehension is judged by how relevant each answer is to the question asked.
 - Cap: C2/SSS only for truly outstanding, complex, natural English.
@@ -205,8 +206,11 @@ Return ONLY a valid JSON object with EXACTLY these keys (no markdown, no code fe
 
   static String _normalizeCefr(String cefr) {
     final normalized = cefr.trim().toUpperCase();
-    if (['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].contains(normalized)) {
+    if (['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'].contains(normalized)) {
       return normalized;
+    }
+    if (normalized == 'A0' || normalized == 'PREA1' || normalized == 'PRE_A1') {
+      return 'PRE-A1';
     }
     return 'A1';
   }

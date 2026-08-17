@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, Activity, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export default function Navbar({ onRefresh, session }) {
   return (
@@ -13,42 +13,25 @@ export default function Navbar({ onRefresh, session }) {
       background: 'rgba(11, 19, 38, 0.4)',
       backdropFilter: 'blur(10px)',
     }}>
-      {/* Search Input */}
-      <div style={{ position: 'relative', width: '360px' }}>
-        <Search style={{
-          position: 'absolute',
-          left: '14px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: '18px',
-          height: '18px',
-          color: 'var(--text-muted)',
-        }} />
-        <input
-          type="text"
-          placeholder="Buscar lecciones, usuarios, niveles CEFR..."
-          className="cyber-input"
-          style={{ paddingLeft: '42px' }}
-        />
-      </div>
+      <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        TUTORSAAS · COMMAND DECK
+      </span>
 
-      {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        {/* Latency & Status Indicator */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
           padding: '6px 14px',
           borderRadius: '20px',
-          background: 'rgba(6, 182, 212, 0.1)',
-          border: '1px solid rgba(6, 182, 212, 0.3)',
+          background: 'rgba(16, 185, 129, 0.1)',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
           fontFamily: 'var(--font-mono)',
           fontSize: '12px',
-          color: 'var(--secondary-teal)',
+          color: '#34d399',
         }}>
-          <Activity style={{ width: '14px', height: '14px' }} />
-          <span>IA Latency: <strong>1.1s</strong> (Groq + DeepSeek)</span>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
+          Conectado a Supabase
         </div>
 
         <button

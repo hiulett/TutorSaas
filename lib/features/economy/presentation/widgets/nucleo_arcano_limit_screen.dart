@@ -5,98 +5,45 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
-import '../../../../core/widgets/system_snack.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/economy_providers.dart';
 
+/// Pantalla SIN MANÁ (FASE B/C).
+///
+/// El Maná es la única moneda de consumo de IA y solo se adquiere con dinero
+/// (plan + porciones/gemas). Al agotarse, el jugador puede comprar más o
+/// esperar la renovación del ciclo. No existe recarga con gemas gratuitas.
 class NucleoArcanoLimitScreen extends ConsumerStatefulWidget {
-  final int invocationsUsed;
-  final int invocationsMax;
-
-  const NucleoArcanoLimitScreen({
-    super.key,
-    required this.invocationsUsed,
-    required this.invocationsMax,
-  });
+  const NucleoArcanoLimitScreen({super.key});
 
   @override
   ConsumerState<NucleoArcanoLimitScreen> createState() => _NucleoArcanoLimitScreenState();
 }
 
 class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScreen> {
-  static const int _rechargeCostGems = 40;
-
-  bool _isPurchasing = false;
-
-  Future<void> _rechargeInvocations() async {
-    if (_isPurchasing) return;
-    setState(() => _isPurchasing = true);
-
-    try {
-      final user = ref.read(currentUserProvider);
-      if (user == null) return;
-
-      final gems = ref.read(gemBalanceProvider).value ?? 0;
-      if (gems < _rechargeCostGems) {
-        _showSnackBar(
-          'MANÁ (GEMAS) INSUFICIENTE: FALTAN ${_rechargeCostGems - gems} 💎',
-          SystemSnackType.error,
-        );
-        return;
-      }
-
-      final success = await ref
-          .read(economyRepositoryProvider)
-          .purchaseItem(user.id, 'consumible_invocacion5');
-
-      if (!mounted) return;
-
-      if (success) {
-        ref.invalidate(dailyStateProvider);
-        ref.invalidate(gemBalanceProvider);
-        ref.invalidate(canInvokeProvider);
-        _showSnackBar(
-          '¡NÚCLEO ARCANO RECARGADO! +5 INVOCACIONES ⚡',
-          SystemSnackType.success,
-        );
-        if (context.canPop()) {
-          Navigator.pop(context);
-        } else {
-          context.go('/home');
-        }
-      } else {
-        _showSnackBar(
-          'MANÁ (GEMAS) INSUFICIENTE: NO SE PUDO COMPLETAR LA RECARGA ❌',
-          SystemSnackType.error,
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        _showSnackBar('ERROR AL RECARGAR EL NÚCLEO, INTENTA DE NUEVO ❌',
-            SystemSnackType.error);
-      }
-    } finally {
-      if (mounted) setState(() => _isPurchasing = false);
-    }
-  }
-
-  void _showSnackBar(String message, SystemSnackType type) {
-    SystemSnack.show(context, message, type: type);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final gemsAsync = ref.watch(gemBalanceProvider);
-    final gems = gemsAsync.value ?? 0;
-    final canBuyRecharge = gems >= _rechargeCostGems;
+    final manaAsync = ref.watch(manaStateProvider);
+    final mana = manaAsync.value ?? const {
+      'allowance': 1800,
+      'purchased': 0,
+      'used': 0,
+      'remaining': 1800,
+      'expires_at': null,
+      'plan': 'Plan Gratuito',
+    };
+    final int remaining = mana['remaining'] as int? ?? 0;
+    final int allowance = mana['allowance'] as int? ?? 1800;
+    final int purchased = mana['purchased'] as int? ?? 0;
+    final DateTime? expiresAt = mana['expires_at'] is String
+        ? DateTime.tryParse(mana['expires_at'] as String)
+        : null;
 
     return Scaffold(
       body: CyberManhwaBackground(
         child: Stack(
           children: [
-            // Glow orb
             Positioned(
               top: -100, left: -100,
               child: Container(
@@ -113,7 +60,6 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Animated rune icon
                     Container(
                       width: 100, height: 100,
                       decoration: BoxDecoration(
@@ -127,12 +73,12 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 48),
+                      child: const Icon(Icons.bolt_rounded, color: AppColors.runeViolet, size: 48),
                     ),
                     const SizedBox(height: 32),
 
                     Text(
-                      'EL NÚCLEO ARCANO\nESTÁ AGOTÁNDOSE',
+                      l10n.no_mana,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 22,
@@ -144,7 +90,9 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                     const SizedBox(height: 16),
 
                     Text(
-                      'El Oráculo ha respondido ${widget.invocationsUsed} veces hoy.\nNecesita recargarse con la luz del amanecer.\n\nVuelve mañana cuando el sol del nuevo día\nalimente los Cristales de Maná.\n\nLos Cazadores de Élite pueden invocar\nal Oráculo sin límites.',
+                      l10n.mana_exhausted_desc(
+                        expiresAt != null ? l10n.mana_renews_on(_formatDate(expiresAt)) : '',
+                      ),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 14,
@@ -154,7 +102,6 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                     ),
                     const SizedBox(height: 12),
 
-                    // Invocation meter
                     GlassCard(
                       blur: 4, opacity: 0.94,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -164,7 +111,7 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                           const Icon(Icons.bolt_rounded, color: AppColors.runeViolet, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            '${widget.invocationsUsed} / ${widget.invocationsMax} Invocaciones',
+                            l10n.mana_balance(remaining, allowance + purchased),
                             style: GoogleFonts.jetBrainsMono(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -176,7 +123,7 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                     ),
                     const SizedBox(height: 40),
 
-                    // CTA 1: Recargar +5 con gemas
+                    // CTA 1: Obtener maná (planes / porciones)
                     GlassCard(
                       blur: 4, opacity: 0.94,
                       border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.4)),
@@ -184,84 +131,44 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minHeight: 48),
                         child: InkWell(
-                        onTap: _isPurchasing ? null : _rechargeInvocations,
-                        borderRadius: BorderRadius.circular(4),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.manaCyan.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(4),
+                          onTap: () => context.push('/paywall'),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.manaCyan.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Icon(Icons.workspace_premium_rounded, color: AppColors.manaCyan, size: 24),
                               ),
-                              child: _isPurchasing
-                                  ? const SizedBox(
-                                      width: 24, height: 24,
-                                      child: CircularProgressIndicator(color: AppColors.manaCyan, strokeWidth: 2.5),
-                                    )
-                                  : const Icon(Icons.diamond_rounded, color: AppColors.manaCyan, size: 24),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(l10n.nucleo_recharge, style: GoogleFonts.spaceGrotesk(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-                                  const SizedBox(height: 2),
-                                  Text('$_rechargeCostGems 💎 = +5 invocaciones al Oráculo', style: TextStyle(color: canBuyRecharge ? AppColors.emeraldGreen : AppColors.crimsonRed, fontSize: 12)),
-                                ],
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.nucleo_premium,
+                                      style: GoogleFonts.spaceGrotesk(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      l10n.more_mana_monthly,
+                                      style: const TextStyle(color: AppColors.manaCyan, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Icon(canBuyRecharge ? Icons.arrow_forward_ios_rounded : Icons.lock_rounded, color: canBuyRecharge ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.24), size: 16),
-                          ],
-                        ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // CTA 2: Ir premium
-                    GlassCard(
-                      blur: 4, opacity: 0.94,
-                      border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
-                      padding: const EdgeInsets.all(16),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 48),
-                        child: InkWell(
-                        onTap: () {
-                          context.push('/paywall');
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.royalGold.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Icon(Icons.workspace_premium_rounded, color: AppColors.royalGold, size: 24),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(l10n.nucleo_premium, style: GoogleFonts.spaceGrotesk(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-                                  const SizedBox(height: 2),
-                                  Text(l10n.nucleo_unlimited, style: TextStyle(color: AppColors.royalGold, fontSize: 12)),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.royalGold, size: 16),
-                          ],
-                        ),
+                              const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.manaCyan, size: 16),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 12),
 
-                    // Option 3: Wait
+                    // CTA 2: Esperar renovación
                     TextButton(
                       onPressed: () {
                         if (context.canPop()) Navigator.pop(context);
@@ -269,7 +176,7 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
                       },
                       style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                       child: Text(
-                        'Descansar hasta mañana — El Núcleo se recargará',
+                        l10n.wait_plan_renewal,
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: AppColors.onSurfaceVariant,
@@ -284,5 +191,11 @@ class _NucleoArcanoLimitScreenState extends ConsumerState<NucleoArcanoLimitScree
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime dt) {
+    final dd = dt.day.toString().padLeft(2, '0');
+    final mm = dt.month.toString().padLeft(2, '0');
+    return '$dd/$mm';
   }
 }

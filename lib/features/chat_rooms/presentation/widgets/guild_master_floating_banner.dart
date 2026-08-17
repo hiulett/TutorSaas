@@ -8,6 +8,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../providers/chat_rooms_providers.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// NPC Maestre de Mesa (Fase 7 · G-F) — control flotante arrastrable.
 ///
@@ -43,31 +44,37 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
 
   String _suggestForLevel(String cefr) {
     switch (cefr.toUpperCase()) {
+      case 'PRE-A1':
       case 'A1':
       case 'A2':
-        return 'Recomiendo la Taberna del Aprendiz: es la mesa perfecta para cazadores novatos.';
+        return AppLocalizations.of(context)?.guild_rec_beginner ??
+            'Recomiendo la Taberna del Aprendiz: es la mesa perfecta para cazadores novatos.';
       case 'B1':
       case 'B2':
-        return 'La Mesa Redonda de Tácticas te espera: debates y fluidez intermedia.';
+        return AppLocalizations.of(context)?.guild_rec_intermediate ??
+            'La Mesa Redonda de Tácticas te espera: debates y fluidez intermedia.';
       case 'C1':
       case 'C2':
-        return 'El Consejo Supremo de Altos Cazadores es tu lugar: elocuencia de nivel maestro.';
+        return AppLocalizations.of(context)?.guild_rec_master ??
+            'El Consejo Supremo de Altos Cazadores es tu lugar: elocuencia de nivel maestro.';
       default:
-        return 'Elige una mesa y comienza tu raid de conversación.';
+        return AppLocalizations.of(context)?.guild_rec_default ??
+            'Elige una mesa y comienza tu raid de conversación.';
     }
   }
 
   String _suggestedRoomKeyword(String cefr) {
     switch (cefr.toUpperCase()) {
+      case 'PRE-A1':
       case 'A1':
       case 'A2':
-        return 'Aprendiz';
+        return AppLocalizations.of(context)?.guild_table_beginner ?? 'Aprendiz';
       case 'B1':
       case 'B2':
-        return 'Tácticas';
+        return AppLocalizations.of(context)?.guild_table_tactics ?? 'Tácticas';
       case 'C1':
       case 'C2':
-        return 'Consejo';
+        return AppLocalizations.of(context)?.guild_table_council ?? 'Consejo';
       default:
         return '';
     }
@@ -139,7 +146,12 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
       });
     } catch (e) {
       setState(() {
-        _chatHistory.add({'role': 'assistant', 'content': 'El Maestre de Mesa está meditando... Inténtalo de nuevo.'});
+        _chatHistory.add({
+          'role': 'assistant',
+          'content':
+              AppLocalizations.of(context)?.guild_meditating ??
+                  'El Maestre de Mesa está meditando... Inténtalo de nuevo.',
+        });
         _chatLoading = false;
       });
     }
@@ -217,7 +229,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'MAESTRE DE MESA',
+                AppLocalizations.of(context)?.guild_master ?? 'MAESTRE DE MESA',
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 9,
                   fontWeight: FontWeight.bold,
@@ -226,7 +238,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                 ),
               ),
               Text(
-                'RANGO SSS · Nivel $cefr',
+                AppLocalizations.of(context)?.guild_rank_level(cefr) ?? 'RANGO SSS · Nivel $cefr',
                 style: TextStyle(
                   fontSize: 8,
                   fontWeight: FontWeight.w600,
@@ -271,7 +283,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'MAESTRE DE MESA',
+                      AppLocalizations.of(context)?.guild_master ?? 'MAESTRE DE MESA',
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
@@ -282,7 +294,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      'RANGO SSS · Nivel $cefr',
+                      AppLocalizations.of(context)?.guild_rank_level(cefr) ?? 'RANGO SSS · Nivel $cefr',
                       style: TextStyle(
                         fontSize: 8,
                         color: AppColors.onSurface.withValues(alpha: 0.6),
@@ -322,7 +334,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                   border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
                 ),
                 child: Text(
-                  'SIGUE MI SUGERENCIA →',
+                  AppLocalizations.of(context)?.guild_follow_suggestion ?? 'SIGUE MI SUGERENCIA →',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 9,
@@ -368,7 +380,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Consulta al Maestre (Nivel $cefr):',
+          AppLocalizations.of(context)?.guild_ask_master(cefr) ?? 'Consulta al Maestre (Nivel $cefr):',
           style: GoogleFonts.jetBrainsMono(
             fontSize: 8,
             fontWeight: FontWeight.bold,
@@ -390,7 +402,8 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Text(
-                      'Pregúntame qué mesa practicar, qué misión tomar o cómo mejorar tu rango.',
+                      AppLocalizations.of(context)?.guild_ask_hint ??
+                          'Pregúntame qué mesa practicar, qué misión tomar o cómo mejorar tu rango.',
                       style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant, height: 1.3),
                     ),
                   ),
@@ -441,7 +454,8 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                 controller: _chatController,
                 style: GoogleFonts.inter(fontSize: 11, color: AppColors.onSurface),
                 decoration: InputDecoration(
-                  hintText: 'Escribe tu pregunta...',
+                  hintText:
+                      AppLocalizations.of(context)?.guild_input_hint ?? 'Escribe tu pregunta...',
                   hintStyle: GoogleFonts.inter(fontSize: 11, color: AppColors.onSurfaceVariant),
                   filled: true,
                   fillColor: AppColors.onSurface.withValues(alpha: 0.05),

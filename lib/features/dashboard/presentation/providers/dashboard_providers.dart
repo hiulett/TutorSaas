@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/cache/cached_future_controller.dart';
+import '../../../../core/cache/json_disk_cache.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../data/models/hunter_catalog.dart';
+import '../../data/models/hunter_skill_titles.dart';
+import '../../domain/models/aura_system.dart';
 import '../../domain/models/user_settings.dart';
+import '../../../economy/presentation/providers/economy_providers.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
   final supabaseClient = ref.watch(supabaseClientProvider);
@@ -15,6 +20,7 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
 final dashboardRefreshProvider = StateProvider<int>((ref) => 0);
 
 final userProgressProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  ref.keepAlive();
   final user = ref.watch(currentUserProvider);
   if (user == null) {
     return {
@@ -105,6 +111,7 @@ final learnedVocabularyProvider = FutureProvider.autoDispose<List<Map<String, dy
 });
 
 final userProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  ref.keepAlive();
   final user = ref.watch(currentUserProvider);
   if (user == null) return {};
   try {
@@ -168,6 +175,7 @@ final fluencyTrendsProvider = FutureProvider.autoDispose<List<Map<String, dynami
 
 /// Calculates 5-D skills radar scores (Fluidez, Vocabulario, Fonética, Gramática, Metas) based strictly on real DB data
 final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((ref) async {
+  ref.keepAlive();
   final user = ref.watch(currentUserProvider);
   if (user == null) {
     return {'fluency': 0.0, 'vocab': 0.0, 'phonetics': 0.0, 'grammar': 0.0, 'goals': 0.0};
@@ -176,32 +184,63 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((ref
   try {
     final supabase = ref.read(supabaseClientProvider);
 
+    // Las 5 queries corren EN PARALELO (antes secuenciales): el radar es un
+    // cuello de botella usado por auraState, hunterAttributes y endSession.
+    final results = await Future.wait<dynamic>([
+      supabase
+          .from('user_scenario_goals')
+          .select('is_completed')
+          .eq('user_id', user.id),
+      supabase
+          .from('user_vocabulary')
+          .select('is_mastered')
+          .eq('user_id', user.id),
+      supabase
+          .from('daily_fluency_stats')
+          .select('fluency_score')
+          .eq('user_id', user.id)
+          .order('date', ascending: false)
+          .limit(1)
+          .maybeSingle(),
+      supabase
+          .from('speech_dna_metrics')
+          .select('phonetic_clarity_score')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+      supabase
+          .from('user_language_profiles')
+          .select('cefr_levels')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+    ]);
+
     // 1. Goals score (completed / total)
-    final goalsRes = await supabase.from('user_scenario_goals').select('is_completed').eq('user_id', user.id);
-    final totalGoals = (goalsRes as List).length;
+    final goalsRes = (results[0] as List).cast<Map<String, dynamic>>();
+    final totalGoals = goalsRes.length;
     final completedGoals = goalsRes.where((g) => g['is_completed'] == true).length;
     final goalsScore = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0.0;
 
     // 2. Vocab score (mastered / total acquired)
-    final vocabRes = await supabase.from('user_vocabulary').select('is_mastered').eq('user_id', user.id);
-    final totalVocab = (vocabRes as List).length;
+    final vocabRes = (results[1] as List).cast<Map<String, dynamic>>();
+    final totalVocab = vocabRes.length;
     final masteredVocab = vocabRes.where((v) => v['is_mastered'] == true).length;
     final vocabScore = totalVocab > 0 ? (masteredVocab / totalVocab) * 100 : (totalVocab > 0 ? 30.0 : 0.0);
 
     // 3. Fluency score from daily stats
-    final fluencyRes = await supabase.from('daily_fluency_stats').select('fluency_score').eq('user_id', user.id).order('date', ascending: false).limit(1).maybeSingle();
+    final fluencyRes = results[2] as Map<String, dynamic>?;
     final fluencyScore = (fluencyRes?['fluency_score'] as num?)?.toDouble() ?? 0.0;
 
     // 4. Phonetics score from Speech DNA
-    final dnaRes = await supabase.from('speech_dna_metrics').select('phonetic_clarity_score').eq('user_id', user.id).maybeSingle();
+    final dnaRes = results[3] as Map<String, dynamic>?;
     final phoneticsScore = (dnaRes?['phonetic_clarity_score'] as num?)?.toDouble() ?? 0.0;
 
     // 5. Grammar score from profile or session stats
-    final profileRes = await supabase.from('user_language_profiles').select('cefr_levels').eq('user_id', user.id).maybeSingle();
+    final profileRes = results[4] as Map<String, dynamic>?;
     final cefrLevel = profileRes?['cefr_levels']?['code'] as String? ?? 'B1';
     double grammarScore = 0.0;
     if (fluencyScore > 0 || totalVocab > 0 || totalGoals > 0) {
       switch (cefrLevel.toUpperCase()) {
+        case 'PRE-A1': grammarScore = 30.0; break;
         case 'A1': grammarScore = 40.0; break;
         case 'A2': grammarScore = 55.0; break;
         case 'B1': grammarScore = 70.0; break;
@@ -233,7 +272,7 @@ final completedLessonsProvider = FutureProvider.autoDispose<List<Map<String, dyn
     final supabase = ref.read(supabaseClientProvider);
     final res = await supabase
         .from('conversations')
-        .select('scenario_id, score, fluency_score, created_at')
+        .select('id, scenario_id, started_at')
         .eq('user_id', user.id);
     return List<Map<String, dynamic>>.from(res as List);
   } catch (_) {
@@ -295,7 +334,6 @@ final hunterAttributesProvider = FutureProvider.autoDispose<Map<String, double>>
   final user = ref.watch(currentUserProvider);
   if (user == null) return {};
   ref.watch(dashboardRefreshProvider);
-  final supabase = ref.read(supabaseClientProvider);
   final radar = await ref.read(skillsRadarProvider.future);
 
   final grammar = (radar['grammar'] ?? 0.0) / 100.0;
@@ -376,3 +414,176 @@ final activeTitleItemProvider = Provider<HunterTitleItem>((ref) {
     orElse: () => HunterCatalog.titles.first,
   );
 });
+
+/// Escalera universal de prestigio (FASE B): títulos ganados con Aura.
+/// Cache TTL 30 min + disco: instantánea en el cold start.
+final prestigeLadderProvider = StateNotifierProvider<CachedFutureController<List<Map<String, dynamic>>>, AsyncValue<List<Map<String, dynamic>>>>((ref) {
+  final supabase = ref.read(supabaseClientProvider);
+  return CachedFutureController<List<Map<String, dynamic>>>(
+    ttl: const Duration(minutes: 30),
+    userIdGetter: () => 'catalog',
+    diskLoader: () => JsonDiskCache.readList('cache_prestige_ladder'),
+    diskWriter: (data) => JsonDiskCache.writeList('cache_prestige_ladder', data),
+    fetcher: () async {
+      try {
+        final res = await supabase
+            .from('prestige_ladder')
+            .select('tier_code, name_es, aura_xp_threshold, min_radar, ceiling_class, segment, tier_order')
+            .eq('is_active', true)
+            .order('tier_order', ascending: true);
+        return List<Map<String, dynamic>>.from(res as List);
+      } catch (_) {
+        return const [];
+      }
+    },
+  );
+});
+
+/// Título de prestigio actual (RPC server-side: aplica aura_xp + radar + techo).
+final prestigeTitleProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return {'tier_code': null, 'name': null};
+  final repo = ref.watch(economyRepositoryProvider);
+  return repo.getPrestigeTitle(user.id);
+});
+
+/// Estado del Aura del cazador (System HUD).
+///
+/// Regla: el Aura está bloqueada hasta superar la Etapa Básica (A1 + A2) o ser
+/// acreditado ≥ B1 por el Oráculo. Una vez despierta, el poder acumula con el
+/// desarrollo de habilidades (radar + racha + rango).
+final auraStateProvider = FutureProvider.autoDispose<AuraSnapshot>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) {
+    return const AuraSnapshot(
+      state: AuraState.locked,
+      tier: AuraTier.latente,
+      power: 0,
+      basicStageProgress: 0,
+      basicObjectivesDone: 0,
+      basicObjectivesTotal: 0,
+    );
+  }
+
+  ref.watch(dashboardRefreshProvider);
+  final progress = ref.watch(userProgressProvider).value ?? {};
+  final goalRows = ref.watch(completedGoalsProvider).value ?? [];
+  final radar = await ref.watch(skillsRadarProvider.future);
+  final auraXp = await ref.watch(auraXpProvider.future);
+  final titleRes = await ref.watch(prestigeTitleProvider.future);
+
+  final accredited = AuraSystem.accreditationLevelMet(
+    progress['level_code'] as String?,
+  );
+  final basic = AuraSystem.basicStageCounts(goalRows);
+  final awakened = accredited || AuraSystem.isBasicStageComplete(basic.done, basic.total);
+
+  final power = AuraSystem.computePower(
+    radar: radar,
+    streak: (progress['streak'] as num?)?.toInt() ?? 0,
+    cefr: (progress['level_code'] as String?) ?? 'A1',
+  );
+
+  return AuraSnapshot(
+    state: awakened ? AuraState.awakened : AuraState.locked,
+    tier: AuraSystem.tierFor(power),
+    power: power,
+    auraXp: auraXp,
+    prestigeTitleName: titleRes['name'] as String?,
+    basicStageProgress: basic.total > 0 ? (basic.done / basic.total).clamp(0.0, 1.0) : 0,
+    basicObjectivesDone: basic.done,
+    basicObjectivesTotal: basic.total,
+    hasRankMismatch: AuraSystem.hasRankMismatch(
+      progress['level_code'] as String?,
+      progress['game_rank'] as String?,
+    ),
+  );
+});
+
+/// Títulos de habilidad ganados por el cazador (filas de `user_titles`).
+final earnedTitlesProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  ref.watch(dashboardRefreshProvider);
+  return ref.read(dashboardRepositoryProvider).getEarnedTitles(user.id);
+});
+
+/// Título activo = el de mayor tier ganado (null si aún no hay ninguno).
+final activeSkillTitleProvider = Provider<SkillTitle?>((ref) {
+  final earned = ref.watch(earnedTitlesProvider).value ?? [];
+  if (earned.isEmpty) return null;
+  String? bestCode;
+  var bestTier = 0;
+  for (final row in earned) {
+    final tier = (row['tier'] as num?)?.toInt() ?? 0;
+    if (tier > bestTier) {
+      bestTier = tier;
+      bestCode = row['title_code'] as String?;
+    }
+  }
+  return HunterSkillTitleCatalog.forCode(bestCode);
+});
+
+/// Métricas reales de conversación (fluidez, fonética, léxico, precisión, racha).
+final titleMetricsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return {};
+  ref.watch(dashboardRefreshProvider);
+  return ref.read(dashboardRepositoryProvider).getConversationMetrics(user.id);
+});
+
+/// Progreso por línea de habilidad: métrica actual, título ganado y siguiente.
+final titleProgressProvider = Provider<List<Map<String, dynamic>>>((ref) {
+  final earned = ref.watch(earnedTitlesProvider).value ?? [];
+  final metrics = ref.watch(titleMetricsProvider).value ?? const {};
+
+  final earnedTierByLine = <String, int>{};
+  for (final row in earned) {
+    final line = row['line'] as String?;
+    final tier = (row['tier'] as num?)?.toInt() ?? 0;
+    if (line != null && tier > (earnedTierByLine[line] ?? 0)) {
+      earnedTierByLine[line] = tier;
+    }
+  }
+
+  final valueByLine = <String, double>{
+    'fluidez': (metrics['fluency'] as num?)?.toDouble() ?? 0,
+    'fonetica': (metrics['phonetics'] as num?)?.toDouble() ?? 0,
+    'lexico': (metrics['vocab'] as num?)?.toDouble() ?? 0,
+    'precision': (metrics['precision'] as num?)?.toDouble() ?? 0,
+    'constancia': (metrics['streak'] as num?)?.toDouble() ?? 0,
+    'carisma': (metrics['carisma'] as num?)?.toDouble() ?? 0,
+  };
+
+  const order = ['fluidez', 'fonetica', 'lexico', 'precision', 'constancia', 'carisma'];
+  const labels = {
+    'fluidez': 'Fluidez',
+    'fonetica': 'Fonética',
+    'lexico': 'Léxico',
+    'precision': 'Precisión',
+    'constancia': 'Constancia',
+    'carisma': 'Carisma',
+  };
+
+  final result = <Map<String, dynamic>>[];
+  for (final line in order) {
+    final currentValue = valueByLine[line] ?? 0;
+    final earnedTier = earnedTierByLine[line] ?? 0;
+    final earnedTitle = HunterSkillTitleCatalog.codeFor(line, earnedTier);
+    final nextTitle = HunterSkillTitleCatalog.codeFor(line, earnedTier + 1);
+    result.add({
+      'line': line,
+      'label': labels[line],
+      'currentValue': currentValue,
+      'earnedTier': earnedTier,
+      'earnedTitle': earnedTitle?.name,
+      'earnedCode': earnedTitle?.code,
+      'nextThreshold': nextTitle?.threshold,
+      'nextName': nextTitle?.name,
+    });
+  }
+  return result;
+});
+
+/// Títulos recién ganados pendientes de mostrar (banner "TÍTULO GANADO").
+final newEarnedTitlesProvider = StateProvider<List<SkillTitle>>((ref) => const []);

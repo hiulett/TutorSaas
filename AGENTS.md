@@ -52,3 +52,10 @@ flutter run -d <device>             # device run (e.g. RFCN80FYN6V)
 - `const` constructors wherever possible; avoid `setState` for business logic.
 - All API calls wrapped in try-catch with `debugPrint`.
 - Typography: `SpaceGrotesk` (headlines), `Inter` (body), `JetBrainsMono` (stats/labels) via google_fonts — do not introduce other families (e.g. `HankenGrotesk` was removed).
+
+## ⚠️ Trabajo pendiente — limpieza de código muerto (no urgente, no rompe nada)
+Se eliminaron pantallas (hunter-status, collections, fragments-exchange, battle-pass, guild-quest-board/detail, dungeon-map). Quedó **código muerto** por limpiar, verificado como sin consumidores (solo interfaz+impl):
+- **8 métodos en `mission_repository`** (interfaz `domain/repositories/mission_repository.dart` + impl `data/repositories/mission_repository.dart`): `getSecretMissions`, `getActiveEmergencies`, `getRecentRewards`, `getGuildQuestPool`, `getCompletedGuildQuests`, `getGuildQuestById`, `getActiveGuildMissions`, `getActiveGlobalEvents`. ⚠️ Quitar SIEMPRE interfaz+impl a la vez (un `@override` huérfano = error `invalid_override`). Conservar `getActiveMissions` (uso interno), `getCompletedMissions`, `getWeeklyRaid`.
+- **~90 claves l10n sin uso** en `lib/l10n/app_*.arb`: prefijos `battle_*`, `dungeon_*`, `fragments_*`, `collections_load_error`, `hunter_equip/skill_titles/cefr_xp/fluency/holographic/practice/points/str/luk/distribute/no_title/max_level`, y la mayoría `mission_*` del tablón/detalle. Listarlas comparando claves del ARB vs uso (`l10n.` / `AppLocalizations.of(context)?.` en lib fuera de `l10n/`). ⚠️ Editar ARB SOLO con la herramienta de edición (nunca scripts de consola: corrompen acentos/emojis). Después `flutter gen-l10n`.
+- Ya limpiado: 10 providers huérfanos en `mission_providers.dart`, 2 métodos de battle pass en `economy_repository`, imports sin uso.
+

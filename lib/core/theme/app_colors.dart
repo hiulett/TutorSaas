@@ -120,6 +120,7 @@ class AppColors {
   static const Color chatBlue = collabBlue;
 
   // ── Niveles CEFR (mapa de mazmorras / backgrounds) ────────────────────────
+  static const Color cefrPreA1 = Color(0xFF64748B);
   static const Color cefrA1 = Color(0xFF10B981);
   static const Color cefrA2 = Color(0xFFF59E0B);
   static const Color cefrB1 = Color(0xFF06B6D4);

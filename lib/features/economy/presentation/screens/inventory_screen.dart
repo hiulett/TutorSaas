@@ -9,6 +9,7 @@ import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../providers/economy_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Inventario del Cazador (T-501).
@@ -27,10 +28,48 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   Future<void> _toggleEquip(String itemCode) async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
+
+    // Gate del Aura: los cosméticos de aura solo son equipables por un
+    // Usuario del Aura (tras superar la Etapa Básica o acreditación del Oráculo).
+    final inventory = ref.read(inventoryProvider).value ?? [];
+    Map<String, dynamic>? item;
+    for (final i in inventory) {
+      if (i['item_code'] == itemCode) {
+        item = i;
+        break;
+      }
+    }
+    final type = item?['item_type'] as String? ?? 'cosmetic';
+    if (type == 'aura') {
+      final aura = ref.read(auraStateProvider).value;
+      if (aura != null && !aura.isAwakened) {
+        SystemSnack.show(
+          context,
+          '🔒 AURA BLOQUEADA: Supera la Etapa Básica (PRE-A1+A1+A2) para equipar auras.',
+          type: SystemSnackType.error,
+          duration: const Duration(milliseconds: 1800),
+        );
+        return;
+      }
+    }
+
     await ref.read(economyRepositoryProvider).toggleEquip(user.id, itemCode);
+
+    // Unificar con el título del perfil: equipar un título en el inventario
+    // también actualiza `equipped_title_code` (el que muestra el HUD).
+    final isBeingEquipped = item?['is_equipped'] != true;
+    if (type == 'title') {
+      await ref.read(dashboardRepositoryProvider).updateUserProfile(
+        user.id,
+        equippedTitleCode: isBeingEquipped ? itemCode : 'oido_halcon_abismo_c',
+      );
+      ref.invalidate(userProfileProvider);
+      ref.invalidate(userProgressProvider);
+    }
+
     ref.invalidate(inventoryProvider);
     if (mounted) {
-      SystemSnack.show(context, 'EQUIPO ACTUALIZADO',
+      SystemSnack.show(context, AppLocalizations.of(context)?.equipment_updated ?? 'EQUIPO ACTUALIZADO',
           type: SystemSnackType.info,
           duration: const Duration(milliseconds: 1200));
     }
@@ -41,6 +80,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final l10n = AppLocalizations.of(context)!;
     final inventoryAsync = ref.watch(inventoryProvider);
     final inventory = inventoryAsync.value ?? [];
+    final aura = ref.watch(auraStateProvider).value;
 
     final List<String> categories = ['all', ...inventory.map((i) => (i['item_type'] as String? ?? 'cosmetic')).toSet()];
 
@@ -65,7 +105,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     ),
                     Expanded(
                       child: Text(
-                        'INVENTARIO',
+                        l10n.inventory,
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -148,8 +188,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
                         final item = filtered[index];
+                        final auraLocked = (item['item_type'] as String? ?? 'cosmetic') == 'aura' && !(aura?.isAwakened ?? false);
                         return _InventoryItemCard(
                           item: item,
+                          auraLocked: auraLocked,
                           onEquip: () => _toggleEquip(item['item_code'] as String? ?? ''),
                         );
                       },
@@ -167,9 +209,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
 class _InventoryItemCard extends StatelessWidget {
   final Map<String, dynamic> item;
+  final bool auraLocked;
   final VoidCallback onEquip;
 
-  const _InventoryItemCard({required this.item, required this.onEquip});
+  const _InventoryItemCard({
+    required this.item,
+    required this.auraLocked,
+    required this.onEquip,
+  });
 
   IconData _iconFor(String type) {
     switch (type) {
@@ -225,8 +272,8 @@ class _InventoryItemCard extends StatelessWidget {
                 children: [
                   Text(
                     code.toUpperCase().replaceAll('_', ' '),
-                    style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface),
-                    maxLines: 1,
+                    style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface, height: 1.25),
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
@@ -236,6 +283,20 @@ class _InventoryItemCard extends StatelessWidget {
                         type.toUpperCase(),
                         style: GoogleFonts.jetBrainsMono(fontSize: 9, color: color),
                       ),
+                      if (auraLocked) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.onSurface.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
+                          child: Text(
+                            '🔒 AURA BLOQUEADA',
+                            style: GoogleFonts.jetBrainsMono(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant),
+                          ),
+                        ),
+                      ],
                       if (isEquipped) ...[
                         const SizedBox(width: 8),
                         Container(
@@ -254,7 +315,7 @@ class _InventoryItemCard extends StatelessWidget {
             ),
             if (type != 'consumable')
               ElevatedButton(
-                onPressed: onEquip,
+                onPressed: (auraLocked && !isEquipped) ? null : onEquip,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isEquipped ? AppColors.onSurface.withValues(alpha: 0.12) : color,
                   foregroundColor: isEquipped ? AppColors.onSurface.withValues(alpha: 0.7) : AppColors.voidBg,
@@ -263,7 +324,11 @@ class _InventoryItemCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                 ),
                 child: Text(
-                  isEquipped ? 'QUITAR' : 'EQUIPAR',
+                  auraLocked && !isEquipped
+                      ? '🔒'
+                      : (isEquipped
+                          ? (AppLocalizations.of(context)?.unequip ?? 'QUITAR')
+                          : (AppLocalizations.of(context)?.equip ?? 'EQUIPAR')),
                   style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.bold),
                 ),
               ),

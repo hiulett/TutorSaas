@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_radius.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
-import '../../../../core/widgets/segmented_bar.dart';
-import '../../../../core/widgets/animated_counter.dart';
 import '../../../../core/widgets/floating_reward.dart';
-import '../../../../core/widgets/rpg_avatar.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../providers/dashboard_providers.dart';
 import '../../data/models/hunter_catalog.dart';
+import '../../data/models/hunter_skill_titles.dart';
+import '../../domain/models/aura_system.dart';
+import 'aura_hud.dart';
 
 /// HUD central del dashboard (paridad con PlantillaHtml/hunter_control_center_dashboard).
-/// Muestra: avatar + nombre + título, mana gem, barra XP segmentada (CEFR) y
+/// Muestra: avatar + nombre + título, mana gem, barra de maná del Oráculo y
 /// notificaciones de misiones/racha. Reutiliza widgets core (GlassCard,
-/// SegmentedBar, AnimatedCounter, RpgAvatar) y tipografía estándar.
+/// RpgAvatar) y tipografía estándar.
 class HunterHudHeader extends ConsumerStatefulWidget {
   const HunterHudHeader({super.key});
 
@@ -29,28 +29,116 @@ class HunterHudHeader extends ConsumerStatefulWidget {
 class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
   static const int _xpPerLevel = 1000;
   int _lastLevel = 0;
+  bool _awakeningBannerShown = false;
+
+  /// Banner del Sistema la primera vez que el cazador despierta el Aura.
+  Future<void> _maybeShowAwakeningBanner() async {
+    if (_awakeningBannerShown) return;
+    final user = ref.read(currentUserProvider);
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'aura_awakening_seen_${user?.id ?? ''}';
+    if (prefs.getBool(key) ?? false) return;
+    await prefs.setBool(key, true);
+    _awakeningBannerShown = true;
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => Dialog(
+          backgroundColor: AppColors.statusWindowBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+            side: const BorderSide(color: AppColors.manaCyan, width: 2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.auto_awesome_rounded, color: AppColors.manaCyan, size: 42),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.aura_awakening_banner_title,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.onSurface,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.aura_awakening_banner_desc,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 12, color: AppColors.onSurfaceVariant),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.manaCyan,
+                    foregroundColor: AppColors.voidBg,
+                  ),
+                  child: Text(l10n.ok),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(currentUserProvider);
-    final profile = ref.watch(userProfileProvider).value ?? {};
+    final l10n = AppLocalizations.of(context);
     final progress = ref.watch(userProgressProvider).value ?? {};
 
-    final String displayName = profile['display_name'] as String? ??
-        user?.userMetadata?['full_name'] ??
-        user?.email?.split('@').first ??
-        'Hunter';
-    final String avatarUrl = profile['avatar_url'] as String? ?? 'warrior';
+    // Despertar del Aura: banner del Sistema la primera vez (persistido por user).
+    ref.listen<AsyncValue<AuraSnapshot>>(auraStateProvider, (prev, next) {
+      final wasAwakened = prev?.value?.isAwakened ?? false;
+      final isAwakened = next.value?.isAwakened ?? false;
+      if (isAwakened && !wasAwakened) {
+        _maybeShowAwakeningBanner();
+      }
+    });
+
+    // Títulos de habilidad recién ganados → banner "TÍTULO GANADO" (una vez).
+    ref.listen<List<SkillTitle>>(newEarnedTitlesProvider, (prev, next) {
+      if (next.isEmpty) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        for (final t in next) {
+          final color = switch (t.rarity) {
+            'legendary' => AppColors.royalGold,
+            'epic' => AppColors.runeViolet,
+            'rare' => AppColors.manaCyan,
+            _ => AppColors.onSurfaceVariant,
+          };
+          FloatingReward.show(
+            context,
+            l10n?.title_earned_banner(t.name.toUpperCase()) ??
+                '🏅 TÍTULO GANADO: ${t.name.toUpperCase()}',
+            icon: Icons.military_tech_rounded,
+            color: color,
+          );
+        }
+        ref.read(newEarnedTitlesProvider.notifier).state = const [];
+      });
+    });
+
     final String cefrCode = progress['level_code'] as String? ?? 'A1';
     final int xp = progress['xp'] as int? ?? 0;
     final int streak = progress['streak'] as int? ?? 0;
     final String languageEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
 
-    // Núcleo Arcano: métrica única de energía (UX-05).
-    final dailyState = ref.watch(dailyStateProvider).value ?? {};
-    final int energyUsed = (dailyState['invocations_used'] as num?)?.toInt() ?? 0;
-    final int energyMax = (dailyState['invocations_max'] as num?)?.toInt() ?? 20;
-    final int energyLeft = (energyMax - energyUsed).clamp(0, energyMax);
+    // Maná (FASE B): única moneda de energía. Saldo = asignación del plan
+    // + comprado − usado. Se adquiere con dinero; nunca se gana jugando.
+    final manaState = ref.watch(manaStateProvider).value ?? const {};
+    final String manaClass = (manaState['class'] as String?) ?? 'plebeyo';
 
     final String equippedTitleCode =
         progress['equipped_title_code'] as String? ?? 'oido_halcon_abismo_c';
@@ -59,8 +147,12 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
       orElse: () => HunterCatalog.titles.first,
     );
 
+    // Título de habilidad: el de mayor tier ganado gana; si no hay ninguno,
+    // se muestra el título legacy equipado (fallback).
+    final skillTitle = ref.watch(activeSkillTitleProvider);
+    final String headerTitle = skillTitle?.localizedName(l10n) ?? activeTitle.localizedName(l10n);
+
     // Mana gem: energía de práctica diaria (invocaciones restantes).
-    final double levelProgress = (xp % _xpPerLevel) / _xpPerLevel;
 
     // Detección de subida de nivel (AN-E): muestra recompensa flotante.
     final currentLevel = xp ~/ _xpPerLevel;
@@ -69,7 +161,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
         if (mounted) {
           FloatingReward.show(
             context,
-            '¡SUBIDA DE NIVEL! $currentLevel',
+            l10n?.level_up_banner(currentLevel) ?? '¡SUBIDA DE NIVEL! $currentLevel',
             icon: Icons.arrow_upward_rounded,
             color: AppColors.royalGold,
           );
@@ -86,139 +178,85 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              RpgAvatar(
-                avatarUrl: avatarUrl,
-                initials: displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : 'H',
-                size: 52,
-                hunterClass: avatarUrl,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      displayName.toUpperCase(),
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${activeTitle.name.toUpperCase()} · $languageEmoji',
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.royalGold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Núcleo Arcano (energía — UX-05, métrica única)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.runeViolet.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.4), width: 1),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      'NÚCLEO $energyLeft/$energyMax',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          Text(
+            '${headerTitle.toUpperCase()} · $languageEmoji',
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.royalGold,
+            ),
           ),
           const SizedBox(height: 14),
-          // Barra XP segmentada + contador
+          // Barra de maná del Oráculo (única representación del maná).
+          const OracleManaBar(showLabel: true),
+          const SizedBox(height: 4),
           Row(
             children: [
+              // Grupo izquierdo flexible: chips + racha con elipsis.
               Expanded(
-                child: SegmentedBar(
-                  value: levelProgress.clamp(0.0, 1.0),
-                  segments: 10,
-                  height: 6,
-                ),
-              ),
-              const SizedBox(width: 10),
-              AnimatedCounter(
-                target: xp,
-                duration: const Duration(milliseconds: 600),
-                style: GoogleFonts.jetBrainsMono(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: AppColors.manaCyan,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.manaCyan.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        manaClass.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.manaCyan,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.royalGold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        l10n?.cefr_level(cefrCode) ?? 'CEFR $cefrCode',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.royalGold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '🔥 RACHA $streak DÍAS',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: streak > 0 ? AppColors.royalGold : AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          // Barra de maná del Oráculo (plan + artículos aplicados).
-          const OracleManaBar(showLabel: true),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.royalGold.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
-                ),
-                child: Text(
-                  'CEFR $cefrCode',
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.royalGold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '🔥 RACHA $streak DÍAS',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: streak > 0 ? AppColors.royalGold : AppColors.onSurfaceVariant,
-                ),
-              ),
-              const Spacer(),
-              // Notificaciones → acceso a misiones/estado
-              IconButton(
-                icon: const Icon(Icons.notifications_none_rounded, color: AppColors.onSurfaceVariant, size: 20),
-                tooltip: 'Notificaciones',
-                onPressed: () => context.push('/hunter-status'),
-              ),
-              IconButton(
-                icon: const Icon(Icons.flag_rounded, color: AppColors.emeraldGreen, size: 20),
-                tooltip: 'Misiones',
-                onPressed: () => context.push('/hunter-status'),
-              ),
-            ],
-          ),
+          const AuraHud(),
           const SizedBox(height: 4),
           Text(
-            'SISTEMA DE CAZADOR — CONECTADO',
+            l10n?.system_hunter_connected ?? 'SISTEMA DE CAZADOR — CONECTADO',
             textAlign: TextAlign.center,
             style: GoogleFonts.jetBrainsMono(
               fontSize: 9,

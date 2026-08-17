@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../features/onboarding/domain/models/cefr_rank.dart';
 import '../../domain/repositories/dashboard_repository.dart';
+import '../../domain/models/title_evaluator.dart';
 import '../models/lesson_catalog.dart';
+import '../models/hunter_skill_titles.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
   final SupabaseClient _supabaseClient;
@@ -817,6 +819,149 @@ class DashboardRepositoryImpl implements DashboardRepository {
     updates['updated_at'] = DateTime.now().toIso8601String();
 
     await _supabaseClient.from('users').update(updates).eq('id', userId);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getEarnedTitles(String userId) async {
+    try {
+      final res = await _supabaseClient
+          .from('user_titles')
+          .select('line, title_code, tier, earned_at')
+          .eq('user_id', userId);
+      return List<Map<String, dynamic>>.from(res as List);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getConversationMetrics(String userId) async {
+    try {
+      return await _fetchConversationMetrics(userId);
+    } catch (_) {
+      return {'fluency': 0.0, 'phonetics': 0.0, 'vocab': 0, 'precision': 0.0, 'streak': 0};
+    }
+  }
+
+  /// Lee las métricas reales de conversación del cazador.
+  Future<Map<String, dynamic>> _fetchConversationMetrics(String userId) async {
+    double fluency = 0;
+    final fluencyRes = await _supabaseClient
+        .from('daily_fluency_stats')
+        .select('fluency_score')
+        .eq('user_id', userId)
+        .order('date', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    if (fluencyRes != null) {
+      fluency = (fluencyRes['fluency_score'] as num?)?.toDouble() ?? 0;
+    }
+
+    double phonetics = 0;
+    final dnaRes = await _supabaseClient
+        .from('speech_dna_metrics')
+        .select('phonetic_clarity_score')
+        .eq('user_id', userId)
+        .maybeSingle();
+    if (dnaRes != null) {
+      phonetics = (dnaRes['phonetic_clarity_score'] as num?)?.toDouble() ?? 0;
+    }
+
+    int vocab = 0;
+    final vocabRes = await _supabaseClient
+        .from('user_vocabulary')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_mastered', true);
+    vocab = (vocabRes as List).length;
+
+    // Precisión: proxy por nivel CEFR (coherente con el radar de habilidades).
+    double precision = 0;
+    final profileRes = await _supabaseClient
+        .from('user_language_profiles')
+        .select('cefr_levels(code)')
+        .eq('user_id', userId)
+        .maybeSingle();
+    final cefr = (profileRes?['cefr_levels'] as Map<String, dynamic>?)?['code'] as String?;
+    switch ((cefr ?? 'A1').toUpperCase()) {
+      case 'PRE-A1': precision = 30; break;
+      case 'A2': precision = 55; break;
+      case 'B1': precision = 70; break;
+      case 'B2': precision = 82; break;
+      case 'C1': precision = 90; break;
+      case 'C2': precision = 96; break;
+      default: precision = 40; // A1
+    }
+
+    int streak = 0;
+    final streakRes = await _supabaseClient
+        .from('user_language_profiles')
+        .select('current_streak, carisma_score')
+        .eq('user_id', userId)
+        .maybeSingle();
+    if (streakRes != null) {
+      streak = (streakRes['current_streak'] as num?)?.toInt() ?? 0;
+    }
+    final double carisma = (streakRes?['carisma_score'] as num?)?.toDouble() ?? 0;
+
+    return {
+      'fluency': fluency,
+      'phonetics': phonetics,
+      'vocab': vocab,
+      'precision': precision,
+      'streak': streak,
+      'carisma': carisma,
+    };
+  }
+
+  @override
+  Future<List<String>> syncEarnedTitles(String userId, {double carisma = 0}) async {
+    final newlyEarned = <String>[];
+    try {
+      final metrics = await _fetchConversationMetrics(userId);
+
+      // Persistir el score de carisma de la sesión (para progreso futuro).
+      if (carisma > 0) {
+        try {
+          await _supabaseClient
+              .from('user_language_profiles')
+              .update({'carisma_score': carisma})
+              .eq('user_id', userId);
+        } catch (_) {}
+      }
+
+      final codes = TitleEvaluator.earnedCodes(
+        fluency: (metrics['fluency'] as num?)?.toDouble() ?? 0,
+        phonetics: (metrics['phonetics'] as num?)?.toDouble() ?? 0,
+        vocab: (metrics['vocab'] as num?)?.toInt() ?? 0,
+        precision: (metrics['precision'] as num?)?.toDouble() ?? 0,
+        streak: (metrics['streak'] as num?)?.toInt() ?? 0,
+        carisma: carisma,
+      );
+
+      final existingRes = await _supabaseClient
+          .from('user_titles')
+          .select('title_code')
+          .eq('user_id', userId);
+      final existing =
+          (existingRes as List).map((r) => r['title_code'] as String).toSet();
+
+      for (final code in codes) {
+        if (existing.contains(code)) continue;
+        final title = HunterSkillTitleCatalog.forCode(code);
+        if (title == null) continue;
+        try {
+          await _supabaseClient.from('user_titles').insert({
+            'user_id': userId,
+            'line': title.line,
+            'title_code': code,
+            'tier': title.tier,
+          });
+          newlyEarned.add(code);
+        } catch (_) {}
+      }
+    } catch (_) {}
+    return newlyEarned;
   }
 
   /// Converts a DB language_id to a 2-letter language code (e.g., 1 → 'en').

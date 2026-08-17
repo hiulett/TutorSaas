@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,6 +17,7 @@ import 'settings_screen.dart';
 import 'package:tutorsaas/features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
+import '../../../../l10n/app_localizations.dart';
 
 
 
@@ -30,9 +30,11 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    // Null-safe: algunos tests montan DashboardScreen sin Localizations.
+    final l10n = AppLocalizations.of(context);
     final profileAsync = ref.watch(userProfileProvider);
     final profile = profileAsync.value ?? {};
+    final cosmetics = ref.watch(equippedCosmeticsProvider);
 
     final isPremium = ref.watch(isPremiumProvider);
     final gemsAsync = ref.watch(gemBalanceProvider);
@@ -40,13 +42,12 @@ class DashboardScreen extends ConsumerWidget {
     final dailyStateAsync = ref.watch(dailyStateProvider);
     final dailyClaimed = (dailyStateAsync.value?['daily_reward_claimed'] as bool?) ?? false;
     final progressAsync = ref.watch(userProgressProvider);
-    final achievementsAsync = ref.watch(userAchievementsProvider);
     final currentTab = ref.watch(dashboardTabProvider);
     final progress = progressAsync.value ?? {
       'xp': 2450,
       'streak': 7,
-      'level_code': 'B1',
-      'level': 'Intermedio',
+      'level_code': 'A1',
+      'level': 'Principiante',
       'language': 'Inglés',
       'language_emoji': '🇺🇸',
     };
@@ -98,15 +99,19 @@ class DashboardScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Flexible(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
                             RpgAvatar(
                               avatarUrl: profile['avatar_url'] as String? ?? 'warrior',
                               hunterClass: profile['avatar_url'] as String? ?? 'warrior',
                               initials: _displayInitials(profile),
                               size: 32,
-                              borderColor: AppColors.manaCyan,
+                              borderColor: cosmetics.frameCode != null
+                                  ? frameCosmeticColor(cosmetics.frameCode)
+                                  : AppColors.manaCyan,
                             ),
                             const SizedBox(width: 10),
                             Flexible(
@@ -125,7 +130,7 @@ class DashboardScreen extends ConsumerWidget {
                                     ),
                                   ),
                                   Text(
-                                    'CEFR $cefrCode',
+                                    l10n?.cefr_level(cefrCode) ?? 'CEFR $cefrCode',
                                     style: GoogleFonts.jetBrainsMono(
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
@@ -137,16 +142,12 @@ class DashboardScreen extends ConsumerWidget {
                               ),
                             ),
                           ],
+                          ),
                         ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.logout_rounded, color: AppColors.onSurfaceVariant),
-                        onPressed: () async {
-                          await ref.read(authRepositoryProvider).signOut();
-                          if (context.mounted) {
-                            context.go('/');
-                          }
-                        },
+                        onPressed: () => _confirmLogout(context, ref),
                       ),
                     ],
                   ),
@@ -282,7 +283,9 @@ class DashboardScreen extends ConsumerWidget {
                                                     ),
                                                     const SizedBox(width: 4),
                                                     Text(
-                                                      isPremium ? 'PRO' : 'IR PRO',
+                                                      isPremium
+                                                          ? (l10n?.pro_badge ?? 'PRO')
+                                                          : (l10n?.go_pro ?? 'IR PRO'),
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 11,
@@ -305,32 +308,22 @@ class DashboardScreen extends ConsumerWidget {
                                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                                       children: [
                                         _buildQuickAccess(
-                                          icon: Icons.map_rounded,
-                                          label: 'MAZMORRAS',
-                                          color: AppColors.manaCyan,
-                                          onTap: () => context.push('/dungeon-map'),
-                                        ),
-                                        _buildQuickAccess(
                                           icon: Icons.diamond_rounded,
-                                          label: 'TIENDA',
+                                          label: l10n?.shop ?? 'TIENDA',
                                           color: AppColors.runeViolet,
                                           onTap: () => context.push('/shop'),
                                         ),
                                         _buildQuickAccess(
                                           icon: Icons.auto_awesome_rounded,
-                                          label: 'ORÁCULO',
+                                          label: l10n?.oracle ?? 'ORÁCULO',
                                           color: AppColors.royalGold,
                                           onTap: () => context.push('/oracle-test'),
                                         ),
                                         _buildQuickAccess(
-                                          icon: Icons.military_tech_rounded,
-                                          label: 'RANGO',
-                                          color: AppColors.emeraldGreen,
-                                          onTap: () => context.push('/hunter-status'),
-                                        ),
-                                        _buildQuickAccess(
                                           icon: dailyClaimed ? Icons.check_circle_rounded : Icons.card_giftcard_rounded,
-                                          label: dailyClaimed ? 'RECLAMADO' : 'DIARIA',
+                                          label: dailyClaimed
+                                              ? (l10n?.claimed ?? 'RECLAMADO')
+                                              : (l10n?.daily ?? 'DAILY'),
                                           color: dailyClaimed ? AppColors.emeraldGreen : AppColors.royalGold,
                                           onTap: () => DailyRewardModal.show(context),
                                         ),
@@ -374,25 +367,25 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     _buildNavItem(
                       icon: Icons.gps_fixed_rounded,
-                      label: 'MAZMORRAS',
+                      label: l10n?.dungeons ?? 'MAZMORRAS',
                       isActive: currentTab == 0,
                       onTap: () => ref.read(dashboardTabProvider.notifier).state = 0,
                     ),
                     _buildNavItem(
                       icon: Icons.shield_rounded,
-                      label: 'GUILD',
+                      label: l10n?.guild ?? 'GUILD',
                       isActive: currentTab == 1,
                       onTap: () => ref.read(dashboardTabProvider.notifier).state = 1,
                     ),
                     _buildNavItem(
                       icon: Icons.person_rounded,
-                      label: 'ESTADO',
+                      label: l10n?.status ?? 'ESTADO',
                       isActive: currentTab == 2,
                       onTap: () => ref.read(dashboardTabProvider.notifier).state = 2,
                     ),
                     _buildNavItem(
                       icon: Icons.settings_rounded,
-                      label: 'CONFIG',
+                      label: l10n?.config ?? 'CONFIG',
                       isActive: currentTab == 3,
                       onTap: () => ref.read(dashboardTabProvider.notifier).state = 3,
                     ),
@@ -455,6 +448,45 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surfaceDeep,
+        title: Text(
+          l10n?.logout_confirm_title ?? '¿CERRAR SESIÓN?',
+          style: const TextStyle(color: AppColors.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          l10n?.logout_confirm_desc ??
+              'Tu progreso queda guardado. Necesitarás volver a iniciar sesión para continuar.',
+          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(
+              (l10n?.cancel ?? 'Cancel').toUpperCase(),
+              style: const TextStyle(color: AppColors.onSurfaceVariant),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(
+              (l10n?.logout ?? 'Log Out').toUpperCase(),
+              style: const TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await ref.read(authRepositoryProvider).signOut();
+      if (context.mounted) context.go('/');
+    }
+  }
+
   String _displayInitials(Map<String, dynamic> profile) {
     final name = profile['display_name'] as String? ?? '';
     if (name.trim().isNotEmpty) return name.trim().substring(0, 1).toUpperCase();
@@ -486,10 +518,10 @@ class DashboardScreen extends ConsumerWidget {
           Text(
             label,
             style: GoogleFonts.jetBrainsMono(
-              fontSize: 8,
+              fontSize: 10,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-              color: AppColors.onSurface.withValues(alpha: 0.7),
+              letterSpacing: 0.8,
+              color: AppColors.onSurface.withValues(alpha: 0.8),
             ),
           ),
         ],

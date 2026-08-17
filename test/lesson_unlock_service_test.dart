@@ -8,8 +8,11 @@ import 'package:tutorsaas/features/dashboard/domain/models/lesson_unlock_service
 /// quedan desbloqueados (unlockedByOracle), del nivel actual solo la primera
 /// lección disponible (nextAvailable) y el resto secuencial (locked), y los
 /// niveles superiores bloqueados (locked).
+///
+/// Una lección se considera "superada" (desbloquea la siguiente) al alcanzar
+/// el 70% de sus metas (`user_scenario_goals`), no por abrir la conversación.
 void main() {
-  LessonData make(String id, String level) => LessonData(
+  LessonData make(String id, String level, {int goals = 4}) => LessonData(
         id: id,
         title: id,
         description: 'd',
@@ -23,11 +26,30 @@ void main() {
         assistantRole: 'r',
         userRole: 'u',
         initialAssistantMessage: 'hi',
-        goals: const [],
+        goals: List.generate(
+          goals,
+          (i) => ScenarioGoalItem(
+            id: 'g${i + 1}',
+            text: 'g${i + 1}',
+            keywords: const ['x'],
+            examplePhrase: 'x',
+          ),
+        ),
         usefulPhrases: const [],
       );
 
-  // Catálogo de prueba con 2 lecciones por nivel A1 y B1.
+  /// Filas de `user_scenario_goals` con las primeras [n] metas completadas.
+  List<Map<String, dynamic>> doneGoals(String scenarioId, int n) =>
+      List.generate(
+        n,
+        (i) => {
+          'scenario_id': scenarioId,
+          'goal_id': 'g${i + 1}',
+          'is_completed': true,
+        },
+      );
+
+  // Catálogo de prueba con 2 lecciones por nivel A1 y B1 (4 metas c/u).
   final catalog = <LessonData>[
     make('a1_one', 'A1'),
     make('a1_two', 'A1'),
@@ -36,15 +58,15 @@ void main() {
   ];
 
   LessonUnlockState classify(LessonData l, String cefr,
-          [List<Map<String, dynamic>> done = const []]) =>
+          [List<Map<String, dynamic>> goalRows = const []]) =>
       LessonUnlockService.classify(
         lesson: l,
         userCefr: cefr,
-        completedLessons: done,
+        goalRows: goalRows,
         catalog: catalog,
       );
 
-  group('Usuario B1 — sin historial', () {
+  group('Usuario B1 — sin progreso', () {
     test('A1 lecciones → unlockedByOracle', () {
       expect(classify(catalog[0], 'B1'), LessonUnlockState.unlockedByOracle);
       expect(classify(catalog[1], 'B1'), LessonUnlockState.unlockedByOracle);
@@ -59,19 +81,43 @@ void main() {
     });
   });
 
-  group('Usuario B1 — con historial parcial', () {
-    final doneB1One = [
-      {'scenario_id': 'b1_one', 'score': 85},
-    ];
-
-    test('Completada → completedByPlayer', () {
-      expect(classify(catalog[2], 'B1', doneB1One),
+  group('Usuario B1 — progreso de metas', () {
+    test('≥70% de metas → completedByPlayer y desbloquea la siguiente', () {
+      // 3/4 = 75% ≥ 70%
+      final done = doneGoals('b1_one', 3);
+      expect(classify(catalog[2], 'B1', done),
           LessonUnlockState.completedByPlayer);
+      expect(classify(catalog[3], 'B1', done),
+          LessonUnlockState.nextAvailable);
     });
 
-    test('Segunda de B1 disponible tras completar la primera', () {
-      expect(classify(catalog[3], 'B1', doneB1One),
-          LessonUnlockState.nextAvailable);
+    test('<70% de metas → NO se completa ni desbloquea la siguiente', () {
+      // 2/4 = 50% < 70%
+      final done = doneGoals('b1_one', 2);
+      expect(classify(catalog[2], 'B1', done),
+          isNot(LessonUnlockState.completedByPlayer));
+      expect(classify(catalog[3], 'B1', done), LessonUnlockState.locked);
+    });
+
+    test('Límite exacto: 70% (7/10) → superada; 60% (6/10) → no', () {
+      final tenGoals = make('c_one', 'B1', goals: 10);
+      final c70 = LessonUnlockService.completionRatio(
+        doneGoals('c_one', 7),
+        tenGoals,
+      );
+      final c60 = LessonUnlockService.completionRatio(
+        doneGoals('c_one', 6),
+        tenGoals,
+      );
+      expect(c70, closeTo(0.70, 0.0001));
+      expect(c60, closeTo(0.60, 0.0001));
+      expect(c70 >= LessonUnlockService.passThreshold, isTrue);
+      expect(c60 >= LessonUnlockService.passThreshold, isFalse);
+    });
+
+    test('Lección sin metas → se considera superada', () {
+      final noGoals = make('d_one', 'B1', goals: 0);
+      expect(LessonUnlockService.completionRatio(const [], noGoals), 1.0);
     });
   });
 

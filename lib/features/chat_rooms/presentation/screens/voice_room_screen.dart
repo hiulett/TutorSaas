@@ -1,13 +1,16 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:livekit_client/livekit_client.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../economy/presentation/providers/economy_providers.dart';
 import '../providers/chat_rooms_providers.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -30,82 +33,142 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _chatScrollController = ScrollController();
 
-  bool _isMuted = false;
   bool _isHandRaised = false;
-  bool _showTipBanner = true;
   bool _showDemoBanner = true;
   bool _showAudience = true;
 
-  final Map<String, bool> _speakingSimState = {};
+  // LiveKit (voz real)
+  Room? _room;
+  bool _micOn = false;
+  Set<String> _speakingIds = const {};
   Timer? _speakingTimer;
-  late AnimationController _pulseController;
 
-  final List<String> _aiTips = [
-    'ADVISOR TIP: Use conjunctions like "However" or "In addition" to enrich your sentences.',
-    'RAID GOAL: Achieve 3 conversation turns without long pauses.',
-    'PHONETIC TIP: Pay close attention to rising intonation during questions.',
-    'KEY VOCABULARY: Try incorporating the term "Collaborate" in your speech.',
-  ];
-  int _currentTipIndex = 0;
-  Timer? _tipTimer;
+  // Presencia en la mesa
+  String _presenceState = 'standing'; // 'standing' | 'seated'
+  int? _mySeat;
+  Timer? _heartbeatTimer;
 
   @override
   void initState() {
     super.initState();
 
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final user = ref.read(currentUserProvider);
       if (user != null) {
         try {
-          await ref.read(chatRoomsRepositoryProvider).joinRoom(
-                roomId: widget.roomId,
-                userId: user.id,
-                isSpeaker: false,
-              );
+          // Entrada a la mesa en estado "de pie" (escucha + chat, sin audio).
+          await ref.read(chatRoomsRepositoryProvider).joinTable(widget.roomId);
+          _startHeartbeat();
         } catch (_) {}
       }
-    });
-
-    _speakingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      final participants = ref.read(chatRoomParticipantsProvider(widget.roomId)).value;
-      if (participants != null && participants.isNotEmpty) {
-        final random = Random();
-        if (mounted) {
-          setState(() {
-            for (final p in participants) {
-              final userId = p['user_id'] as String;
-              _speakingSimState[userId] = p['is_speaker'] == true && random.nextBool();
-            }
-          });
-        }
-      }
-    });
-
-    _tipTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
-      if (mounted) {
-        setState(() {
-          _currentTipIndex = (_currentTipIndex + 1) % _aiTips.length;
-        });
-      }
+      await _connectLiveKit();
+      _startSpeakingPoll();
     });
   }
 
   @override
   void dispose() {
     _speakingTimer?.cancel();
-    _tipTimer?.cancel();
-    _pulseController.dispose();
+    _heartbeatTimer?.cancel();
+    _room?.disconnect();
     _messageController.dispose();
     _chatScrollController.dispose();
     super.dispose();
   }
 
+  void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      ref.read(chatRoomsRepositoryProvider).touchPresence(widget.roomId);
+    });
+  }
+
+  /// Conecta el micrófono real al room de LiveKit (edge function livekit-token).
+  /// `canPublish` lo decide el servidor según `presence_state` (solo seated).
+  Future<void> _connectLiveKit() async {
+    if (_room != null) return;
+    try {
+      final user = ref.read(currentUserProvider);
+      if (user == null) return;
+      final supabase = Supabase.instance.client;
+      final res = await supabase.functions.invoke(
+        'livekit-token',
+        queryParameters: {'room': widget.roomId, 'publish': _presenceState == 'seated' ? 'true' : 'false'},
+      );
+      final data = res.data as Map<String, dynamic>;
+      final room = Room();
+      await room.connect(data['url'] as String, data['token'] as String);
+      // Solo publica audio si está sentado (canPublish lo refuerza el servidor).
+      final seated = _presenceState == 'seated';
+      if (seated) {
+        await room.localParticipant?.setMicrophoneEnabled(true);
+      }
+      if (!mounted) {
+        await room.disconnect();
+        return;
+      }
+      setState(() {
+        _room = room;
+        _micOn = seated;
+      });
+    } catch (e) {
+      debugPrint('LiveKit connect failed (presencia sin audio): $e');
+    }
+  }
+
+  /// Reconecta a LiveKit al cambiar de estado (sentado ↔ de pie). Los grants
+  /// de LiveKit son inmutables por conexión: hay que reconectar con el token
+  /// correspondiente al nuevo estado.
+  Future<void> _reconnectLiveKitForState() async {
+    await _disconnectLiveKit();
+    if (mounted) await _connectLiveKit();
+    // _disconnectLiveKit cancela el poll de habla: se reinicia tras reconectar.
+    _startSpeakingPoll();
+    if (mounted) setState(() {});
+  }
+
+  /// Muestra quién habla de verdad usando los niveles de audio de LiveKit.
+  void _startSpeakingPoll() {
+    _speakingTimer?.cancel();
+    _speakingTimer = Timer.periodic(const Duration(milliseconds: 600), (_) {
+      if (!mounted || _room == null) return;
+      final ids = _room!.activeSpeakers.map((p) => p.identity).toSet();
+      if (!setEquals(ids, _speakingIds)) {
+        setState(() => _speakingIds = ids);
+      }
+    });
+  }
+
+  Future<void> _toggleMic() async {
+    // Solo se puede transmitir estando sentado.
+    if (_presenceState != 'seated') {
+      SystemSnack.show(context, AppLocalizations.of(context)?.voice_seat_to_speak ?? 'SIÉNTATE EN UNA SILLA PARA HABLAR', type: SystemSnackType.warning);
+      return;
+    }
+    final lp = _room?.localParticipant;
+    if (lp == null) return;
+    final next = !_micOn;
+    try {
+      await lp.setMicrophoneEnabled(next);
+      setState(() => _micOn = next);
+    } catch (_) {}
+  }
+
+  Future<void> _disconnectLiveKit() async {
+    _speakingTimer?.cancel();
+    final r = _room;
+    _room = null;
+    if (r != null) {
+      try {
+        await r.disconnect();
+      } catch (_) {}
+    }
+    if (mounted) setState(() => _micOn = false);
+  }
+
   void _leaveRoom() async {
+    await _disconnectLiveKit();
+    _heartbeatTimer?.cancel();
     final user = ref.read(currentUserProvider);
     if (user != null) {
       await ref.read(chatRoomsRepositoryProvider).leaveRoom(
@@ -123,25 +186,125 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     }
   }
 
-  void _claimSlot(int slot) async {
+  /// Se sienta en la silla [seat] (1-8). Actualiza el estado local y reconecta
+  /// LiveKit con canPublish=true para poder transmitir.
+  void _sitDown(int seat) async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
     try {
-      await ref.read(chatRoomsRepositoryProvider).claimSpeakerSlot(
-            roomId: widget.roomId,
-            userId: user.id,
-            speakerSlot: slot,
+      await ref.read(chatRoomsRepositoryProvider).sitDown(
+            widget.roomId,
+            seat,
           );
+      if (!mounted) return;
+      setState(() {
+        _presenceState = 'seated';
+        _mySeat = seat;
+      });
+      SystemSnack.show(context, AppLocalizations.of(context)?.voice_seated_in('$seat') ?? 'TE SENTASTE EN LA SILLA $seat', type: SystemSnackType.success);
+      await _reconnectLiveKitForState();
+      if (mounted) ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
+    } on ChatRoomException catch (e) {
       if (mounted) {
-        SystemSnack.show(context, 'SUCCESSFULLY MOUNTED GUILD STAGE SLOT $slot!', type: SystemSnackType.success);
+        SystemSnack.show(context, e.message, type: SystemSnackType.error);
         ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
       }
     } catch (e) {
       if (mounted) {
-        SystemSnack.show(context, 'Error al subir al escenario: $e', type: SystemSnackType.error);
+        SystemSnack.show(context, 'Error al sentarte: $e', type: SystemSnackType.error);
       }
     }
+  }
+
+  /// Pide silla: se sienta si hay libre, si no entra a la cola FIFO.
+  Future<void> _requestSeat() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    try {
+      final outcome = await ref.read(chatRoomsRepositoryProvider).requestSeat(widget.roomId);
+      if (!mounted) return;
+      if (outcome == 'seated') {
+        setState(() {
+          _presenceState = 'seated';
+          _mySeat = _detectMySeat();
+        });
+        SystemSnack.show(context, AppLocalizations.of(context)?.voice_seat_assigned ?? 'SILLA ASIGNADA. ¡Bienvenido!', type: SystemSnackType.success);
+        await _reconnectLiveKitForState();
+        ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
+      } else {
+        SystemSnack.show(context, AppLocalizations.of(context)?.voice_seats_full_queue ?? 'SILLAS LLENAS: ENTRAS EN COLA', type: SystemSnackType.info);
+      }
+    } catch (e) {
+      if (mounted) {
+        SystemSnack.show(context, 'Error al pedir silla: $e', type: SystemSnackType.error);
+      }
+    }
+  }
+
+  /// Se levanta: libera la silla, vuelve a "de pie" y reconecta sin publicar.
+  Future<void> _standUp() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    try {
+      await ref.read(chatRoomsRepositoryProvider).standUp(widget.roomId);
+      if (!mounted) return;
+      setState(() {
+        _presenceState = 'standing';
+        _mySeat = null;
+      });
+      SystemSnack.show(context, AppLocalizations.of(context)?.voice_seat_freed ?? 'SILLA LIBERADA. DE PIE', type: SystemSnackType.info);
+      await _reconnectLiveKitForState();
+      if (mounted) ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
+    } catch (e) {
+      if (mounted) {
+        SystemSnack.show(context, 'Error al levantarte: $e', type: SystemSnackType.error);
+      }
+    }
+  }
+
+  /// Modo moderador: pone "de pie" a otro participante (expulsión suave).
+  void _moderatorStand(Map<String, dynamic> target) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    final targetId = target['user_id'] as String?;
+    if (targetId == null || targetId == user.id) return;
+    try {
+      final ok = await ref.read(chatRoomsRepositoryProvider).moderatorStand(widget.roomId, targetId);
+      if (!mounted) return;
+      SystemSnack.show(
+        context,
+        ok
+            ? (AppLocalizations.of(context)?.voice_standing ?? 'CAZADOR PUESTO DE PIE')
+            : (AppLocalizations.of(context)?.voice_not_moderator ?? 'NO ERES MODERADOR DE ESTA MESA'),
+        type: ok ? SystemSnackType.success : SystemSnackType.error,
+      );
+      if (ok) ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
+    } catch (_) {}
+  }
+
+  int? _detectMySeat() {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return null;
+    final participants = ref.read(chatRoomParticipantsProvider(widget.roomId)).value;
+    if (participants == null) return null;
+    for (final p in participants) {
+      if (p['user_id'] == user.id) {
+        final slot = p['speaker_slot'];
+        if (slot is int) return slot;
+      }
+    }
+    return null;
+  }
+
+  /// Posición (1-based) del usuario en la cola FIFO de petición de silla.
+  int _myQueuePosition(List<Map<String, dynamic>> requests) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return 0;
+    for (var i = 0; i < requests.length; i++) {
+      if (requests[i]['user_id'] == user.id) return i + 1;
+    }
+    return 0;
   }
 
   void _sendMessage() async {
@@ -306,8 +469,14 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
+    // Maná real (FASE B): única moneda de energía. Saldo = asignación + comprado − usado.
+    final manaState = ref.watch(manaStateProvider).value ?? const {};
+    final int manaRemaining = (manaState['remaining'] as int?) ?? 0;
+    final int manaUsed = (manaState['used'] as int?) ?? 0;
     final participantsAsync = ref.watch(chatRoomParticipantsProvider(widget.roomId));
     final messagesAsync = ref.watch(chatRoomMessagesProvider(widget.roomId));
+    final participantProfiles =
+        ref.watch(participantProfilesProvider(widget.roomId)).value ?? const <String, Map<String, dynamic>>{};
 
     Map<String, dynamic>? currentRoom;
     final rooms = ref.watch(chatRoomsListProvider).value;
@@ -321,28 +490,64 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     }
     final roomTitle = currentRoom?['title'] as String?;
     final missionName =
-        (roomTitle != null && roomTitle.trim().isNotEmpty) ? roomTitle : 'MISIÓN LIBRE';
+        (roomTitle != null && roomTitle.trim().isNotEmpty) ? roomTitle : (AppLocalizations.of(context)?.voice_free_mission ?? 'MISIÓN LIBRE');
 
-    double resonance;
     final participants = participantsAsync.value;
     final messages = messagesAsync.value;
-    if (participants != null && participants.isNotEmpty) {
-      final speakers = participants.where((p) => p['is_speaker'] == true).toList();
-      if (speakers.isNotEmpty) {
-        var active = 0;
-        for (final s in speakers) {
-          final uid = s['user_id'] as String?;
-          if (uid != null && _speakingSimState[uid] == true) active++;
+    final seatRequests =
+        ref.watch(chatRoomSeatRequestsProvider(widget.roomId)).value ?? const <Map<String, dynamic>>[];
+    // Resonancia basada en actividad REAL: nº de cazadores conectados.
+    final double resonance = (participants != null && participants.isNotEmpty)
+        ? (participants.length / 16.0).clamp(0.1, 1.0).toDouble()
+        : (messages != null && messages.isNotEmpty)
+            ? (messages.length / 15.0).clamp(0.1, 1.0).toDouble()
+            : 0.5;
+
+    // Estado de presencia del usuario actual dentro de la mesa.
+    //
+    // Fuente de verdad: el estado LOCAL (_presenceState/_mySeat), que se
+    // actualiza de forma optimista al sentarse/levantarse. El stream de
+    // participantes solo se usa en la primera carga (cuando aún no hay
+    // interacción local) y para reflejar expulsiones del moderador.
+    final bool hasLocalState = _mySeat != null || _presenceState == 'seated';
+    String presence = _presenceState;
+    int? mySeat = _mySeat;
+    if (!hasLocalState && participants != null) {
+      for (final p in participants) {
+        if (p['user_id'] == user?.id) {
+          presence = p['presence_state'] as String? ?? (p['is_speaker'] == true ? 'seated' : 'standing');
+          final slot = p['speaker_slot'];
+          if (slot is int) mySeat = slot;
+          break;
         }
-        resonance = (active / speakers.length).clamp(0.1, 1.0).toDouble();
-      } else {
-        resonance = 0.5;
       }
-    } else if (messages != null && messages.isNotEmpty) {
-      resonance = (messages.length / 15.0).clamp(0.1, 1.0).toDouble();
-    } else {
-      resonance = 0.5;
     }
+    final isSeated = presence == 'seated';
+    final isModerator =
+        currentRoom?['moderator_id'] == user?.id || currentRoom?['assigned_moderator_id'] == user?.id;
+
+    // Sincroniza el estado local con el servidor (moderador expulsa, reingreso
+    // en otra sesión, etc). No revierte un asiento recién confirmado por RPC.
+    ref.listen(chatRoomParticipantsProvider(widget.roomId), (prev, next) {
+      final current = ref.read(currentUserProvider);
+      if (current == null || !mounted) return;
+      final list = next.value ?? const <Map<String, dynamic>>[];
+      for (final p in list) {
+        if (p['user_id'] == current.id) {
+          final serverPresence =
+              p['presence_state'] as String? ?? (p['is_speaker'] == true ? 'seated' : 'standing');
+          final slot = p['speaker_slot'];
+          final serverSeat = slot is int ? slot : null;
+          if (serverPresence != _presenceState || serverSeat != _mySeat) {
+            setState(() {
+              _presenceState = serverPresence;
+              _mySeat = serverSeat;
+            });
+          }
+          return;
+        }
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.screenBg,
@@ -408,16 +613,16 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        'GUILD VOICE CHAMBER',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.spaceGrotesk(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.onSurface,
-                                        ),
-                                      ),
+                      child: Text(
+                        AppLocalizations.of(context)?.voice_guild_chamber ?? 'GUILD VOICE CHAMBER',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     Container(
@@ -438,8 +643,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                     ),
                                   ],
                                 ),
-                                const Text(
-                                  'Moderated by AI Tutor in Real Time',
+                                Text(
+                                  AppLocalizations.of(context)?.voice_moderated ?? 'Moderated by AI Tutor in Real Time',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10),
@@ -454,53 +659,18 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const ManaMeterWidget(currentMana: 448, usedInSession: 2),
+                        ManaMeterWidget(currentMana: manaRemaining, usedInSession: manaUsed),
                         const SizedBox(width: 4),
                         IconButton(
                           icon: const Icon(Icons.exit_to_app_rounded, color: AppColors.errorRed),
                           onPressed: _leaveRoom,
-                          tooltip: 'Salir de la sala',
+                          tooltip: AppLocalizations.of(context)?.voice_leave ?? 'Salir de la sala',
                         ),
                       ],
                     ),
                     ],
                   ),
                 ),
-
-                // AI Tutor Tip Banner (colapsable — se muestra al entrar y se cierra)
-                if (_showTipBanner)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0),
-                    child: GlassCard(
-                      blur: 20,
-                      opacity: AppColors.glassOpacity,
-                      border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 400),
-                              child: Text(
-                                _aiTips[_currentTipIndex],
-                                key: ValueKey(_currentTipIndex),
-                                style: const TextStyle(color: AppColors.onSurface, fontSize: 11, fontWeight: FontWeight.w600),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: () => setState(() => _showTipBanner = false),
-                            child: const Icon(Icons.close_rounded, color: AppColors.onSurfaceVariant, size: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
 
                 // GUILD-01: Demo transparency — chip compacto (colapsable, se expande al tocar)
                 Padding(
@@ -518,8 +688,10 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              _showDemoBanner ? 'AUDIO DEL GREMIO: DEMO — los oradores son simulados. Tu voz sí se graba.'
-                                              : 'AUDIO DEMO · TOCA PARA VER DETALLE',
+                              _showDemoBanner
+                                  ? (AppLocalizations.of(context)?.voice_demo_banner ??
+                                      'AUDIO DEL GREMIO: DEMO — cazadores conectados en vivo. La práctica de voz es 1:1.')
+                                  : (AppLocalizations.of(context)?.voice_demo_banner_alt ?? 'AUDIO DEMO · TOCA PARA VER DETALLE'),
                               style: GoogleFonts.jetBrainsMono(
                                 color: AppColors.guildAmber,
                                 fontSize: 9,
@@ -571,7 +743,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'MISIÓN DE LA SALA',
+                                AppLocalizations.of(context)?.voice_room_mission ?? 'MISIÓN DE LA SALA',
                                 style: GoogleFonts.jetBrainsMono(
                                   color: AppColors.royalGoldLight,
                                   fontSize: 8,
@@ -582,12 +754,13 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                               const SizedBox(height: 1),
                               Text(
                                 missionName,
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.spaceGrotesk(
                                   color: AppColors.onSurface,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
+                                  height: 1.2,
                                 ),
                               ),
                             ],
@@ -604,7 +777,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'RESONANCIA',
+                                    AppLocalizations.of(context)?.voice_resonance ?? 'RESONANCIA',
                                     style: GoogleFonts.jetBrainsMono(
                                       color: AppColors.onSurfaceVariant,
                                       fontSize: 8,
@@ -643,145 +816,159 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                 Expanded(
                   child: participantsAsync.when(
                     data: (participants) {
-                      final speakers = List<Map<String, dynamic>?>.filled(6, null);
-                      final List<Map<String, dynamic>> audience = [];
+                      final seats = List<Map<String, dynamic>?>.filled(8, null);
+                      final List<Map<String, dynamic>> standing = [];
 
                       for (final p in participants) {
-                        if (p['is_speaker'] == true) {
+                        final presence = p['presence_state'] as String? ?? (p['is_speaker'] == true ? 'seated' : 'standing');
+                        if (presence == 'seated') {
                           final slot = p['speaker_slot'] as int?;
-                          if (slot != null && slot >= 1 && slot <= 6) {
-                            speakers[slot - 1] = p;
+                          if (slot != null && slot >= 1 && slot <= 8) {
+                            seats[slot - 1] = p;
+                          } else {
+                            standing.add(p);
                           }
                         } else {
-                          audience.add(p);
+                          standing.add(p);
                         }
                       }
 
                       return Column(
                         children: [
-                          // Speakers 6 Grid (2 rows x 3 columns)
+                          // Seats 8 Grid (4 columns x 2 rows)
                           Expanded(
                             flex: 6,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20.0),
                               child: GridView.builder(
                                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio: 1.0,
+                                  crossAxisCount: 4,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                  childAspectRatio: 0.82,
                                 ),
-                                itemCount: 6,
+                                itemCount: 8,
                                 itemBuilder: (context, index) {
                                   final slotNum = index + 1;
-                                  final speaker = speakers[index];
-
-                                  // Slot 1: Tutor IA Moderador Slot
-                                  if (slotNum == 1) {
-                                    return _buildAiModeratorCard();
-                                  }
+                                  final speaker = seats[index];
 
                                   if (speaker == null) {
-                                    return GestureDetector(
-                                      onTap: () => _claimSlot(slotNum),
-                                      child: GlassCard(
-                                        blur: 15,
-                                        opacity: AppColors.glassOpacity,
-                                        border: Border.all(color: AppColors.onSurface.withValues(alpha: 0.12), width: 1),
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.onSurface.withValues(alpha: 0.05),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: Icon(Icons.add_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 24),
+                                    final isMySeat = mySeat == slotNum;
+                                    // onTap nativo de GlassCard: el GestureDetector
+                                    // interno no "traga" el tap (ver glass_card.dart).
+                                    return GlassCard(
+                                      onTap: isSeated ? null : () => _sitDown(slotNum),
+                                      blur: 15,
+                                      opacity: AppColors.glassOpacity,
+                                      border: Border.all(
+                                        color: isMySeat ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.12),
+                                        width: isMySeat ? 2 : 1,
+                                      ),
+                                      padding: const EdgeInsets.all(6),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: isMySeat
+                                                  ? AppColors.manaCyan.withValues(alpha: 0.15)
+                                                  : AppColors.onSurface.withValues(alpha: 0.05),
+                                              shape: BoxShape.circle,
                                             ),
-                                            const SizedBox(height: 8),
+                                            child: Icon(
+                                              isMySeat ? Icons.event_seat_rounded : Icons.add_rounded,
+                                              color: isMySeat ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.38),
+                                              size: 18,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            isMySeat
+                                                ? (AppLocalizations.of(context)?.voice_your_seat ?? 'TU SILLA')
+                                                : (AppLocalizations.of(context)?.voice_seat_number('$slotNum') ?? 'SILLA $slotNum'),
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: isMySeat ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.5),
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (!isSeated && !isMySeat)
                                             Text(
-                                              'Subir al Slot $slotNum',
+                                              AppLocalizations.of(context)?.voice_tap_to_sit ?? 'TOCAR PARA SENTARSE',
                                               textAlign: TextAlign.center,
-                                              style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.bold),
+                                              style: TextStyle(color: AppColors.manaCyan.withValues(alpha: 0.5), fontSize: 7),
                                             ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
                                     );
                                   }
 
                                   final speakerUserId = speaker['user_id'] as String;
-                                  final isSpeaking = _speakingSimState[speakerUserId] ?? false;
                                   final isSelf = speakerUserId == user?.id;
+                                  final speakerProfile = participantProfiles[speakerUserId];
+                                  final otherName = speakerProfile?['display_name'] as String? ?? '';
+                                  final speakerName = isSelf
+                                      ? (AppLocalizations.of(context)?.voice_you ?? 'YOU')
+                                      : (otherName.isNotEmpty ? otherName : (AppLocalizations.of(context)?.voice_hunter_slot('$slotNum') ?? 'HUNTER $slotNum'));
+                                  final speakerAvatar = isSelf
+                                      ? (ref.read(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior')
+                                      : (speakerProfile?['avatar_url'] as String? ?? 'warrior');
+                                  final isSpeaking = _speakingIds.contains(speakerUserId);
 
-                                  return GlassCard(
-                                    blur: 20,
-                                    opacity: isSpeaking ? 0.15 : 0.06,
-                                    border: Border.all(
-                                      color: isSpeaking ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.24),
-                                      width: isSpeaking ? 2 : 1,
-                                    ),
-                                    padding: const EdgeInsets.all(8),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            if (isSpeaking)
-                                              AnimatedBuilder(
-                                                animation: _pulseController,
-                                                builder: (context, child) {
-                                                  return Container(
-                                                    width: 52 + (_pulseController.value * 10),
-                                                    height: 52 + (_pulseController.value * 10),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(4),
-                                                      border: Border.all(
-                                                        color: AppColors.manaCyan.withValues(alpha: 1.0 - _pulseController.value),
-                                                        width: 2,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
+                                  return GestureDetector(
+                                    onLongPress: isModerator && !isSelf ? () => _moderatorStand(speaker) : null,
+                                    child: GlassCard(
+                                      blur: 20,
+                                      opacity: isSpeaking ? 0.15 : 0.08,
+                                      border: Border.all(
+                                        color: isSpeaking ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.24),
+                                        width: isSpeaking ? 2 : 1,
+                                      ),
+                                      padding: const EdgeInsets.all(6),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Stack(
+                                            clipBehavior: Clip.none,
+                                            children: [
+                                              RpgAvatar(
+                                                avatarUrl: speakerAvatar,
+                                                initials: speakerName.isNotEmpty
+                                                    ? speakerName.substring(0, 1).toUpperCase()
+                                                    : 'H$slotNum',
+                                                size: 36,
+                                                hunterClass: speakerAvatar,
                                               ),
-                                            RpgAvatar(
-                                              avatarUrl: isSelf
-                                                  ? (ref.read(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior')
-                                                  : ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][speakerUserId.hashCode % 5],
-                                              initials: isSelf ? 'ME' : 'H$slotNum',
-                                              size: 44,
-                                              hunterClass: isSelf
-                                                  ? 'assassin'
-                                                  : ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][speakerUserId.hashCode % 5],
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Flexible(
-                                              child: Text(
-                                                isSelf ? 'YOU' : 'HUNTER $slotNum',
-                                                style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 10),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          isSpeaking ? 'SPEAKING...' : 'LIVE',
-                                          style: GoogleFonts.jetBrainsMono(
-                                            color: isSpeaking ? AppColors.manaCyan : AppColors.onSurfaceVariant,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
+                                              if (isSpeaking)
+                                                const Positioned(
+                                                  right: -2,
+                                                  bottom: -2,
+                                                  child: Icon(Icons.graphic_eq_rounded, color: AppColors.manaCyan, size: 14),
+                                                ),
+                                            ],
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            speakerName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 9),
+                                          ),
+                                          const SizedBox(height: 1),
+                                          Text(
+                                            isSpeaking
+                                                ? (AppLocalizations.of(context)?.voice_speaking ?? 'HABLANDO')
+                                                : (AppLocalizations.of(context)?.voice_seated ?? 'SENTADO'),
+                                            style: GoogleFonts.jetBrainsMono(
+                                              color: isSpeaking ? AppColors.manaCyan : AppColors.onSurfaceVariant,
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },
@@ -789,7 +976,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                             ),
                           ),
 
-                          // Audience Horizontal Strip (Gradas) — colapsable
+                          // Standing Ring (De Pie) — escuchan + chat, sin audio.
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 2),
                             child: GestureDetector(
@@ -797,13 +984,14 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                               child: GlassCard(
                                 blur: 20,
                                 opacity: AppColors.glassOpacity,
+                                border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.25)),
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.people_alt_rounded, color: AppColors.onSurfaceVariant, size: 16),
+                                    const Icon(Icons.accessibility_new_rounded, color: AppColors.manaCyan, size: 16),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'GUILD BENCH (${audience.length})',
+                                      AppLocalizations.of(context)?.voice_standing_count(standing.length) ?? 'DE PIE (${standing.length}/8)',
                                       style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontSize: 11, fontWeight: FontWeight.bold),
                                     ),
                                     const SizedBox(width: 12),
@@ -813,19 +1001,38 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                               height: 32,
                                               child: ListView.builder(
                                                 scrollDirection: Axis.horizontal,
-                                                itemCount: audience.length,
+                                                itemCount: standing.length,
                                                 itemBuilder: (context, index) {
-                                                  final item = audience[index];
+                                                  final item = standing[index];
                                                   final audId = item['user_id'] as String;
-                                                  final initials = audId.length >= 2 ? audId.substring(0, 2).toUpperCase() : 'U';
+                                                  final audProfile = participantProfiles[audId];
+                                                  final audName = audProfile?['display_name'] as String? ?? '';
+                                                  final audInitials = audName.isNotEmpty ? audName.substring(0, 1).toUpperCase() : 'U';
+                                                  final isSelfStanding = audId == user?.id;
 
                                                   return Container(
                                                     margin: const EdgeInsets.only(right: 6),
-                                                    child: RpgAvatar(
-                                                      avatarUrl: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
-                                                      initials: initials,
-                                                      size: 32,
-                                                      hunterClass: ['warrior', 'mage', 'assassin', 'necromancer', 'priest'][audId.hashCode % 5],
+                                                    child: Tooltip(
+                                                      message: isSelfStanding
+                                                          ? (AppLocalizations.of(context)?.voice_you_standing ?? 'Tú (de pie)')
+                                                          : (audName.isNotEmpty ? audName : (AppLocalizations.of(context)?.voice_standing_hunter ?? 'Cazador de pie')),
+                                                      child: Stack(
+                                                        clipBehavior: Clip.none,
+                                                        children: [
+                                                          RpgAvatar(
+                                                            avatarUrl: audProfile?['avatar_url'] as String? ?? 'warrior',
+                                                            initials: audInitials,
+                                                            size: 30,
+                                                            hunterClass: audProfile?['avatar_url'] as String? ?? 'warrior',
+                                                          ),
+                                                          if (isSelfStanding)
+                                                            const Positioned(
+                                                              right: -3,
+                                                              bottom: -3,
+                                                              child: Icon(Icons.mic_off_rounded, color: AppColors.errorRed, size: 12),
+                                                            ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   );
                                                 },
@@ -863,7 +1070,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                           const SizedBox(width: 8),
                                           Flexible(
                                             child: Text(
-                                              'Chamber Text Chat (${messagesAsync.value?.length ?? 0})',
+                                              AppLocalizations.of(context)?.voice_chat_title(messagesAsync.value?.length ?? 0) ??
+                                                  'Chamber Text Chat (${messagesAsync.value?.length ?? 0})',
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 12),
@@ -896,20 +1104,17 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     child: Row(
                       children: [
-                        // Mute
+                        // Micrófono (LiveKit real — solo si estás sentado)
                         Expanded(
                           child: _controlButton(
-                            icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                            color: _isMuted ? AppColors.errorRed : AppColors.liveGreen,
-                            label: _isMuted ? 'MUTED' : 'MIC',
-                            onTap: () {
-                              setState(() => _isMuted = !_isMuted);
-                              SystemSnack.show(
-                                context,
-                                _isMuted ? 'MICROPHONE MUTED' : 'MICROPHONE ACTIVATED',
-                                type: _isMuted ? SystemSnackType.warning : SystemSnackType.success,
-                              );
-                            },
+                            icon: isSeated ? (_micOn ? Icons.mic_rounded : Icons.mic_off_rounded) : Icons.mic_off_rounded,
+                            color: isSeated ? (_micOn ? AppColors.liveGreen : AppColors.errorRed) : AppColors.onSurfaceVariant,
+                            label: isSeated
+                                ? (_micOn
+                                    ? (AppLocalizations.of(context)?.voice_mic_on ?? 'MIC ON')
+                                    : (AppLocalizations.of(context)?.voice_mic_off ?? 'MIC OFF'))
+                                : (AppLocalizations.of(context)?.voice_stand_up ?? 'LEVANTARSE'),
+                            onTap: _toggleMic,
                           ),
                         ),
                         // Práctica con el Oráculo
@@ -917,24 +1122,35 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                           child: _controlButton(
                             icon: Icons.auto_awesome_rounded,
                             color: AppColors.royalGold,
-                            label: 'ORÁCULO',
+                            label: AppLocalizations.of(context)?.oracle ?? 'ORÁCULO',
                             onTap: _startOraclePractice,
                           ),
                         ),
-                        // Raise Hand
+                        // Acción de silla: sentarse / levantarse / pedir silla
                         Expanded(
                           child: _controlButton(
-                            icon: _isHandRaised ? Icons.back_hand : Icons.back_hand_outlined,
-                            color: _isHandRaised ? AppColors.runeViolet : AppColors.onSurfaceVariant,
-                            label: _isHandRaised ? 'PEDIDO' : 'HAND',
-                            onTap: () {
-                              setState(() => _isHandRaised = !_isHandRaised);
-                              SystemSnack.show(
-                                context,
-                                _isHandRaised ? 'REQUEST SENT TO GUILD' : 'HAND LOWERED',
-                                type: SystemSnackType.info,
-                              );
-                            },
+                            icon: isSeated
+                                ? Icons.accessibility_new_rounded
+                                : Icons.event_seat_rounded,
+                            color: isSeated ? AppColors.runeViolet : AppColors.manaCyan,
+                            label: isSeated
+                                ? (AppLocalizations.of(context)?.voice_stand_up ?? 'LEVANTARSE')
+                                : (_isHandRaised
+                                    ? (AppLocalizations.of(context)?.voice_in_queue(_myQueuePosition(seatRequests)) ?? 'EN COLA #${_myQueuePosition(seatRequests)}')
+                                    : (AppLocalizations.of(context)?.voice_seat ?? 'SILLA')),
+                            onTap: isSeated
+                                ? _standUp
+                                : () {
+                                    final seatedCount =
+                                        participants?.where((p) =>
+                                                (p['presence_state'] as String? ?? (p['is_speaker'] == true ? 'seated' : 'standing')) == 'seated')
+                                            .length ??
+                                            0;
+                                    if (seatedCount >= 8) {
+                                      setState(() => _isHandRaised = true);
+                                    }
+                                    _requestSeat();
+                                  },
                           ),
                         ),
                         // Leave
@@ -942,7 +1158,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                           child: _controlButton(
                             icon: Icons.call_end_rounded,
                             color: AppColors.errorRed,
-                            label: 'SALIR',
+                            label: AppLocalizations.of(context)?.voice_exit ?? 'SALIR',
                             onTap: _leaveRoom,
                           ),
                         ),
@@ -1000,51 +1216,4 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     context.push('/conversation');
   }
 
-  Widget _buildAiModeratorCard() {
-    return GlassCard(
-      blur: 20,
-      opacity: AppColors.glassOpacity,
-      border: Border.all(color: AppColors.aiGold, width: 1.5),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.aiGold, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.aiGold.withValues(alpha: 0.3), blurRadius: 6),
-                  ],
-                ),
-              ),
-              ClipOval(
-                child: Image.asset(
-                  'assets/images/avatars/oracle_01.png',
-                  width: 32,
-                  height: 32,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'AI TUTOR',
-            style: TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 10),
-          ),
-          const SizedBox(height: 1),
-          const Text(
-            'AI MODERATOR',
-            style: TextStyle(color: AppColors.aiGold, fontSize: 8, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
 }

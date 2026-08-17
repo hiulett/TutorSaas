@@ -25,6 +25,12 @@ export default function LessonManager({ lessons, onSaveLesson, onDeleteLesson })
     ? lessons
     : lessons.filter((l) => l.level === selectedLevelFilter);
 
+  // Paginación
+  const [lessonPage, setLessonPage] = useState(1);
+  const pageSize = 8;
+  const lessonTotalPages = Math.max(1, Math.ceil(filteredLessons.length / pageSize));
+  const paginatedLessons = filteredLessons.slice((lessonPage - 1) * pageSize, lessonPage * pageSize);
+
   const handleOpenCreate = () => {
     setEditingLesson(null);
     setId(`lesson_${Date.now().toString().slice(-4)}`);
@@ -129,7 +135,7 @@ export default function LessonManager({ lessons, onSaveLesson, onDeleteLesson })
         {['ALL', 'A1', 'A2', 'B1', 'B2', 'C1'].map((lvl) => (
           <button
             key={lvl}
-            onClick={() => setSelectedLevelFilter(lvl)}
+            onClick={() => { setSelectedLevelFilter(lvl); setLessonPage(1); }}
             className={selectedLevelFilter === lvl ? 'btn-teal' : 'btn-secondary'}
             style={{ padding: '8px 16px', fontSize: '13px', fontFamily: 'var(--font-mono)' }}
           >
@@ -154,7 +160,7 @@ export default function LessonManager({ lessons, onSaveLesson, onDeleteLesson })
               </tr>
             </thead>
             <tbody>
-              {filteredLessons.map((lesson) => (
+              {paginatedLessons.map((lesson) => (
                 <tr key={lesson.id}>
                   <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--secondary-teal)', fontSize: '13px' }}>
                     {lesson.id}
@@ -196,6 +202,22 @@ export default function LessonManager({ lessons, onSaveLesson, onDeleteLesson })
             </tbody>
           </table>
         </div>
+
+        {filteredLessons.length > pageSize && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '14px', gap: '12px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              {filteredLessons.length} lecciones · Página {lessonPage} de {lessonTotalPages}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="btn-secondary" disabled={lessonPage <= 1} onClick={() => setLessonPage((p) => Math.max(1, p - 1))}>
+                ← Anterior
+              </button>
+              <button className="btn-secondary" disabled={lessonPage >= lessonTotalPages} onClick={() => setLessonPage((p) => Math.min(lessonTotalPages, p + 1))}>
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        )}
       </GlassCard>
 
       {/* Modal Editor Form */}

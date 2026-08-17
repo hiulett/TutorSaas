@@ -22,9 +22,6 @@ class ConversationState with _$ConversationState {
     /// Counter of goals completed since last build (drives FloatingReward).
     @Default(0) int newGoalsCompleted,
 
-    /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
-    @Default('fluency') String selectedTactic,
-
     // ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
     /// True when this session is the Oracle conversational placement exam.
     @Default(false) bool isOracleEvaluation,

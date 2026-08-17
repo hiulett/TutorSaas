@@ -9,24 +9,24 @@ void main() {
       expect(lesson!.id, isNotEmpty);
     });
 
-    test('currículo oficial: 20 lecciones por nivel y 120 en total', () {
+    test('currículo oficial: 20 lecciones por nivel y 140 en total', () {
       final catalog = LessonCatalog.catalog;
-      expect(catalog.length, 120);
+      expect(catalog.length, 140);
 
       final byLevel = <String, int>{};
       for (final l in catalog) {
         byLevel[l.level.toUpperCase()] = (byLevel[l.level.toUpperCase()] ?? 0) + 1;
       }
-      for (final lv in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
+      for (final lv in ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
         expect(byLevel[lv], 20, reason: 'Nivel $lv debe tener 20 lecciones');
       }
     });
 
     test('currículo oficial: sin IDs duplicados y sin títulos duplicados por nivel', () {
       final ids = LessonCatalog.catalog.map((l) => l.id).toSet();
-      expect(ids.length, 120, reason: 'IDs de lección deben ser únicos');
+      expect(ids.length, 140, reason: 'IDs de lección deben ser únicos');
 
-      for (final lv in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
+      for (final lv in ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
         final titles = LessonCatalog.catalog
             .where((l) => l.level.toUpperCase() == lv)
             .map((l) => l.title.toLowerCase());
@@ -63,6 +63,19 @@ void main() {
       for (final l in c2) {
         expect(l.goals, isNotEmpty);
         expect(l.mainObjective, isNotEmpty);
+      }
+    });
+
+    test('PRE-A1 lessons are populated and present', () {
+      final preA1 = LessonCatalog.catalog
+          .where((l) => l.level.toUpperCase() == 'PRE-A1')
+          .toList();
+      expect(preA1.length, 20);
+      for (final l in preA1) {
+        expect(l.goals.length >= 3, isTrue, reason: '${l.id} con <3 goals');
+        expect(l.usefulPhrases, isNotEmpty);
+        expect(l.mainObjective, isNotEmpty);
+        expect(l.initialAssistantMessage, isNotEmpty);
       }
     });
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,7 @@ import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
+import '../../../dashboard/data/models/hunter_skill_titles.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../../core/ai/placement_ai.dart';
@@ -47,6 +49,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
   // On-device Text-to-Speech
   final FlutterTts _tts = FlutterTts();
+  bool _ttsReady = false;
+  bool _ttsSuppressed = false;
 
   bool _hasProcessedThisTurn = false;
   String? _conversationId;
@@ -71,6 +75,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // Reset completo del estado: nunca debe heredar flags de una sesión previa
     // (p.ej. isOracleEvaluation=true de la Evaluación del Oráculo del onboarding).
     state = ConversationState.initial();
+    // Nueva sesión → se permite narrar de nuevo (se cancela la supresión previa).
+    _ttsSuppressed = false;
 
     // Fetch latest scenario fields from Supabase DB to sync any edits saved from web_admin
     if (scenarioId != null || scenarioTitle != null) {
@@ -84,7 +90,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         }
         final res = await query.maybeSingle();
         if (res != null) {
-          LessonCatalog.updateCatalogFromMap(res);
+          final uiLang = _ref.read(userLanguageProvider).uiLanguage;
+          LessonCatalog.updateCatalogFromMap(res, locale: uiLang);
         }
       } catch (_) {}
     }
@@ -114,16 +121,26 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         final hasTutorMessage = savedMessages.any((m) => m.sender == 'tutor' && m.text.trim().isNotEmpty);
         if (savedMessages.isNotEmpty && hasTutorMessage) {
           state = state.copyWith(messages: savedMessages);
+          // Si la conversación sigue en el arranque (solo el saludo del tutor,
+          // sin turnos del usuario), se narra para que el Oráculo salude al
+          // reanudar una conversación aún vacía.
+          final hasUserTurns = savedMessages.any(
+            (m) => m.sender == 'user' && m.text.trim().isNotEmpty,
+          );
+          if (!hasUserTurns) {
+            final opening = savedMessages.first.text.trim();
+            if (opening.isNotEmpty) await _speakTts(opening);
+          }
         } else if (lesson != null) {
           // First time (or broken history): set initial assistant message,
           // graded to the mission's CEFR level (from the catalog).
+          final opening = lesson.initialAssistantMessage;
           state = state.copyWith(messages: [
-            ConversationMessage(
-              sender: 'tutor',
-              text: lesson.initialAssistantMessage,
-            ),
+            ConversationMessage(sender: 'tutor', text: opening),
           ]);
-          _repository.saveMessage(_conversationId!, 'assistant', lesson.initialAssistantMessage);
+          _repository.saveMessage(_conversationId!, 'assistant', opening);
+          // Narra el primer mensaje del Oráculo NPC al abrir el chat.
+          await _speakTts(opening);
         }
       }
 
@@ -138,13 +155,17 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       _ref.read(activeConversationIdProvider.notifier).state = null;
 
       if (lesson != null) {
+        final opening = lesson.initialAssistantMessage;
         state = state.copyWith(messages: [
-          ConversationMessage(sender: 'tutor', text: lesson.initialAssistantMessage),
+          ConversationMessage(sender: 'tutor', text: opening),
         ]);
+        await _speakTts(opening);
       } else {
+        const opening = 'Hello! How can I help you practice today?';
         state = state.copyWith(messages: const [
-          ConversationMessage(sender: 'tutor', text: 'Hello! How can I help you practice today?'),
+          ConversationMessage(sender: 'tutor', text: opening),
         ]);
+        await _speakTts(opening);
       }
     }
   }
@@ -167,9 +188,15 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     final target = (targetLanguage?.isNotEmpty ?? false)
         ? targetLanguage!
         : _ref.read(userLanguageProvider).learningLanguage;
+    // Fallback del nativo: primero el explícito, luego el guardado en BD
+    // (users.native_language, seteado en el onboarding), nunca el idioma de UI.
+    final storedNative = (_ref.read(userProfileProvider).value ?? const {})['native_language'] as String?;
     final native = (nativeLanguage?.isNotEmpty ?? false)
         ? nativeLanguage!
-        : _ref.read(userLanguageProvider).uiLanguage;
+        : ((storedNative?.isNotEmpty ?? false) ? storedNative! : 'es');
+
+    // Nueva sesión del Oráculo → se permite narrar de nuevo.
+    _ttsSuppressed = false;
 
     state = ConversationState.initial().copyWith(
       isOracleEvaluation: true,
@@ -221,16 +248,21 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   // ── TTS Init ────────────────────────────────────────────────────────────────
 
   Future<void> _initTts() async {
-    await _tts.setLanguage('en-US');
-    await _tts.setSpeechRate(0.48);
-    await _tts.setVolume(1.0);
-    await _tts.setPitch(1.05);
-    _tts.setCompletionHandler(() {
-      state = state.copyWith(isPlaying: false);
-    });
-    _tts.setErrorHandler((msg) {
-      state = state.copyWith(isPlaying: false);
-    });
+    try {
+      await _tts.setLanguage('en-US');
+      await _tts.setSpeechRate(0.48);
+      await _tts.setVolume(1.0);
+      await _tts.setPitch(1.05);
+      _tts.setCompletionHandler(() {
+        state = state.copyWith(isPlaying: false);
+      });
+      _tts.setErrorHandler((msg) {
+        state = state.copyWith(isPlaying: false);
+      });
+      _ttsReady = true;
+    } catch (_) {
+      _ttsReady = false;
+    }
   }
 
   // ── Start Audio Recording ────────────────────────────────────────────────────
@@ -252,17 +284,16 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         return;
       }
 
-      if (_userId != null &&
-          !_userId!.startsWith('guest_') &&
-          !state.isOracleEvaluation) {
+      if (_userId != null && !_userId!.startsWith('guest_')) {
         try {
-          final quota = await _repository.checkAiAudioQuota(_userId!);
-          final isAllowed = quota['is_allowed'] as bool? ?? true;
-          if (!isAllowed) {
+          final economyRepo = _ref.read(economyRepositoryProvider);
+          final mana = await economyRepo.getManaState(_userId!);
+          final remaining = (mana['remaining'] as num?)?.toInt() ?? 0;
+          if (remaining <= 0) {
             state = state.copyWith(
               isRecording: false,
               isProcessing: false,
-              errorMessage: 'Has agotado tu límite de audio mensual. Adquiere el plan Premium para continuar.',
+              errorMessage: 'SIN MANÁ: adquiere una porción o espera la renovación de tu plan para continuar.',
             );
             return;
           }
@@ -317,7 +348,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         final durationSec = DateTime.now().difference(recordingStart).inSeconds;
         if (_userId != null && !_userId!.startsWith('guest_') && durationSec > 0) {
           try {
-            await _repository.trackAiAudioTime(_userId!, durationSec);
+            // No bloquea el turno: el tracking de audio es best-effort.
+            unawaited(_repository.trackAiAudioTime(_userId!, durationSec));
           } catch (_) {}
         }
       }
@@ -337,7 +369,13 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           return;
         }
 
-        final transcription = await _repository.transcribeAudio(audioPath);
+        var transcription = await _repository.transcribeAudio(audioPath);
+        if (transcription.trim().isEmpty) {
+          // Reintento único de recuperación: Groq a veces devuelve vacío en
+          // clips muy cortos por un fallo transitorio del proveedor.
+          debugPrint('Groq STT: empty result, retrying once...');
+          transcription = await _repository.transcribeAudio(audioPath);
+        }
 
         if (transcription.trim().isNotEmpty) {
           state = state.copyWith(currentTranscribingText: '');
@@ -373,11 +411,6 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   }
 
   // ── Send Direct Text Message from Keyboard ──────────────────────────────────
-
-  /// Guarda la táctica conversacional elegida por el jugador.
-  void selectTactic(String tactic) {
-    state = state.copyWith(selectedTactic: tactic);
-  }
 
   Future<void> sendTextMessage(String text) async {
     final trimmed = text.trim();
@@ -452,12 +485,12 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       state = state.copyWith(isProcessing: false);
       _hasProcessedThisTurn = false;
 
-      // 4b. Registrar el turno (respuesta del usuario + pregunta del Oráculo).
+      // 4b. Registrar el turno sin bloquear la narración (best-effort DB).
       if (userText.isNotEmpty) {
-        await _recordOracleTurn(
+        unawaited(_recordOracleTurn(
           userText: userText,
           oracleResponse: fullOracleResponse,
-        );
+        ));
       }
 
       // 5. Evaluate completion: the Oracle signals the end of the exam with
@@ -466,7 +499,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         // Extraer el resultado declarado por el Oráculo (lo que el usuario vio).
         String? declaredCefr;
         String? declaredRank;
-        final resultMatch = RegExp(r'\[RESULT:CEFR=([ABC][12]),RANK=([A-Z]+)\]')
+        final resultMatch = RegExp(r'\[RESULT:CEFR=(PRE-A1|[ABC][12]),RANK=([A-Z]+)\]')
             .firstMatch(fullOracleResponse);
         if (resultMatch != null) {
           declaredCefr = resultMatch.group(1)?.toUpperCase();
@@ -575,6 +608,7 @@ CONVERSATION RULES:
 - Do NOT correct or teach during the exam. You are assessing, not tutoring.
 
 CEFR PROGRESSION (ask ~5 questions per band, adapting to the student's level):
+- PRE-A1 (single words, minimal vocabulary, no sentences): say hello, your name, yes/no, numbers, colors. One-word answers are perfectly acceptable.
 - A1 (basic vocabulary): name, where from, age, likes, family.
 - A2 (simple sentences, past simple, more vocabulary): daily routine, what did you do yesterday, family, favorite food, hometown.
 - B1 (opinions, narrations, everyday topics): a difficult situation you solved, free time, dream vacation, ideal job, opinion about learning languages.
@@ -585,7 +619,7 @@ CEFR PROGRESSION (ask ~5 questions per band, adapting to the student's level):
 PROGRESSION RULES:
 - Start at A1. After each answer, silently assess it.
 - Move to the NEXT band only when the student answers well (roughly 3 of the last 5 with sufficient fluency and comprehension).
-- If the student gives very short answers (1-2 words), repeats errors, or clearly struggles on 2 consecutive questions in the current band, STOP: the student's level is the last band they dominated. Do NOT push to a higher band they cannot handle.
+- If the student can ONLY produce isolated words (one-word answers), cannot form even a basic A1 sentence, or clearly struggles on 2 consecutive questions in the current band, STOP: the student's level is the last band they dominated. If they never dominate A1, assign PRE-A1.
 - Never advance just because you reached a count of questions — advance based on ability.
 
 METRICS TO TRACK SILENTLY (never mention them to the student): pronunciation, fluency, grammar, vocabulary, listening comprehension, ability to keep the conversation going, naturalness, correctness, language complexity, confidence, response time, coherence between questions and answers.
@@ -593,16 +627,28 @@ METRICS TO TRACK SILENTLY (never mention them to the student): pronunciation, fl
 ENDING:
 - Once you have determined the final level (either by climbing to C2 or by the student struggling on 2 consecutive questions), close the exam.
 - Your FINAL message must:
-  1. Congratulate the student in an immersive, mystical tone and state the assigned CEFR level and Guild rank (use the scale E, D, C, B, A, S, SS, SSS where A1=E, A2=D, B1=C, B2=B, C1=A, C2=S).
+  1. Congratulate the student in an immersive, mystical tone and state the assigned CEFR level and Guild rank (use the scale F, E, D, C, B, A, S, SS, SSS where PRE-A1=F, A1=E, A2=D, B1=C, B2=B, C1=A, C2=S).
   2. Say a short mystical closing line in $target.
   3. End with EXACTLY this machine-readable token on its own line, with NO extra text after it:
 [EVALUATION_COMPLETE][RESULT:CEFR=B1,RANK=C]
-  (replace B1/C with the real assigned level/rank — for example A1/E, A2/D, B2/B, C1/A, C2/S)
+  (replace B1/C with the real assigned level/rank — for example PRE-A1/F, A1/E, A2/D, B2/B, C1/A, C2/S)
 - Never use either token before the final message.''';
+
+    // Ventana fija de contexto: enviar todo el historial hace crecer los
+    // tokens de entrada con cada turno y dispara la latencia del primer token
+    // de DeepSeek. Se conservan los últimos 24 mensajes (≈12 turnos), que dan
+    // contexto suficiente para la progresión adaptativa del examen.
+    const int maxContextMessages = 24;
+    final contextMessages = state.messages
+        .where((m) => m.text.trim().isNotEmpty)
+        .toList();
+    final window = contextMessages.length > maxContextMessages
+        ? contextMessages.sublist(contextMessages.length - maxContextMessages)
+        : contextMessages;
 
     return [
       {'role': 'system', 'content': systemPrompt},
-      ...state.messages.map((m) => {
+      ...window.map((m) => {
             'role': m.sender == 'user' ? 'user' : 'assistant',
             'content': m.text,
           }),
@@ -633,7 +679,7 @@ ENDING:
         ai = await PlacementAiEvaluator.evaluatePlacement(answers, dio: dio);
       } catch (_) {}
 
-      final validCefrs = const ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      final validCefrs = const ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
       final aiCefr = _stringField(ai, 'cefr_level', '').toUpperCase();
       final aiRank = _stringField(ai, 'game_rank', '').toUpperCase();
 
@@ -843,27 +889,31 @@ ENDING:
     if (_hasProcessedThisTurn) return;
     _hasProcessedThisTurn = true;
 
-    // Modo Oráculo: la evaluación conversacional no consume invocaciones del
-    // Núcleo Arcano ni aplica correcciones de tutor — solo conduce la entrevista.
-    if (state.isOracleEvaluation) {
-      await _runOracleTurn(userText: userText);
-      return;
-    }
-
-    // Núcleo Arcano: las invocaciones limitan los turnos de IA (T-506).
-    if (_userId != null) {
+    // Consumo de Maná (FASE B): TODA acción de IA cuesta maná. El costo se lee
+    // de la BD (ai_action_costs) y lo debita el RPC consume_mana (server-side).
+    if (_userId != null && !_userId!.startsWith('guest_')) {
+      final actionCode = state.isOracleEvaluation
+          ? 'oracle_eval'
+          : (state.activeScenarioId != null ? 'dungeon_turn' : 'free_chat_turn');
       try {
         final economyRepo = _ref.read(economyRepositoryProvider);
-        final canInvoke = await economyRepo.canInvoke(_userId!);
-        if (!canInvoke) {
+        final result = await economyRepo.consumeMana(_userId!, actionCode);
+        final ok = result['success'] as bool? ?? false;
+        if (!ok) {
           state = state.copyWith(
             isProcessing: false,
-            errorMessage: 'NÚCLEO ARCANO AGOTADO. VISITA LA TIENDA PARA RECARGAR.',
+            errorMessage: 'SIN MANÁ: adquiere una porción o espera la renovación de tu plan para continuar.',
           );
           return;
         }
-        await economyRepo.useInvocation(_userId!);
+        _ref.invalidate(manaStateProvider);
       } catch (_) {}
+    }
+
+    // Modo Oráculo: la evaluación conversacional solo conduce la entrevista.
+    if (state.isOracleEvaluation) {
+      await _runOracleTurn(userText: userText);
+      return;
     }
 
     try {
@@ -1046,11 +1096,25 @@ ENDING:
   // ── On-Device TTS ───────────────────────────────────────────────────────────
 
   Future<void> _speakTts(String text) async {
-    if (state.isPlaying) {
-      await _tts.stop();
+    // Si el usuario ya salió de la pantalla (TTS suprimido), no narrar aunque
+    // un turno de la IA termine después de la salida.
+    if (_ttsSuppressed) return;
+    try {
+      // Asegura que el motor TTS esté inicializado antes del primer speak
+      // (evita que la primera narración del chat se pierda por una carrera).
+      if (!_ttsReady) await _initTts();
+      if (state.isPlaying) {
+        await _tts.stop();
+      }
+      // Re-check tras los awaits: la salida pudo ocurrir mientras se esperaba
+      // la inicialización del motor TTS.
+      if (_ttsSuppressed) return;
+      state = state.copyWith(isPlaying: true);
+      await _tts.speak(text);
+    } catch (e) {
+      debugPrint('TTS speak failed (non-blocking): $e');
+      state = state.copyWith(isPlaying: false);
     }
-    state = state.copyWith(isPlaying: true);
-    await _tts.speak(text);
   }
 
   /// Sends only uncompleted goals to DeepSeek for evaluation.
@@ -1109,7 +1173,8 @@ ENDING:
     await _speakTts(text);
   }
 
-  Future<void> stopTts() async {
+  Future<void> stopTts({bool suppress = false}) async {
+    if (suppress) _ttsSuppressed = true;
     await _tts.stop();
     state = state.copyWith(isPlaying: false);
   }
@@ -1122,7 +1187,8 @@ ENDING:
         await repo.logPracticeSession(_userId!, practiceMinutes);
       } catch (_) {}
 
-      // Loot/drops (T-505) + balance (T-507): escalado por nivel CEFR.
+      // Loot/drops (FASE B): las sesiones otorgan ITEMS (fragmentos, oro) y
+      // AURA (mérito sin tope). NUNCA otorgan maná ni gemas de maná.
       try {
         final economyRepo = _ref.read(economyRepositoryProvider);
         final completedGoals = state.goalEvaluationResults.values.where((v) => v).length;
@@ -1138,9 +1204,21 @@ ENDING:
             _ => 0,
           };
           final fragments = completedGoals * (5 + levelBonus);
-          final gems = completedGoals * (2 + levelBonus);
+          final gold = completedGoals * (10 + levelBonus);
           await economyRepo.addFragments(_userId!, fragments);
-          await economyRepo.addGems(_userId!, gems);
+          await economyRepo.addGold(_userId!, gold);
+          _ref.invalidate(fragmentBalanceProvider);
+          _ref.invalidate(goldBalanceProvider);
+
+          // Aura: mérito ilimitado. El RPC aplica el factor_radar (radar
+          // pondera la ganancia pero nunca topa el total) e idempotencia por sesión.
+          try {
+            final radar = await _ref.read(skillsRadarProvider.future);
+            final sessionId = _conversationId ??
+                '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
+            await economyRepo.addAuraXp(_userId!, sessionId, radar, completedGoals, levelBonus);
+            _ref.invalidate(auraXpProvider);
+          } catch (_) {}
 
           // Bonus de stats RPG (STR/INT/DEX/LUK → XP real):
           // cada punto por encima de la base (5) suma XP por meta completada.
@@ -1159,6 +1237,33 @@ ENDING:
           }
         }
         await economyRepo.updateStreak(_userId!);
+      } catch (_) {}
+
+      // Sincronizar títulos de habilidad ganados por desempeño conversacional
+      // (incluye el score de carisma evaluado por IA de esta sesión).
+      try {
+        final userTexts = state.messages
+            .where((m) => m.sender == 'user')
+            .map((m) => m.text)
+            .where((t) => t.trim().isNotEmpty)
+            .toList();
+        int carisma = 0;
+        if (userTexts.isNotEmpty) {
+          carisma = await _repository.evaluateCarismaScore(userTexts);
+        }
+        final titleRepo = _ref.read(dashboardRepositoryProvider);
+        final newlyEarned = await titleRepo.syncEarnedTitles(
+          _userId!,
+          carisma: carisma.toDouble(),
+        );
+        if (newlyEarned.isNotEmpty) {
+          final titles = newlyEarned
+              .map((c) => HunterSkillTitleCatalog.forCode(c))
+              .whereType<SkillTitle>()
+              .toList();
+          _ref.read(newEarnedTitlesProvider.notifier).state = titles;
+        }
+        _ref.invalidate(earnedTitlesProvider);
       } catch (_) {}
 
       try {

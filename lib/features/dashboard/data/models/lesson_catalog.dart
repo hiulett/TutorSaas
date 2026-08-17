@@ -96,6 +96,552 @@ class LessonCatalog {
   static final List<LessonData> catalog = [
 
     // =========================================================================
+    // NIVEL PRE-A1 — Pre-A1 — Fundamentos (20 lecciones)
+    // Para hablantes super-básicos: palabras sueltas, saludos, números y
+    // frases de una sola palabra. Sin verbos complejos ni oraciones largas.
+    // =========================================================================
+
+    // PRE-A1-01
+    LessonData(
+      id: 'prea1_hello_hello',
+      title: 'First Greetings',
+      description: 'Say hello and meet someone new.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'handshake',
+      mainObjective: 'Say hello and greet someone with simple words.',
+      scenarioContext: 'You meet a friendly person. Use one word to say hello.',
+      assistantRole: 'Friendly Stranger',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Hello!',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say hello', keywords: ['hello', 'hi'], examplePhrase: 'Hello'),
+        ScenarioGoalItem(id: 'g2', text: 'Say your name', keywords: ['name'], examplePhrase: 'My name is...'),
+        ScenarioGoalItem(id: 'g3', text: 'Say nice to meet you', keywords: ['meet'], examplePhrase: 'Nice to meet you'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Hello!', translation: '¡Hola!'),
+        UsefulPhraseItem(id: 'p2', phrase: 'My name is...', translation: 'Mi nombre es...'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Nice to meet you.', translation: 'Encantado de conocerte.'),
+      ],
+    ),
+
+    // PRE-A1-02
+    LessonData(
+      id: 'prea1_my_name_is',
+      title: 'Introducing Your Name',
+      description: 'Say your name and ask someone their name.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'handshake',
+      mainObjective: 'Say your name and ask for another name.',
+      scenarioContext: 'A new classmate wants to know your name.',
+      assistantRole: 'Classmate',
+      userRole: 'Student',
+      initialAssistantMessage: 'My name is Anna. What is your name?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say your name', keywords: ['name'], examplePhrase: 'My name is...'),
+        ScenarioGoalItem(id: 'g2', text: 'Say your age', keywords: ['age', 'years', 'old'], examplePhrase: 'I am ten'),
+        ScenarioGoalItem(id: 'g3', text: 'Say where you are from', keywords: ['from'], examplePhrase: 'I am from Mexico'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'My name is...', translation: 'Mi nombre es...'),
+        UsefulPhraseItem(id: 'p2', phrase: 'I am from...', translation: 'Soy de...'),
+        UsefulPhraseItem(id: 'p3', phrase: 'What is your name?', translation: '¿Cómo te llamas?'),
+      ],
+    ),
+
+    // PRE-A1-03
+    LessonData(
+      id: 'prea1_yes_no',
+      title: 'Saying Yes and No',
+      description: 'Answer simple questions with yes or no.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'school',
+      mainObjective: 'Answer with one word: yes or no.',
+      scenarioContext: 'A friend asks you easy questions.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Do you like coffee? Yes or no?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say yes', keywords: ['yes'], examplePhrase: 'Yes'),
+        ScenarioGoalItem(id: 'g2', text: 'Say no', keywords: ['no'], examplePhrase: 'No'),
+        ScenarioGoalItem(id: 'g3', text: 'Say please', keywords: ['please'], examplePhrase: 'Yes, please'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Yes', translation: 'Sí'),
+        UsefulPhraseItem(id: 'p2', phrase: 'No', translation: 'No'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Yes, please.', translation: 'Sí, por favor.'),
+      ],
+    ),
+
+    // PRE-A1-04
+    LessonData(
+      id: 'prea1_please_thank_you',
+      title: 'Please and Thank You',
+      description: 'Use please and thank you with simple words.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'handshake',
+      mainObjective: 'Use please and thank you politely.',
+      scenarioContext: 'Someone gives you a gift or a drink.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Here is a drink for you.',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say thank you', keywords: ['thank', 'thanks'], examplePhrase: 'Thank you'),
+        ScenarioGoalItem(id: 'g2', text: 'Say please', keywords: ['please'], examplePhrase: 'Please'),
+        ScenarioGoalItem(id: 'g3', text: 'Say you are welcome', keywords: ['welcome'], examplePhrase: 'You are welcome'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Thank you.', translation: 'Gracias.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Please.', translation: 'Por favor.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'You are welcome.', translation: 'De nada.'),
+      ],
+    ),
+
+    // PRE-A1-05
+    LessonData(
+      id: 'prea1_numbers_1_to_5',
+      title: 'Numbers 1 to 5',
+      description: 'Count and say numbers from one to five.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'school',
+      mainObjective: 'Say numbers one to five.',
+      scenarioContext: 'You count things in a shop.',
+      assistantRole: 'Shop Clerk',
+      userRole: 'Customer',
+      initialAssistantMessage: 'How many apples? One, two, three...',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say one', keywords: ['one'], examplePhrase: 'One'),
+        ScenarioGoalItem(id: 'g2', text: 'Say two', keywords: ['two'], examplePhrase: 'Two'),
+        ScenarioGoalItem(id: 'g3', text: 'Say three, four, five', keywords: ['three', 'four', 'five'], examplePhrase: 'Three'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'One, two, three', translation: 'Uno, dos, tres'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Four, five', translation: 'Cuatro, cinco'),
+        UsefulPhraseItem(id: 'p3', phrase: 'How many?', translation: '¿Cuántos?'),
+      ],
+    ),
+
+    // PRE-A1-06
+    LessonData(
+      id: 'prea1_numbers_6_to_10',
+      title: 'Numbers 6 to 10',
+      description: 'Count and say numbers from six to ten.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'school',
+      mainObjective: 'Say numbers six to ten.',
+      scenarioContext: 'You count your fingers and coins.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Now let us count more. Six, seven, eight...',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say six', keywords: ['six'], examplePhrase: 'Six'),
+        ScenarioGoalItem(id: 'g2', text: 'Say seven', keywords: ['seven'], examplePhrase: 'Seven'),
+        ScenarioGoalItem(id: 'g3', text: 'Say eight, nine, ten', keywords: ['eight', 'nine', 'ten'], examplePhrase: 'Eight'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Six, seven, eight', translation: 'Seis, siete, ocho'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Nine, ten', translation: 'Nueve, diez'),
+        UsefulPhraseItem(id: 'p3', phrase: 'I have ten fingers.', translation: 'Tengo diez dedos.'),
+      ],
+    ),
+
+    // PRE-A1-07
+    LessonData(
+      id: 'prea1_basic_colors',
+      title: 'Basic Colors',
+      description: 'Say the names of simple colors.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'school',
+      mainObjective: 'Say red, blue and yellow.',
+      scenarioContext: 'You look at colored objects together.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Look! What color is this?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say red', keywords: ['red'], examplePhrase: 'Red'),
+        ScenarioGoalItem(id: 'g2', text: 'Say blue', keywords: ['blue'], examplePhrase: 'Blue'),
+        ScenarioGoalItem(id: 'g3', text: 'Say yellow or green', keywords: ['yellow', 'green'], examplePhrase: 'Green'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'It is red.', translation: 'Es rojo.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'It is blue.', translation: 'Es azul.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'I like green.', translation: 'Me gusta el verde.'),
+      ],
+    ),
+
+    // PRE-A1-08
+    LessonData(
+      id: 'prea1_good_morning',
+      title: 'Good Morning and Good Night',
+      description: 'Say good morning and good night.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'schedule',
+      mainObjective: 'Greet people at different times of the day.',
+      scenarioContext: 'You meet someone in the morning and at night.',
+      assistantRole: 'Neighbor',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Good morning!',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say good morning', keywords: ['morning'], examplePhrase: 'Good morning'),
+        ScenarioGoalItem(id: 'g2', text: 'Say good afternoon', keywords: ['afternoon'], examplePhrase: 'Good afternoon'),
+        ScenarioGoalItem(id: 'g3', text: 'Say good night', keywords: ['night'], examplePhrase: 'Good night'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Good morning.', translation: 'Buenos días.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Good afternoon.', translation: 'Buenas tardes.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Good night.', translation: 'Buenas noches.'),
+      ],
+    ),
+
+    // PRE-A1-09
+    LessonData(
+      id: 'prea1_how_are_you',
+      title: 'How Are You?',
+      description: 'Ask and answer about feelings with one word.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'people',
+      mainObjective: 'Say how you feel with simple words.',
+      scenarioContext: 'A friend asks how you are feeling today.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Hello! How are you?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say you are fine', keywords: ['fine', 'good', 'ok'], examplePhrase: 'I am fine'),
+        ScenarioGoalItem(id: 'g2', text: 'Say you are tired', keywords: ['tired'], examplePhrase: 'Tired'),
+        ScenarioGoalItem(id: 'g3', text: 'Ask how they are', keywords: ['you'], examplePhrase: 'And you?'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'I am fine.', translation: 'Estoy bien.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'I am tired.', translation: 'Estoy cansado.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'How are you?', translation: '¿Cómo estás?'),
+      ],
+    ),
+
+    // PRE-A1-10
+    LessonData(
+      id: 'prea1_goodbye',
+      title: 'Saying Goodbye',
+      description: 'Say goodbye and see you later.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'handshake',
+      mainObjective: 'Say goodbye with simple words.',
+      scenarioContext: 'You finish talking and leave.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'It was nice to talk. Bye!',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say goodbye', keywords: ['bye', 'goodbye'], examplePhrase: 'Goodbye'),
+        ScenarioGoalItem(id: 'g2', text: 'Say see you later', keywords: ['later'], examplePhrase: 'See you later'),
+        ScenarioGoalItem(id: 'g3', text: 'Say have a good day', keywords: ['day'], examplePhrase: 'Have a good day'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Goodbye!', translation: '¡Adiós!'),
+        UsefulPhraseItem(id: 'p2', phrase: 'See you later.', translation: 'Hasta luego.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Have a good day.', translation: 'Que tengas un buen día.'),
+      ],
+    ),
+
+    // PRE-A1-11
+    LessonData(
+      id: 'prea1_my_family',
+      title: 'My Family',
+      description: 'Say words for family members.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'people',
+      mainObjective: 'Say mother, father, brother and sister.',
+      scenarioContext: 'You show a photo of your family.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Is this your family?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say mother', keywords: ['mother', 'mom', 'mum'], examplePhrase: 'Mother'),
+        ScenarioGoalItem(id: 'g2', text: 'Say father', keywords: ['father', 'dad'], examplePhrase: 'Father'),
+        ScenarioGoalItem(id: 'g3', text: 'Say brother or sister', keywords: ['brother', 'sister'], examplePhrase: 'Brother'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'This is my mother.', translation: 'Esta es mi madre.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'This is my father.', translation: 'Este es mi padre.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'I have one sister.', translation: 'Tengo una hermana.'),
+      ],
+    ),
+
+    // PRE-A1-12
+    LessonData(
+      id: 'prea1_body_words',
+      title: 'Body Words',
+      description: 'Say simple words for the body.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'people',
+      mainObjective: 'Say head, hand and eyes.',
+      scenarioContext: 'You point to parts of the body.',
+      assistantRole: 'Teacher',
+      userRole: 'Student',
+      initialAssistantMessage: 'Touch your head!',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say head', keywords: ['head'], examplePhrase: 'Head'),
+        ScenarioGoalItem(id: 'g2', text: 'Say hand', keywords: ['hand'], examplePhrase: 'Hand'),
+        ScenarioGoalItem(id: 'g3', text: 'Say eyes', keywords: ['eye', 'eyes'], examplePhrase: 'Eyes'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'This is my head.', translation: 'Esta es mi cabeza.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'This is my hand.', translation: 'Esta es mi mano.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'These are my eyes.', translation: 'Estos son mis ojos.'),
+      ],
+    ),
+
+    // PRE-A1-13
+    LessonData(
+      id: 'prea1_food_words',
+      title: 'Food Words',
+      description: 'Say words for food and drink.',
+      level: 'PRE-A1',
+      category: 'cooking',
+      interest: 'cooking',
+      difficulty: 1,
+      iconKey: 'restaurant',
+      mainObjective: 'Say water, bread, milk and apple.',
+      scenarioContext: 'You look at food on a table.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Look! Water and bread.',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say water', keywords: ['water'], examplePhrase: 'Water'),
+        ScenarioGoalItem(id: 'g2', text: 'Say bread', keywords: ['bread'], examplePhrase: 'Bread'),
+        ScenarioGoalItem(id: 'g3', text: 'Say milk or apple', keywords: ['milk', 'apple'], examplePhrase: 'Milk'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Water, please.', translation: 'Agua, por favor.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Bread, please.', translation: 'Pan, por favor.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'I like milk.', translation: 'Me gusta la leche.'),
+      ],
+    ),
+
+    // PRE-A1-14
+    LessonData(
+      id: 'prea1_one_water_please',
+      title: 'Ordering a Drink',
+      description: 'Ask for one simple drink.',
+      level: 'PRE-A1',
+      category: 'travel',
+      interest: 'travel',
+      difficulty: 1,
+      iconKey: 'restaurant',
+      mainObjective: 'Ask for water or tea with one word.',
+      scenarioContext: 'You are in a small cafe.',
+      assistantRole: 'Waiter',
+      userRole: 'Customer',
+      initialAssistantMessage: 'Hello. What do you want?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Ask for water', keywords: ['water'], examplePhrase: 'Water'),
+        ScenarioGoalItem(id: 'g2', text: 'Say please', keywords: ['please'], examplePhrase: 'Water, please'),
+        ScenarioGoalItem(id: 'g3', text: 'Say thank you', keywords: ['thank', 'thanks'], examplePhrase: 'Thank you'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Water, please.', translation: 'Agua, por favor.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Tea, please.', translation: 'Té, por favor.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Thank you.', translation: 'Gracias.'),
+      ],
+    ),
+
+    // PRE-A1-15
+    LessonData(
+      id: 'prea1_asking_for_help',
+      title: 'Asking for Help',
+      description: 'Ask for help with one word.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'handshake',
+      mainObjective: 'Say help and please.',
+      scenarioContext: 'You need help in the street.',
+      assistantRole: 'Stranger',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Are you okay?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say help', keywords: ['help'], examplePhrase: 'Help'),
+        ScenarioGoalItem(id: 'g2', text: 'Say help me', keywords: ['help', 'me'], examplePhrase: 'Help me'),
+        ScenarioGoalItem(id: 'g3', text: 'Say thank you', keywords: ['thank', 'thanks'], examplePhrase: 'Thank you'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Help!', translation: '¡Ayuda!'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Help me, please.', translation: 'Ayúdame, por favor.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Thank you.', translation: 'Gracias.'),
+      ],
+    ),
+
+    // PRE-A1-16
+    LessonData(
+      id: 'prea1_i_dont_understand',
+      title: "I Don't Understand",
+      description: 'Say that you do not understand.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'school',
+      mainObjective: 'Say simple phrases to ask for repetition.',
+      scenarioContext: 'Someone speaks too fast for you.',
+      assistantRole: 'Teacher',
+      userRole: 'Student',
+      initialAssistantMessage: 'Do you understand me?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say no', keywords: ['no'], examplePhrase: 'No'),
+        ScenarioGoalItem(id: 'g2', text: 'Say I do not understand', keywords: ['understand'], examplePhrase: 'I do not understand'),
+        ScenarioGoalItem(id: 'g3', text: 'Say again, please', keywords: ['again'], examplePhrase: 'Again, please'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: "I don't understand.", translation: 'No entiendo.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Again, please.', translation: 'Otra vez, por favor.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'Slowly, please.', translation: 'Despacio, por favor.'),
+      ],
+    ),
+
+    // PRE-A1-17
+    LessonData(
+      id: 'prea1_days_of_week',
+      title: 'Days of the Week',
+      description: 'Say simple days of the week.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'schedule',
+      mainObjective: 'Say Monday, Sunday and today.',
+      scenarioContext: 'You talk about the day of the week.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'What day is it today?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say Monday', keywords: ['monday'], examplePhrase: 'Monday'),
+        ScenarioGoalItem(id: 'g2', text: 'Say Sunday', keywords: ['sunday'], examplePhrase: 'Sunday'),
+        ScenarioGoalItem(id: 'g3', text: 'Say today', keywords: ['today'], examplePhrase: 'Today'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'Today is Monday.', translation: 'Hoy es lunes.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'Sunday.', translation: 'Domingo.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'See you on Monday.', translation: 'Nos vemos el lunes.'),
+      ],
+    ),
+
+    // PRE-A1-18
+    LessonData(
+      id: 'prea1_weather_words',
+      title: 'Weather Words',
+      description: 'Say simple words about the weather.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'explore',
+      mainObjective: 'Say sun, rain and cold.',
+      scenarioContext: 'You talk about the weather outside.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'Look outside. Is it cold?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say sun', keywords: ['sun', 'sunny'], examplePhrase: 'Sun'),
+        ScenarioGoalItem(id: 'g2', text: 'Say rain', keywords: ['rain', 'rainy'], examplePhrase: 'Rain'),
+        ScenarioGoalItem(id: 'g3', text: 'Say cold or hot', keywords: ['cold', 'hot'], examplePhrase: 'Cold'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'It is sunny.', translation: 'Hace sol.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'It is raining.', translation: 'Está lloviendo.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'It is cold.', translation: 'Hace frío.'),
+      ],
+    ),
+
+    // PRE-A1-19
+    LessonData(
+      id: 'prea1_common_objects',
+      title: 'Common Objects',
+      description: 'Say names of everyday objects.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'school',
+      mainObjective: 'Say book, phone and bag.',
+      scenarioContext: 'You point to objects in a room.',
+      assistantRole: 'Friend',
+      userRole: 'New Speaker',
+      initialAssistantMessage: 'What is this? A book?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say book', keywords: ['book'], examplePhrase: 'Book'),
+        ScenarioGoalItem(id: 'g2', text: 'Say phone', keywords: ['phone'], examplePhrase: 'Phone'),
+        ScenarioGoalItem(id: 'g3', text: 'Say bag', keywords: ['bag'], examplePhrase: 'Bag'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'This is a book.', translation: 'Esto es un libro.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'This is a phone.', translation: 'Esto es un teléfono.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'This is a bag.', translation: 'Esto es una bolsa.'),
+      ],
+    ),
+
+    // PRE-A1-20
+    LessonData(
+      id: 'prea1_this_is',
+      title: 'Making a Simple Sentence',
+      description: 'Make your first simple sentence.',
+      level: 'PRE-A1',
+      category: 'daily',
+      interest: 'daily',
+      difficulty: 1,
+      iconKey: 'school',
+      mainObjective: 'Say "this is" and "I am" with one word.',
+      scenarioContext: 'You show things and introduce yourself.',
+      assistantRole: 'Teacher',
+      userRole: 'Student',
+      initialAssistantMessage: 'This is a pen. And you?',
+      goals: [
+        ScenarioGoalItem(id: 'g1', text: 'Say this is', keywords: ['this', 'is'], examplePhrase: 'This is'),
+        ScenarioGoalItem(id: 'g2', text: 'Say I am', keywords: ['am'], examplePhrase: 'I am'),
+        ScenarioGoalItem(id: 'g3', text: 'Say you are', keywords: ['you', 'are'], examplePhrase: 'You are'),
+      ],
+      usefulPhrases: [
+        UsefulPhraseItem(id: 'p1', phrase: 'This is a book.', translation: 'Esto es un libro.'),
+        UsefulPhraseItem(id: 'p2', phrase: 'I am happy.', translation: 'Estoy feliz.'),
+        UsefulPhraseItem(id: 'p3', phrase: 'You are my friend.', translation: 'Eres mi amigo.'),
+      ],
+    ),
+
+    // =========================================================================
     // NIVEL A1 — A1 — Principiante (20 lecciones)
     // =========================================================================
 
@@ -3617,6 +4163,8 @@ class LessonCatalog {
   static String levelAppropriateOpening(String level, String title) {
     final lvl = level.trim().toUpperCase().split('-').first;
     switch (lvl) {
+      case 'PRE-A1':
+        return 'Hi! I am your tutor. Let us say one word together. Hello! What is your name?';
       case 'A1':
         return 'Hi! I am your tutor. Welcome to "$title". Today we will talk in simple English. My name is Alex. What is your name?';
       case 'A2':
@@ -3650,13 +4198,28 @@ class LessonCatalog {
     return message;
   }
 
-  static void updateCatalogFromMap(Map<String, dynamic> data) {
+  static void updateCatalogFromMap(Map<String, dynamic> data, {String? locale}) {
     try {
       final id = data['id']?.toString();
       if (id == null || id.isEmpty) return;
 
-      final title = data['title'] as String? ?? 'Escenario';
-      final description = data['description'] as String? ?? '';
+      // Campos localizados (migración 20260815): se prefiere el título y la
+      // descripción en el idioma de la UI (es/pt) con fallback al valor base.
+      final String uiLocale = locale?.toLowerCase().startsWith('es') == true
+          ? 'es'
+          : locale?.toLowerCase().startsWith('pt') == true
+              ? 'pt'
+              : 'base';
+
+      String localized(String baseKey, String esKey, String ptKey, String fallback) {
+        final base = data[baseKey] as String? ?? fallback;
+        if (uiLocale == 'es') return (data[esKey] as String?)?.isNotEmpty == true ? data[esKey] as String : base;
+        if (uiLocale == 'pt') return (data[ptKey] as String?)?.isNotEmpty == true ? data[ptKey] as String : base;
+        return base;
+      }
+
+      final title = localized('title', 'title_es', 'title_pt', 'Escenario');
+      final description = localized('description', 'description_es', 'description_pt', '');
       final level = data['difficulty_level'] as String? ?? 'A1';
       final category = data['category'] as String? ?? 'general';
 
@@ -4026,7 +4589,7 @@ class LessonCatalog {
       id: cleanId ?? 'custom_lesson',
       title: displayTitle,
       description: 'Práctica interactiva de conversación guiada.',
-      level: 'A1-C2',
+      level: 'PRE-A1-C2',
       category: 'general',
       interest: 'general',
       difficulty: 1,

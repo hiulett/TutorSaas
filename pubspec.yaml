@@ -36,6 +36,7 @@ dependencies:
   video_player: ^2.9.3
   path_provider: ^2.1.2
   just_audio: ^0.9.44
+  livekit_client: ^2.9.0
 
   # UI/UX & Utilities
   fl_chart: ^0.68.0
@@ -50,6 +51,9 @@ dependencies:
   json_annotation: ^4.9.0
   logger: ^2.0.2
   image_picker: ^1.1.2
+  url_launcher: ^6.3.2
+  purchases_flutter: ^10.9.0
+  purchases_ui_flutter: ^10.9.0
 
 dev_dependencies:
   flutter_test:

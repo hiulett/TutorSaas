@@ -32,10 +32,7 @@ mixin _$ConversationState {
       throw _privateConstructorUsedError;
 
   /// Counter of goals completed since last build (drives FloatingReward).
-  int get newGoalsCompleted => throw _privateConstructorUsedError;
-
-  /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
-  String get selectedTactic =>
+  int get newGoalsCompleted =>
       throw _privateConstructorUsedError; // ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
   /// True when this session is the Oracle conversational placement exam.
   bool get isOracleEvaluation => throw _privateConstructorUsedError;
@@ -77,7 +74,6 @@ abstract class $ConversationStateCopyWith<$Res> {
       String? activeScenarioName,
       Map<String, bool> goalEvaluationResults,
       int newGoalsCompleted,
-      String selectedTactic,
       bool isOracleEvaluation,
       String oracleTargetLanguage,
       String oracleNativeLanguage,
@@ -109,7 +105,6 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
     Object? activeScenarioName = freezed,
     Object? goalEvaluationResults = null,
     Object? newGoalsCompleted = null,
-    Object? selectedTactic = null,
     Object? isOracleEvaluation = null,
     Object? oracleTargetLanguage = null,
     Object? oracleNativeLanguage = null,
@@ -158,10 +153,6 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
           ? _value.newGoalsCompleted
           : newGoalsCompleted // ignore: cast_nullable_to_non_nullable
               as int,
-      selectedTactic: null == selectedTactic
-          ? _value.selectedTactic
-          : selectedTactic // ignore: cast_nullable_to_non_nullable
-              as String,
       isOracleEvaluation: null == isOracleEvaluation
           ? _value.isOracleEvaluation
           : isOracleEvaluation // ignore: cast_nullable_to_non_nullable
@@ -209,7 +200,6 @@ abstract class _$$ConversationStateImplCopyWith<$Res>
       String? activeScenarioName,
       Map<String, bool> goalEvaluationResults,
       int newGoalsCompleted,
-      String selectedTactic,
       bool isOracleEvaluation,
       String oracleTargetLanguage,
       String oracleNativeLanguage,
@@ -239,7 +229,6 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
     Object? activeScenarioName = freezed,
     Object? goalEvaluationResults = null,
     Object? newGoalsCompleted = null,
-    Object? selectedTactic = null,
     Object? isOracleEvaluation = null,
     Object? oracleTargetLanguage = null,
     Object? oracleNativeLanguage = null,
@@ -288,10 +277,6 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
           ? _value.newGoalsCompleted
           : newGoalsCompleted // ignore: cast_nullable_to_non_nullable
               as int,
-      selectedTactic: null == selectedTactic
-          ? _value.selectedTactic
-          : selectedTactic // ignore: cast_nullable_to_non_nullable
-              as String,
       isOracleEvaluation: null == isOracleEvaluation
           ? _value.isOracleEvaluation
           : isOracleEvaluation // ignore: cast_nullable_to_non_nullable
@@ -334,7 +319,6 @@ class _$ConversationStateImpl implements _ConversationState {
       this.activeScenarioName,
       final Map<String, bool> goalEvaluationResults = const {},
       this.newGoalsCompleted = 0,
-      this.selectedTactic = 'fluency',
       this.isOracleEvaluation = false,
       this.oracleTargetLanguage = 'en',
       this.oracleNativeLanguage = 'es',
@@ -391,11 +375,6 @@ class _$ConversationStateImpl implements _ConversationState {
   @override
   @JsonKey()
   final int newGoalsCompleted;
-
-  /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
-  @override
-  @JsonKey()
-  final String selectedTactic;
 // ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
   /// True when this session is the Oracle conversational placement exam.
   @override
@@ -437,7 +416,7 @@ class _$ConversationStateImpl implements _ConversationState {
 
   @override
   String toString() {
-    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, selectedTactic: $selectedTactic, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleEvaluating: $oracleEvaluating, oracleFinished: $oracleFinished, oracleResult: $oracleResult)';
+    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleEvaluating: $oracleEvaluating, oracleFinished: $oracleFinished, oracleResult: $oracleResult)';
   }
 
   @override
@@ -465,8 +444,6 @@ class _$ConversationStateImpl implements _ConversationState {
                 .equals(other._goalEvaluationResults, _goalEvaluationResults) &&
             (identical(other.newGoalsCompleted, newGoalsCompleted) ||
                 other.newGoalsCompleted == newGoalsCompleted) &&
-            (identical(other.selectedTactic, selectedTactic) ||
-                other.selectedTactic == selectedTactic) &&
             (identical(other.isOracleEvaluation, isOracleEvaluation) ||
                 other.isOracleEvaluation == isOracleEvaluation) &&
             (identical(other.oracleTargetLanguage, oracleTargetLanguage) ||
@@ -494,7 +471,6 @@ class _$ConversationStateImpl implements _ConversationState {
       activeScenarioName,
       const DeepCollectionEquality().hash(_goalEvaluationResults),
       newGoalsCompleted,
-      selectedTactic,
       isOracleEvaluation,
       oracleTargetLanguage,
       oracleNativeLanguage,
@@ -522,7 +498,6 @@ abstract class _ConversationState implements ConversationState {
       final String? activeScenarioName,
       final Map<String, bool> goalEvaluationResults,
       final int newGoalsCompleted,
-      final String selectedTactic,
       final bool isOracleEvaluation,
       final String oracleTargetLanguage,
       final String oracleNativeLanguage,
@@ -556,10 +531,6 @@ abstract class _ConversationState implements ConversationState {
 
   /// Counter of goals completed since last build (drives FloatingReward).
   int get newGoalsCompleted;
-  @override
-
-  /// Selected conversational tactic ('fluency' | 'grammar' | 'hints').
-  String get selectedTactic;
   @override // ── Oracle Evaluation Mode (onboarding Step 4) ────────────────────────
   /// True when this session is the Oracle conversational placement exam.
   bool get isOracleEvaluation;

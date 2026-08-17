@@ -1,28 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../../core/i18n/language_settings.dart';
 import '../../data/repositories/mission_repository.dart';
 import '../../domain/repositories/mission_repository.dart';
 import '../../domain/models/mission_models.dart';
-
-/// Fecha en formato YYYY-MM-DD (zona local) para claves de determinismo diario.
-String _dateKey(DateTime date) {
-  final d = date.toLocal();
-  final month = d.month.toString().padLeft(2, '0');
-  final day = d.day.toString().padLeft(2, '0');
-  return '${d.year}-$month-$day';
-}
-
-/// Índice estable de la misión diaria: hash simple de "$userId-$fecha"
-/// sobre el catálogo, de modo que el mismo día siempre seleccione la misma misión.
-int _dailySeedIndex(String userId, String dateKey, int catalogLength) {
-  if (catalogLength <= 0) return 0;
-  var sum = 0;
-  for (final unit in '$userId-$dateKey'.codeUnits) {
-    sum += unit;
-  }
-  return sum % catalogLength;
-}
 
 /// Catálogo local fijo de eventos semanales (sin depender de la DB).
 /// Se rota cada semana usando el número de semana ISO del año.
@@ -70,132 +50,10 @@ final missionRepositoryProvider = Provider<MissionRepository>((ref) {
   return MissionRepositoryImpl(client);
 });
 
-final activeMissionsProvider = FutureProvider.autoDispose<List<MissionInstance>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  final repo = ref.watch(missionRepositoryProvider);
-  final missions = await repo.getActiveMissions(user.id);
-
-  // MIS-02 · Determinismo por día: si hoy ya existe una misión diaria
-  // (activa o completada), se respeta su estado y NO se regenera.
-  final today = _dateKey(DateTime.now());
-  final dailyToday = missions
-      .where((m) => m.missionType == 'daily' && _dateKey(m.startedAt) == today)
-      .toList();
-  if (dailyToday.isNotEmpty) return missions;
-
-  final completedToday = await repo.getCompletedMissions(user.id);
-  final hasCompletedDailyToday = completedToday.any(
-    (m) => m.missionType == 'daily' && _dateKey(m.completedAt ?? m.startedAt) == today,
-  );
-  if (hasCompletedDailyToday) return missions;
-
-  // Generación determinista: una única misión diaria por (userId, fecha).
-  final templates = await repo.getTemplates(type: 'daily');
-  if (templates.isEmpty) {
-    // Fallback legacy (catálogo vacío o DB no disponible).
-    await repo.generateDailyMissions(user.id);
-    return repo.getActiveMissions(user.id);
-  }
-  final dailyTemplate = templates[_dailySeedIndex(user.id, today, templates.length)];
-  final created = await repo.acceptMission(user.id, dailyTemplate);
-  if (created != null) return [...missions, created];
-  return repo.getActiveMissions(user.id);
-});
-
 final completedMissionsProvider = FutureProvider.autoDispose<List<MissionInstance>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return [];
   return ref.watch(missionRepositoryProvider).getCompletedMissions(user.id);
-});
-
-final dailyTemplatesProvider = FutureProvider.autoDispose<List<MissionTemplate>>((ref) async {
-  return ref.watch(missionRepositoryProvider).getTemplates(type: 'daily');
-});
-
-final secretMissionsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  return ref.watch(missionRepositoryProvider).getSecretMissions(user.id);
-});
-
-final emergencyMissionsProvider = FutureProvider.autoDispose<List<EmergencyMission>>((ref) async {
-  return ref.watch(missionRepositoryProvider).getActiveEmergencies();
-});
-
-final recentRewardsProvider = FutureProvider.autoDispose<List<RewardHistory>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  return ref.watch(missionRepositoryProvider).getRecentRewards(user.id);
-});
-
-final guildMissionsProvider = FutureProvider.autoDispose<List<GuildMission>>((ref) async {
-  return ref.watch(missionRepositoryProvider).getActiveGuildMissions();
-});
-
-final guildQuestPoolProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  final langSettings = ref.watch(userLanguageProvider);
-  final langId = _languageCodeToId(langSettings.learningLanguage);
-  // Excluye las ya completadas por el usuario y muestra solo 3 (rotación):
-  // al completarse se ocultan y aparecen las siguientes.
-  return ref.watch(missionRepositoryProvider).getGuildQuestPool(
-        languageId: langId,
-        excludeCompletedFor: user.id,
-        limit: 3,
-      );
-});
-
-/// Pool COMPLETO del gremio (sin límite de 3) para el tablón inmersivo.
-/// Excluye las misiones ya completadas por el usuario.
-final fullGuildQuestPoolProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  final langSettings = ref.watch(userLanguageProvider);
-  final langId = _languageCodeToId(langSettings.learningLanguage);
-  return ref.watch(missionRepositoryProvider).getGuildQuestPool(
-        languageId: langId,
-        excludeCompletedFor: user.id,
-      );
-});
-
-/// Misiones del pool completadas por el usuario (filtro "cumplidas").
-final completedGuildQuestsProvider = FutureProvider.autoDispose<List<GuildQuest>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-  final langSettings = ref.watch(userLanguageProvider);
-  final langId = _languageCodeToId(langSettings.learningLanguage);
-  return ref.watch(missionRepositoryProvider).getCompletedGuildQuests(user.id, languageId: langId);
-});
-
-/// Detalle de una misión del gremio por id (pantalla de detalle).
-final guildQuestByIdProvider = FutureProvider.autoDispose<GuildQuest?>((ref) async {
-  final questId = ref.watch(guildQuestIdProvider);
-  if (questId == null || questId.isEmpty) return null;
-  return ref.watch(missionRepositoryProvider).getGuildQuestById(questId);
-});
-
-/// ID de la misión seleccionada para el detalle (set desde la ruta).
-final guildQuestIdProvider = StateProvider<String?>((ref) => null);
-
-/// Mapea el código de idioma de aprendizaje de la app (en/fr/de/it) al
-/// language_id de la BD (1..4). Fallback a 1 (en).
-int _languageCodeToId(String code) {
-  switch (code.toLowerCase()) {
-    case 'fr':
-      return 2;
-    case 'de':
-      return 3;
-    case 'it':
-      return 4;
-    default:
-      return 1;
-  }
-}
-
-final globalEventsProvider = FutureProvider.autoDispose<List<GlobalEvent>>((ref) async {
-  return ref.watch(missionRepositoryProvider).getActiveGlobalEvents();
 });
 
 /// Evento semanal en curso, estable por semana ISO: `semana % 5` rota el

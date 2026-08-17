@@ -23,4 +23,15 @@ abstract class DashboardRepository {
     int? lukStat,
     String? equippedTitleCode,
   });
+
+  /// Títulos de habilidad ganados por el usuario (filas de `user_titles`).
+  Future<List<Map<String, dynamic>>> getEarnedTitles(String userId);
+
+  /// Métricas reales de conversación usadas por los títulos de habilidad.
+  Future<Map<String, dynamic>> getConversationMetrics(String userId);
+
+  /// Evalúa el desempeño real (métricas de conversación) y registra los
+  /// títulos ganados. Devuelve los códigos de títulos recién ganados.
+  /// [carisma] (0-100) es el score de carisma evaluado por IA de la sesión.
+  Future<List<String>> syncEarnedTitles(String userId, {double carisma = 0});
 }

@@ -5,7 +5,9 @@ import { User, Fingerprint, Award, Flame, Clock, Zap, ShieldCheck, Sparkles, Che
 export default function UserDetailModal({ user, onClose, onUpgradeOffer }) {
   if (!user) return null;
 
-  const usagePercent = Math.min(100, Math.round((user.practiceMinutes / (user.audioLimitMinutes || 300)) * 100));
+  const limitMin = user.audioLimitMinutes;
+  const usedMin = user.practiceMinutes;
+  const usagePercent = limitMin && usedMin != null ? Math.min(100, Math.round((usedMin / limitMin) * 100)) : null;
 
   return (
     <div style={{
@@ -52,28 +54,30 @@ export default function UserDetailModal({ user, onClose, onUpgradeOffer }) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Límite de Tiempo IA</span>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', fontFamily: 'var(--font-mono)' }}>{user.audioLimitMinutes || 300} min/mes</div>
+                <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', fontFamily: 'var(--font-mono)' }}>{user.audioLimitMinutes ?? '—'} min/mes</div>
               </div>
             </div>
 
             {/* Progress Meter */}
             <div style={{ marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Tiempo Consumido: <strong style={{ color: '#fff' }}>{user.practiceMinutes} min</strong></span>
-                <span style={{ color: usagePercent > 85 ? '#f97316' : 'var(--secondary-teal)', fontWeight: '700' }}>{usagePercent}% consumido ({user.remainingMinutes} min restantes)</span>
+                <span style={{ color: 'var(--text-muted)' }}>Tiempo Consumido: <strong style={{ color: '#fff' }}>{user.practiceMinutes ?? '—'} min</strong></span>
+                <span style={{ color: usagePercent != null && usagePercent > 85 ? '#f97316' : 'var(--secondary-teal)', fontWeight: '700' }}>
+                  {usagePercent != null ? `${usagePercent}% consumido (${user.remainingMinutes ?? '—'} min restantes)` : 'Sin límite configurado'}
+                </span>
               </div>
               <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
                 <div style={{
-                  width: `${usagePercent}%`,
+                  width: `${usagePercent ?? 0}%`,
                   height: '100%',
-                  background: usagePercent > 85 ? 'linear-gradient(90deg, #f97316, #ef4444)' : 'linear-gradient(90deg, #a855f7, #38bdf8)',
+                  background: usagePercent != null && usagePercent > 85 ? 'linear-gradient(90deg, #f97316, #ef4444)' : 'linear-gradient(90deg, #a855f7, #38bdf8)',
                   borderRadius: '5px',
                   transition: 'width 0.5s ease',
                 }} />
               </div>
             </div>
 
-            {usagePercent > 70 && (
+            {usagePercent != null && usagePercent > 70 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(249, 115, 22, 0.12)', border: '1px solid rgba(249, 115, 22, 0.3)', padding: '10px 14px', borderRadius: '10px', color: '#f97316', fontSize: '13px' }}>
                 <AlertTriangle style={{ width: '18px', height: '18px', shrink: 0 }} />
                 <span>Candidato para Upgrade: Ha consumido el {usagePercent}% de su tiempo de voz contratado.</span>
@@ -93,21 +97,23 @@ export default function UserDetailModal({ user, onClose, onUpgradeOffer }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Claridad Fonética</div>
-                <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--secondary-teal)' }}>{user.clarityScore}%</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--secondary-teal)' }}>{user.clarityScore ?? '—'}%</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Velocidad WPM</div>
-                <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--primary-purple)' }}>{user.wpm} WPM</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--primary-purple)' }}>{user.wpm ?? '—'} WPM</div>
               </div>
             </div>
             <div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>Fonemas a Reforzar</div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {user.problemPhonemes.map((ph, i) => (
-                  <span key={i} style={{ padding: '3px 8px', background: 'rgba(249, 115, 22, 0.15)', border: '1px solid #f97316', borderRadius: '6px', color: '#f97316', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: '700' }}>
-                    {ph}
-                  </span>
-                ))}
+                {(user.problemPhonemes || []).length > 0
+                  ? user.problemPhonemes.map((ph, i) => (
+                      <span key={i} style={{ padding: '3px 8px', background: 'rgba(249, 115, 22, 0.15)', border: '1px solid #f97316', borderRadius: '6px', color: '#f97316', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: '700' }}>
+                        {ph}
+                      </span>
+                    ))
+                  : <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Sin datos</span>}
               </div>
             </div>
           </div>
@@ -129,7 +135,7 @@ export default function UserDetailModal({ user, onClose, onUpgradeOffer }) {
               </div>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              Nivel CEFR objetivo: <strong style={{ color: '#fff' }}>B2 Intermedio Alto</strong>
+              Nivel CEFR objetivo: <strong style={{ color: '#fff' }}>{user.level}</strong>
             </div>
           </div>
         </div>

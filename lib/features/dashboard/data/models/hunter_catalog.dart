@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class HunterTitleItem {
   final String code;
@@ -19,6 +20,50 @@ class HunterTitleItem {
     required this.description,
     required this.color,
   });
+
+  /// Nombre localizado según el código del título (fallback al nombre base).
+  String localizedName(AppLocalizations? l10n) {
+    switch (code) {
+      case 'orco_caverna_f': return l10n?.hunter_title_orco_caverna_f ?? name;
+      case 'escriba_novato_e': return l10n?.hunter_title_escriba_novato_e ?? name;
+      case 'escriba_ciudad_d': return l10n?.hunter_title_escriba_ciudad_d ?? name;
+      case 'escriba_imperial_c': return l10n?.hunter_title_escriba_imperial_c ?? name;
+      case 'pluma_erudito_b': return l10n?.hunter_title_pluma_erudito_b ?? name;
+      case 'pluma_archimago_a': return l10n?.hunter_title_pluma_archimago_a ?? name;
+      case 'pluma_celestial_s': return l10n?.hunter_title_pluma_celestial_s ?? name;
+      case 'monarca_sintaxis_ss': return l10n?.hunter_title_monarca_sintaxis_ss ?? name;
+      case 'creador_abismo_sss': return l10n?.hunter_title_creador_abismo_sss ?? name;
+      case 'murcielago_ciego_f': return l10n?.hunter_title_murcielago_ciego_f ?? name;
+      case 'oido_halcon_novato_d': return l10n?.hunter_title_oido_halcon_novato_d ?? name;
+      case 'oido_halcon_abismo_c': return l10n?.hunter_title_oido_halcon_abismo_c ?? name;
+      case 'sonar_monarca_sombras_s': return l10n?.hunter_title_sonar_monarca_sombras_s ?? name;
+      case 'oidor_susurros_sss': return l10n?.hunter_title_oidor_susurros_sss ?? name;
+      case 'monarca_impecable_5star': return l10n?.hunter_title_monarca_impecable_5star ?? name;
+      default: return name;
+    }
+  }
+
+  /// Descripción localizada según el código del título (fallback a la base).
+  String localizedDescription(AppLocalizations? l10n) {
+    switch (code) {
+      case 'orco_caverna_f': return l10n?.hunter_title_orco_caverna_f_desc ?? description;
+      case 'escriba_novato_e': return l10n?.hunter_title_escriba_novato_e_desc ?? description;
+      case 'escriba_ciudad_d': return l10n?.hunter_title_escriba_ciudad_d_desc ?? description;
+      case 'escriba_imperial_c': return l10n?.hunter_title_escriba_imperial_c_desc ?? description;
+      case 'pluma_erudito_b': return l10n?.hunter_title_pluma_erudito_b_desc ?? description;
+      case 'pluma_archimago_a': return l10n?.hunter_title_pluma_archimago_a_desc ?? description;
+      case 'pluma_celestial_s': return l10n?.hunter_title_pluma_celestial_s_desc ?? description;
+      case 'monarca_sintaxis_ss': return l10n?.hunter_title_monarca_sintaxis_ss_desc ?? description;
+      case 'creador_abismo_sss': return l10n?.hunter_title_creador_abismo_sss_desc ?? description;
+      case 'murcielago_ciego_f': return l10n?.hunter_title_murcielago_ciego_f_desc ?? description;
+      case 'oido_halcon_novato_d': return l10n?.hunter_title_oido_halcon_novato_d_desc ?? description;
+      case 'oido_halcon_abismo_c': return l10n?.hunter_title_oido_halcon_abismo_c_desc ?? description;
+      case 'sonar_monarca_sombras_s': return l10n?.hunter_title_sonar_monarca_sombras_s_desc ?? description;
+      case 'oidor_susurros_sss': return l10n?.hunter_title_oidor_susurros_sss_desc ?? description;
+      case 'monarca_impecable_5star': return l10n?.hunter_title_monarca_impecable_5star_desc ?? description;
+      default: return description;
+    }
+  }
 }
 
 class DungeonMonsterItem {

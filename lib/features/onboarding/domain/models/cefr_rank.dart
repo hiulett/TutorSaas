@@ -1,11 +1,17 @@
 /// Helper puro que mapea niveles CEFR ↔ rangos del juego (System HUD).
 ///
-/// La escala de rangos es: E (novato) → D → C → B → A → S → SS → SSS (élite).
+/// La escala de rangos es: F (iniciado) → E (novato) → D → C → B → A → S →
+/// SS → SSS (élite). El nivel Pre-A1 (fundacional) corresponde al rango F.
 class CefrRank {
   CefrRank._();
 
+  /// Orden canónico de niveles CEFR (el más bajo primero). Fuente única para
+  /// progresión, desbloqueo y gating de contenido por nivel.
+  static const List<String> cefrOrder = ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
   /// Mapeo canónico CEFR → rango del juego.
   static const Map<String, String> _cefrToRank = {
+    'PRE-A1': 'F',
     'A1': 'E',
     'A2': 'D',
     'B1': 'C',
@@ -17,6 +23,7 @@ class CefrRank {
   /// Mapeo inverso rango del juego → CEFR (más permisivo: también admite
   /// los rangos extendidos SS/SSS que se usan para C1+/C2).
   static const Map<String, String> _rankToCefr = {
+    'F': 'PRE-A1',
     'E': 'A1',
     'D': 'A2',
     'C': 'B1',
@@ -29,6 +36,7 @@ class CefrRank {
 
   /// Descripciones cortas estilo juego para cada rango.
   static const Map<String, String> _rankDescriptions = {
+    'F': 'Iniciado — el viaje empieza con una sola palabra.',
     'E': 'Novato — cada aventura empieza con un primer paso.',
     'D': 'Aprendiz — los básicos ya no te frenan.',
     'C': 'Aventurero — te desenvuelves en mazmorras cotidianas.',
@@ -61,8 +69,8 @@ class CefrRank {
     return _rankDescriptions[normalized] ?? 'Rango misterioso — sigue entrenando.';
   }
 
-  /// Orden de rangos del gremio (E más bajo → SSS más alto).
-  static const List<String> _rankOrder = ['E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
+  /// Orden de rangos del gremio (F más bajo → SSS más alto).
+  static const List<String> _rankOrder = ['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
 
   /// Índice de un rango en la escala; -1 si no se reconoce.
   static int rankIndex(String rank) {

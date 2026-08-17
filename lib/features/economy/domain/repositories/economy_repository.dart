@@ -23,6 +23,10 @@ abstract class EconomyRepository {
   /// Purchase an item from the cosmetic catalog
   Future<bool> purchaseItem(String userId, String itemCode);
 
+  /// Compra un cosmético con ORO (Tienda de Oro). Usa cosmetic_catalog.price_gold
+  /// e inserta en el inventario con el tipo correcto (category).
+  Future<bool> purchaseCosmeticWithGold(String userId, String itemCode);
+
   /// Equip/desequip a cosmetic item
   Future<void> toggleEquip(String userId, String itemCode);
 
@@ -47,12 +51,6 @@ abstract class EconomyRepository {
   /// Get or create the user's battle pass for the current season
   Future<Map<String, dynamic>> getBattlePass(String userId);
 
-  /// Add XP progress to the battle pass and advance levels
-  Future<Map<String, dynamic>?> addBattlePassXp(String userId, int amount);
-
-  /// Mark a battle pass reward tier as claimed
-  Future<bool> claimBattlePassReward(String userId, int tier);
-
   /// Get gold balance
   Future<int> getGold(String userId);
 
@@ -68,4 +66,32 @@ abstract class EconomyRepository {
   /// Maná del Oráculo otorgado por el plan contratado, en función de los
   /// minutos de audio IA mensuales (30 → +0, 300 → +20, 1200 → +40).
   Future<int> getPlanManaBonus(String userId);
+
+  // ── FASE B: Maná monetizado + Aura sin tope ──────────────────────────────
+
+  /// Debita el costo configurable (ai_action_costs) de una acción IA.
+  /// Devuelve `{success, cost, remaining}` o `{success:false, reason}`.
+  Future<Map<String, dynamic>> consumeMana(String userId, String actionCode);
+
+  /// Saldo de maná: `{allowance, purchased, used, remaining, expires_at, plan, class}`.
+  Future<Map<String, dynamic>> getManaState(String userId);
+
+  /// Suma Aura XP por sesión (idempotente por session_id, factor_radar server-side).
+  Future<Map<String, dynamic>> addAuraXp(
+    String userId,
+    String sessionId,
+    Map<String, double> radar,
+    int metas,
+    int bonusNivel,
+  );
+
+  /// Recompensa de oro (moneda cosmética). NUNCA otorga maná.
+  Future<void> addGold(String userId, int amount);
+
+  /// Título de prestigio actual: `{tier_code, name}`.
+  Future<Map<String, dynamic>> getPrestigeTitle(String userId);
+
+  /// Crea una sesión de Checkout de Stripe para maná (type: 'potion'|'gem_pack').
+  /// Devuelve la URL de Checkout o null en error.
+  Future<String?> createManaCheckout(String userId, String productId, String type);
 }

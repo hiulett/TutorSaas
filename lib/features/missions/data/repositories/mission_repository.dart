@@ -99,11 +99,21 @@ class MissionRepositoryImpl implements MissionRepository {
     try {
       var query = _client.from('mission_templates').select().eq('is_active', true);
       if (type != null) query = query.eq('mission_type', type);
-      if (cefrLevel != null) {
-        query = query.or('min_cefr_level.is.null,min_cefr_level.lte.$cefrLevel');
-      }
       final data = await query.order('created_at');
-      return (data as List).map((m) => MissionTemplate.fromMap(m)).toList();
+      final templates = (data as List).map((m) => MissionTemplate.fromMap(m)).toList();
+
+      // Gating por nivel CEFR con orden canónico (PRE-A1 < A1 < ... < C2).
+      // La comparación léxica del servidor rompe con 'PRE-A1', así que se
+      // filtra aquí: solo plantillas con min_cefr_level <= nivel del usuario.
+      if (cefrLevel == null || cefrLevel.trim().isEmpty) return templates;
+      final userIdx = CefrRank.cefrOrder.indexOf(cefrLevel.trim().toUpperCase());
+      if (userIdx < 0) return templates;
+      return templates.where((t) {
+        final min = t.minCefrLevel;
+        if (min == null || min.trim().isEmpty) return true;
+        final minIdx = CefrRank.cefrOrder.indexOf(min.trim().toUpperCase());
+        return minIdx < 0 || minIdx <= userIdx;
+      }).toList();
     } catch (_) {
       return [];
     }

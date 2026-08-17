@@ -1060,18 +1060,6 @@ abstract class AppLocalizations {
   /// **'The Oracle has responded {count} times today. It needs to recharge with the morning light.'**
   String nucleo_desc(Object count);
 
-  /// No description provided for @nucleo_recharge.
-  ///
-  /// In en, this message translates to:
-  /// **'RECHARGE +5'**
-  String get nucleo_recharge;
-
-  /// No description provided for @nucleo_premium.
-  ///
-  /// In en, this message translates to:
-  /// **'GO PREMIUM'**
-  String get nucleo_premium;
-
   /// No description provided for @nucleo_rest.
   ///
   /// In en, this message translates to:
@@ -1273,7 +1261,7 @@ abstract class AppLocalizations {
   /// No description provided for @guild_master.
   ///
   /// In en, this message translates to:
-  /// **'★ GUILD MASTER'**
+  /// **'GUILD MASTER'**
   String get guild_master;
 
   /// No description provided for @guild_online.
@@ -2056,6 +2044,18 @@ abstract class AppLocalizations {
   /// **'EASY'**
   String get srs_easy;
 
+  /// No description provided for @nucleo_recharge.
+  ///
+  /// In en, this message translates to:
+  /// **'RECHARGE +5'**
+  String get nucleo_recharge;
+
+  /// No description provided for @nucleo_premium.
+  ///
+  /// In en, this message translates to:
+  /// **'GO PREMIUM'**
+  String get nucleo_premium;
+
   /// No description provided for @nucleo_unlimited.
   ///
   /// In en, this message translates to:
@@ -2257,7 +2257,7 @@ abstract class AppLocalizations {
   /// No description provided for @profile_vocab_empty.
   ///
   /// In en, this message translates to:
-  /// **'No vocabulary to show'**
+  /// **'You haven\'t learned vocabulary in conversations yet.'**
   String get profile_vocab_empty;
 
   /// No description provided for @profile_close.
@@ -2301,6 +2301,3306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Latency (s)'**
   String get chart_latency;
+
+  /// No description provided for @aura_title.
+  ///
+  /// In en, this message translates to:
+  /// **'AURA'**
+  String get aura_title;
+
+  /// No description provided for @aura_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'AURA LOCKED'**
+  String get aura_locked;
+
+  /// No description provided for @aura_locked_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the Basic Stage (PRE-A1 + A1 + A2) to awaken your power.'**
+  String get aura_locked_desc;
+
+  /// No description provided for @aura_awakened.
+  ///
+  /// In en, this message translates to:
+  /// **'AURA USER'**
+  String get aura_awakened;
+
+  /// No description provided for @aura_basic_stage.
+  ///
+  /// In en, this message translates to:
+  /// **'BASIC STAGE'**
+  String get aura_basic_stage;
+
+  /// No description provided for @aura_power.
+  ///
+  /// In en, this message translates to:
+  /// **'POWER'**
+  String get aura_power;
+
+  /// No description provided for @aura_tier_latente.
+  ///
+  /// In en, this message translates to:
+  /// **'LATENT'**
+  String get aura_tier_latente;
+
+  /// No description provided for @aura_tier_revelada.
+  ///
+  /// In en, this message translates to:
+  /// **'REVEALED'**
+  String get aura_tier_revelada;
+
+  /// No description provided for @aura_tier_abierta.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN'**
+  String get aura_tier_abierta;
+
+  /// No description provided for @aura_tier_dominante.
+  ///
+  /// In en, this message translates to:
+  /// **'DOMINANT'**
+  String get aura_tier_dominante;
+
+  /// No description provided for @aura_tier_abisal.
+  ///
+  /// In en, this message translates to:
+  /// **'ABYSSAL'**
+  String get aura_tier_abisal;
+
+  /// No description provided for @aura_awakening_banner_title.
+  ///
+  /// In en, this message translates to:
+  /// **'THE SYSTEM HAS SPOKEN'**
+  String get aura_awakening_banner_title;
+
+  /// No description provided for @aura_awakening_banner_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You have awakened as an Aura User. Your power will grow with your skills.'**
+  String get aura_awakening_banner_desc;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @shop.
+  ///
+  /// In en, this message translates to:
+  /// **'SHOP'**
+  String get shop;
+
+  /// No description provided for @map.
+  ///
+  /// In en, this message translates to:
+  /// **'MAP'**
+  String get map;
+
+  /// No description provided for @claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'CLAIMED'**
+  String get claimed;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @missions.
+  ///
+  /// In en, this message translates to:
+  /// **'Missions'**
+  String get missions;
+
+  /// No description provided for @oracle.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE'**
+  String get oracle;
+
+  /// No description provided for @pro_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'PRO'**
+  String get pro_badge;
+
+  /// No description provided for @go_pro.
+  ///
+  /// In en, this message translates to:
+  /// **'GO PRO'**
+  String get go_pro;
+
+  /// No description provided for @logout_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'LOG OUT?'**
+  String get logout_confirm_title;
+
+  /// No description provided for @logout_confirm_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress is saved. You will need to log in again to continue.'**
+  String get logout_confirm_desc;
+
+  /// No description provided for @splash_system_hud.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM HUD · AWAKENING'**
+  String get splash_system_hud;
+
+  /// No description provided for @splash_connecting.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% · CONNECTING TO THE GREAT REALM'**
+  String splash_connecting(int pct);
+
+  /// No description provided for @connecting_realm.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTING TO THE GREAT REALM...'**
+  String get connecting_realm;
+
+  /// No description provided for @system_hunter_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER SYSTEM — CONNECTED'**
+  String get system_hunter_connected;
+
+  /// No description provided for @cefr_level.
+  ///
+  /// In en, this message translates to:
+  /// **'CEFR {code}'**
+  String cefr_level(String code);
+
+  /// No description provided for @level_up_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'¡LEVEL UP! {level}'**
+  String level_up_banner(int level);
+
+  /// No description provided for @title_earned_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'🏅 TITLE EARNED: {title}'**
+  String title_earned_banner(String title);
+
+  /// No description provided for @mana_label.
+  ///
+  /// In en, this message translates to:
+  /// **'MANA'**
+  String get mana_label;
+
+  /// No description provided for @mana_available.
+  ///
+  /// In en, this message translates to:
+  /// **'mana available'**
+  String get mana_available;
+
+  /// No description provided for @mana_balance.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} / {total} mana'**
+  String mana_balance(int remaining, int total);
+
+  /// No description provided for @plus_mana.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} mana'**
+  String plus_mana(int count);
+
+  /// No description provided for @purchase_confirm_question.
+  ///
+  /// In en, this message translates to:
+  /// **'Acquire \"{name}\" for {price}?'**
+  String purchase_confirm_question(String name, String price);
+
+  /// No description provided for @mana_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'MANA: energy for every AI action (Oracle, dungeons, chats). Acquired with your plan and potions/gems; expires with the cycle.'**
+  String get mana_tooltip;
+
+  /// No description provided for @mana_expires.
+  ///
+  /// In en, this message translates to:
+  /// **'expires {date}'**
+  String mana_expires(String date);
+
+  /// No description provided for @aura_locked_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'BASIC STAGE: complete the PRE-A1, A1 and A2 mission objectives to awaken your Aura.'**
+  String get aura_locked_tooltip;
+
+  /// No description provided for @aura_awakened_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'AURA: uncapped merit. Keep accumulating with every evaluated session.'**
+  String get aura_awakened_tooltip;
+
+  /// No description provided for @aura_xp.
+  ///
+  /// In en, this message translates to:
+  /// **'AURA XP {xp}'**
+  String aura_xp(int xp);
+
+  /// No description provided for @aura_next_rank.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% to next rank'**
+  String aura_next_rank(int pct);
+
+  /// No description provided for @aura_rank_mismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠ RANK INCONSISTENT WITH CEFR'**
+  String get aura_rank_mismatch;
+
+  /// No description provided for @daily_reward_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY REWARD'**
+  String get daily_reward_title;
+
+  /// No description provided for @daily_reward_streak.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT STREAK: {streak} DAYS'**
+  String daily_reward_streak(int streak);
+
+  /// No description provided for @daily_reward_gems.
+  ///
+  /// In en, this message translates to:
+  /// **'{gems} GEMS'**
+  String daily_reward_gems(int gems);
+
+  /// No description provided for @daily_reward_by_streak.
+  ///
+  /// In en, this message translates to:
+  /// **'BY STREAK'**
+  String get daily_reward_by_streak;
+
+  /// No description provided for @daily_reward_parchments.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} SCROLLS'**
+  String daily_reward_parchments(int count);
+
+  /// No description provided for @daily_reward_cap.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY CAP'**
+  String get daily_reward_cap;
+
+  /// No description provided for @daily_reward_keep_streak.
+  ///
+  /// In en, this message translates to:
+  /// **'KEEP YOUR STREAK: AT 7 DAYS YOU EARN 50 GEMS AND 5 SCROLLS'**
+  String get daily_reward_keep_streak;
+
+  /// No description provided for @daily_reward_at_14.
+  ///
+  /// In en, this message translates to:
+  /// **'AT 14 DAYS: 100 GEMS AND 8 SCROLLS'**
+  String get daily_reward_at_14;
+
+  /// No description provided for @daily_reward_at_30.
+  ///
+  /// In en, this message translates to:
+  /// **'AT 30 DAYS: 300 GEMS AND 15 SCROLLS'**
+  String get daily_reward_at_30;
+
+  /// No description provided for @daily_reward_max_streak.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX STREAK REACHED!'**
+  String get daily_reward_max_streak;
+
+  /// No description provided for @claiming.
+  ///
+  /// In en, this message translates to:
+  /// **'CLAIMING...'**
+  String get claiming;
+
+  /// No description provided for @daily_reward_claimed_today.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY REWARD CLAIMED TODAY'**
+  String get daily_reward_claimed_today;
+
+  /// No description provided for @daily_reward_claim.
+  ///
+  /// In en, this message translates to:
+  /// **'CLAIM REWARD'**
+  String get daily_reward_claim;
+
+  /// No description provided for @no_mana.
+  ///
+  /// In en, this message translates to:
+  /// **'NO MANA'**
+  String get no_mana;
+
+  /// No description provided for @mana_exhausted_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Every AI action costs mana. Your balance ran out.\n\nMana is acquired with your plan or potions/gems.\n{renew}'**
+  String mana_exhausted_desc(String renew);
+
+  /// No description provided for @mana_renews_on.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cycle renews on {date}.'**
+  String mana_renews_on(String date);
+
+  /// No description provided for @more_mana_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'MORE MONTHLY MANA BY RANK'**
+  String get more_mana_monthly;
+
+  /// No description provided for @wait_plan_renewal.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait for my plan renewal'**
+  String get wait_plan_renewal;
+
+  /// No description provided for @hunter_collections.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER COLLECTIONS'**
+  String get hunter_collections;
+
+  /// No description provided for @no_trophies.
+  ///
+  /// In en, this message translates to:
+  /// **'NO TROPHIES RECORDED'**
+  String get no_trophies;
+
+  /// No description provided for @confirm_purchase.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM PURCHASE'**
+  String get confirm_purchase;
+
+  /// No description provided for @buy.
+  ///
+  /// In en, this message translates to:
+  /// **'BUY'**
+  String get buy;
+
+  /// No description provided for @purchase_error_stripe.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start payment. Check Stripe configuration.'**
+  String get purchase_error_stripe;
+
+  /// No description provided for @checkout_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open checkout.'**
+  String get checkout_error;
+
+  /// No description provided for @cosmetic_purchased.
+  ///
+  /// In en, this message translates to:
+  /// **'COSMETIC ACQUIRED! 🪙'**
+  String get cosmetic_purchased;
+
+  /// No description provided for @gold_insufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'INSUFFICIENT GOLD OR ALREADY OWNED ❌'**
+  String get gold_insufficient;
+
+  /// No description provided for @cosmetic_title.
+  ///
+  /// In en, this message translates to:
+  /// **'TITLE'**
+  String get cosmetic_title;
+
+  /// No description provided for @cosmetic_frame.
+  ///
+  /// In en, this message translates to:
+  /// **'FRAME'**
+  String get cosmetic_frame;
+
+  /// No description provided for @cosmetic_aura.
+  ///
+  /// In en, this message translates to:
+  /// **'AURA'**
+  String get cosmetic_aura;
+
+  /// No description provided for @cosmetic_pet.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPANION'**
+  String get cosmetic_pet;
+
+  /// No description provided for @cosmetic_emote.
+  ///
+  /// In en, this message translates to:
+  /// **'EMOTE'**
+  String get cosmetic_emote;
+
+  /// No description provided for @cosmetic_theme.
+  ///
+  /// In en, this message translates to:
+  /// **'THEME'**
+  String get cosmetic_theme;
+
+  /// No description provided for @arcane_shop.
+  ///
+  /// In en, this message translates to:
+  /// **'ARCANE SHOP'**
+  String get arcane_shop;
+
+  /// No description provided for @gold_shop_tab.
+  ///
+  /// In en, this message translates to:
+  /// **'GOLD SHOP'**
+  String get gold_shop_tab;
+
+  /// No description provided for @redeem.
+  ///
+  /// In en, this message translates to:
+  /// **'REDEEM'**
+  String get redeem;
+
+  /// No description provided for @my_items.
+  ///
+  /// In en, this message translates to:
+  /// **'MY ITEMS'**
+  String get my_items;
+
+  /// No description provided for @mana_potions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MANA POTIONS'**
+  String get mana_potions_title;
+
+  /// No description provided for @mana_potions_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mana is the energy of every AI action. It is acquired with real money: your rank includes a monthly allowance and potions extend it.'**
+  String get mana_potions_desc;
+
+  /// No description provided for @mana_gems_packs_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MANA GEM PACKS'**
+  String get mana_gems_packs_title;
+
+  /// No description provided for @gold_shop_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The Gold Shop is not available yet.\nApply the price_gold migration in the SQL Editor.'**
+  String get gold_shop_unavailable;
+
+  /// No description provided for @owned.
+  ///
+  /// In en, this message translates to:
+  /// **'OWNED'**
+  String get owned;
+
+  /// No description provided for @price_gold.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} GOLD'**
+  String price_gold(String price);
+
+  /// No description provided for @fragments_insufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'INSUFFICIENT FRAGMENTS ❌'**
+  String get fragments_insufficient;
+
+  /// No description provided for @redeem_error.
+  ///
+  /// In en, this message translates to:
+  /// **'EXCHANGE ERROR ❌'**
+  String get redeem_error;
+
+  /// No description provided for @fragments_exchange_title.
+  ///
+  /// In en, this message translates to:
+  /// **'FRAGMENT EXCHANGE'**
+  String get fragments_exchange_title;
+
+  /// No description provided for @fragments_exchange_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'FRAGMENTS ARE THE EXCHANGE CURRENCY. CHOOSE WISELY, HUNTER.'**
+  String get fragments_exchange_desc;
+
+  /// No description provided for @battle_reward_claimed_tier.
+  ///
+  /// In en, this message translates to:
+  /// **'TIER {tier} REWARD CLAIMED'**
+  String battle_reward_claimed_tier(int tier);
+
+  /// No description provided for @not_available.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT AVAILABLE'**
+  String get not_available;
+
+  /// No description provided for @battle_pass.
+  ///
+  /// In en, this message translates to:
+  /// **'BATTLE PASS'**
+  String get battle_pass;
+
+  /// No description provided for @premium.
+  ///
+  /// In en, this message translates to:
+  /// **'PREMIUM'**
+  String get premium;
+
+  /// No description provided for @free_tier.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE'**
+  String get free_tier;
+
+  /// No description provided for @battle_level.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL {level}'**
+  String battle_level(int level);
+
+  /// No description provided for @battle_progress_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Battle Pass progress: '**
+  String get battle_progress_label;
+
+  /// No description provided for @rewards.
+  ///
+  /// In en, this message translates to:
+  /// **'REWARDS'**
+  String get rewards;
+
+  /// No description provided for @reward_claimed_tier.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward level {tier} claimed'**
+  String reward_claimed_tier(int tier);
+
+  /// No description provided for @reward_unlocked_tier.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward level {tier} unlocked'**
+  String reward_unlocked_tier(int tier);
+
+  /// No description provided for @reward_locked_tier.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward level {tier} locked, unlock at level {tier}'**
+  String reward_locked_tier(int tier);
+
+  /// No description provided for @battle_tier.
+  ///
+  /// In en, this message translates to:
+  /// **'TIER {tier}'**
+  String battle_tier(int tier);
+
+  /// No description provided for @reward_unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward unlocked'**
+  String get reward_unlocked;
+
+  /// No description provided for @unlock_at_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock at level {tier}'**
+  String unlock_at_level(int tier);
+
+  /// No description provided for @battle_claim_reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim level {tier} reward'**
+  String battle_claim_reward(int tier);
+
+  /// No description provided for @equipment_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIPMENT UPDATED'**
+  String get equipment_updated;
+
+  /// No description provided for @inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'INVENTORY'**
+  String get inventory;
+
+  /// No description provided for @unequip.
+  ///
+  /// In en, this message translates to:
+  /// **'UNEQUIP'**
+  String get unequip;
+
+  /// No description provided for @equip.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIP'**
+  String get equip;
+
+  /// No description provided for @chat_category_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get chat_category_all;
+
+  /// No description provided for @chat_cat_general.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get chat_cat_general;
+
+  /// No description provided for @chat_cat_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get chat_cat_travel;
+
+  /// No description provided for @chat_cat_business.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get chat_cat_business;
+
+  /// No description provided for @chat_cat_technology.
+  ///
+  /// In en, this message translates to:
+  /// **'Technology'**
+  String get chat_cat_technology;
+
+  /// No description provided for @chat_cat_art.
+  ///
+  /// In en, this message translates to:
+  /// **'Art'**
+  String get chat_cat_art;
+
+  /// No description provided for @chat_cat_cooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking'**
+  String get chat_cat_cooking;
+
+  /// No description provided for @chat_rank_status.
+  ///
+  /// In en, this message translates to:
+  /// **'RANK STATUS'**
+  String get chat_rank_status;
+
+  /// No description provided for @chat_hunter_details.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER DETAILS'**
+  String get chat_hunter_details;
+
+  /// No description provided for @chat_rank_level.
+  ///
+  /// In en, this message translates to:
+  /// **'RANK {code}'**
+  String chat_rank_level(String code);
+
+  /// No description provided for @chat_establish_table.
+  ///
+  /// In en, this message translates to:
+  /// **'ESTABLISH GUILD TABLE'**
+  String get chat_establish_table;
+
+  /// No description provided for @chat_create_room.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE NEW CHAT ROOM'**
+  String get chat_create_room;
+
+  /// No description provided for @chat_table_title.
+  ///
+  /// In en, this message translates to:
+  /// **'GUILD TABLE TITLE'**
+  String get chat_table_title;
+
+  /// No description provided for @chat_category_path.
+  ///
+  /// In en, this message translates to:
+  /// **'CATEGORY PATH'**
+  String get chat_category_path;
+
+  /// No description provided for @chat_table_type.
+  ///
+  /// In en, this message translates to:
+  /// **'TABLE TYPE'**
+  String get chat_table_type;
+
+  /// No description provided for @chat_missions.
+  ///
+  /// In en, this message translates to:
+  /// **'MISSIONS'**
+  String get chat_missions;
+
+  /// No description provided for @chat_guild_pass.
+  ///
+  /// In en, this message translates to:
+  /// **'GUILD PASS'**
+  String get chat_guild_pass;
+
+  /// No description provided for @chat_rank.
+  ///
+  /// In en, this message translates to:
+  /// **'RANK'**
+  String get chat_rank;
+
+  /// No description provided for @chat_collections.
+  ///
+  /// In en, this message translates to:
+  /// **'COLLECTIONS'**
+  String get chat_collections;
+
+  /// No description provided for @chat_music_on.
+  ///
+  /// In en, this message translates to:
+  /// **'MUSIC ON'**
+  String get chat_music_on;
+
+  /// No description provided for @chat_music.
+  ///
+  /// In en, this message translates to:
+  /// **'MUSIC'**
+  String get chat_music;
+
+  /// No description provided for @chat_status_full.
+  ///
+  /// In en, this message translates to:
+  /// **'FULL'**
+  String get chat_status_full;
+
+  /// No description provided for @chat_status_nearly_full.
+  ///
+  /// In en, this message translates to:
+  /// **'NEARLY FULL'**
+  String get chat_status_nearly_full;
+
+  /// No description provided for @chat_status_occupied.
+  ///
+  /// In en, this message translates to:
+  /// **'OCCUPIED'**
+  String get chat_status_occupied;
+
+  /// No description provided for @chat_status_space.
+  ///
+  /// In en, this message translates to:
+  /// **'SPACE'**
+  String get chat_status_space;
+
+  /// No description provided for @chat_type_mentorship.
+  ///
+  /// In en, this message translates to:
+  /// **'MENTORSHIP'**
+  String get chat_type_mentorship;
+
+  /// No description provided for @chat_type_ai.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get chat_type_ai;
+
+  /// No description provided for @chat_type_event.
+  ///
+  /// In en, this message translates to:
+  /// **'EVENT'**
+  String get chat_type_event;
+
+  /// No description provided for @chat_rank_line.
+  ///
+  /// In en, this message translates to:
+  /// **'RANK: {rank} · {cefr}'**
+  String chat_rank_line(String rank, String cefr);
+
+  /// No description provided for @chat_free.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE'**
+  String get chat_free;
+
+  /// No description provided for @chat_rank_silver.
+  ///
+  /// In en, this message translates to:
+  /// **'SILVER'**
+  String get chat_rank_silver;
+
+  /// No description provided for @chat_rank_gold.
+  ///
+  /// In en, this message translates to:
+  /// **'GOLD'**
+  String get chat_rank_gold;
+
+  /// No description provided for @chat_rank_iron.
+  ///
+  /// In en, this message translates to:
+  /// **'IRON'**
+  String get chat_rank_iron;
+
+  /// No description provided for @voice_seat_to_speak.
+  ///
+  /// In en, this message translates to:
+  /// **'SIT DOWN TO SPEAK'**
+  String get voice_seat_to_speak;
+
+  /// No description provided for @voice_seated_in.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU SAT IN SEAT {seat}'**
+  String voice_seated_in(String seat);
+
+  /// No description provided for @voice_seat_assigned.
+  ///
+  /// In en, this message translates to:
+  /// **'SEAT ASSIGNED. Welcome!'**
+  String get voice_seat_assigned;
+
+  /// No description provided for @voice_seats_full_queue.
+  ///
+  /// In en, this message translates to:
+  /// **'SEATS FULL: YOU ENTER THE QUEUE'**
+  String get voice_seats_full_queue;
+
+  /// No description provided for @voice_seat_freed.
+  ///
+  /// In en, this message translates to:
+  /// **'SEAT FREED. STANDING'**
+  String get voice_seat_freed;
+
+  /// No description provided for @voice_standing.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER STANDING UP'**
+  String get voice_standing;
+
+  /// No description provided for @voice_not_moderator.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU ARE NOT THE MODERATOR OF THIS TABLE'**
+  String get voice_not_moderator;
+
+  /// No description provided for @voice_chamber_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'CHAMBER TEXT CHAT'**
+  String get voice_chamber_chat;
+
+  /// No description provided for @voice_free_mission.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE MISSION'**
+  String get voice_free_mission;
+
+  /// No description provided for @voice_guild_chamber.
+  ///
+  /// In en, this message translates to:
+  /// **'GUILD VOICE CHAMBER'**
+  String get voice_guild_chamber;
+
+  /// No description provided for @voice_moderated.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderated by AI Tutor in Real Time'**
+  String get voice_moderated;
+
+  /// No description provided for @voice_leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the room'**
+  String get voice_leave;
+
+  /// No description provided for @voice_demo_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'GUILD AUDIO: DEMO — hunters connected live. Voice practice is 1:1.'**
+  String get voice_demo_banner;
+
+  /// No description provided for @voice_demo_banner_alt.
+  ///
+  /// In en, this message translates to:
+  /// **'AUDIO DEMO — TAP FOR DETAILS'**
+  String get voice_demo_banner_alt;
+
+  /// No description provided for @voice_room_mission.
+  ///
+  /// In en, this message translates to:
+  /// **'ROOM MISSION'**
+  String get voice_room_mission;
+
+  /// No description provided for @voice_resonance.
+  ///
+  /// In en, this message translates to:
+  /// **'RESONANCE'**
+  String get voice_resonance;
+
+  /// No description provided for @voice_your_seat.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR SEAT'**
+  String get voice_your_seat;
+
+  /// No description provided for @voice_seat_number.
+  ///
+  /// In en, this message translates to:
+  /// **'SEAT {slot}'**
+  String voice_seat_number(String slot);
+
+  /// No description provided for @voice_tap_to_sit.
+  ///
+  /// In en, this message translates to:
+  /// **'TAP TO SIT'**
+  String get voice_tap_to_sit;
+
+  /// No description provided for @voice_you.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU'**
+  String get voice_you;
+
+  /// No description provided for @voice_hunter_slot.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER {slot}'**
+  String voice_hunter_slot(String slot);
+
+  /// No description provided for @voice_speaking.
+  ///
+  /// In en, this message translates to:
+  /// **'SPEAKING'**
+  String get voice_speaking;
+
+  /// No description provided for @voice_seated.
+  ///
+  /// In en, this message translates to:
+  /// **'SEATED'**
+  String get voice_seated;
+
+  /// No description provided for @voice_standing_count.
+  ///
+  /// In en, this message translates to:
+  /// **'STANDING ({count}/8)'**
+  String voice_standing_count(int count);
+
+  /// No description provided for @voice_you_standing.
+  ///
+  /// In en, this message translates to:
+  /// **'You (standing)'**
+  String get voice_you_standing;
+
+  /// No description provided for @voice_standing_hunter.
+  ///
+  /// In en, this message translates to:
+  /// **'Standing hunter'**
+  String get voice_standing_hunter;
+
+  /// No description provided for @voice_chat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Chamber Text Chat ({count})'**
+  String voice_chat_title(int count);
+
+  /// No description provided for @voice_mic_on.
+  ///
+  /// In en, this message translates to:
+  /// **'MIC ON'**
+  String get voice_mic_on;
+
+  /// No description provided for @voice_mic_off.
+  ///
+  /// In en, this message translates to:
+  /// **'MIC OFF'**
+  String get voice_mic_off;
+
+  /// No description provided for @voice_stand_up.
+  ///
+  /// In en, this message translates to:
+  /// **'STAND UP'**
+  String get voice_stand_up;
+
+  /// No description provided for @voice_in_queue.
+  ///
+  /// In en, this message translates to:
+  /// **'IN QUEUE #{pos}'**
+  String voice_in_queue(int pos);
+
+  /// No description provided for @voice_seat.
+  ///
+  /// In en, this message translates to:
+  /// **'SEAT'**
+  String get voice_seat;
+
+  /// No description provided for @voice_exit.
+  ///
+  /// In en, this message translates to:
+  /// **'EXIT'**
+  String get voice_exit;
+
+  /// No description provided for @guild_rec_beginner.
+  ///
+  /// In en, this message translates to:
+  /// **'I recommend the Apprentice Tavern: the perfect table for novice hunters.'**
+  String get guild_rec_beginner;
+
+  /// No description provided for @guild_rec_intermediate.
+  ///
+  /// In en, this message translates to:
+  /// **'The Tactics Round Table awaits: debates and intermediate fluency.'**
+  String get guild_rec_intermediate;
+
+  /// No description provided for @guild_rec_master.
+  ///
+  /// In en, this message translates to:
+  /// **'The Supreme Council of High Hunters is your place: master-level eloquence.'**
+  String get guild_rec_master;
+
+  /// No description provided for @guild_rec_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a table and start your conversation raid.'**
+  String get guild_rec_default;
+
+  /// No description provided for @guild_table_beginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Apprentice'**
+  String get guild_table_beginner;
+
+  /// No description provided for @guild_table_tactics.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactics'**
+  String get guild_table_tactics;
+
+  /// No description provided for @guild_table_council.
+  ///
+  /// In en, this message translates to:
+  /// **'Council'**
+  String get guild_table_council;
+
+  /// No description provided for @guild_rank_level.
+  ///
+  /// In en, this message translates to:
+  /// **'RANK SSS — Level {cefr}'**
+  String guild_rank_level(String cefr);
+
+  /// No description provided for @guild_follow_suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'FOLLOW MY SUGGESTION —>'**
+  String get guild_follow_suggestion;
+
+  /// No description provided for @guild_ask_master.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the Master (Level {cefr}):'**
+  String guild_ask_master(String cefr);
+
+  /// No description provided for @guild_ask_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask me which table to practice, which mission to take or how to improve your rank.'**
+  String get guild_ask_hint;
+
+  /// No description provided for @guild_input_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your question...'**
+  String get guild_input_hint;
+
+  /// No description provided for @guild_meditating.
+  ///
+  /// In en, this message translates to:
+  /// **'The Table Master is meditating... Try again.'**
+  String get guild_meditating;
+
+  /// No description provided for @mission_board_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MISSION BOARD'**
+  String get mission_board_title;
+
+  /// No description provided for @mission_board_player_rank.
+  ///
+  /// In en, this message translates to:
+  /// **'ADVENTURER · RANK {playerRank}'**
+  String mission_board_player_rank(String playerRank);
+
+  /// No description provided for @mission_completed_active.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ COMPLETED'**
+  String get mission_completed_active;
+
+  /// No description provided for @mission_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPLETED'**
+  String get mission_completed;
+
+  /// No description provided for @mission_filter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'ALL'**
+  String get mission_filter_all;
+
+  /// No description provided for @mission_filter_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY'**
+  String get mission_filter_daily;
+
+  /// No description provided for @mission_filter_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'WEEKLY'**
+  String get mission_filter_weekly;
+
+  /// No description provided for @mission_filter_collaborative.
+  ///
+  /// In en, this message translates to:
+  /// **'COLLABORATIVE'**
+  String get mission_filter_collaborative;
+
+  /// No description provided for @mission_filter_rarity_all.
+  ///
+  /// In en, this message translates to:
+  /// **'RARITY: ALL'**
+  String get mission_filter_rarity_all;
+
+  /// No description provided for @mission_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search mission by name...'**
+  String get mission_search_hint;
+
+  /// No description provided for @mission_board_empty_filtered.
+  ///
+  /// In en, this message translates to:
+  /// **'No guild missions match these filters.'**
+  String get mission_board_empty_filtered;
+
+  /// No description provided for @mission_view_more.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW MORE MISSIONS ({count} remaining)'**
+  String mission_view_more(int count);
+
+  /// No description provided for @mission_completed_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t completed any guild missions yet.'**
+  String get mission_completed_empty;
+
+  /// No description provided for @mission_login_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to accept missions.'**
+  String get mission_login_required;
+
+  /// No description provided for @mission_insufficient_rank.
+  ///
+  /// In en, this message translates to:
+  /// **'🔒 INSUFFICIENT RANK: you need rank {rank}.'**
+  String mission_insufficient_rank(String rank);
+
+  /// No description provided for @mission_accept_success.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Mission accepted: {title}'**
+  String mission_accept_success(String title);
+
+  /// No description provided for @mission_accept_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not accept (quota full or insufficient rank).'**
+  String get mission_accept_failed;
+
+  /// No description provided for @mission_high_rank_title.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH RANK MISSION'**
+  String get mission_high_rank_title;
+
+  /// No description provided for @mission_high_rank_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to undertake \"{title}\" (rank {rank})? It is an elite guild mission.'**
+  String mission_high_rank_confirm(String title, String rank);
+
+  /// No description provided for @mission_reward_earned.
+  ///
+  /// In en, this message translates to:
+  /// **'+{xp} XP  ·  +{gems} 💎'**
+  String mission_reward_earned(int xp, int gems);
+
+  /// No description provided for @mission_claim_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not claim the reward.'**
+  String get mission_claim_failed;
+
+  /// No description provided for @mission_npc_collaborative.
+  ///
+  /// In en, this message translates to:
+  /// **'Table Master · Guild'**
+  String get mission_npc_collaborative;
+
+  /// No description provided for @mission_npc_vocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Guild Librarian'**
+  String get mission_npc_vocabulary;
+
+  /// No description provided for @mission_npc_writing.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal Scribe'**
+  String get mission_npc_writing;
+
+  /// No description provided for @mission_npc_argumentation.
+  ///
+  /// In en, this message translates to:
+  /// **'Debate Consul'**
+  String get mission_npc_argumentation;
+
+  /// No description provided for @mission_npc_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Table Master'**
+  String get mission_npc_default;
+
+  /// No description provided for @mission_difficulty_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get mission_difficulty_unknown;
+
+  /// No description provided for @mission_difficulty_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank {rank}'**
+  String mission_difficulty_label(String rank);
+
+  /// No description provided for @mission_time_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'~10-15 min'**
+  String get mission_time_daily;
+
+  /// No description provided for @mission_time_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'~45-60 min'**
+  String get mission_time_weekly;
+
+  /// No description provided for @mission_time_collaborative.
+  ///
+  /// In en, this message translates to:
+  /// **'~30 min'**
+  String get mission_time_collaborative;
+
+  /// No description provided for @mission_time_default.
+  ///
+  /// In en, this message translates to:
+  /// **'~20 min'**
+  String get mission_time_default;
+
+  /// No description provided for @mission_load_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the mission.'**
+  String get mission_load_error;
+
+  /// No description provided for @mission_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission not found.'**
+  String get mission_not_found;
+
+  /// No description provided for @mission_detail_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MISSION DETAIL'**
+  String get mission_detail_title;
+
+  /// No description provided for @mission_rarity_type_label.
+  ///
+  /// In en, this message translates to:
+  /// **'{rarity} · {type}'**
+  String mission_rarity_type_label(String rarity, String type);
+
+  /// No description provided for @mission_section_description.
+  ///
+  /// In en, this message translates to:
+  /// **'DESCRIPTION'**
+  String get mission_section_description;
+
+  /// No description provided for @mission_npc_label.
+  ///
+  /// In en, this message translates to:
+  /// **'NPC'**
+  String get mission_npc_label;
+
+  /// No description provided for @mission_stat_level.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL'**
+  String get mission_stat_level;
+
+  /// No description provided for @mission_stat_xp.
+  ///
+  /// In en, this message translates to:
+  /// **'XP'**
+  String get mission_stat_xp;
+
+  /// No description provided for @mission_stat_gold.
+  ///
+  /// In en, this message translates to:
+  /// **'GOLD'**
+  String get mission_stat_gold;
+
+  /// No description provided for @mission_stat_time.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME'**
+  String get mission_stat_time;
+
+  /// No description provided for @mission_stat_objective.
+  ///
+  /// In en, this message translates to:
+  /// **'OBJECTIVE'**
+  String get mission_stat_objective;
+
+  /// No description provided for @mission_section_objectives.
+  ///
+  /// In en, this message translates to:
+  /// **'OBJECTIVES'**
+  String get mission_section_objectives;
+
+  /// No description provided for @mission_objectives_goal.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete {target} of {objectiveType}.'**
+  String mission_objectives_goal(int target, String objectiveType);
+
+  /// No description provided for @mission_claiming.
+  ///
+  /// In en, this message translates to:
+  /// **'CLAIMING...'**
+  String get mission_claiming;
+
+  /// No description provided for @mission_in_progress_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'IN PROGRESS · GO TO CHAT'**
+  String get mission_in_progress_chat;
+
+  /// No description provided for @mission_reject.
+  ///
+  /// In en, this message translates to:
+  /// **'REJECT'**
+  String get mission_reject;
+
+  /// No description provided for @mission_rank_required.
+  ///
+  /// In en, this message translates to:
+  /// **'RANK {rank} REQUIRED'**
+  String mission_rank_required(String rank);
+
+  /// No description provided for @mission_rarity_common.
+  ///
+  /// In en, this message translates to:
+  /// **'COMMON'**
+  String get mission_rarity_common;
+
+  /// No description provided for @mission_rarity_uncommon.
+  ///
+  /// In en, this message translates to:
+  /// **'UNCOMMON'**
+  String get mission_rarity_uncommon;
+
+  /// No description provided for @mission_rarity_rare.
+  ///
+  /// In en, this message translates to:
+  /// **'RARE'**
+  String get mission_rarity_rare;
+
+  /// No description provided for @mission_rarity_epic.
+  ///
+  /// In en, this message translates to:
+  /// **'EPIC'**
+  String get mission_rarity_epic;
+
+  /// No description provided for @mission_rarity_legendary.
+  ///
+  /// In en, this message translates to:
+  /// **'LEGENDARY'**
+  String get mission_rarity_legendary;
+
+  /// No description provided for @mission_rarity_guild.
+  ///
+  /// In en, this message translates to:
+  /// **'GUILD SPECIAL'**
+  String get mission_rarity_guild;
+
+  /// No description provided for @mission_status_available.
+  ///
+  /// In en, this message translates to:
+  /// **'AVAILABLE'**
+  String get mission_status_available;
+
+  /// No description provided for @mission_status_accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCEPTED'**
+  String get mission_status_accepted;
+
+  /// No description provided for @mission_status_in_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'IN PROGRESS'**
+  String get mission_status_in_progress;
+
+  /// No description provided for @mission_status_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPLETED'**
+  String get mission_status_completed;
+
+  /// No description provided for @mission_status_repeatable.
+  ///
+  /// In en, this message translates to:
+  /// **'REPEATABLE'**
+  String get mission_status_repeatable;
+
+  /// No description provided for @mission_status_blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'BLOCKED'**
+  String get mission_status_blocked;
+
+  /// No description provided for @mission_status_recommended.
+  ///
+  /// In en, this message translates to:
+  /// **'RECOMMENDED'**
+  String get mission_status_recommended;
+
+  /// No description provided for @mission_status_special.
+  ///
+  /// In en, this message translates to:
+  /// **'SPECIAL'**
+  String get mission_status_special;
+
+  /// No description provided for @session_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get session_title;
+
+  /// No description provided for @session_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION COMPLETED'**
+  String get session_completed;
+
+  /// No description provided for @session_good_job.
+  ///
+  /// In en, this message translates to:
+  /// **'Great job!'**
+  String get session_good_job;
+
+  /// No description provided for @session_words_spoken.
+  ///
+  /// In en, this message translates to:
+  /// **'You spoke {count} words with good pacing.'**
+  String session_words_spoken(int count);
+
+  /// No description provided for @session_ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice ready to start.'**
+  String get session_ready;
+
+  /// No description provided for @session_excellent_performance.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent performance!'**
+  String get session_excellent_performance;
+
+  /// No description provided for @session_ready_first.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for your first session!'**
+  String get session_ready_first;
+
+  /// No description provided for @session_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'DURATION'**
+  String get session_duration;
+
+  /// No description provided for @session_words.
+  ///
+  /// In en, this message translates to:
+  /// **'WORDS'**
+  String get session_words;
+
+  /// No description provided for @session_accuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCURACY'**
+  String get session_accuracy;
+
+  /// No description provided for @session_fluency.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluency'**
+  String get session_fluency;
+
+  /// No description provided for @session_pronunciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation'**
+  String get session_pronunciation;
+
+  /// No description provided for @session_feedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback'**
+  String get session_feedback;
+
+  /// No description provided for @session_no_errors.
+  ///
+  /// In en, this message translates to:
+  /// **'No grammar or phonetics errors were recorded.'**
+  String get session_no_errors;
+
+  /// No description provided for @session_talk_tutor.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk with the AI tutor to get feedback.'**
+  String get session_talk_tutor;
+
+  /// No description provided for @session_performance.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance'**
+  String get session_performance;
+
+  /// No description provided for @session_excellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get session_excellent;
+
+  /// No description provided for @session_correction.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get session_correction;
+
+  /// No description provided for @session_grammar.
+  ///
+  /// In en, this message translates to:
+  /// **'Grammar'**
+  String get session_grammar;
+
+  /// No description provided for @session_bonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Bonus'**
+  String get session_bonus;
+
+  /// No description provided for @session_maintained.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintained'**
+  String get session_maintained;
+
+  /// No description provided for @profile_status_panel.
+  ///
+  /// In en, this message translates to:
+  /// **'STATUS PANEL'**
+  String get profile_status_panel;
+
+  /// No description provided for @profile_hunter_window.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER STATUS WINDOW'**
+  String get profile_hunter_window;
+
+  /// No description provided for @profile_learning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning {language} {emoji}'**
+  String profile_learning(String language, String emoji);
+
+  /// No description provided for @profile_weekly_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Practice Minutes'**
+  String get profile_weekly_minutes;
+
+  /// No description provided for @profile_vocab_learned.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary Learned'**
+  String get profile_vocab_learned;
+
+  /// No description provided for @profile_explore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get profile_explore;
+
+  /// No description provided for @profile_learn.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn'**
+  String get profile_learn;
+
+  /// No description provided for @profile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile_title;
+
+  /// No description provided for @quest_daily_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Quests'**
+  String get quest_daily_title;
+
+  /// No description provided for @quest_speak_10min.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak 10 minutes of voice'**
+  String get quest_speak_10min;
+
+  /// No description provided for @quest_desc_session.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete a fluid conversational session'**
+  String get quest_desc_session;
+
+  /// No description provided for @quest_learn_5_words.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn 5 new words'**
+  String get quest_learn_5_words;
+
+  /// No description provided for @quest_desc_vocab.
+  ///
+  /// In en, this message translates to:
+  /// **'Accumulate vocabulary in your calls'**
+  String get quest_desc_vocab;
+
+  /// No description provided for @quest_85_pronunciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieve >85% in Pronunciation'**
+  String get quest_85_pronunciation;
+
+  /// No description provided for @quest_desc_pronunciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass a voice-print test'**
+  String get quest_desc_pronunciation;
+
+  /// No description provided for @league_level_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Level League'**
+  String get league_level_title;
+
+  /// No description provided for @league_you.
+  ///
+  /// In en, this message translates to:
+  /// **'You (Student)'**
+  String get league_you;
+
+  /// No description provided for @league_ranking.
+  ///
+  /// In en, this message translates to:
+  /// **'Ranking {league}'**
+  String league_ranking(String league);
+
+  /// No description provided for @league_top5.
+  ///
+  /// In en, this message translates to:
+  /// **'Top 5 · Level {level}'**
+  String league_top5(String level);
+
+  /// No description provided for @recommended_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Discovery Hub'**
+  String get recommended_title;
+
+  /// No description provided for @recommended_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalized lessons based on your level, interests and onboarding goals'**
+  String get recommended_desc;
+
+  /// No description provided for @recommended_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search lesson, role or topic...'**
+  String get recommended_search_hint;
+
+  /// No description provided for @recommended_cat_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get recommended_cat_all;
+
+  /// No description provided for @recommended_cat_tech.
+  ///
+  /// In en, this message translates to:
+  /// **'Technology'**
+  String get recommended_cat_tech;
+
+  /// No description provided for @recommended_cat_business.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get recommended_cat_business;
+
+  /// No description provided for @recommended_cat_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get recommended_cat_travel;
+
+  /// No description provided for @recommended_cat_social.
+  ///
+  /// In en, this message translates to:
+  /// **'Social'**
+  String get recommended_cat_social;
+
+  /// No description provided for @recommended_cat_food.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get recommended_cat_food;
+
+  /// No description provided for @recommended_all_levels.
+  ///
+  /// In en, this message translates to:
+  /// **'All Levels'**
+  String get recommended_all_levels;
+
+  /// No description provided for @recommended_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {lvl}'**
+  String recommended_level(String lvl);
+
+  /// No description provided for @recommended_catalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalized Catalog ({count})'**
+  String recommended_catalog(int count);
+
+  /// No description provided for @recommended_suggested_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested level: {cefr}'**
+  String recommended_suggested_level(String cefr);
+
+  /// No description provided for @recommended_hero_match.
+  ///
+  /// In en, this message translates to:
+  /// **'100% match with your Career goal and interest in Technology'**
+  String get recommended_hero_match;
+
+  /// No description provided for @recommended_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter: {cefr}'**
+  String recommended_filter(String cefr);
+
+  /// No description provided for @recommended_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons found with the selected filters.'**
+  String get recommended_empty;
+
+  /// No description provided for @recommended_lesson_level.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL {level}'**
+  String recommended_lesson_level(String level);
+
+  /// No description provided for @recommended_locked_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the previous lesson in your path to unlock.'**
+  String get recommended_locked_hint;
+
+  /// No description provided for @recommended_blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get recommended_blocked;
+
+  /// No description provided for @recommended_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get recommended_review;
+
+  /// No description provided for @recommended_speak.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak'**
+  String get recommended_speak;
+
+  /// No description provided for @path_roadmap_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage Path (CEFR)'**
+  String get path_roadmap_title;
+
+  /// No description provided for @path_stage_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons recorded for this stage yet.'**
+  String get path_stage_empty;
+
+  /// No description provided for @profile_edit_photo_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'PHOTO UPLOADED SUCCESSFULLY'**
+  String get profile_edit_photo_ok;
+
+  /// No description provided for @profile_edit_choose_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOOSE CUSTOM PHOTO PATH'**
+  String get profile_edit_choose_photo;
+
+  /// No description provided for @profile_edit_license_registry.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER LICENSE REGISTRY'**
+  String get profile_edit_license_registry;
+
+  /// No description provided for @profile_edit_hunter_name.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER NAME'**
+  String get profile_edit_hunter_name;
+
+  /// No description provided for @profile_edit_class_path.
+  ///
+  /// In en, this message translates to:
+  /// **'CLASS PATH: {path}'**
+  String profile_edit_class_path(String path);
+
+  /// No description provided for @profile_edit_select_class.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT CLASS PATH'**
+  String get profile_edit_select_class;
+
+  /// No description provided for @profile_edit_stat_allocation.
+  ///
+  /// In en, this message translates to:
+  /// **'STAT POINTS ALLOCATION'**
+  String get profile_edit_stat_allocation;
+
+  /// No description provided for @profile_edit_stat_pool.
+  ///
+  /// In en, this message translates to:
+  /// **'POOL: {points} PT'**
+  String profile_edit_stat_pool(int points);
+
+  /// No description provided for @profile_edit_full_name.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER FULL NAME'**
+  String get profile_edit_full_name;
+
+  /// No description provided for @profile_edit_name_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'NAME CANNOT BE EMPTY'**
+  String get profile_edit_name_empty;
+
+  /// No description provided for @profile_edit_memoir.
+  ///
+  /// In en, this message translates to:
+  /// **'MEMOIR / OBJECTIVES'**
+  String get profile_edit_memoir;
+
+  /// No description provided for @profile_edit_license_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'LICENSE REGISTRY UPDATED SUCCESSFULLY'**
+  String get profile_edit_license_updated;
+
+  /// No description provided for @profile_edit_save.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE LICENSE REGISTRY'**
+  String get profile_edit_save;
+
+  /// No description provided for @profile_edit_class_warrior.
+  ///
+  /// In en, this message translates to:
+  /// **'WARRIOR'**
+  String get profile_edit_class_warrior;
+
+  /// No description provided for @profile_edit_class_warrior_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical strength & high defense'**
+  String get profile_edit_class_warrior_desc;
+
+  /// No description provided for @profile_edit_class_mage.
+  ///
+  /// In en, this message translates to:
+  /// **'MAGE'**
+  String get profile_edit_class_mage;
+
+  /// No description provided for @profile_edit_class_mage_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Spell casting & mana manipulation'**
+  String get profile_edit_class_mage_desc;
+
+  /// No description provided for @profile_edit_class_assassin.
+  ///
+  /// In en, this message translates to:
+  /// **'ASSASSIN'**
+  String get profile_edit_class_assassin;
+
+  /// No description provided for @profile_edit_class_assassin_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stealth, speed & critical strikes'**
+  String get profile_edit_class_assassin_desc;
+
+  /// No description provided for @profile_edit_class_necromancer.
+  ///
+  /// In en, this message translates to:
+  /// **'NECROMANCER'**
+  String get profile_edit_class_necromancer;
+
+  /// No description provided for @profile_edit_class_necromancer_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Summoning the dead & dark magic'**
+  String get profile_edit_class_necromancer_desc;
+
+  /// No description provided for @profile_edit_class_priest.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIEST'**
+  String get profile_edit_class_priest;
+
+  /// No description provided for @profile_edit_class_priest_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Healing, buffing & holy light'**
+  String get profile_edit_class_priest_desc;
+
+  /// No description provided for @profile_edit_stat_str_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength & muscle power'**
+  String get profile_edit_stat_str_desc;
+
+  /// No description provided for @profile_edit_stat_int_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Spellcasting & parsing speed'**
+  String get profile_edit_stat_int_desc;
+
+  /// No description provided for @profile_edit_stat_dex_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Agility & response rhythm'**
+  String get profile_edit_stat_dex_desc;
+
+  /// No description provided for @profile_edit_stat_luk_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical correction avoidance'**
+  String get profile_edit_stat_luk_desc;
+
+  /// No description provided for @convo_mission_guide.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission Guide and Context'**
+  String get convo_mission_guide;
+
+  /// No description provided for @convo_practice_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation Practice'**
+  String get convo_practice_title;
+
+  /// No description provided for @convo_objective.
+  ///
+  /// In en, this message translates to:
+  /// **'Objective: {objective}'**
+  String convo_objective(String objective);
+
+  /// No description provided for @convo_select_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a lesson to see specific goals.'**
+  String get convo_select_goals;
+
+  /// No description provided for @convo_select_phrases.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a lesson to see suggested key phrases.'**
+  String get convo_select_phrases;
+
+  /// No description provided for @convo_voice_print.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Print & Pronunciation'**
+  String get convo_voice_print;
+
+  /// No description provided for @convo_phonetic_clarity.
+  ///
+  /// In en, this message translates to:
+  /// **'Phonetic Clarity'**
+  String get convo_phonetic_clarity;
+
+  /// No description provided for @convo_speech_speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech Speed'**
+  String get convo_speech_speed;
+
+  /// No description provided for @convo_words_spoken.
+  ///
+  /// In en, this message translates to:
+  /// **'Words Spoken'**
+  String get convo_words_spoken;
+
+  /// No description provided for @convo_cefr_level.
+  ///
+  /// In en, this message translates to:
+  /// **'CEFR Level'**
+  String get convo_cefr_level;
+
+  /// No description provided for @convo_hidden_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden Chat (4th/5th Star)'**
+  String get convo_hidden_chat;
+
+  /// No description provided for @convo_visible_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible Chat'**
+  String get convo_visible_chat;
+
+  /// No description provided for @convo_write_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Write Mode'**
+  String get convo_write_mode;
+
+  /// No description provided for @convo_voice_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Mode'**
+  String get convo_voice_mode;
+
+  /// No description provided for @convo_input_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your message in English...'**
+  String get convo_input_hint;
+
+  /// No description provided for @convo_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get convo_continue;
+
+  /// No description provided for @convo_oracle_evaluating.
+  ///
+  /// In en, this message translates to:
+  /// **'THE ORACLE IS EVALUATING YOUR CONVERSATION...'**
+  String get convo_oracle_evaluating;
+
+  /// No description provided for @convo_analyzing_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing your communication level...'**
+  String get convo_analyzing_level;
+
+  /// No description provided for @settings_system_config.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM CONFIG'**
+  String get settings_system_config;
+
+  /// No description provided for @settings_target_cefr.
+  ///
+  /// In en, this message translates to:
+  /// **'TARGET LANGUAGE & CEFR LEVEL'**
+  String get settings_target_cefr;
+
+  /// No description provided for @settings_language.
+  ///
+  /// In en, this message translates to:
+  /// **'LANGUAGE'**
+  String get settings_language;
+
+  /// No description provided for @settings_ai_parameters.
+  ///
+  /// In en, this message translates to:
+  /// **'AI TUTOR PARAMETERS'**
+  String get settings_ai_parameters;
+
+  /// No description provided for @settings_audio_comms.
+  ///
+  /// In en, this message translates to:
+  /// **'AUDIO & COMMUNICATIONS'**
+  String get settings_audio_comms;
+
+  /// No description provided for @settings_account.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCOUNT'**
+  String get settings_account;
+
+  /// No description provided for @settings_aligned.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIGURATION ALIGNED SUCCESSFULLY'**
+  String get settings_aligned;
+
+  /// No description provided for @settings_save.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE CONFIGURATION'**
+  String get settings_save;
+
+  /// No description provided for @settings_target_language.
+  ///
+  /// In en, this message translates to:
+  /// **'TARGET LANGUAGE'**
+  String get settings_target_language;
+
+  /// No description provided for @settings_cefr_practice.
+  ///
+  /// In en, this message translates to:
+  /// **'CEFR PRACTICE LEVEL'**
+  String get settings_cefr_practice;
+
+  /// No description provided for @settings_logout_dungeon.
+  ///
+  /// In en, this message translates to:
+  /// **'LOG OUT OF DUNGEON'**
+  String get settings_logout_dungeon;
+
+  /// No description provided for @settings_select_path.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT TARGET PATH'**
+  String get settings_select_path;
+
+  /// No description provided for @settings_select_cefr.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT CEFR LEVEL PATH'**
+  String get settings_select_cefr;
+
+  /// No description provided for @settings_correction_scope.
+  ///
+  /// In en, this message translates to:
+  /// **'AI CORRECTION SCOPE'**
+  String get settings_correction_scope;
+
+  /// No description provided for @settings_tutor_personality.
+  ///
+  /// In en, this message translates to:
+  /// **'TUTOR PERSONALITY'**
+  String get settings_tutor_personality;
+
+  /// No description provided for @settings_correction_cadence.
+  ///
+  /// In en, this message translates to:
+  /// **'CORRECTION CADENCE'**
+  String get settings_correction_cadence;
+
+  /// No description provided for @settings_quest_focus.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY QUEST FOCUS'**
+  String get settings_quest_focus;
+
+  /// No description provided for @settings_sfx_channels.
+  ///
+  /// In en, this message translates to:
+  /// **'AUDIO SFX CHANNELS'**
+  String get settings_sfx_channels;
+
+  /// No description provided for @settings_alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY ALERT EMISSIONS'**
+  String get settings_alerts;
+
+  /// No description provided for @settings_alert_time.
+  ///
+  /// In en, this message translates to:
+  /// **'ALERTS DISPATCH TIME'**
+  String get settings_alert_time;
+
+  /// No description provided for @settings_select_correction.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT CORRECTION LEVEL'**
+  String get settings_select_correction;
+
+  /// No description provided for @settings_select_personality.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT TUTOR PERSONALITY'**
+  String get settings_select_personality;
+
+  /// No description provided for @settings_select_cadence.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT CORRECTION CADENCE'**
+  String get settings_select_cadence;
+
+  /// No description provided for @settings_select_quest.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECT DAILY QUEST FOCUS'**
+  String get settings_select_quest;
+
+  /// No description provided for @settings_follow_device.
+  ///
+  /// In en, this message translates to:
+  /// **'USE DEVICE LANGUAGE'**
+  String get settings_follow_device;
+
+  /// No description provided for @settings_force_onboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Force Continuous Onboarding'**
+  String get settings_force_onboarding;
+
+  /// No description provided for @settings_dev_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer mode. It does not block the app: it only affects onboarding when there is no profile yet. Use \"Reset history\" to test it again.'**
+  String get settings_dev_desc;
+
+  /// No description provided for @settings_profile_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Hunter profile deleted. Restarting...'**
+  String get settings_profile_deleted;
+
+  /// No description provided for @settings_reset_onboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'RESET ONBOARDING HISTORY'**
+  String get settings_reset_onboarding;
+
+  /// No description provided for @onboarding_device_lang.
+  ///
+  /// In en, this message translates to:
+  /// **'We detected that your device uses {lang}. The app will be shown in that language.'**
+  String onboarding_device_lang(String lang);
+
+  /// No description provided for @onboarding_start_eval.
+  ///
+  /// In en, this message translates to:
+  /// **'START EVALUATION'**
+  String get onboarding_start_eval;
+
+  /// No description provided for @onboarding_beginner.
+  ///
+  /// In en, this message translates to:
+  /// **'I AM AN ABSOLUTE BEGINNER (PRE-A1)'**
+  String get onboarding_beginner;
+
+  /// No description provided for @onboarding_beginner_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'I cannot form sentences yet: only loose words and minimal vocabulary. You will start in Fundamentals without an exam.'**
+  String get onboarding_beginner_desc;
+
+  /// No description provided for @hunter_equip_title.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIP TITLE'**
+  String get hunter_equip_title;
+
+  /// No description provided for @hunter_skill_titles.
+  ///
+  /// In en, this message translates to:
+  /// **'SKILL TITLES'**
+  String get hunter_skill_titles;
+
+  /// No description provided for @hunter_cefr_xp.
+  ///
+  /// In en, this message translates to:
+  /// **'CEFR {code} · {xp} XP'**
+  String hunter_cefr_xp(String code, int xp);
+
+  /// No description provided for @hunter_equipped_title.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIPPED TITLE'**
+  String get hunter_equipped_title;
+
+  /// No description provided for @hunter_equip.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIP'**
+  String get hunter_equip;
+
+  /// No description provided for @hunter_fluency_analysis.
+  ///
+  /// In en, this message translates to:
+  /// **'FLUENCY ANALYSIS'**
+  String get hunter_fluency_analysis;
+
+  /// No description provided for @hunter_holographic_radar.
+  ///
+  /// In en, this message translates to:
+  /// **'HOLOGRAPHIC RADAR'**
+  String get hunter_holographic_radar;
+
+  /// No description provided for @hunter_practice_consistency.
+  ///
+  /// In en, this message translates to:
+  /// **'PRACTICE CONSISTENCY'**
+  String get hunter_practice_consistency;
+
+  /// No description provided for @hunter_points_pool.
+  ///
+  /// In en, this message translates to:
+  /// **'AVAILABLE POINTS: {points}'**
+  String hunter_points_pool(int points);
+
+  /// No description provided for @hunter_str.
+  ///
+  /// In en, this message translates to:
+  /// **'STR (STRENGTH)'**
+  String get hunter_str;
+
+  /// No description provided for @hunter_luk.
+  ///
+  /// In en, this message translates to:
+  /// **'LUK (LUCK)'**
+  String get hunter_luk;
+
+  /// No description provided for @hunter_distribute_points.
+  ///
+  /// In en, this message translates to:
+  /// **'DISTRIBUTE POINTS'**
+  String get hunter_distribute_points;
+
+  /// No description provided for @hunter_no_title.
+  ///
+  /// In en, this message translates to:
+  /// **'NO TITLE'**
+  String get hunter_no_title;
+
+  /// No description provided for @hunter_max_level.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX LEVEL REACHED'**
+  String get hunter_max_level;
+
+  /// No description provided for @dungeon_choose_portal.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOOSE A PORTAL ACCORDING TO YOUR RANK'**
+  String get dungeon_choose_portal;
+
+  /// No description provided for @dungeon_current_portal.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT PORTAL — LEVEL {level}'**
+  String dungeon_current_portal(String level);
+
+  /// No description provided for @dungeon_level.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL {level}'**
+  String dungeon_level(Object level);
+
+  /// No description provided for @progress_edit_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get progress_edit_profile;
+
+  /// No description provided for @progress_hunter_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Hunter Status'**
+  String get progress_hunter_status;
+
+  /// No description provided for @progress_streak_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice today to keep your {streak} day streak {days}'**
+  String progress_streak_hint(int streak, String days);
+
+  /// No description provided for @progress_practice.
+  ///
+  /// In en, this message translates to:
+  /// **'PRACTICE'**
+  String get progress_practice;
+
+  /// No description provided for @progress_streak_at_risk.
+  ///
+  /// In en, this message translates to:
+  /// **'STREAK AT RISK!'**
+  String get progress_streak_at_risk;
+
+  /// No description provided for @progress_hunter_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'View the 11-attribute matrix, equipped titles and power radar'**
+  String get progress_hunter_desc;
+
+  /// No description provided for @progress_weekly_voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Practice (Voice Minutes)'**
+  String get progress_weekly_voice;
+
+  /// No description provided for @progress_vocab_learned.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary Learned ({count})'**
+  String progress_vocab_learned(int count);
+
+  /// No description provided for @progress_vocab_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t accumulated vocabulary in voice calls yet.'**
+  String get progress_vocab_empty;
+
+  /// No description provided for @progress_vocab_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary'**
+  String get progress_vocab_section;
+
+  /// No description provided for @progress_hunter_attributes.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER ATTRIBUTES'**
+  String get progress_hunter_attributes;
+
+  /// No description provided for @progress_xp_rank.
+  ///
+  /// In en, this message translates to:
+  /// **'XP Rank'**
+  String get progress_xp_rank;
+
+  /// No description provided for @settings_opt_sfx_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Combat, mana charges, and level calibration sfx'**
+  String get settings_opt_sfx_desc;
+
+  /// No description provided for @settings_opt_strict_title.
+  ///
+  /// In en, this message translates to:
+  /// **'STRICT ACTION'**
+  String get settings_opt_strict_title;
+
+  /// No description provided for @settings_opt_strict_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'AI will only correct critical structural breaks.'**
+  String get settings_opt_strict_desc;
+
+  /// No description provided for @settings_opt_compact_title.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPACT FEEDBACK'**
+  String get settings_opt_compact_title;
+
+  /// No description provided for @settings_opt_compact_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick corrections with single line annotations.'**
+  String get settings_opt_compact_desc;
+
+  /// No description provided for @settings_opt_moderate_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MODERATE EXPLANATION'**
+  String get settings_opt_moderate_title;
+
+  /// No description provided for @settings_opt_moderate_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced corrections with 1 to 3 detail sentences.'**
+  String get settings_opt_moderate_desc;
+
+  /// No description provided for @settings_opt_detailed_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DETAILED BREAKDOWN'**
+  String get settings_opt_detailed_title;
+
+  /// No description provided for @settings_opt_detailed_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'In-depth grammar blueprints with contextual examples.'**
+  String get settings_opt_detailed_desc;
+
+  /// No description provided for @settings_opt_oracle_title.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE MASTER MODE'**
+  String get settings_opt_oracle_title;
+
+  /// No description provided for @settings_opt_oracle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete analysis of error blueprints.'**
+  String get settings_opt_oracle_desc;
+
+  /// No description provided for @settings_opt_companion_title.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPANION RATE'**
+  String get settings_opt_companion_title;
+
+  /// No description provided for @settings_opt_companion_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient, warm, and highly supportive responses.'**
+  String get settings_opt_companion_desc;
+
+  /// No description provided for @settings_opt_commander_title.
+  ///
+  /// In en, this message translates to:
+  /// **'COMMANDER BRIEF'**
+  String get settings_opt_commander_title;
+
+  /// No description provided for @settings_opt_commander_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Formal, highly structured, and structured corrections.'**
+  String get settings_opt_commander_desc;
+
+  /// No description provided for @settings_opt_boss_title.
+  ///
+  /// In en, this message translates to:
+  /// **'BOSS CALIBER CHALLENGE'**
+  String get settings_opt_boss_title;
+
+  /// No description provided for @settings_opt_boss_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'High-level vocabulary demands and strict responses.'**
+  String get settings_opt_boss_desc;
+
+  /// No description provided for @settings_opt_strict_style_title.
+  ///
+  /// In en, this message translates to:
+  /// **'STRICT ACTION'**
+  String get settings_opt_strict_style_title;
+
+  /// No description provided for @settings_opt_strict_style_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Interrupts and repairs errors instantly.'**
+  String get settings_opt_strict_style_desc;
+
+  /// No description provided for @settings_opt_balanced_title.
+  ///
+  /// In en, this message translates to:
+  /// **'BALANCED COMPASS'**
+  String get settings_opt_balanced_title;
+
+  /// No description provided for @settings_opt_balanced_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintains dialogue speed with structured correction feedback.'**
+  String get settings_opt_balanced_desc;
+
+  /// No description provided for @settings_opt_immersive_title.
+  ///
+  /// In en, this message translates to:
+  /// **'IMMERSIVE RAIDS'**
+  String get settings_opt_immersive_title;
+
+  /// No description provided for @settings_opt_immersive_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps speaking flow; repairs only terminal breaks.'**
+  String get settings_opt_immersive_desc;
+
+  /// No description provided for @settings_opt_casual_title.
+  ///
+  /// In en, this message translates to:
+  /// **'CASUAL RUN (10 MIN)'**
+  String get settings_opt_casual_title;
+
+  /// No description provided for @settings_opt_casual_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick entry practice daily.'**
+  String get settings_opt_casual_desc;
+
+  /// No description provided for @settings_opt_regular_title.
+  ///
+  /// In en, this message translates to:
+  /// **'REGULAR RAID (15 MIN)'**
+  String get settings_opt_regular_title;
+
+  /// No description provided for @settings_opt_regular_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid learning rate path.'**
+  String get settings_opt_regular_desc;
+
+  /// No description provided for @settings_opt_serious_title.
+  ///
+  /// In en, this message translates to:
+  /// **'SERIOUS CAMPAIGN (30 MIN)'**
+  String get settings_opt_serious_title;
+
+  /// No description provided for @settings_opt_serious_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Acquire fluent skill markers rapidly.'**
+  String get settings_opt_serious_desc;
+
+  /// No description provided for @settings_opt_overload_title.
+  ///
+  /// In en, this message translates to:
+  /// **'OVERLOAD OVERCLOCK (60 MIN)'**
+  String get settings_opt_overload_title;
+
+  /// No description provided for @settings_opt_overload_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete immersion overdrive.'**
+  String get settings_opt_overload_desc;
+
+  /// No description provided for @hunter_title_orco_caverna_f.
+  ///
+  /// In en, this message translates to:
+  /// **'Cave Orc Writing'**
+  String get hunter_title_orco_caverna_f;
+
+  /// No description provided for @hunter_title_orco_caverna_f_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'First steps making mistakes with courage.'**
+  String get hunter_title_orco_caverna_f_desc;
+
+  /// No description provided for @hunter_title_escriba_novato_e.
+  ///
+  /// In en, this message translates to:
+  /// **'Novice Scribe'**
+  String get hunter_title_escriba_novato_e;
+
+  /// No description provided for @hunter_title_escriba_novato_e_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'50% clean sentences.'**
+  String get hunter_title_escriba_novato_e_desc;
+
+  /// No description provided for @hunter_title_escriba_ciudad_d.
+  ///
+  /// In en, this message translates to:
+  /// **'City Scribe'**
+  String get hunter_title_escriba_ciudad_d;
+
+  /// No description provided for @hunter_title_escriba_ciudad_d_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'65% grammar accuracy.'**
+  String get hunter_title_escriba_ciudad_d_desc;
+
+  /// No description provided for @hunter_title_escriba_imperial_c.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial Library Scribe'**
+  String get hunter_title_escriba_imperial_c;
+
+  /// No description provided for @hunter_title_escriba_imperial_c_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'75% grammar accuracy.'**
+  String get hunter_title_escriba_imperial_c_desc;
+
+  /// No description provided for @hunter_title_pluma_erudito_b.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal Scholar Quill'**
+  String get hunter_title_pluma_erudito_b;
+
+  /// No description provided for @hunter_title_pluma_erudito_b_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'85% grammar accuracy.'**
+  String get hunter_title_pluma_erudito_b_desc;
+
+  /// No description provided for @hunter_title_pluma_archimago_a.
+  ///
+  /// In en, this message translates to:
+  /// **'Archmage Arcanist Quill'**
+  String get hunter_title_pluma_archimago_a;
+
+  /// No description provided for @hunter_title_pluma_archimago_a_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'92% grammar accuracy.'**
+  String get hunter_title_pluma_archimago_a_desc;
+
+  /// No description provided for @hunter_title_pluma_celestial_s.
+  ///
+  /// In en, this message translates to:
+  /// **'Celestial Quill of the Sage'**
+  String get hunter_title_pluma_celestial_s;
+
+  /// No description provided for @hunter_title_pluma_celestial_s_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'97% grammar accuracy.'**
+  String get hunter_title_pluma_celestial_s_desc;
+
+  /// No description provided for @hunter_title_monarca_sintaxis_ss.
+  ///
+  /// In en, this message translates to:
+  /// **'Monarch of Sacred Syntax'**
+  String get hunter_title_monarca_sintaxis_ss;
+
+  /// No description provided for @hunter_title_monarca_sintaxis_ss_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'99% grammar accuracy.'**
+  String get hunter_title_monarca_sintaxis_ss_desc;
+
+  /// No description provided for @hunter_title_creador_abismo_sss.
+  ///
+  /// In en, this message translates to:
+  /// **'Creator of Abyssal Languages'**
+  String get hunter_title_creador_abismo_sss;
+
+  /// No description provided for @hunter_title_creador_abismo_sss_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'100% flawless grammar accuracy.'**
+  String get hunter_title_creador_abismo_sss_desc;
+
+  /// No description provided for @hunter_title_murcielago_ciego_f.
+  ///
+  /// In en, this message translates to:
+  /// **'Blind Bat'**
+  String get hunter_title_murcielago_ciego_f;
+
+  /// No description provided for @hunter_title_murcielago_ciego_f_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial listens with text chat.'**
+  String get hunter_title_murcielago_ciego_f_desc;
+
+  /// No description provided for @hunter_title_oido_halcon_novato_d.
+  ///
+  /// In en, this message translates to:
+  /// **'Novice Hawk Hearing'**
+  String get hunter_title_oido_halcon_novato_d;
+
+  /// No description provided for @hunter_title_oido_halcon_novato_d_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'2 lessons without chat.'**
+  String get hunter_title_oido_halcon_novato_d_desc;
+
+  /// No description provided for @hunter_title_oido_halcon_abismo_c.
+  ///
+  /// In en, this message translates to:
+  /// **'Abyss Hawk Hearing'**
+  String get hunter_title_oido_halcon_abismo_c;
+
+  /// No description provided for @hunter_title_oido_halcon_abismo_c_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'4 blind-cleared lessons.'**
+  String get hunter_title_oido_halcon_abismo_c_desc;
+
+  /// No description provided for @hunter_title_sonar_monarca_sombras_s.
+  ///
+  /// In en, this message translates to:
+  /// **'Absolute Sonar of the Shadow Monarch'**
+  String get hunter_title_sonar_monarca_sombras_s;
+
+  /// No description provided for @hunter_title_sonar_monarca_sombras_s_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'16 blind-cleared lessons.'**
+  String get hunter_title_sonar_monarca_sombras_s_desc;
+
+  /// No description provided for @hunter_title_oidor_susurros_sss.
+  ///
+  /// In en, this message translates to:
+  /// **'Hearer of the Universe Whispers'**
+  String get hunter_title_oidor_susurros_sss;
+
+  /// No description provided for @hunter_title_oidor_susurros_sss_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 30 blind-cleared lessons.'**
+  String get hunter_title_oidor_susurros_sss_desc;
+
+  /// No description provided for @hunter_title_monarca_impecable_5star.
+  ///
+  /// In en, this message translates to:
+  /// **'Immaculate Monarch of Perfection'**
+  String get hunter_title_monarca_impecable_5star;
+
+  /// No description provided for @hunter_title_monarca_impecable_5star_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Awarded for achieving the 5th Mythic Star (0 blind errors).'**
+  String get hunter_title_monarca_impecable_5star_desc;
+
+  /// No description provided for @skill_fluidez_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Word Apprentice'**
+  String get skill_fluidez_1;
+
+  /// No description provided for @skill_fluidez_1_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You begin to express yourself with continuity.'**
+  String get skill_fluidez_1_desc;
+
+  /// No description provided for @skill_fluidez_2.
+  ///
+  /// In en, this message translates to:
+  /// **'The Swift Courier'**
+  String get skill_fluidez_2;
+
+  /// No description provided for @skill_fluidez_2_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You speak with notable rhythm and fluency.'**
+  String get skill_fluidez_2_desc;
+
+  /// No description provided for @skill_fluidez_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Herald of the Gale'**
+  String get skill_fluidez_3;
+
+  /// No description provided for @skill_fluidez_3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your speech flows effortlessly.'**
+  String get skill_fluidez_3_desc;
+
+  /// No description provided for @skill_fluidez_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Spokesperson of the Gods'**
+  String get skill_fluidez_4;
+
+  /// No description provided for @skill_fluidez_4_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost divine fluency when conversing.'**
+  String get skill_fluidez_4_desc;
+
+  /// No description provided for @skill_fonetica_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Apprentice'**
+  String get skill_fonetica_1;
+
+  /// No description provided for @skill_fonetica_1_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pronunciation is becoming clear.'**
+  String get skill_fonetica_1_desc;
+
+  /// No description provided for @skill_fonetica_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo of the Coliseum'**
+  String get skill_fonetica_2;
+
+  /// No description provided for @skill_fonetica_2_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You pronounce with remarkable precision.'**
+  String get skill_fonetica_2_desc;
+
+  /// No description provided for @skill_fonetica_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Crystal Choir'**
+  String get skill_fonetica_3;
+
+  /// No description provided for @skill_fonetica_3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phonetics are clean and bright.'**
+  String get skill_fonetica_3_desc;
+
+  /// No description provided for @skill_fonetica_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Celestial Tuner'**
+  String get skill_fonetica_4;
+
+  /// No description provided for @skill_fonetica_4_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Phonetic clarity from another plane.'**
+  String get skill_fonetica_4_desc;
+
+  /// No description provided for @skill_lexico_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Word Gatherer'**
+  String get skill_lexico_1;
+
+  /// No description provided for @skill_lexico_1_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You add your first mastered words.'**
+  String get skill_lexico_1_desc;
+
+  /// No description provided for @skill_lexico_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Village Librarian'**
+  String get skill_lexico_2;
+
+  /// No description provided for @skill_lexico_2_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vocabulary grows solidly.'**
+  String get skill_lexico_2_desc;
+
+  /// No description provided for @skill_lexico_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Abyss Scribe'**
+  String get skill_lexico_3;
+
+  /// No description provided for @skill_lexico_3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You master an extensive vocabulary.'**
+  String get skill_lexico_3_desc;
+
+  /// No description provided for @skill_lexico_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Eternal Lexicographer'**
+  String get skill_lexico_4;
+
+  /// No description provided for @skill_lexico_4_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your lexicon knows no bounds.'**
+  String get skill_lexico_4_desc;
+
+  /// No description provided for @skill_precision_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules Apprentice'**
+  String get skill_precision_1;
+
+  /// No description provided for @skill_precision_1_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple structures are already solid.'**
+  String get skill_precision_1_desc;
+
+  /// No description provided for @skill_precision_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Rune Apprentice'**
+  String get skill_precision_2;
+
+  /// No description provided for @skill_precision_2_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your grammar gains consistency.'**
+  String get skill_precision_2_desc;
+
+  /// No description provided for @skill_precision_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Coliseum Grammarian'**
+  String get skill_precision_3;
+
+  /// No description provided for @skill_precision_3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You build sentences with mastery.'**
+  String get skill_precision_3_desc;
+
+  /// No description provided for @skill_precision_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Syntax Forger'**
+  String get skill_precision_4;
+
+  /// No description provided for @skill_precision_4_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your grammatical precision is legendary.'**
+  String get skill_precision_4_desc;
+
+  /// No description provided for @skill_constancia_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Steady Apprentice'**
+  String get skill_constancia_1;
+
+  /// No description provided for @skill_constancia_1_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Three consecutive days of practice.'**
+  String get skill_constancia_1_desc;
+
+  /// No description provided for @skill_constancia_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Fire Guardian'**
+  String get skill_constancia_2;
+
+  /// No description provided for @skill_constancia_2_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'One uninterrupted week.'**
+  String get skill_constancia_2_desc;
+
+  /// No description provided for @skill_constancia_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Dawn Sentinel'**
+  String get skill_constancia_3;
+
+  /// No description provided for @skill_constancia_3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'A month of iron consistency.'**
+  String get skill_constancia_3_desc;
+
+  /// No description provided for @skill_constancia_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak Legend'**
+  String get skill_constancia_4;
+
+  /// No description provided for @skill_constancia_4_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'A hundred days of absolute dedication.'**
+  String get skill_constancia_4_desc;
+
+  /// No description provided for @skill_carisma_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Guild Novice'**
+  String get skill_carisma_1;
+
+  /// No description provided for @skill_carisma_1_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You navigate conversations with ease.'**
+  String get skill_carisma_1_desc;
+
+  /// No description provided for @skill_carisma_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Soul of the Tavern'**
+  String get skill_carisma_2;
+
+  /// No description provided for @skill_carisma_2_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You connect naturally with others.'**
+  String get skill_carisma_2_desc;
+
+  /// No description provided for @skill_carisma_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Realm Ambassador'**
+  String get skill_carisma_3;
+
+  /// No description provided for @skill_carisma_3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'You lead the conversation smoothly.'**
+  String get skill_carisma_3_desc;
+
+  /// No description provided for @skill_carisma_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesser Oracle'**
+  String get skill_carisma_4;
+
+  /// No description provided for @skill_carisma_4_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your conversational charisma is out of this world.'**
+  String get skill_carisma_4_desc;
+
+  /// No description provided for @paywall_upgrade_title.
+  ///
+  /// In en, this message translates to:
+  /// **'UPGRADE TO PREMIUM'**
+  String get paywall_upgrade_title;
+
+  /// No description provided for @paywall_upgrade_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your estate defines your monthly mana and prestige ceiling. Effort (Aura) decides your title.'**
+  String get paywall_upgrade_subtitle;
+
+  /// No description provided for @paywall_f_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'MENSUAL'**
+  String get paywall_f_monthly;
+
+  /// No description provided for @paywall_f_annual.
+  ///
+  /// In en, this message translates to:
+  /// **'ANUAL'**
+  String get paywall_f_annual;
+
+  /// No description provided for @paywall_subscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBSCRIBE NOW'**
+  String get paywall_subscribe;
+
+  /// No description provided for @paywall_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'RESTORE'**
+  String get paywall_restore;
+
+  /// No description provided for @paywall_legal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel anytime via App Store / Play Store. Terms and Conditions apply.'**
+  String get paywall_legal;
+
+  /// No description provided for @paywall_err_stripe.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start the payment. Check the Stripe configuration.'**
+  String get paywall_err_stripe;
+
+  /// No description provided for @paywall_err_checkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the checkout.'**
+  String get paywall_err_checkout;
+
+  /// No description provided for @paywall_feature_mana.
+  ///
+  /// In en, this message translates to:
+  /// **'Realtime Mana consumption & voice metrics tracker'**
+  String get paywall_feature_mana;
+
+  /// No description provided for @paywall_feature_titles.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock the 63 Rank Titles Inventory (from F to SSS Rank)'**
+  String get paywall_feature_titles;
+
+  /// No description provided for @paywall_feature_rooms.
+  ///
+  /// In en, this message translates to:
+  /// **'24/7 access to the Grand Discussion Hall voice rooms'**
+  String get paywall_feature_rooms;
+
+  /// No description provided for @paywall_feature_modes.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactical selector between Voice Mode and Writing Mode'**
+  String get paywall_feature_modes;
+
+  /// No description provided for @paywall_feature_missions.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium missions & weekly raid rewards'**
+  String get paywall_feature_missions;
+
+  /// No description provided for @paywall_active_title.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR CURRENT PLAN'**
+  String get paywall_active_title;
+
+  /// No description provided for @paywall_active_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have Premium. Manage or change your plan here.'**
+  String get paywall_active_subtitle;
+
+  /// No description provided for @paywall_load_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the plans.'**
+  String get paywall_load_error;
+
+  /// No description provided for @paywall_no_packages.
+  ///
+  /// In en, this message translates to:
+  /// **'No plans available for this billing cycle.'**
+  String get paywall_no_packages;
+
+  /// No description provided for @paywall_nothing_restored.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchases to restore.'**
+  String get paywall_nothing_restored;
+
+  /// No description provided for @paywall_current_plan.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT PLAN'**
+  String get paywall_current_plan;
+
+  /// No description provided for @paywall_manage_subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'MANAGE SUBSCRIPTION'**
+  String get paywall_manage_subscription;
 }
 
 class _AppLocalizationsDelegate

@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import GlassCard from '../components/GlassCard';
-import { CreditCard, Edit3, Save, X, Plus, Clock, ShieldCheck, Zap, Sparkles, CheckCircle2, AlertCircle, ArrowUp, Hash, RefreshCw } from 'lucide-react';
+import { CreditCard, Edit3, Save, X, Plus, Clock, ShieldCheck, Zap, Sparkles, CheckCircle2, AlertCircle, ArrowUp, Hash, RefreshCw, Trash2 } from 'lucide-react';
 
-export default function SubscriptionPlansManager({ plans, onSavePlan }) {
+export default function SubscriptionPlansManager({ plans, onSavePlan, onDeletePlan }) {
   const [editingPlan, setEditingPlan] = useState(null);
   const [formData, setFormData] = useState({
     id: '',
     name: '',
     price: '',
+    priceAnnual: '',
     billingCycle: 'monthly',
     monthlyAudioMinutesLimit: 300,
     orderIndex: 1,
     description: '',
     tag: '',
     featuresStr: '',
+    className: 'plebeyo',
+    manaAllowance: 18000,
+    stripePriceId: '',
+    stripePriceAnnualId: '',
   });
 
   const sortedPlans = [...plans].sort((a, b) => (a.orderIndex || 1) - (b.orderIndex || 1));
@@ -24,12 +29,17 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
       id: plan.id,
       name: plan.name,
       price: plan.price,
+      priceAnnual: plan.priceAnnual || plan.price_annual || '',
       billingCycle: plan.billingCycle || plan.billing_cycle || 'monthly',
       monthlyAudioMinutesLimit: plan.monthlyAudioMinutesLimit || 300,
       orderIndex: plan.orderIndex || 1,
       description: plan.description || '',
       tag: plan.tag || '',
       featuresStr: (plan.features || []).join('\n'),
+      className: plan.className || plan.class_name || 'plebeyo',
+      manaAllowance: plan.manaAllowance || ((plan.monthlyAudioMinutesLimit || 300) * 60),
+      stripePriceId: plan.stripePriceId || plan.stripe_price_id || '',
+      stripePriceAnnualId: plan.stripePriceAnnualId || plan.stripe_price_annual_id || '',
     });
   };
 
@@ -39,22 +49,27 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
       id: `plan_${Date.now().toString().slice(-4)}`,
       name: '',
       price: '$1.99',
+      priceAnnual: '',
       billingCycle: 'monthly',
       monthlyAudioMinutesLimit: 300,
       orderIndex: sortedPlans.length + 1,
       description: '',
       tag: '',
       featuresStr: 'Conversaciones IA ilimitadas\nCorrección gramatical avanzada\nSpeech DNA completo',
+      className: 'noble',
+      manaAllowance: 18000,
+      stripePriceId: '',
+      stripePriceAnnualId: '',
     });
   };
 
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.price.trim() || !formData.id.trim()) return;
-
     const updatedPlan = {
       id: formData.id.toLowerCase().replace(/\s+/g, '_'),
       name: formData.name.trim(),
       price: formData.price.trim(),
+      priceAnnual: formData.priceAnnual.trim() || null,
       billingCycle: formData.billingCycle,
       monthlyAudioMinutesLimit: parseInt(formData.monthlyAudioMinutesLimit, 10) || 300,
       orderIndex: parseInt(formData.orderIndex, 10) || 1,
@@ -62,12 +77,21 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
       tag: formData.tag.trim() || null,
       features: formData.featuresStr.split('\n').filter((f) => f.trim().length > 0),
       isActive: true,
+      className: formData.className,
+      manaAllowance: parseInt(formData.manaAllowance, 10) || ((parseInt(formData.monthlyAudioMinutesLimit, 10) || 300) * 60),
+      stripePriceId: formData.stripePriceId.trim() || null,
+      stripePriceAnnualId: formData.stripePriceAnnualId.trim() || null,
     };
 
     if (onSavePlan) {
       await onSavePlan(updatedPlan);
     }
     setEditingPlan(null);
+  };
+
+  const handleDelete = (plan) => {
+    const ok = window.confirm(`¿Eliminar el plan "${plan.name}" (${plan.id})? Se desactivará y dejará de mostrarse.`);
+    if (ok && onDeletePlan) onDeletePlan(plan.id);
   };
 
   return (
@@ -143,6 +167,11 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
                 <div>
                   <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#fff' }}>{p.name}</h3>
                   <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>ID: {p.id}</span>
+                  {p.updatedAt && (
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                      Editado {new Date(p.updatedAt).toLocaleString()} · {p.updatedBy.slice(0, 8)}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -166,6 +195,44 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
                 </div>
               </div>
 
+              {/* Estamento + Maná + Stripe */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                <div style={{ flex: 1, minWidth: '140px', background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '12px', padding: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Estamento</div>
+                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#fff', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    {(p.className || 'plebeyo').toUpperCase()}
+                  </div>
+                </div>
+                <div style={{ flex: 1, minWidth: '140px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '12px', padding: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Maná / Mes</div>
+                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#fff', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    {(p.manaAllowance || 1800).toLocaleString()}
+                  </div>
+                </div>
+                {p.stripePriceId && (
+                  <div style={{ flex: 1, minWidth: '160px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '12px', padding: '12px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Stripe Price (mensual)</div>
+                    <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--secondary-teal)', marginTop: '4px', fontFamily: 'var(--font-mono)', overflowWrap: 'anywhere' }}>
+                      {p.stripePriceId}
+                    </div>
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: '140px', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px', padding: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Precio Anual</div>
+                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#fbbf24', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    {p.priceAnnual || '—'}
+                  </div>
+                </div>
+                {p.stripePriceAnnualId && (
+                  <div style={{ flex: 1, minWidth: '160px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '12px', padding: '12px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Stripe Price (anual)</div>
+                    <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--secondary-teal)', marginTop: '4px', fontFamily: 'var(--font-mono)', overflowWrap: 'anywhere' }}>
+                      {p.stripePriceAnnualId}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px', minHeight: '38px' }}>
                 {p.description}
               </p>
@@ -182,10 +249,16 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
                 </ul>
               </div>
 
-              <button className="btn-primary" onClick={() => handleEdit(p)} style={{ width: '100%', justifyContent: 'center' }}>
-                <Edit3 style={{ width: '16px', height: '16px' }} />
-                <span>Editar Plan y Orden</span>
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="btn-primary" onClick={() => handleEdit(p)} style={{ flex: 1, justifyContent: 'center' }}>
+                  <Edit3 style={{ width: '16px', height: '16px' }} />
+                  <span>Editar</span>
+                </button>
+                <button className="btn-secondary" onClick={() => handleDelete(p)} style={{ justifyContent: 'center', color: '#fca5a5' }}>
+                  <Trash2 style={{ width: '16px', height: '16px' }} />
+                  <span>Eliminar</span>
+                </button>
+              </div>
             </GlassCard>
           ))}
         </div>
@@ -250,18 +323,11 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
                     className="cyber-input"
                   />
                 </div>
-                <div>
-                  <label className="form-label">Ciclo Facturación</label>
-                  <select
-                    value={formData.billingCycle}
-                    onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value })}
-                    className="cyber-input"
-                    style={{ appearance: 'auto' }}
-                  >
-                    <option value="monthly">Mensual</option>
-                    <option value="annual">Anual</option>
-                    <option value="lifetime">Único (Lifetime)</option>
-                  </select>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label">Ciclo de Facturación</label>
+                  <div className="cyber-input" style={{ color: 'var(--text-muted)', paddingTop: '12px', fontSize: '12px' }}>
+                    Mensual o Anual — el ciclo se elige al comprar
+                  </div>
                 </div>
                 <div>
                   <label className="form-label">Minutos IA / Mes</label>
@@ -279,6 +345,61 @@ export default function SubscriptionPlansManager({ plans, onSavePlan }) {
                     value={formData.orderIndex}
                     min={1}
                     onChange={(e) => setFormData({ ...formData, orderIndex: e.target.value })}
+                    className="cyber-input"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label className="form-label">Estamento</label>
+                  <select
+                    value={formData.className}
+                    onChange={(e) => setFormData({ ...formData, className: e.target.value })}
+                    className="cyber-input"
+                    style={{ appearance: 'auto' }}
+                  >
+                    <option value="plebeyo">Plebeyo</option>
+                    <option value="noble">Noble</option>
+                    <option value="realeza">Realeza</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Maná / Mes</label>
+                  <input
+                    type="number"
+                    value={formData.manaAllowance}
+                    onChange={(e) => setFormData({ ...formData, manaAllowance: e.target.value })}
+                    className="cyber-input"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Stripe Price ID (mensual)</label>
+                  <input
+                    type="text"
+                    placeholder="price_..."
+                    value={formData.stripePriceId}
+                    onChange={(e) => setFormData({ ...formData, stripePriceId: e.target.value })}
+                    className="cyber-input"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Precio Anual</label>
+                  <input
+                    type="text"
+                    placeholder="Ej. $49.99"
+                    value={formData.priceAnnual}
+                    onChange={(e) => setFormData({ ...formData, priceAnnual: e.target.value })}
+                    className="cyber-input"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Stripe Price Anual ID</label>
+                  <input
+                    type="text"
+                    placeholder="price_..."
+                    value={formData.stripePriceAnnualId}
+                    onChange={(e) => setFormData({ ...formData, stripePriceAnnualId: e.target.value })}
                     className="cyber-input"
                   />
                 </div>

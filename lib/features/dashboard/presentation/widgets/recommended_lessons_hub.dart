@@ -35,6 +35,24 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
 
   final List<String> _cefrLevels = const ['all', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
+  String _categoryLabel(String? code) {
+    final l10n = AppLocalizations.of(context);
+    switch (code) {
+      case 'technology':
+        return l10n?.recommended_cat_tech ?? 'Tecnología';
+      case 'business':
+        return l10n?.recommended_cat_business ?? 'Negocios';
+      case 'travel':
+        return l10n?.recommended_cat_travel ?? 'Viajes';
+      case 'social':
+        return l10n?.recommended_cat_social ?? 'Social';
+      case 'food':
+        return l10n?.recommended_cat_food ?? 'Comida';
+      default:
+        return l10n?.recommended_cat_all ?? 'Todos';
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -147,7 +165,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Smart Discovery Hub',
+                    l10n.recommended_title,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.onSurface,
@@ -168,9 +186,9 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Lecciones personalizadas según tu nivel, intereses y metas de onboarding',
-              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+            Text(
+              l10n.recommended_desc,
+              style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
             ),
 
             const SizedBox(height: 16),
@@ -185,7 +203,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
               },
               style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Buscar lección, rol o tema...',
+                hintText: l10n.recommended_search_hint,
                 hintStyle: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
                 prefixIcon: const Icon(Icons.search_rounded, color: AppColors.runeViolet),
                 suffixIcon: _searchQuery.isNotEmpty
@@ -243,7 +261,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                         });
                       },
                       avatar: Text(cat['icon']!, style: const TextStyle(fontSize: 12)),
-                      label: Text(cat['label']!),
+                      label: Text(_categoryLabel(cat['code'])),
                       labelStyle: TextStyle(
                         color: isSelected ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.7),
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -284,7 +302,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                           _selectedCefr = lvl;
                         });
                       },
-                      label: Text(lvl == 'all' ? 'Todos Niveles' : 'Nivel $lvl'),
+                      label: Text(lvl == 'all' ? l10n.recommended_all_levels : l10n.recommended_level(lvl)),
                       labelStyle: TextStyle(
                         color: isSelected ? AppColors.manaCyan : AppColors.onSurfaceVariant,
                         fontSize: 11,
@@ -311,7 +329,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
               AIPickHeroCard(
                 lesson: heroLesson,
                 matchPercentage: 98,
-                matchReason: '💡 Coincide 100% con tu meta de Carrera e interés en Tecnología',
+                matchReason: l10n.recommended_hero_match,
                 onTapPreview: () => LessonPreviewSheet.show(context, heroLesson),
               ),
               const SizedBox(height: 24),
@@ -322,7 +340,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
               children: [
                 Expanded(
                   child: Text(
-                    'Catálogo Personalizado (${filteredLessons.length})',
+                    l10n.recommended_catalog(filteredLessons.length),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.onSurface,
@@ -332,7 +350,9 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _selectedCefr == 'all' ? 'Nivel sugerido: $userCefr' : 'Filtro: $_selectedCefr',
+                  _selectedCefr == 'all'
+                      ? l10n.recommended_suggested_level(userCefr)
+                      : l10n.recommended_filter(_selectedCefr),
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.onSurfaceVariant,
@@ -345,14 +365,14 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
 
             // Lessons Vanguard List
             if (filteredLessons.isEmpty)
-              const GlassCard(
+              GlassCard(
                 blur: 15,
                 opacity: AppColors.glassOpacity,
-                padding: EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
                 child: Center(
                   child: Text(
-                    'No se encontraron lecciones con los filtros seleccionados.',
-                    style: TextStyle(color: AppColors.onSurfaceVariant),
+                    l10n.recommended_empty,
+                    style: const TextStyle(color: AppColors.onSurfaceVariant),
                   ),
                 ),
               )
@@ -408,7 +428,7 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                           borderRadius: BorderRadius.circular(AppRadius.md),
                                         ),
                                         child: Text(
-                                          'NIVEL ${lesson.level}',
+                                          l10n.recommended_lesson_level(lesson.level),
                                           style: GoogleFonts.spaceGrotesk(
                                             fontSize: 9,
                                             fontWeight: FontWeight.w800,
@@ -433,8 +453,9 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
                                       color: AppColors.onSurface,
+                                      height: 1.2,
                                     ),
-                                    maxLines: 1,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
@@ -479,9 +500,9 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                 onPressed: isLocked
                                     ? () {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('🔒 Completa la lección anterior de tu ruta para desbloquear.'),
-                                            duration: Duration(seconds: 2),
+                                          SnackBar(
+                                            content: Text(l10n.recommended_locked_hint),
+                                            duration: const Duration(seconds: 2),
                                           ),
                                         );
                                       }
@@ -512,7 +533,9 @@ class _RecommendedLessonsHubState extends ConsumerState<RecommendedLessonsHub> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        isLocked ? 'Bloqueado' : (isCompleted ? 'Repasar ⭐' : 'Hablar'),
+                                        isLocked
+                                            ? l10n.recommended_blocked
+                                            : (isCompleted ? '${l10n.recommended_review} ⭐' : l10n.recommended_speak),
                                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                       ),
                                     ],

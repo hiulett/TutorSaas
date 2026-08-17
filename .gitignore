@@ -56,3 +56,14 @@ config.json
 # Salida generada de herramientas de análisis (no es código fuente)
 graphify-out/
 
+# Artefactos locales del agente / análisis
+analyze_out.txt
+
+# Supabase CLI local (.temp de link/start)
+supabase/.temp/
+supabase/**/.temp/
+supabase/functions/**/.temp/
+
+# Dependencias de herramientas locales de opencode
+.opencode/node_modules/
+

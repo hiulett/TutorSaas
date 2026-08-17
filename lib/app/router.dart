@@ -4,25 +4,15 @@ import 'package:go_router/go_router.dart';
 import '../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
-import '../features/dashboard/presentation/screens/hunter_status_screen.dart';
-import '../features/dashboard/presentation/screens/dungeon_map_screen.dart';
 import '../features/conversation/presentation/screens/conversation_screen.dart';
 import '../features/dashboard/presentation/screens/session_summary_screen.dart';
 import '../features/subscription/presentation/screens/paywall_screen.dart';
-import '../features/dashboard/presentation/screens/profile_screen.dart';
 import '../features/dashboard/presentation/screens/settings_screen.dart';
 import '../features/dashboard/presentation/screens/profile_edit_screen.dart';
 import '../features/chat_rooms/presentation/screens/voice_room_screen.dart';
 import '../features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
-import '../features/missions/presentation/screens/guild_mission_board_screen.dart';
-import '../features/missions/presentation/screens/mission_detail_screen.dart';
-import '../features/conversation/presentation/screens/level_exam_screen.dart';
 import '../features/economy/presentation/screens/shop_screen.dart';
 import '../features/economy/presentation/screens/inventory_screen.dart';
-import '../features/economy/presentation/screens/battle_pass_screen.dart';
-import '../features/economy/presentation/screens/collections_screen.dart';
-import '../features/economy/presentation/screens/fragments_exchange_screen.dart';
-import '../features/dashboard/presentation/screens/leaderboard_screen.dart';
 import '../core/widgets/system_mana_disruption_screen.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
 import 'splash_screen.dart';
@@ -92,14 +82,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       },
     ),
     GoRoute(
-      path: '/hunter-status',
-      builder: (context, state) => const HunterStatusScreen(),
-    ),
-    GoRoute(
-      path: '/dungeon-map',
-      builder: (context, state) => const DungeonMapScreen(),
-    ),
-    GoRoute(
       path: '/home',
       builder: (context, state) => const DashboardScreen(),
     ),
@@ -130,10 +112,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const PaywallScreen(),
     ),
     GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
-    ),
-    GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
     ),
@@ -146,46 +124,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const ChatRoomsScreen(),
     ),
     GoRoute(
-      path: '/guild-quest-board',
-      builder: (context, state) => const GuildMissionBoardScreen(),
-    ),
-    GoRoute(
-      path: '/guild-quest-detail',
-      builder: (context, state) {
-        final questId = state.uri.queryParameters['questId'] ?? '';
-        return MissionDetailScreen(questId: questId);
-      },
-    ),
-    GoRoute(
-      path: '/level-exam',
-      builder: (context, state) {
-        final levelCode = state.uri.queryParameters['level'] ?? 'A1';
-        return LevelExamScreen(levelCode: levelCode);
-      },
-    ),
-    GoRoute(
       path: '/shop',
       builder: (context, state) => const ShopScreen(),
     ),
     GoRoute(
       path: '/inventory',
       builder: (context, state) => const InventoryScreen(),
-    ),
-    GoRoute(
-      path: '/battle-pass',
-      builder: (context, state) => const BattlePassScreen(),
-    ),
-    GoRoute(
-      path: '/collections',
-      builder: (context, state) => const CollectionsScreen(),
-    ),
-    GoRoute(
-      path: '/fragments-exchange',
-      builder: (context, state) => const FragmentsExchangeScreen(),
-    ),
-    GoRoute(
-      path: '/leaderboard',
-      builder: (context, state) => const LeaderboardScreen(),
     ),
     GoRoute(
       path: '/disruption',

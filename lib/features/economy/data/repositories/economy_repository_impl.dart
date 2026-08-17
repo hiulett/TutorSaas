@@ -306,6 +306,44 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
+  Future<bool> purchaseCosmeticWithGold(String userId, String itemCode) async {
+    try {
+      final existing = await _client
+          .from('player_inventory')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('item_code', itemCode)
+          .maybeSingle();
+      if (existing != null) return false;
+
+      final catalog = await _client
+          .from('cosmetic_catalog')
+          .select('price_gold, category')
+          .eq('id', itemCode)
+          .maybeSingle();
+      if (catalog == null) return false;
+      final price = catalog['price_gold'] as int? ?? 0;
+      if (price <= 0) return false;
+
+      final spent = await spendGold(userId, price);
+      if (!spent) return false;
+
+      await _client.from('player_inventory').insert({
+        'user_id': userId,
+        'item_code': itemCode,
+        'item_type': catalog['category'] as String? ?? 'cosmetic',
+        'is_equipped': false,
+      });
+
+      unawaited(_logEvent(userId, 'purchase_cosmetic_gold'));
+      unawaited(RetentionAnalytics.instance.track(userId, 'purchase_cosmetic_gold'));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<void> toggleEquip(String userId, String itemCode) async {
     try {
       final item = await _client
@@ -478,65 +516,6 @@ class EconomyRepositoryImpl implements EconomyRepository {
     }
   }
 
-  @override
-  Future<Map<String, dynamic>?> addBattlePassXp(String userId, int amount) async {
-    try {
-      const season = 'season_2026_02';
-      const xpPerLevel = 1000;
-      final bp = await getBattlePass(userId);
-
-      final level = (bp['level'] as num?)?.toInt() ?? 1;
-      final progress = (bp['xp_progress'] as num?)?.toInt() ?? 0;
-      var newProgress = progress + amount;
-      var newLevel = level;
-
-      while (newProgress >= xpPerLevel) {
-        newProgress -= xpPerLevel;
-        newLevel++;
-      }
-
-      await _client.from('guild_battle_pass').upsert({
-        'user_id': userId,
-        'season': season,
-        'level': newLevel,
-        'xp_progress': newProgress,
-        'is_premium': bp['is_premium'] as bool? ?? false,
-        'claimed_rewards': (bp['claimed_rewards'] as List? ?? const <String>[]),
-      }, onConflict: 'user_id, season').select().single();
-
-      return {'level': newLevel, 'xp_progress': newProgress, 'season': season};
-    } catch (_) {
-      return null;
-    }
-  }
-
-  @override
-  Future<bool> claimBattlePassReward(String userId, int tier) async {
-    try {
-      final bp = await getBattlePass(userId);
-      final level = (bp['level'] as num?)?.toInt() ?? 1;
-      if (tier > level) return false;
-
-      final claimed = List<String>.from((bp['claimed_rewards'] as List? ?? const <String>[]));
-      final key = 'tier_$tier';
-      if (claimed.contains(key)) return false;
-      claimed.add(key);
-
-      await _client.from('guild_battle_pass').upsert({
-        'user_id': userId,
-        'season': bp['season'] as String? ?? 'season_2026_02',
-        'level': level,
-        'xp_progress': (bp['xp_progress'] as num?)?.toInt() ?? 0,
-        'is_premium': bp['is_premium'] as bool? ?? false,
-        'claimed_rewards': claimed,
-      }, onConflict: 'user_id, season');
-
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
   // ── Gold & Fragments (T-504) ─────────────────────────────────────────────
 
   @override
@@ -610,7 +589,7 @@ class EconomyRepositoryImpl implements EconomyRepository {
           .eq('user_id', userId)
           .maybeSingle();
       final planId = sub?['plan_id'] as String?;
-      if (planId == null || planId == 'free') return 0;
+      if (planId == null || planId == 'plebeyo') return 0;
 
       final plan = await _client
           .from('subscription_plans')
@@ -623,6 +602,95 @@ class EconomyRepositoryImpl implements EconomyRepository {
       return 0;
     } catch (_) {
       return 0;
+    }
+  }
+
+  // ── FASE B: Maná monetizado + Aura sin tope ──────────────────────────────
+
+  @override
+  Future<Map<String, dynamic>> consumeMana(String userId, String actionCode) async {
+    try {
+      final res = await _client.rpc('consume_mana', params: {
+        'p_user_id': userId,
+        'p_action_code': actionCode,
+      });
+      return Map<String, dynamic>.from(res as Map);
+    } catch (e) {
+      debugPrint('consumeMana error: $e');
+      return {'success': false, 'reason': 'error'};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getManaState(String userId) async {
+    try {
+      final res = await _client.rpc('get_mana_state', params: {'p_user_id': userId});
+      return Map<String, dynamic>.from(res as Map);
+    } catch (e) {
+      debugPrint('getManaState error: $e');
+      return {'allowance': 1800, 'purchased': 0, 'used': 0, 'remaining': 1800,
+              'expires_at': null, 'plan': 'Plan Gratuito', 'class': 'plebeyo'};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> addAuraXp(
+    String userId,
+    String sessionId,
+    Map<String, double> radar,
+    int metas,
+    int bonusNivel,
+  ) async {
+    try {
+      final res = await _client.rpc('add_aura_xp', params: {
+        'p_user_id': userId,
+        'p_session_id': sessionId,
+        'p_radar': radar,
+        'p_metas': metas,
+        'p_bonus_nivel': bonusNivel,
+      });
+      return Map<String, dynamic>.from(res as Map);
+    } catch (e) {
+      debugPrint('addAuraXp error: $e');
+      return {'added': 0, 'error': 'error'};
+    }
+  }
+
+  @override
+  Future<void> addGold(String userId, int amount) async {
+    try {
+      await _client.rpc('add_gold', params: {
+        'p_user_id': userId,
+        'p_amount': amount,
+      });
+    } catch (e) {
+      debugPrint('addGold error: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getPrestigeTitle(String userId) async {
+    try {
+      final res = await _client.rpc('get_prestige_title', params: {'p_user_id': userId});
+      return Map<String, dynamic>.from(res as Map);
+    } catch (e) {
+      debugPrint('getPrestigeTitle error: $e');
+      return {'tier_code': null, 'name': null};
+    }
+  }
+
+  @override
+  Future<String?> createManaCheckout(String userId, String productId, String type) async {
+    try {
+      final res = await _client.functions.invoke('stripe-checkout', body: {
+        'type': type,
+        'product_id': productId,
+      });
+      final data = (res.data as Map?) ?? const {};
+      return data['url'] as String?;
+    } catch (e) {
+      debugPrint('createManaCheckout error: $e');
+      return null;
     }
   }
 }

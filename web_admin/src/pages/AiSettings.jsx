@@ -28,6 +28,12 @@ export default function AiSettings({ settings, onSave }) {
         </p>
       </div>
 
+      <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', color: '#fbbf24', fontSize: '13px' }}>
+        ⚠️ Estos valores se guardan en <code style={{ color: '#fff' }}>system_ai_settings</code>, pero el runtime
+        (<code style={{ color: '#fff' }}>llm-proxy</code>) usa variables de entorno (<code style={{ color: '#fff' }}>DEEPSEEK_API_KEY</code>/<code style={{ color: '#fff' }}>GROQ_API_KEY</code>).
+        Cambiarlos aquí todavía <strong>no afecta a la app</strong>.
+      </div>
+
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* STT Config */}
         <GlassCard padding="24px">

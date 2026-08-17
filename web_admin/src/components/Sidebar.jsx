@@ -9,6 +9,7 @@ import {
   LogOut,
   ShieldCheck,
   CreditCard,
+  Coins,
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -19,6 +20,7 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
     { id: 'cefr', label: 'Niveles CEFR', icon: Layers },
     { id: 'users', label: 'Usuarios y Progreso', icon: Users },
     { id: 'plans', label: 'Planes y Membresías', icon: CreditCard },
+    { id: 'economy', label: 'Economía y Config', icon: Coins },
     { id: 'ai-settings', label: 'Ajustes de IA', icon: Sliders },
   ];
 

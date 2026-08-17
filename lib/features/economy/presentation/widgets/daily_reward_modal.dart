@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/system_window.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/economy_providers.dart';
 
@@ -45,6 +46,7 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final streakAsync = ref.watch(streakProvider);
     final dailyAsync = ref.watch(dailyStateProvider);
     final streak = streakAsync.value?['current_streak'] as int? ?? 0;
@@ -62,8 +64,8 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SystemWindow(
-        title: 'RECOMPENSA DIARIA',
-        subtitle: 'RACHA ACTUAL: $streak DÍAS',
+        title: l10n?.daily_reward_title ?? 'RECOMPENSA DIARIA',
+        subtitle: l10n?.daily_reward_streak(streak) ?? 'RACHA ACTUAL: $streak DÍAS',
         icon: Icons.card_giftcard_rounded,
         accentColor: AppColors.royalGold,
         showCloseButton: true,
@@ -85,7 +87,7 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'DÍAS',
+                  (l10n?.days ?? 'Days').toUpperCase(),
                   style: GoogleFonts.jetBrainsMono(fontSize: 11, color: AppColors.onSurfaceVariant, letterSpacing: 1),
                 ),
               ],
@@ -96,11 +98,11 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
             Row(
               children: [
                 Expanded(
-                  child: _RewardTile(icon: Icons.diamond_rounded, color: AppColors.manaCyan, value: '$gems GEMAS', label: 'POR RACHA'),
+                  child: _RewardTile(icon: Icons.diamond_rounded, color: AppColors.manaCyan, value: l10n?.daily_reward_gems(gems) ?? '$gems GEMAS', label: l10n?.daily_reward_by_streak ?? 'POR RACHA'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _RewardTile(icon: Icons.menu_book_rounded, color: AppColors.runeViolet, value: '+$pergaminos PERGAMINOS', label: 'TETO DIARIO'),
+                  child: _RewardTile(icon: Icons.menu_book_rounded, color: AppColors.runeViolet, value: l10n?.daily_reward_parchments(pergaminos) ?? '+$pergaminos PERGAMINOS', label: l10n?.daily_reward_cap ?? 'TETO DIARIO'),
                 ),
               ],
             ),
@@ -109,12 +111,13 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
             // Next tier hint
             Text(
               streak < 7
-                  ? 'MANTÉN TU RACHA: A LOS 7 DÍAS GANAS 50 GEMAS Y 5 PERGAMINOS'
+                  ? (l10n?.daily_reward_keep_streak ??
+                      'MANTÉN TU RACHA: A LOS 7 DÍAS GANAS 50 GEMAS Y 5 PERGAMINOS')
                   : streak < 14
-                      ? 'A LOS 14 DÍAS: 100 GEMAS Y 8 PERGAMINOS'
+                      ? (l10n?.daily_reward_at_14 ?? 'A LOS 14 DÍAS: 100 GEMAS Y 8 PERGAMINOS')
                       : streak < 30
-                          ? 'A LOS 30 DÍAS: 300 GEMAS Y 15 PERGAMINOS'
-                          : '¡RACHA MÁXIMA ALCANZADA!',
+                          ? (l10n?.daily_reward_at_30 ?? 'A LOS 30 DÍAS: 300 GEMAS Y 15 PERGAMINOS')
+                          : (l10n?.daily_reward_max_streak ?? '¡RACHA MÁXIMA ALCANZADA!'),
               textAlign: TextAlign.center,
               style: GoogleFonts.jetBrainsMono(
                 fontSize: 9,
@@ -135,10 +138,10 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
               ),
               child: Text(
                 _isClaiming
-                    ? 'RECLAMANDO…'
+                    ? (l10n?.claiming ?? 'RECLAMANDO…')
                     : effectiveClaimed
-                        ? 'RECOMPENSA RECLAMADA HOY'
-                        : 'RECLAMAR RECOMPENSA',
+                        ? (l10n?.daily_reward_claimed_today ?? 'RECOMPENSA RECLAMADA HOY')
+                        : (l10n?.daily_reward_claim ?? 'RECLAMAR RECOMPENSA'),
                 style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
               ),
             ),

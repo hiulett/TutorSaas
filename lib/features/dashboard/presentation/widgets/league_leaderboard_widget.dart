@@ -4,6 +4,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class LeagueLeaderboardWidget extends StatelessWidget {
   final String activeLeague;
@@ -26,13 +27,15 @@ class LeagueLeaderboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final String level = userLevelCode.toUpperCase();
+    final String youName = l10n?.league_you ?? 'Tú (Estudiante)';
 
     final List<Map<String, dynamic>> leaderboard = entries.isNotEmpty
         ? entries.take(5).toList()
         : [
             {'rank': 1, 'name': 'Elena Rostova', 'xp': 3240, 'stars': 15, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Elena', 'isUser': false},
-            {'rank': 2, 'name': 'Tú (Estudiante)', 'xp': userXp, 'stars': 12, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Profile', 'isUser': true},
+            {'rank': 2, 'name': youName, 'xp': userXp, 'stars': 12, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Profile', 'isUser': true},
             {'rank': 3, 'name': 'Marco Silva', 'xp': 2890, 'stars': 9, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Marco', 'isUser': false},
             {'rank': 4, 'name': 'Sophie Martin', 'xp': 2100, 'stars': 7, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Sophie', 'isUser': false},
             {'rank': 5, 'name': 'Klaus Webber', 'xp': 1850, 'stars': 5, 'avatar': 'https://api.dicebear.com/7.x/bottts-neutral/png?seed=Klaus', 'isUser': false},
@@ -55,7 +58,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
-                      'Clasificación $activeLeague',
+                      l10n?.league_ranking(activeLeague) ?? 'Clasificación $activeLeague',
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: GoogleFonts.spaceGrotesk(
@@ -79,7 +82,7 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Top 5 • Nivel $level',
+                l10n?.league_top5(level) ?? 'Top 5 • Nivel $level',
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,

@@ -6,6 +6,7 @@ import LessonManager from './pages/LessonManager';
 import CefrLevelsManager from './pages/CefrLevelsManager';
 import UserBiometricsManager from './pages/UserBiometricsManager';
 import SubscriptionPlansManager from './pages/SubscriptionPlansManager';
+import EconomyConfig from './pages/EconomyConfig';
 import AiSettings from './pages/AiSettings';
 import Login from './pages/Login';
 import { supabase } from './lib/supabaseClient';
@@ -14,23 +15,37 @@ import { adminService } from './services/adminService';
 export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [lessons, setLessons] = useState([]);
   const [cefrLevels, setCefrLevels] = useState([]);
   const [users, setUsers] = useState([]);
   const [plans, setPlans] = useState([]);
   const [overviewMetrics, setOverviewMetrics] = useState(null);
+  const [cefrDistribution, setCefrDistribution] = useState([]);
   const [aiSettings, setAiSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const isAdmin = (s) => s?.user?.app_metadata?.role === 'admin';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
+      if (s && !isAdmin(s)) {
+        supabase.auth.signOut();
+        setUnauthorized(true);
+      }
       setAuthLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
+      if (s && !isAdmin(s)) {
+        supabase.auth.signOut();
+        setUnauthorized(true);
+      } else if (s && isAdmin(s)) {
+        setUnauthorized(false);
+      }
     });
 
     return () => subscription?.unsubscribe();
@@ -39,13 +54,14 @@ export default function App() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [fetchedMetrics, fetchedLessons, fetchedLevels, fetchedUsers, fetchedPlans, fetchedAi] = await Promise.all([
+      const [fetchedMetrics, fetchedLessons, fetchedLevels, fetchedUsers, fetchedPlans, fetchedAi, fetchedDist] = await Promise.all([
         adminService.getOverviewMetrics(),
         adminService.getScenarios(),
         adminService.getCefrLevels(),
         adminService.getUsersWithBiometrics(),
         adminService.getSubscriptionPlans(),
         adminService.getAiSettings(),
+        adminService.getCefrDistribution(),
       ]);
 
       setOverviewMetrics(fetchedMetrics);
@@ -54,6 +70,7 @@ export default function App() {
       setUsers(fetchedUsers);
       setPlans(fetchedPlans);
       setAiSettings(fetchedAi);
+      setCefrDistribution(fetchedDist);
     } catch (err) {
       console.error('Error loading admin data:', err);
     } finally {
@@ -94,21 +111,45 @@ export default function App() {
     }
   };
 
-  const handleAddLevel = async (newLevel) => {
-    setCefrLevels((prev) => [...prev, newLevel]);
+  const handleSaveLevel = async (level) => {
+    setCefrLevels((prev) => {
+      const exists = prev.some((l) => l.code === level.code);
+      return exists ? prev.map((l) => (l.code === level.code ? level : l)) : [...prev, level];
+    });
     try {
-      await adminService.saveCefrLevel(newLevel);
+      await adminService.saveCefrLevel(level);
     } catch (err) {
       console.error('Error saving CEFR level:', err);
     }
   };
 
+  const handleDeleteLevel = async (code) => {
+    setCefrLevels((prev) => prev.filter((l) => l.code !== code));
+    try {
+      await adminService.deleteCefrLevel(code);
+    } catch (err) {
+      console.error('Error deleting CEFR level:', err);
+    }
+  };
+
   const handleSavePlan = async (updatedPlan) => {
-    setPlans((prev) => prev.map((p) => (p.id === updatedPlan.id ? updatedPlan : p)));
+    setPlans((prev) => {
+      const exists = prev.some((p) => p.id === updatedPlan.id);
+      return exists ? prev.map((p) => (p.id === updatedPlan.id ? updatedPlan : p)) : [updatedPlan, ...prev];
+    });
     try {
       await adminService.saveSubscriptionPlan(updatedPlan);
     } catch (err) {
       console.error('Error saving subscription plan:', err);
+    }
+  };
+
+  const handleDeletePlan = async (planId) => {
+    setPlans((prev) => prev.filter((p) => p.id !== planId));
+    try {
+      await adminService.deleteSubscriptionPlan(planId);
+    } catch (err) {
+      console.error('Error deleting subscription plan:', err);
     }
   };
 
@@ -130,6 +171,15 @@ export default function App() {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    try {
+      await adminService.deleteUserProfile(userId);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+    }
+  };
+
   if (authLoading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-deep-space)' }}>
@@ -143,7 +193,37 @@ export default function App() {
   }
 
   if (!session) {
-    return <Login onLogin={(s) => setSession(s)} />;
+    return (
+      <Login
+        onLogin={(s) => {
+          if (isAdmin(s)) {
+            setUnauthorized(false);
+            setSession(s);
+          } else {
+            supabase.auth.signOut();
+            setUnauthorized(true);
+          }
+        }}
+      />
+    );
+  }
+
+  if (unauthorized) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        <div className="space-bg">
+          <div className="orb orb-purple" style={{ top: '10%', left: '20%' }} />
+          <div className="orb orb-teal" style={{ bottom: '20%', right: '15%' }} />
+        </div>
+        <div className="glass-panel" style={{ width: '420px', padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px' }}>⛔</div>
+          <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', margin: '0 0 8px' }}>Acceso Denegado</h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            Tu cuenta no tiene el rol de administrador. Contacta al dueño del proyecto para obtener acceso.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -169,20 +249,21 @@ export default function App() {
           ) : (
             <>
               {activeTab === 'overview' && (
-                <AdminOverview lessons={lessons} cefrLevels={cefrLevels} users={users} metrics={overviewMetrics} />
+                <AdminOverview lessons={lessons} cefrLevels={cefrLevels} cefrDistribution={cefrDistribution} metrics={overviewMetrics} setActiveTab={setActiveTab} />
               )}
               {activeTab === 'lessons' && (
                 <LessonManager lessons={lessons} cefrLevels={cefrLevels} onSaveLesson={handleSaveLesson} onDeleteLesson={handleDeleteLesson} />
               )}
               {activeTab === 'cefr' && (
-                <CefrLevelsManager cefrLevels={cefrLevels} onAddLevel={handleAddLevel} />
+                <CefrLevelsManager cefrLevels={cefrLevels} onSaveLevel={handleSaveLevel} onDeleteLevel={handleDeleteLevel} />
               )}
               {activeTab === 'users' && (
-                <UserBiometricsManager users={users} onSaveUser={handleSaveUser} />
+                <UserBiometricsManager users={users} onSaveUser={handleSaveUser} onDeleteUser={handleDeleteUser} />
               )}
               {activeTab === 'plans' && (
-                <SubscriptionPlansManager plans={plans} onSavePlan={handleSavePlan} />
+                <SubscriptionPlansManager plans={plans} onSavePlan={handleSavePlan} onDeletePlan={handleDeletePlan} />
               )}
+              {activeTab === 'economy' && <EconomyConfig />}
               {activeTab === 'ai-settings' && (
                 <AiSettings settings={aiSettings} onSave={handleSaveAiSettings} />
               )}

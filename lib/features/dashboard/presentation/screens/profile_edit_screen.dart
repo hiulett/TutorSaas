@@ -45,6 +45,24 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     {'id': 'priest', 'name': 'PRIEST', 'desc': 'Healing, buffing & holy light'},
   ];
 
+  String _className(String id) {
+    final l10n = AppLocalizations.of(context);
+    switch (id) {
+      case 'warrior':
+        return l10n?.profile_edit_class_warrior ?? 'WARRIOR';
+      case 'mage':
+        return l10n?.profile_edit_class_mage ?? 'MAGE';
+      case 'assassin':
+        return l10n?.profile_edit_class_assassin ?? 'ASSASSIN';
+      case 'necromancer':
+        return l10n?.profile_edit_class_necromancer ?? 'NECROMANCER';
+      case 'priest':
+        return l10n?.profile_edit_class_priest ?? 'PRIEST';
+      default:
+        return id.toUpperCase();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -151,7 +169,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'PHOTO UPLOADED SUCCESSFULY 📸',
+              AppLocalizations.of(context)?.profile_edit_photo_ok ?? 'PHOTO UPLOADED SUCCESSFULY 📸',
               style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             backgroundColor: AppColors.emeraldGreen,
@@ -200,7 +218,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'CHOOSE CUSTOM PHOTO PATH',
+                  l10n.profile_edit_choose_photo,
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -289,6 +307,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
     final progressAsync = ref.watch(userProgressProvider);
     final progress = progressAsync.value ?? {};
@@ -333,7 +352,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        'HUNTER LICENSE REGISTRY',
+                        l10n.profile_edit_license_registry,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.spaceGrotesk(
@@ -413,18 +432,19 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                     Text(
                                       _nameController.text.toUpperCase().isNotEmpty
                                           ? _nameController.text.toUpperCase()
-                                          : 'HUNTER NAME',
+                                          : l10n.profile_edit_hunter_name,
                                       style: GoogleFonts.spaceGrotesk(
                                         color: AppColors.onSurface,
                                         fontWeight: FontWeight.w900,
                                         fontSize: 18,
                                         letterSpacing: 0.5,
                                       ),
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'CLASS PATH: ${_currentAvatarUrl.toUpperCase()}',
+                                      l10n.profile_edit_class_path(_currentAvatarUrl.toUpperCase()),
                                       style: GoogleFonts.jetBrainsMono(
                                         color: AppColors.onSurfaceVariant,
                                         fontSize: 11,
@@ -440,7 +460,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
                         // Section: Class Path Selection
                         Text(
-                          'SELECT CLASS PATH',
+                          l10n.profile_edit_select_class,
                           style: GoogleFonts.spaceGrotesk(
                             fontSize: 14,
                             fontWeight: FontWeight.w900,
@@ -473,7 +493,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  hc['name']!,
+                                  _className(hc['id']!),
                                   style: GoogleFonts.jetBrainsMono(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
@@ -491,7 +511,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'STAT POINTS ALLOCATION',
+                              l10n.profile_edit_stat_allocation,
                               style: GoogleFonts.spaceGrotesk(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w900,
@@ -503,7 +523,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               color: AppColors.runeViolet.withValues(alpha: 0.2),
                               child: Text(
-                                'POOL: $_pointsPool PT',
+                                l10n.profile_edit_stat_pool(_pointsPool),
                                 style: GoogleFonts.jetBrainsMono(
                                   color: AppColors.manaCyan,
                                   fontSize: 11,
@@ -518,13 +538,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              _buildStatRow('STR', _str, 'Strength & muscle power'),
+                              _buildStatRow('STR', _str, l10n.profile_edit_stat_str_desc),
                               Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
-                              _buildStatRow('INT', _int, 'Spellcasting & parsing speed'),
+                              _buildStatRow('INT', _int, l10n.profile_edit_stat_int_desc),
                               Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
-                              _buildStatRow('DEX', _dex, 'Agility & response rhythm'),
+                              _buildStatRow('DEX', _dex, l10n.profile_edit_stat_dex_desc),
                               Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
-                              _buildStatRow('LUK', _luk, 'Critical correction avoidance'),
+                              _buildStatRow('LUK', _luk, l10n.profile_edit_stat_luk_desc),
                             ],
                           ),
                         ),
@@ -549,7 +569,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.onSurface.withValues(alpha: 0.03),
-                            labelText: 'HUNTER FULL NAME',
+                            labelText: l10n.profile_edit_full_name,
                             labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.30), fontSize: 12),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             enabledBorder: OutlineInputBorder(
@@ -563,7 +583,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           ),
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) {
-                              return 'NAME CANNOT BE EMPTY';
+                              return l10n.profile_edit_name_empty;
                             }
                             return null;
                           },
@@ -577,7 +597,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.onSurface.withValues(alpha: 0.03),
-                            labelText: 'MEMOIR / OBJECTIVES',
+                            labelText: l10n.profile_edit_memoir,
                             labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.30), fontSize: 12),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             enabledBorder: OutlineInputBorder(
@@ -665,7 +685,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'LICENSE REGISTRY UPDATED SUCCESSFULY 🎉',
+                                            AppLocalizations.of(context)?.profile_edit_license_updated ?? 'LICENSE REGISTRY UPDATED SUCCESSFULY 🎉',
                                             style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
                                           ),
                                           backgroundColor: AppColors.emeraldGreen,
@@ -706,7 +726,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                   child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
                                 )
                               : Text(
-                                  'SAVE LICENSE REGISTRY',
+                                  l10n.profile_edit_save,
                                   style: GoogleFonts.jetBrainsMono(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                                 ),
                         ),
