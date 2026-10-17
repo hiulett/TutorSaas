@@ -1,0 +1,1546 @@
+=== ISSUE ===
+SLUG: lesson-persistence
+TITLE: [P0] Las conversaciones de lección no se guardan (id de texto contra scenarios.id UUID)
+LABELS: P0-critico, area/backend, bug
+BODY:
+## Contexto
+
+El roadmap lanza la lección con un id de texto del catálogo Dart (`a1_ordering_coffee_at_a_cafe`), pero `scenarios.id` es `UUID`. La consulta falla, el error se silencia y el historial se descarta.
+
+## Evidencia
+
+- `lib/features/dashboard/presentation/widgets/learning_path_roadmap.dart:101-103` — el roadmap usa `LessonCatalog.catalog`.
+- `lib/features/dashboard/presentation/widgets/learning_path_roadmap.dart:551-557` — lanza `/conversation?scenarioId=<id texto>`.
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:91-108` — `.eq('id', scenarioId)` sobre `scenarios`.
+- `supabase/migrations/20260717000000_init.sql:70` — `id UUID PRIMARY KEY`.
+- `lib/features/conversation/data/repositories/conversation_repository_impl.dart:361-396` — al fallar devuelve `{'id': 'local_<ts>'}`.
+- `conversation_repository_impl.dart:430` — `saveMessage` ignora ids que empiezan por `local_`.
+
+## Comportamiento actual
+
+La conversación se desarrolla en memoria. Al salir se pierde: no hay historial, no se puede reanudar, y `completedLessonsProvider` lee de una fuente que nunca se escribe.
+
+## Comportamiento esperado
+
+Una lección iniciada debe crear una fila en `conversations` y persistir cada mensaje, permitiendo reanudar y alimentar las métricas.
+
+## Criterios de aceptación
+
+- [ ] Existe una única representación de id de lección (o `scenarios` acepta el id del catálogo, o el catálogo usa el UUID de BD).
+- [ ] Iniciar una lección crea fila en `conversations` sin error de tipo.
+- [ ] Cada turno persiste en `messages` con `sequence_number` monotónico.
+- [ ] Reabrir la lección recupera el historial.
+- [ ] Test de integración que cubra el ida y vuelta.
+- [ ] Ningún error se silencia con `catch (_) {}` en esta ruta.
+=== END ===
+
+=== ISSUE ===
+SLUG: inventory-purchase-broken
+TITLE: [P0] Las compras con oro/gemas cobran y no entregan el ítem (player_inventory sin política INSERT)
+LABELS: P0-critico, area/economia, bug
+BODY:
+## Contexto
+
+`player_inventory` solo tiene política `FOR SELECT`. El cliente descuenta la moneda y después intenta insertar; el insert es rechazado y el error se captura devolviendo `false`. El usuario pierde el oro y no recibe nada.
+
+## Evidencia
+
+- `supabase/migrations/20260730_economy_and_ia_system.sql:215-216` — única política: `select_own_inventory FOR SELECT`.
+- No existe `INSERT`/`UPDATE`/`DELETE` para `player_inventory` en ningún archivo de `supabase/`.
+- `lib/features/economy/data/repositories/economy_repository_impl.dart:329-344` — `spendGold` → `insert` → `catch (_) { return false; }`.
+- `economy_repository_impl.dart:348-363` — `toggleEquip` hace UPDATE bloqueado, silenciado.
+- `economy_repository_impl.dart:293-299` — compra con gemas, mismo patrón; además `purchaseItem` no tiene llamadores.
+
+## Comportamiento actual
+
+El oro se deduce, el ítem no se entrega y la UI muestra "ORO INSUFICIENTE O YA ADQUIRIDO". Ningún cosmético se puede equipar, por lo que auras y marcos nunca se renderizan.
+
+## Comportamiento esperado
+
+La compra debe ser atómica: o se cobra y se entrega, o no ocurre nada.
+
+## Criterios de aceptación
+
+- [ ] Existe una RPC `purchase_item` transaccional (SECURITY DEFINER) que valide saldo, precio de catálogo y ownership, y entregue el ítem.
+- [ ] Existe política RLS o la escritura pasa solo por la RPC (sin INSERT directo del cliente).
+- [ ] `toggleEquip` funciona o queda cubierto por una RPC equivalente.
+- [ ] Un fallo de entrega no descuenta moneda (rollback).
+- [ ] Test que verifique saldo y propiedad tras compra exitosa y tras compra fallida.
+- [ ] Revisar y reembolsar/compensar compras previas afectadas.
+=== END ===
+
+=== ISSUE ===
+SLUG: client-writable-entitlements
+TITLE: [P0] Entitlements, moneda y CEFR escribibles directamente por el cliente
+LABELS: P0-critico, area/backend, seguridad
+BODY:
+## Contexto
+
+Las políticas `FOR ALL` permiten al usuario escribir sus propias filas de `user_language_profiles` y `user_subscriptions`, incluidas la suscripción, el saldo de maná y el nivel CEFR.
+
+## Evidencia
+
+- `supabase/migrations/audit/02_consolidate_rls_policies.sql:21-22` — `profiles_self FOR ALL USING (auth.uid() = user_id)`.
+- `supabase/migrations/audit/02_consolidate_rls_policies.sql:39-40` — `subscriptions_self FOR ALL USING (auth.uid() = user_id::uuid)`.
+- `lib/core/constants/api_constants.dart:15` — el JWT `anon` y el project ref están hardcodeados, así que cualquier hueco de RLS es alcanzable desde internet.
+
+## Comportamiento actual
+
+Un cliente autenticado puede ejecutar:
+
+```sql
+update user_subscriptions set plan_id='divino', status='active',
+  mana_expires_at='2099-01-01', purchased_mana_balance=1000000000
+where user_id = auth.uid();
+```
+
+y obtener el plan máximo con maná ilimitado. También puede fijar `cefr_level_id`, `game_rank`, `xp_points`, `total_gold`, `total_gems`, `fragments`.
+
+## Comportamiento esperado
+
+El cliente solo debe poder actualizar campos cosméticos o de perfil; saldos, plan, CEFR y rango se modifican exclusivamente por RPC firmadas/servidor.
+
+## Criterios de aceptación
+
+- [ ] `user_subscriptions` deja de ser escribible por `authenticated` (solo `service_role` o RPC).
+- [ ] `user_language_profiles`: políticas separadas por columna o RPC para XP/moneda/nivel.
+- [ ] El CEFR solo cambia por la RPC de evaluación.
+- [ ] Verificación con `pg_policies` en la base viva y documento de estado.
+- [ ] Test de intento de escalada (debe fallar con 42501).
+=== END ===
+
+=== ISSUE ===
+SLUG: economy-rpc-no-event-validation
+TITLE: [P0] Las RPC de economía validan identidad pero no que el evento haya ocurrido
+LABELS: P0-critico, area/economia, seguridad
+BODY:
+## Contexto
+
+`add_xp`, `add_gold`, `add_gems`, `add_fragments` comprueban `auth.uid() = p_user_id`, lo que demuestra *quién* llama, no *qué* ocurrió. Están concedidas a `authenticated` con importe libre.
+
+## Evidencia
+
+- `supabase/migrations/20260731_sec_idor_rpc_auth_guard.sql:16-66`
+- `supabase/migrations/20260813_mana_aura_redesign.sql:285-296` (`add_gold`)
+- `supabase/migrations/20260813_mana_aura_redesign.sql:445-446` — `GRANT EXECUTE ... TO authenticated`.
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:1359-1360` — el cliente calcula la recompensa y la envía.
+- `lib/features/economy/presentation/widgets/session_drop_controller.dart:40` — el loot se tira en el cliente con `Random()`.
+
+## Comportamiento actual
+
+`rpc('add_gold', {p_user_id: yo, p_amount: 1000000})` funciona. Lo mismo con XP, gemas y fragmentos.
+
+## Comportamiento esperado
+
+La recompensa se calcula y aplica en servidor a partir de un hecho verificable (sesión cerrada, objetivos cumplidos, compra confirmada).
+
+## Criterios de aceptación
+
+- [ ] RPC `close_session(session_id)` que valide la sesión, calcule recompensas y las aplique en una transacción.
+- [ ] Revocar `EXECUTE` de las RPC de crédito a `authenticated` (dejar solo `service_role`).
+- [ ] El cliente deja de calcular importes.
+- [ ] Idempotencia por `session_id` (no se puede reclamar dos veces).
+- [ ] Test de doble llamada y de importe manipulado.
+=== END ===
+
+=== ISSUE ===
+SLUG: missions-never-complete
+TITLE: [P0] El sistema de misiones no puede completarse: updateProgress no tiene llamadores
+LABELS: P0-critico, area/misiones, bug
+BODY:
+## Contexto
+
+`updateProgress()` es el único escritor de `mission_instances.current_value` y no se invoca desde ningún punto de la app. Tampoco hay triggers en SQL que reaccionen a conversaciones o lecciones.
+
+## Evidencia
+
+- `lib/features/missions/data/repositories/mission_repository.dart:179` — definición (0 llamadas).
+- `lib/features/missions/data/repositories/mission_repository.dart:422` — `generateDailyMissions` (0 llamadas).
+- `lib/features/missions/presentation/widgets/daily_quests_widget.dart:187` — el botón de reclamar depende de `isCompleted`, que nunca es `true`.
+- `lib/features/missions/presentation/providers/mission_providers.dart:67` — solo se muestran las `daily`.
+- No hay triggers sobre `conversations`/`lesson_progress` que toquen `mission_instances`.
+
+## Comportamiento actual
+
+Las misiones diarias se muestran con progreso 0 y no se pueden completar ni reclamar. Las semanales se filtran fuera de la UI. Secretas, emergencia, globales y colaborativas no tienen seed ni interfaz.
+
+## Comportamiento esperado
+
+Completar una actividad real (objetivos, minutos hablados, sesiones) debe avanzar la misión correspondiente y habilitar el reclamo.
+
+## Criterios de aceptación
+
+- [ ] Un evento de servidor (al cerrar sesión o al completar objetivos) avanza `current_value`.
+- [ ] `claimReward` valida `status='completed'`, `is_reward_claimed=false` y `user_id` del dueño.
+- [ ] Las recompensas se leen del template, no de la fila escribible por el usuario.
+- [ ] Existe UI para misiones semanales o se eliminan del modelo.
+- [ ] Test: sesión completada → misión completada → recompensa reclamada una sola vez.
+=== END ===
+
+=== ISSUE ===
+SLUG: oracle-result-not-persisted
+TITLE: [P0] El resultado final del Oráculo no se persiste (oracle_assessments sin política UPDATE)
+LABELS: P0-critico, area/aprendizaje, bug
+BODY:
+## Contexto
+
+La evaluación inserta una fila provisional y luego intenta actualizarla con el resultado. La tabla tiene políticas `SELECT` e `INSERT`, pero no `UPDATE`.
+
+## Evidencia
+
+- `supabase/migrations/20260731_oracle_assessments.sql:26-32` — solo SELECT e INSERT.
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:226-234` — insert con `cefr_level: 'A1'`, `game_rank: 'E'`.
+- `conversation_providers.dart:878-913` — `update` (o insert fallback) con el resultado real.
+
+## Comportamiento actual
+
+El resultado del examen puede quedar registrado como A1/E aunque el alumno haya sido evaluado como B2, o no registrarse en absoluto. El histórico de evaluaciones no es fiable.
+
+## Comportamiento esperado
+
+El resultado final debe quedar persistido de forma consistente y auditable.
+
+## Criterios de aceptación
+
+- [ ] Política `UPDATE` para el dueño, o una RPC `finalize_oracle_assessment` que escriba el resultado.
+- [ ] La fila se crea al final (no provisional) o se actualiza siempre.
+- [ ] El histórico muestra el nivel real por fecha.
+- [ ] Test de flujo completo Oráculo → fila con nivel final.
+=== END ===
+
+=== ISSUE ===
+SLUG: mana-double-charge
+TITLE: [P0] Maná: doble cobro por turno y límite diario free desactivado
+LABELS: P0-critico, area/economia, bug
+BODY:
+## Contexto
+
+`used_audio_seconds` se usa como contador de débito de maná **y** recibe los segundos de grabación en `track_ai_audio_time`. Además, ese mismo RPC inserta la fila con `plan_id='free'`, lo que desactiva la rama del límite diario (`IF v_plan_id = 'plebeyo'`).
+
+## Evidencia
+
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:355-359` — envía los segundos de grabación.
+- `supabase/migrations/20260731_sec_idor_rpc_auth_guard.sql:92-94` — suma a `used_audio_seconds`.
+- `supabase/migrations/20260819_fix_mana_consume.sql:143-153` — reset diario y límite solo para `plebeyo`.
+- `supabase/migrations/20260819_fix_mana_get_state_reset.sql:20,33` — allowance 1800.
+- `supabase/migrations/20260819_fix_mana_consume.sql:53,58` — allowance 3000.
+- `supabase/functions/lesson-generator/index.ts:198-205` — allowance 3000 hardcodeada.
+
+## Comportamiento actual
+
+- Coste real por turno ≈ `coste_accion + segundos_hablados`; la UI solo muestra el coste de acción.
+- Si el usuario graba antes de consumir maná, la fila nace con `plan_id='free'` y **no se aplica el tope de 200/día**.
+- Hay tres allowances distintas para el plan gratuito (1800, 3000, 3000).
+
+## Comportamiento esperado
+
+Un turno cuesta exactamente su coste de acción; el límite diario se aplica siempre al plan gratuito; existe una única fuente para la allowance.
+
+## Criterios de aceptación
+
+- [ ] Separar `used_audio_seconds` (telemetría) de `mana_used` (débito).
+- [ ] Eliminar o corregir el `INSERT ... plan_id='free'`.
+- [ ] Una sola constante/columna de allowance gratuita.
+- [ ] Test: 10 turnos consumen exactamente 10×coste.
+- [ ] Test: el turno 26 de un plan free devuelve `daily_limit_reached`.
+=== END ===
+
+=== ISSUE ===
+SLUG: stripe-external-checkout
+TITLE: [P0] El maná se vende con Stripe en navegador externo desde dentro de la app
+LABELS: P0-critico, area/negocio, seguridad
+BODY:
+## Contexto
+
+El maná (bien digital consumible) se compra abriendo Stripe Checkout en el navegador externo desde la app móvil. Es el patrón que Google Play y App Store consideran anti-steering / bypass de facturación.
+
+## Evidencia
+
+- `lib/features/economy/presentation/screens/shop_screen.dart:65-91` — `createManaCheckout` → `launchUrl(..., LaunchMode.externalApplication)`.
+- `lib/features/economy/data/repositories/economy_repository_impl.dart:698-710` — invoca `stripe-checkout`.
+- `supabase/functions/stripe-checkout/index.ts` — sesión de Stripe creada en servidor.
+- No existe producto de RevenueCat para pociones/gemas.
+
+## Comportamiento actual
+
+Riesgo alto de rechazo o retirada de la app en Play/App Store.
+
+## Comportamiento esperado
+
+Los consumibles digitales deben comprarse por la pasarela de la tienda (RevenueCat/Play Billing) o el producto debe replantearse como servicio fuera de la app.
+
+## Criterios de aceptación
+
+- [ ] Productos consumibles creados en RevenueCat/Play Console.
+- [ ] El flujo de compra usa la pasarela nativa.
+- [ ] Stripe queda solo para web o se retira del cliente móvil.
+- [ ] Revisión de la política vigente de Play antes del siguiente envío.
+=== END ===
+
+=== ISSUE ===
+SLUG: llm-proxy-no-quota
+TITLE: [P1] llm-proxy sin rate limit ni cuota; modelo y temperature los elige el cliente
+LABELS: P1-alto, area/ia, seguridad
+BODY:
+## Contexto
+
+El proxy valida el JWT del usuario, pero no aplica ninguna cuota ni limita el modelo. El maná se cobra en el cliente, no en el proxy.
+
+## Evidencia
+
+- `supabase/functions/llm-proxy/index.ts:26-27` — `DEFAULT_MAX_TOKENS=200`, `MAX_TOKENS_CAP=600`.
+- `llm-proxy/index.ts:116` — `const model = body?.model ?? 'deepseek-v4-flash'`.
+- `llm-proxy/index.ts:111-129` — `messages` se reenvía tal cual, incluido `role:"system"`; sin límite de tamaño.
+- `llm-proxy/index.ts:31-35` — CORS `*`.
+- `llm-proxy/index.ts:179-192` — `/transcribe` sin validación de tamaño ni tipo.
+
+## Comportamiento actual
+
+Cualquier usuario autenticado puede usar la clave de la app para cualquier modelo, con cualquier system prompt y sin límite de peticiones. El cobro de maná es evitable llamando al proxy directamente.
+
+## Comportamiento esperado
+
+El proxy debe verificar y debitar maná, fijar el modelo permitido y limitar peticiones por usuario.
+
+## Criterios de aceptación
+
+- [ ] `consume_mana` invocado en el proxy antes de llamar al proveedor (o cuota equivalente).
+- [ ] `model` restringido a una allow-list en servidor.
+- [ ] Límite de peticiones por usuario/minuto con respuesta 429.
+- [ ] Límite de tamaño de `messages` y del archivo de audio.
+- [ ] CORS restringido a orígenes conocidos.
+=== END ===
+
+=== ISSUE ===
+SLUG: migrations-not-reproducible
+TITLE: [P1] El set de migraciones no puede reproducir el esquema (105/128 no aplicables, 6 tablas sin crear)
+LABELS: P1-alto, area/backend, deuda-tecnica
+BODY:
+## Contexto
+
+Solo 23 de 128 archivos tienen prefijo de 14 dígitos válido para `supabase db push`. El resto se ignora silenciosamente. Además hay scripts destructivos dentro del conjunto ordenado y tablas que el cliente consulta pero que ninguna migración crea.
+
+## Evidencia
+
+| Prefijo | Archivos |
+|---|---|
+| `YYYYMMDDHHMMSS_` | 23 (aplicables) |
+| `YYYYMMDD_` | 71 (ignorados) |
+| Sin prefijo | 34 (ignorados) |
+
+- `supabase/migrations/audit/` y `migrations/misionesgremio/` están en subcarpetas y el CLI no las recorre.
+- `supabase/migrations/20260731_sec01_rls_authenticated.sql` hace `ALTER POLICY` sobre nombres que solo crea `audit/02` → falla en proyecto limpio.
+- `master_unified_database_setup.sql:13-18` — `DROP TABLE messages, conversations, user_vocabulary, vocabulary_items, scenarios CASCADE`.
+- `20260805_apply_official_120_curriculum.sql:10` — `TRUNCATE scenarios RESTART IDENTITY CASCADE`.
+- Tablas que el cliente consulta y ninguna migración crea: `daily_fluency_stats`, `user_scenario_goals`, `user_scenario_phrases`, `user_scenario_fluency`, `cefr_recommendation_rules`, `user_progress`.
+
+## Comportamiento actual
+
+No se puede levantar un entorno desde cero, ni auditar qué está aplicado, ni revertir. El proyecto solo funciona contra la base viva.
+
+## Comportamiento esperado
+
+Un `supabase db reset` en un proyecto limpio debe producir exactamente el esquema de producción.
+
+## Criterios de aceptación
+
+- [ ] `supabase migration list --linked` ejecutado y volcado al repo.
+- [ ] `pg_dump --schema-only` de producción versionado.
+- [ ] Renombrar los 105 archivos a formato de 14 dígitos en orden cronológico correcto.
+- [ ] Crear migraciones para las 6 tablas ausentes.
+- [ ] Sacar los scripts destructivos a `scripts/manual/` y documentarlos.
+- [ ] `supabase db reset` verde en proyecto de pruebas.
+=== END ===
+
+=== ISSUE ===
+SLUG: messages-schema-divergence
+TITLE: [P1] La tabla messages tiene dos esquemas incompatibles y el cliente usa el no migrado
+LABELS: P1-alto, area/backend, deuda-tecnica
+BODY:
+## Contexto
+
+La migración inicial define `role`/`content_text`, pero el código lee y escribe `sender_role`/`text`. Esa variante solo aparece en dos archivos, uno de ellos destructivo.
+
+## Evidencia
+
+- `supabase/migrations/20260717000000_init.sql:110-120` — `role`, `content_text`, `tokens_used`, `audio_url`.
+- `supabase/migrations/master_unified_database_setup.sql:192-199` — `sender_role`, `text`.
+- `lib/features/conversation/data/repositories/conversation_repository_impl.dart:415-416,442-448` — usa `sender_role`/`text` con fallback documentado al esquema antiguo.
+- `lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:274` — consulta `.eq('role','user')` (columna del esquema antiguo) → error 400 silenciado → logros vacíos.
+- `messages.audio_url` se declara y nunca se escribe.
+
+## Comportamiento actual
+
+Una de las dos consultas siempre falla. Los logros se muestran vacíos sin error visible.
+
+## Comportamiento esperado
+
+Un único esquema canónico, migrado, con las columnas realmente usadas.
+
+## Criterios de aceptación
+
+- [ ] Migración que consolide `messages` en un solo esquema.
+- [ ] Corregir la consulta de logros.
+- [ ] Eliminar `audio_url` si no se va a usar (o implementar el guardado).
+- [ ] Test de lectura/escritura de mensajes y de logros.
+=== END ===
+
+=== ISSUE ===
+SLUG: guild-rpc-idor
+TITLE: [P1] IDOR en RPCs de gremio y políticas de chat que permiten suplantación
+LABELS: P1-alto, area/backend, seguridad
+BODY:
+## Contexto
+
+Varias RPC `SECURITY DEFINER` reciben `p_user_id` sin comprobar `auth.uid()`. El leaderboard expone los UUID necesarios para explotarlas.
+
+## Evidencia
+
+- `supabase/migrations/20260811_security_hardening_guild.sql:29-285` — `join_table`, `leave_table`, `claim_seat`, `request_seat`, `stand_up`, `touch_presence` sin guarda de identidad.
+- `supabase/migrations/20260818_03_mana_rpcs.sql:190-248` — `equip_mana_item` / `desequip_mana_item` sin guarda.
+- `supabase/migrations/20260731_live03_fix_leaderboard_rpc.sql:31-45` — devuelve `user_id` (UUID) de todos.
+- `supabase/migrations/20260729_full_chat_system.sql:107-131` — políticas de participantes y mensajes basadas en `auth.role()='authenticated'` sin comprobar `user_id`.
+
+## Comportamiento actual
+
+Con el UUID de una víctima se puede expulsarla de su asiento, moverla de sala, tocar su presencia o equipar/desequipar sus ítems. También se puede insertar un mensaje como otro usuario.
+
+## Comportamiento esperado
+
+Toda RPC debe derivar el usuario de `auth.uid()` y las políticas deben exigir propiedad de la fila.
+
+## Criterios de aceptación
+
+- [ ] Eliminar `p_user_id` de las RPC o validarlo contra `auth.uid()`.
+- [ ] `get_leaderboard` deja de devolver UUID (o devuelve un alias).
+- [ ] Políticas de `chat_room_participants`/`chat_room_messages` con `WITH CHECK (user_id = auth.uid())`.
+- [ ] Tests de intento de escritura cruzada.
+=== END ===
+
+=== ISSUE ===
+SLUG: missions-cron-fail-open
+TITLE: [P1] missions-cron queda abierto si CRON_SECRET no está configurado
+LABELS: P1-alto, area/backend, seguridad
+BODY:
+## Contexto
+
+La comprobación es `if (expected && auth !== 'Bearer ' + expected)`. Si `CRON_SECRET` no existe, la condición es falsa y la función continúa sin autenticar, ejecutando una RPC con `service_role`.
+
+## Evidencia
+
+- `supabase/functions/missions-cron/index.ts:19-29`.
+- No hay `supabase/config.toml` ni `cron.schedule` activo en el repo (solo líneas comentadas en `20260730_mission_rotation.sql:83-84`).
+
+## Comportamiento actual
+
+Cualquiera puede invocar la función y provocar `rotate_daily_missions()` para todos los usuarios (regeneración masiva, coste y efectos).
+
+## Comportamiento esperado
+
+Sin secreto configurado, la función debe fallar cerrada.
+
+## Criterios de aceptación
+
+- [ ] `if (!expected) return 500` y comparación en tiempo constante.
+- [ ] `CRON_SECRET` documentado como obligatorio en `APPLY_SECRETS.md`.
+- [ ] Programación real (pg_cron o scheduler) versionada.
+=== END ===
+
+=== ISSUE ===
+SLUG: cefr-integrity
+TITLE: [P1] El nivel CEFR se toma de un token que el propio modelo emite y RANK no se valida
+LABELS: P1-alto, area/aprendizaje, seguridad
+BODY:
+## Contexto
+
+El nivel final se extrae con regex del mensaje del modelo (`[RESULT:CEFR=...,RANK=...]`) y tiene prioridad sobre el clasificador independiente. `RANK` se persiste sin comprobar que pertenezca a la escala.
+
+## Evidencia
+
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:505-514` — extracción por regex.
+- `conversation_providers.dart:724-730` — el valor declarado gana sobre la evaluación IA.
+- `conversation_providers.dart:747-751` — `declaredRank` se guarda en mayúsculas si no está vacío.
+- `conversation_providers.dart:735-745` — el clamp solo impide bajar.
+- `lib/core/ai/placement_ai.dart:249-273` — el fallback por longitud nunca produce PRE-A1 ni C2.
+
+## Comportamiento actual
+
+El texto del alumno comparte contexto con la instrucción del token, así que un intento de inyección puede fijar el nivel. Un `RANK=ZZ` se persiste tal cual. El nivel nunca baja.
+
+## Comportamiento esperado
+
+El nivel debe derivarse de evidencia verificable y validarse contra una escala cerrada; debe existir un mecanismo de descenso.
+
+## Criterios de aceptación
+
+- [ ] `RANK` validado contra `{F,E,D,C,B,A,S,SS,SSS}`; si no, se deriva del CEFR.
+- [ ] El clasificador independiente tiene la última palabra, o se exige coincidencia.
+- [ ] Sanitizar el input del usuario respecto a los marcadores de control.
+- [ ] Definir y probar un camino de descenso de nivel.
+- [ ] Tests con intentos de inyección del token.
+=== END ===
+
+=== ISSUE ===
+SLUG: lesson-generator-charges-without-delivery
+TITLE: [P1] lesson-generator cobra antes de generar, no reembolsa y permite carrera
+LABELS: P1-alto, area/ia, bug
+BODY:
+## Contexto
+
+El débito se hace leyendo y reescribiendo `used_audio_seconds` de forma no atómica, antes de comprobar si ya existe la lección y antes de generar. Si falla, no hay reembolso.
+
+## Evidencia
+
+- `supabase/functions/lesson-generator/index.ts:182-229` — débito manual read-modify-write.
+- `:232-235` — la reutilización se cobra igual.
+- `:239-241` — `generation_failed` devuelve 500 con el coste ya cobrado.
+- `:198-205` — allowance 3000 hardcodeada y sin `daily_limit`.
+- `:96` — `weakness` se interpola en el prompt sin sanear.
+
+## Comportamiento actual
+
+Se cobran 100 de maná aunque la lección se reutilice o falle la generación. Dos llamadas concurrentes pueden generar gratis.
+
+## Comportamiento esperado
+
+Cobro atómico, solo al generar de verdad, con reembolso en fallo.
+
+## Criterios de aceptación
+
+- [ ] Débito dentro de una transacción o RPC `consume_mana`.
+- [ ] Reutilización sin coste (o coste explícito y comunicado).
+- [ ] Reembolso en `generation_failed`/`insert_failed`.
+- [ ] `daily_limit` aplicado.
+- [ ] `weakness` validado contra allow-list.
+=== END ===
+
+=== ISSUE ===
+SLUG: retention-and-account-deletion
+TITLE: [P1] Sin retención de conversaciones ni borrado/exportación de cuenta
+LABELS: P1-alto, area/seguridad, seguridad
+BODY:
+## Contexto
+
+Las conversaciones, transcripciones del Oráculo y vocabulario se conservan indefinidamente. No existe borrado de cuenta ni exportación. El único job de retención cubre logs y no tiene programación.
+
+## Evidencia
+
+- `supabase/migrations/20260730000000_data_retention_job.sql:9-10` — solo `ai_usage_logs` y `api_request_logs` a 90 días.
+- No hay `cron.schedule` para `clean_old_logs`.
+- `clean_old_logs` es `SECURITY DEFINER` sin `REVOKE` → ejecutable por cualquiera.
+- `lib/features/dashboard/presentation/screens/settings_screen.dart:1443-1457` — "reset" borra solo `user_language_profiles`.
+- Tablas con contenido del usuario sin política de retención: `messages`, `conversations`, `oracle_assessments.answers`, `oracle_turns.answer_transcript`.
+
+## Comportamiento actual
+
+No se puede cumplir una solicitud de supresión de datos. El audio no se almacena (bien), pero el texto sí, para siempre.
+
+## Comportamiento esperado
+
+Política de retención explícita y flujo de borrado/exportación.
+
+## Criterios de aceptación
+
+- [ ] Job programado de retención con periodos documentados.
+- [ ] RPC/función `delete_my_account` que borre en cascada y anonimice agregados.
+- [ ] Exportación de datos del usuario (JSON).
+- [ ] `clean_old_logs` restringido a `service_role`.
+- [ ] Texto de privacidad enlazado desde Settings.
+=== END ===
+
+=== ISSUE ===
+SLUG: pass-threshold-all-or-nothing
+TITLE: [P1] El umbral 0,80 exige el 100 % de objetivos y bloquea el avance
+LABELS: P1-alto, area/aprendizaje, bug
+BODY:
+## Contexto
+
+El desbloqueo calcula `completados / total >= 0.80`. Con 4 objetivos eso exige 4/4; con 3, 3/3. Además el halo de la lección pinta "aprobada" a partir de 0,70, así que la UI y la regla se contradicen.
+
+## Evidencia
+
+- `lib/features/dashboard/domain/services/lesson_unlock_service.dart:39` — `passThreshold = 0.80`.
+- `lesson_unlock_service.dart:105-110` — exige que **todas** las lecciones previas del nivel estén completas.
+- `lib/features/dashboard/domain/models/lesson_halo.dart:17` — umbral visual 0,70.
+- `lesson_catalog.dart` — 120 lecciones con 4 objetivos y 20 con 3.
+
+## Comportamiento actual
+
+Un alumno con 3/4 (75 %) ve la lección como aprobada pero queda bloqueado para siempre. El avance efectivo requiere puntuación perfecta.
+
+## Comportamiento esperado
+
+Umbral único, alcanzable y coherente entre UI y regla de desbloqueo.
+
+## Criterios de aceptación
+
+- [ ] Un solo umbral (p. ej. 3/4 pasa) definido en un único lugar.
+- [ ] El halo y el desbloqueo usan la misma constante.
+- [ ] Tests con 3/4, 2/3 y 4/4.
+- [ ] Revisar lecciones ya bloqueadas por este criterio.
+=== END ===
+
+=== ISSUE ===
+SLUG: failed-evaluation-marks-passed
+TITLE: [P1] Una evaluación fallida marca la lección como "passed"
+LABELS: P1-alto, area/aprendizaje, bug
+BODY:
+## Contexto
+
+`endSession` calcula el ratio con el número de objetivos **evaluados**, no con los objetivos de la lección. Si la llamada LLM falla devuelve `{}`, `totalGoals` es 0 y el ratio pasa a 1.0.
+
+## Evidencia
+
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:1297-1309`.
+- `lib/features/conversation/data/repositories/conversation_repository_impl.dart:260-289` — cualquier excepción devuelve `{}`.
+- `conversation_providers.dart:1301-1302` — `totalGoals == 0 → ratio = 1.0`.
+- `lesson_progress` nunca se lee, así que el error es invisible.
+
+## Comportamiento actual
+
+Un fallo de red o del proveedor regala la lección y otorga recompensas. Además dispara la generación de lección remedial solo cuando el ratio es bajo, de modo que el comportamiento es inconsistente.
+
+## Comportamiento esperado
+
+Un fallo de evaluación debe ser un estado explícito (reintentar o no contabilizar), nunca "aprobado".
+
+## Criterios de aceptación
+
+- [ ] Usar `lesson.goals.length` como denominador.
+- [ ] Estado `unevaluated` que no otorgue recompensas ni marque aprobado.
+- [ ] Reintento de evaluación antes de cerrar.
+- [ ] `lesson_progress` leído por el desbloqueo o eliminado.
+- [ ] Test de evaluación vacía.
+=== END ===
+
+=== ISSUE ===
+SLUG: simulated-learning-metrics
+TITLE: [P1] Métricas de aprendizaje simuladas presentadas como mediciones reales
+LABELS: P1-alto, area/aprendizaje, producto
+BODY:
+## Contexto
+
+Varias cifras que el usuario ve como retroalimentación no dependen de cómo habló. Se calculan con fórmulas fijas o constantes.
+
+## Evidencia
+
+- `lib/features/dashboard/presentation/screens/session_summary_screen.dart:35-37` — fluidez `0,78 + palabras×0,005`.
+- `:40-42` — "precisión" `0,75 + turnos×0,03`.
+- `:49-50` — duración `max(60, turnos×45)`.
+- `:220,312` — recompensa literal `+80 XP`.
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:1159` — latencia constante `1.8`.
+- `:1158` — WPM `palabras/4×60`.
+- `conversation_providers.dart:1162-1176` — "precisión fonética" = similitud Levenshtein de texto.
+- `lib/features/conversation/presentation/screens/conversation_screen.dart:472-474` — claridad fonética `80 + min(18, palabras/5)`.
+- `conversation_screen.dart:66,885` — balance de maná `450 - 15` fijo.
+
+## Comportamiento actual
+
+El usuario recibe una evaluación que no mide su inglés. Es el mayor riesgo de confianza del producto.
+
+## Comportamiento esperado
+
+O se mide de verdad, o se etiqueta explícitamente como estimación, o se elimina.
+
+## Criterios de aceptación
+
+- [ ] Decisión de producto documentada por métrica: implementar, etiquetar o eliminar.
+- [ ] Ninguna cifra con apariencia de medición sin fuente real.
+- [ ] Recompensas leídas de los datos, no literales.
+- [ ] Instrumentar latencia real (fin de audio → primer token).
+=== END ===
+
+=== ISSUE ===
+SLUG: multilingual-facade
+TITLE: [P1] Multiidioma anunciado: STT, TTS y prompt fuerzan inglés
+LABELS: P1-alto, area/aprendizaje, producto
+BODY:
+## Contexto
+
+El onboarding permite elegir idioma objetivo y la BD siembra `fr/de/it`, pero todo el pipeline fuerza inglés.
+
+## Evidencia
+
+- `lib/features/conversation/data/repositories/conversation_repository_impl.dart:58` — `'language': 'en'` fijo.
+- `supabase/functions/llm-proxy/index.ts:184-186` — `language ?? 'en'`.
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:259` — `setLanguage('en-US')`.
+- `conversation_providers.dart:1080-1083` — *"You MUST ALWAYS respond in English"*.
+- `lib/features/onboarding/presentation/screens/onboarding_screen.dart:867-932` — la selección de idioma objetivo es una tarjeta fija.
+- `supabase/migrations/seed_A1_fr.sql` … `seed_C2_it.sql` — 3.240 filas en otros idiomas.
+- `lib/features/dashboard/data/models/lesson_catalog.dart` — 0 lecciones declaran `targetLanguageCode`.
+
+## Comportamiento actual
+
+Elegir francés produce una experiencia en inglés. El contenido de otros idiomas es peso muerto.
+
+## Comportamiento esperado
+
+O el producto es solo inglés (y se elimina la promesa), o el pipeline respeta el idioma objetivo.
+
+## Criterios de aceptación
+
+- [ ] Decisión documentada: single-language vs multi-language.
+- [ ] Si multi: `language` y `setLanguage` derivados del perfil; prompt parametrizado; catálogo con idioma.
+- [ ] Si single: quitar selector, seeds y textos de otros idiomas.
+=== END ===
+
+=== ISSUE ===
+SLUG: ios-not-configured
+TITLE: [P1] iOS no está configurado: sin Podfile, permisos ni cliente de Google
+LABELS: P1-alto, area/backend, deuda-tecnica
+BODY:
+## Contexto
+
+El proyecto declara plataforma iOS pero la carpeta no tiene la configuración mínima para ejecutarse.
+
+## Evidencia
+
+- `ios/Podfile` — no existe.
+- `ios/Runner/Info.plist` — sin `NSMicrophoneUsageDescription`, `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`.
+- `ios/Runner/Info.plist` — sin `GIDClientID`, sin URL scheme `REVERSED_CLIENT_ID`, sin `GoogleService-Info.plist`.
+- `lib/features/auth/data/repositories/auth_repository_impl.dart:21-53` — Google Sign-In sin configuración iOS.
+
+## Comportamiento actual
+
+La captura de voz, la selección de imágenes y Google Sign-In fallarían en iOS. La app no compila sin Podfile.
+
+## Comportamiento esperado
+
+iOS ejecutable con las mismas capacidades que Android, o declaración explícita de Android-only.
+
+## Criterios de aceptación
+
+- [ ] `pod install` funciona.
+- [ ] Permisos de micrófono, cámara y fotos declarados con texto de uso.
+- [ ] Cliente OAuth iOS configurado (o Google Sign-In oculto en iOS).
+- [ ] Build de iOS en CI o decisión documentada de no soportar iOS.
+=== END ===
+
+=== ISSUE ===
+SLUG: no-primary-cta
+TITLE: [P1] El dashboard no tiene CTA primaria para practicar
+LABELS: P1-alto, area/ux, producto
+BODY:
+## Contexto
+
+La única forma de empezar a practicar es tocar un nodo dentro de un roadmap largo, por debajo de tres insignias y tres accesos rápidos. Existe un botón "HABLAR AHORA" terminado que nunca se monta.
+
+## Evidencia
+
+- `lib/features/dashboard/presentation/screens/dashboard_screen.dart:178-339` — insignias, tiles y luego roadmap.
+- `dashboard_screen.dart:341-344` — hueco con dos `SizedBox` y solo un comentario.
+- `lib/features/dashboard/presentation/widgets/learning_path_roadmap.dart:551-557` — único punto de inicio real.
+- `lib/core/widgets/mic_pulse_button.dart` — 180×180, 0 usos.
+
+## Comportamiento actual
+
+El usuario nuevo no sabe qué hacer. La activación depende de que descubra el roadmap.
+
+## Comportamiento esperado
+
+Una acción principal evidente que inicie la práctica recomendada en un toque.
+
+## Criterios de aceptación
+
+- [ ] Existe una CTA primaria visible sin scroll.
+- [ ] Inicia la lección recomendada (o la primera pendiente del nivel).
+- [ ] Jerarquía visual única (una sola acción dominante).
+- [ ] Medición de clics en la CTA.
+=== END ===
+
+=== ISSUE ===
+SLUG: settings-destructive-save
+TITLE: [P1] Guardar Settings resetea XP, racha, idioma nativo y CEFR
+LABELS: P1-alto, area/ux, bug
+BODY:
+## Contexto
+
+El guardado reutiliza `saveOnboardingData`, que hace upsert de `user_language_profiles` con `xp_points: 0` y `current_streak: 0`, sobrescribe `native_language` con `'es'` y puede fijar el CEFR en B1.
+
+## Evidencia
+
+- `lib/features/dashboard/presentation/screens/settings_screen.dart:28-29` — `_selectedTargetLanguage='en'`, `_selectedCefrLevel='B1'` como constantes.
+- `settings_screen.dart:190-237` — `updateAllSettings` + `saveOnboardingData` con `nativeLanguageCode: 'es'` fijo.
+- `settings_screen.dart:38` — `_localSettings ??= remoteSettings` captura valores iniciales antes de cargar los remotos.
+- `lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:31-37` — upsert de `users`.
+- `onboarding_repository_impl.dart:100-109` — upsert con `xp_points: 0, current_streak: 0`.
+
+## Comportamiento actual
+
+Entrar en Configuración y pulsar Guardar puede borrar el progreso del jugador y su nivel, y mostrar valores por defecto aunque tuviera otros.
+
+## Comportamiento esperado
+
+Guardar preferencias no debe tocar progreso, identidad ni nivel.
+
+## Criterios de aceptación
+
+- [ ] Settings usa una operación de actualización parcial de `user_settings`.
+- [ ] No llama a `saveOnboardingData`.
+- [ ] Los valores se hidratan desde el perfil remoto antes de mostrarse.
+- [ ] Test: guardar no modifica XP, streak, CEFR ni native_language.
+- [ ] Confirmación en acciones destructivas (reset de onboarding).
+=== END ===
+
+=== ISSUE ===
+SLUG: srs-disconnected
+TITLE: [P2] SM-2 implementado pero desconectado: UI muerta y "NORMAL" cuenta como fallo
+LABELS: P2-medio, area/aprendizaje, bug
+BODY:
+## Contexto
+
+Existe un SM-2 correcto en el repositorio, pero el modal de repaso no se importa en ningún sitio y la fecha de próximo repaso nunca se consulta.
+
+## Evidencia
+
+- `lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:735-783` — algoritmo SM-2.
+- `lib/features/vocabulary/presentation/widgets/srs_flashcard_modal.dart` — 274 líneas, 0 importadores.
+- `srs_flashcard_modal.dart:234,246,258` — HARD→1.0, NORMAL→2.5, EASY→5.0.
+- `dashboard_repository_impl.dart:744` — `if (q < 3.0)` → NORMAL (2.5) es lapso.
+- `next_review_at` solo se escribe, nunca se consulta.
+- `dashboard_repository_impl.dart:636-695` — 35 traducciones hardcodeadas, `difficulty_level: 'A2'` fijo, `take(8)`.
+
+## Comportamiento actual
+
+No hay repaso espaciado en el producto. El algoritmo es código muerto.
+
+## Comportamiento esperado
+
+Cola de repaso diaria conectada al flujo de lección.
+
+## Criterios de aceptación
+
+- [ ] Mapeo de botones corregido (NORMAL ≥ 3).
+- [ ] Consulta de "vencidas hoy" y pantalla de repaso accesible.
+- [ ] Integración al cerrar lección o desde el dashboard.
+- [ ] Tests del algoritmo y del mapeo de respuestas.
+- [ ] Traducciones desde datos, no desde un mapa hardcodeado.
+=== END ===
+
+=== ISSUE ===
+SLUG: skills-radar-no-writers
+TITLE: [P2] El radar de habilidades lee columnas que ningún código escribe
+LABELS: P2-medio, area/aprendizaje, bug
+BODY:
+## Contexto
+
+De siete ejes, solo dos tienen escritor real. El resto lee columnas con default o que nunca se rellenan, por lo que el radar muestra ceros o valores fijos.
+
+## Evidencia
+
+- `lib/features/dashboard/presentation/providers/dashboard_providers.dart:175-287` — fuentes del radar.
+- `conversation_providers.dart:584-592` — `oracle_turns` inserta solo `partial_score`; las 6 columnas de puntuación quedan nulas.
+- `supabase/migrations/20260804_oracle_turns.sql:34-39` — define `pronunciation_score`, `fluency_score`, `grammar_score`, `vocabulary_score`, `comprehension_score`, `naturalness_score`.
+- `supabase/migrations/full_database_decoupling.sql:47` — `speech_dna_metrics` con default 88 y sin escritor.
+- `conversation_repository_impl.dart:668-737` — fluidez derivada de la latencia constante.
+
+## Comportamiento actual
+
+El alumno ve un radar que no refleja su desempeño; `weakestSkill` enruta las lecciones remediales hacia ejes nunca medidos.
+
+## Comportamiento esperado
+
+Cada eje debe tener una fuente real o dejar de mostrarse.
+
+## Criterios de aceptación
+
+- [ ] Inventario de qué escribe cada eje.
+- [ ] Ejes sin fuente: implementarlos o retirarlos de la UI.
+- [ ] `weakestSkill` solo considera ejes medidos.
+- [ ] Test de radar con datos conocidos.
+=== END ===
+
+=== ISSUE ===
+SLUG: content-duplication-and-translations
+TITLE: [P2] Contenido triplicado y sin traducir (140 vs 480 vs 6.480; 481/548 frases sin traducción)
+LABELS: P2-medio, area/aprendizaje, deuda-tecnica
+BODY:
+## Contexto
+
+Las 120 lecciones curadas existen idénticas en Dart y en SQL; además hay dos generaciones de semillas de plantilla que suman ~6.480 filas. La mitad del contenido útil está sin traducir.
+
+## Evidencia
+
+- `lib/features/dashboard/data/models/lesson_catalog.dart` — 140 lecciones (20 PRE-A1 + 120).
+- `supabase/migrations/20260805_apply_official_120_curriculum.sql` — 480 filas (120 × 4 idiomas), idénticas al catálogo.
+- `supabase/migrations/20260723000000_seed_20_lessons_per_level.sql` — 480.
+- `supabase/migrations/20260723000002_seed_15_lessons_per_combination.sql` — 3.240.
+- `supabase/migrations/seed_lessons_A1..C2.sql` — 3.240.
+- `supabase/migrations/seed_A1_en..C2_it.sql` — 3.240.
+- 481 de 548 `UsefulPhraseItem.translation` son iguales al inglés.
+- 480 de 550 `examplePhrase` repiten el enunciado del objetivo.
+- 10 de 135 títulos por nivel tienen registro C1/C2 etiquetados como A1.
+
+## Comportamiento actual
+
+Mantenimiento triple, contenido mal nivelado y frases modelo que no son emitibles.
+
+## Comportamiento esperado
+
+Una sola fuente de verdad, con traducciones reales y nivelado correcto.
+
+## Criterios de aceptación
+
+- [ ] Fuente canónica elegida y documentada (BD o cliente, no ambas).
+- [ ] Semillas duplicadas archivadas fuera de `migrations/`.
+- [ ] Traducciones completadas o campo eliminado si no se usa.
+- [ ] `examplePhrase` reescrito como utterance del alumno.
+- [ ] Revisión de nivelado de los 10 títulos por nivel.
+=== END ===
+
+=== ISSUE ===
+SLUG: economy-without-sinks
+TITLE: [P2] Gemas, fragmentos y XP se ganan pero no sirven para nada
+LABELS: P2-medio, area/economia, producto
+BODY:
+## Contexto
+
+Solo el maná tiene sumidero funcional. El resto se acumula sin destino, lo que rompe la lógica de recompensa.
+
+## Evidencia
+
+- Gemas: se ganan en recompensa diaria (`economy_repository_impl.dart:188-192`); el único gasto es la tienda de gemas, cuyo `purchaseItem` no tiene llamadores.
+- Fragmentos: se ganan por sesión (`conversation_providers.dart:1357-1360`); la pantalla de canje no existe (`shop_screen.dart:19` solo lo menciona).
+- XP: se acumula (`dashboard_repository_impl.dart:599`) y no hay curva de nivel ni gasto.
+- Pergaminos e invocaciones: marcados deprecados y aún consultados.
+- `guild_battle_pass`: nivel 1 permanente.
+
+## Comportamiento actual
+
+El jugador recibe monedas que no puede usar; la recompensa pierde sentido en la primera hora.
+
+## Comportamiento esperado
+
+Cada recurso debe tener fuente, sumidero y utilidad visible, o dejar de existir.
+
+## Criterios de aceptación
+
+- [ ] Matriz recurso → fuente → sumidero → efecto.
+- [ ] Decisión por recurso: implementar sumidero o retirar el recurso de la UI.
+- [ ] Eliminar `player_daily_state`/pergaminos/invocaciones si se confirma deprecación.
+- [ ] `guild_battle_pass` progresa o se elimina.
+=== END ===
+
+=== ISSUE ===
+SLUG: xp-without-level-curve
+TITLE: [P2] XP sin curva de nivel y farmeable sin aprender
+LABELS: P2-medio, area/economia, producto
+BODY:
+## Contexto
+
+No existe ninguna función XP→nivel. El "nivel" del personaje es el CEFR. Además el XP se puede farmear con sesiones vacías.
+
+## Evidencia
+
+- `lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:599` — `xp_points + minutes*10`.
+- Búsqueda de `xpForLevel|levelFromXp|XP_PER_LEVEL` → 0 resultados.
+- `lib/features/conversation/presentation/screens/conversation_screen.dart:89-98` — basta un turno para cerrar sesión.
+- `conversation_screen.dart:92-94` — `minutes` calculado en cliente con mínimo 1.
+- `game_rank` es mapeo de CEFR (`cefr_rank.dart:13-21`).
+
+## Comportamiento actual
+
+Se puede acumular XP indefinido sin mejorar el inglés, y el XP no desbloquea nada.
+
+## Comportamiento esperado
+
+Progresión con significado: curva de nivel y/o vínculo explícito con el dominio lingüístico.
+
+## Criterios de aceptación
+
+- [ ] Definir qué representa el nivel del personaje (si existe).
+- [ ] Curva de XP y desbloqueos, o eliminar el XP de la UI.
+- [ ] XP ligado a objetivos cumplidos, no a minutos.
+- [ ] Anti-farm: mínimo de calidad por sesión.
+=== END ===
+
+=== ISSUE ===
+SLUG: streaks-duplicated
+TITLE: [P2] Rachas: dos fuentes de verdad y banner "en riesgo" siempre activo
+LABELS: P2-medio, area/economia, bug
+BODY:
+## Contexto
+
+Hay dos rachas que se calculan y muestran por separado, pueden discrepar, y el aviso de riesgo se basa en un contador que ya no se usa.
+
+## Evidencia
+
+- `lib/features/economy/data/repositories/economy_repository_impl.dart:111-156` — `player_streaks` con freezes.
+- `lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:573-602` — `current_streak` en `user_language_profiles`.
+- `economy_repository_impl.dart:135-139` — primer día: `diff == 0` mantiene 0.
+- `lib/features/dashboard/presentation/widgets/progress_tab_view.dart:43-47` — `streakAtRisk` con `invocationsUsed <= 0`.
+- `economy_repository_impl.dart:80` — `useInvocation` sin llamadores.
+- `economy_repository_impl.dart:29` — fecha local; el maná usa UTC.
+
+## Comportamiento actual
+
+El dashboard y la recompensa diaria pueden mostrar rachas distintas. El banner de riesgo está siempre encendido. La racha nunca vale 1 el primer día.
+
+## Comportamiento esperado
+
+Una sola racha, una sola definición de "día", y un aviso que refleje el estado real.
+
+## Criterios de aceptación
+
+- [ ] Fuente única de racha.
+- [ ] Zona horaria definida y aplicada en cliente y servidor.
+- [ ] Corregir el cálculo del primer día.
+- [ ] `streakAtRisk` basado en actividad real del día.
+- [ ] Freeze comprable desde UI o retirado.
+=== END ===
+
+=== ISSUE ===
+SLUG: dungeon-guardian-is-paywall
+TITLE: [P2] "Guardián de la Mazmorra" es un paywall, no un modo de juego
+LABELS: P2-medio, area/producto, producto
+BODY:
+## Contexto
+
+La pantalla se presenta como un jefe, pero no hay HP, turnos, daño ni condiciones de victoria. Aparece solo cuando falta maná y ofrece comprar.
+
+## Evidencia
+
+- `lib/features/economy/presentation/screens/dungeon_guardian_screen.dart:183-216` — tres acciones: paywall, inventario, volver.
+- `lib/features/conversation/presentation/screens/conversation_screen.dart:156-170` — se abre si `available < 12`.
+- `lib/core/widgets/draggable_monster_widget.dart` — único código con "HP", **0 consumidores**.
+- Búsqueda de `enemyHp|bossHp|damage|hp_max` → solo ese widget y textos de lección.
+
+## Comportamiento actual
+
+Se promete combate y se entrega una pantalla de compra. Es la mayor inconsistencia de expectativas.
+
+## Comportamiento esperado
+
+O se renombra/rediseña como gate de maná honesto, o se implementa un modo de repaso con reglas.
+
+## Criterios de aceptación
+
+- [ ] Decisión documentada: renombrar o implementar.
+- [ ] Si se renombra: copy e iconografía coherentes, sin promesa de combate.
+- [ ] Si se implementa: reglas, estados y condiciones de victoria definidas.
+- [ ] Eliminar o integrar `DraggableMonsterWidget`.
+=== END ===
+
+=== ISSUE ===
+SLUG: unbounded-chat-history
+TITLE: [P2] Historial de chat sin truncar: coste y latencia crecientes
+LABELS: P2-medio, area/ia, deuda-tecnica
+BODY:
+## Contexto
+
+El chat de rol envía el historial completo en cada turno, y la fila de conversación se reutiliza indefinidamente. El coste crece dentro de la sesión y entre sesiones.
+
+## Evidencia
+
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:1086-1099` — `state.messages.map(...)` sin slice.
+- `lib/features/conversation/data/repositories/conversation_repository_impl.dart:361-373` — reutiliza la conversación más reciente sin cerrarla.
+- `conversation_providers.dart:679-685` — el Oráculo sí trunca a 24.
+- `:1231-1233` — la evaluación de objetivos trunca a 12.
+
+## Comportamiento actual
+
+Input de tokens sin techo, latencia creciente y coste no acotado.
+
+## Comportamiento esperado
+
+Ventana deslizante o resumen, con medición de tokens.
+
+## Criterios de aceptación
+
+- [ ] Política de truncado/resumen definida.
+- [ ] Conteo de tokens por petición registrado.
+- [ ] Cierre real de conversaciones (`ended_at`, `status`).
+- [ ] Test de sesión larga con coste acotado.
+=== END ===
+
+=== ISSUE ===
+SLUG: async-states-and-offline
+TITLE: [P2] Estados de carga/error/vacío/offline ausentes y fallos silenciados
+LABELS: P2-medio, area/ux, deuda-tecnica
+BODY:
+## Contexto
+
+No hay widgets compartidos de estado. Varias pantallas muestran datos falsos mientras cargan o esconden errores con `SizedBox.shrink()` o `catch (_) {}`.
+
+## Evidencia
+
+- `lib/features/dashboard/presentation/screens/dashboard_screen.dart:46-53` — `XP 2450`, `RACHA 7`, `A1` mientras carga.
+- `lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:24-32` — fallback `xp:120, streak:1`.
+- `lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:421` — `error: (_, __) => SizedBox.shrink()`.
+- `dashboard_screen.dart` — sin spinner ni error.
+- `lib/features/onboarding/presentation/screens/onboarding_screen.dart:215-242` — tres `catch (_) {}`.
+- `lib/core/cache/cached_future_controller.dart` — stale-while-revalidate sin indicador de offline.
+- `connectivity_plus` no está en `pubspec.yaml`.
+- `mission_board_skeleton.dart` es el único skeleton y no se usa.
+
+## Comportamiento actual
+
+El usuario ve datos inventados o pantallas en blanco sin saber si hay error de red.
+
+## Comportamiento esperado
+
+Estados explícitos y consistentes: carga, error con reintento, vacío con acción, offline detectable.
+
+## Criterios de aceptación
+
+- [ ] Widgets compartidos `LoadingState`, `ErrorState`, `EmptyState`.
+- [ ] Eliminar los fallbacks con datos falsos.
+- [ ] Detección de conectividad y aviso.
+- [ ] Revisar todos los `catch (_) {}` de UI.
+- [ ] Test de pantalla en error y en vacío.
+=== END ===
+
+=== ISSUE ===
+SLUG: accessibility-gaps
+TITLE: [P2] Accesibilidad: contraste insuficiente, sin Semantics, sin text scaling ni RTL
+LABELS: P2-medio, area/ux, deuda-tecnica
+BODY:
+## Contexto
+
+La app no soporta tamaños de texto grandes ni lectores de pantalla de forma sistemática, y varios textos secundarios incumplen contraste AA.
+
+## Evidencia
+
+Contraste (WCAG 2.1):
+
+| Combinación | Ratio | AA |
+|---|---|---|
+| `onSurface #E1E2ED` sobre `voidBg` | 15,63:1 | ✅ |
+| `onSurface @50%` | 4,34:1 | ❌ |
+| `onSurface @38%` | 2,94:1 | ❌ |
+| `onSurface @30%` | 2,24:1 | ❌ |
+| `runeViolet #9D4EDD` sobre `voidBg` | 4,38:1 | ❌ |
+
+- `Semantics(` — 2 apariciones y ningún call site pasa `semanticLabel`.
+- `Tooltip(` — 5 en toda la app.
+- 0 usos de `textScaler`/`textScaleFactor`.
+- `test/overflow_test.dart` no prueba escalas de texto.
+- `supportedLocales = [en, es, pt]`, todos LTR; 0 `Directionality`.
+- `welcome_screen.dart:402`, `profile_edit_screen.dart:465,493` usan `onSurface@30%` en placeholders.
+
+## Comportamiento actual
+
+Un usuario con baja visión o texto grande no puede usar la app con normalidad.
+
+## Comportamiento esperado
+
+Contraste AA en todo texto, etiquetas semánticas en acciones, layout que soporte 1.5×–2× y RTL si se añade idioma.
+
+## Criterios de aceptación
+
+- [ ] Sustituir los niveles de opacidad que fallan.
+- [ ] `Semantics`/`Tooltip` en todos los botones de icono.
+- [ ] Test de overflow con `textScaler` 1.5 y 2.0.
+- [ ] Auditoría con TalkBack/VoiceOver.
+=== END ===
+
+=== ISSUE ===
+SLUG: design-system-adoption
+TITLE: [P2] Adopción parcial del design system y god widgets de más de 1.200 líneas
+LABELS: P2-medio, area/ux, deuda-tecnica
+BODY:
+## Contexto
+
+Existen tokens reales, pero se usan poco. Seis pantallas superan las 800 líneas y cinco superan 1.190.
+
+## Evidencia
+
+| Token | Usos | Crudo |
+|---|---|---|
+| `AppSpacing.*` | 5 | 345 `EdgeInsets.*` |
+| `AppTypography.*` | 89 | 284 `GoogleFonts.*` |
+| `AppRadius.*` | 77 | 98 `BorderRadius.circular` |
+| `app_elevation.dart` | 0 imports | sombras inline |
+
+- `GoogleFonts.hankenGrotesk` en `conversation_screen.dart:293,587`.
+- 12 hex crudos y 46 `Colors.white*/black*` en `conversation_screen.dart`.
+- Segunda paleta "medieval" en `app_colors.dart:132-145`, con oro `#B8860B` frente a `#FFC700`.
+- Pantallas: `settings_screen` 1.540, `conversation_screen` 1.487, `chat_rooms_screen` 1.294, `voice_room_screen` 1.219, `onboarding_screen` 1.194, `session_summary_screen` 874.
+- `ConversationNotifier` 1.435 líneas con 9 responsabilidades.
+
+## Comportamiento actual
+
+Inconsistencia visual y coste alto de cambio; dos oros distintos en el mismo flujo.
+
+## Comportamiento esperado
+
+Tokens adoptados de forma consistente y pantallas descompuestas.
+
+## Criterios de aceptación
+
+- [ ] Eliminar `HankenGrotesk` y los hex crudos de pantallas.
+- [ ] Unificar la paleta medieval o justificarla como submarca.
+- [ ] Extraer al menos los modales y barras de control de `conversation_screen`.
+- [ ] Extraer secciones de `settings_screen`.
+- [ ] Regla de lint o revisión para no añadir `EdgeInsets` crudos.
+=== END ===
+
+=== ISSUE ===
+SLUG: analytics-insufficient
+TITLE: [P2] Analítica insuficiente: 3 eventos útiles y sin importes
+LABELS: P2-medio, area/negocio, deuda-tecnica
+BODY:
+## Contexto
+
+No se puede medir activación, retención, conversión ni coste por usuario con los eventos actuales.
+
+## Evidencia
+
+- `lib/core/services/retention_analytics.dart:24-26` — vocabulario declarado: `app_open`, `session_start`, `session_end`, `invoke_llm`, `claim_daily`, `purchase_item`.
+- `app_open`, `session_start` y `session_end` **nunca se emiten**.
+- `claim_daily` se emite sin propiedades (`economy_repository_impl.dart:211`).
+- `purchase_item` se emite en la ruta de gemas que no funciona (`:302`).
+- `purchase_cosmetic_gold` solo en la ruta bloqueada por RLS (`:340`).
+- Los webhooks de Stripe y RevenueCat no registran nada.
+- `lib/core/utils/error_tracker.dart:42,57` — Sentry/Firebase comentados; no hay Crashlytics en `pubspec.yaml`.
+
+## Comportamiento actual
+
+Sin datos para decidir precios, gating, retención ni coste.
+
+## Comportamiento esperado
+
+Embudo instrumentado con importes y eventos de sesión.
+
+## Criterios de aceptación
+
+- [ ] Emitir `app_open`, `session_start`, `session_end`.
+- [ ] Eventos de compra con `sku`, `amount`, `gateway` y resultado.
+- [ ] Eventos de onboarding por paso y de finalización de lección.
+- [ ] Registro de latencia real y tokens por turno.
+- [ ] Error tracking real (Sentry o Crashlytics).
+=== END ===
+
+=== ISSUE ===
+SLUG: premium-gating-missing
+TITLE: [P2] El premium no desbloquea nada: pagar solo da más maná
+LABELS: P2-medio, area/negocio, producto
+BODY:
+## Contexto
+
+Los planes prometen salas prioritarias, misiones premium, incursión semanal, títulos hasta SSS y acceso anticipado. Nada de eso se comprueba en código.
+
+## Evidencia
+
+- `lib/features/subscription/presentation/providers/subscription_providers.dart:53` — `isPremiumProvider`.
+- `lib/features/dashboard/presentation/screens/dashboard_screen.dart:267-293` — única consecuencia: insignia PRO.
+- `grep isPremiumProvider` → solo providers, paywall, dashboard y reset de onboarding.
+- `supabase/migrations/20260818_04_planes_2x2x_precios.sql` — `features` JSONB con promesas.
+- No hay trial: búsqueda de `trial` solo en docs y en un enum sin uso.
+
+## Comportamiento actual
+
+El usuario paga 3–13 USD/mes y la única diferencia funcional es el tamaño del pozo de maná (que además no está gated en el proxy).
+
+## Comportamiento esperado
+
+Cada beneficio anunciado debe estar implementado y verificado en servidor, o retirarse de la descripción.
+
+## Criterios de aceptación
+
+- [ ] Matriz plan → beneficio → comprobación en código.
+- [ ] Beneficios no implementados: eliminar del JSONB o implementar.
+- [ ] Gating verificado en servidor, no solo en UI.
+- [ ] Decisión sobre trial gratuito y su configuración.
+=== END ===
+
+=== ISSUE ===
+SLUG: dead-code-and-tables
+TITLE: [P3] Código y tablas muertas: inventario para eliminar o implementar
+LABELS: P3-bajo, area/calidad, deuda-tecnica
+BODY:
+## Contexto
+
+Hay ~2.000 líneas de UI sin montar, 19 métodos de repositorio sin llamadores y 6 tablas sin funcionalidad. Se listan para decisión explícita: implementar o eliminar.
+
+## Evidencia — widgets sin consumidores
+
+- `lib/features/dashboard/presentation/widgets/recommended_lessons_hub.dart` (560)
+- `next_recommended_lesson_hero.dart` (410)
+- `lesson_preview_sheet.dart` (335)
+- `lesson_card.dart` (167)
+- `charts/practice_heatmap.dart` (104)
+- `charts/fluency_latency_chart.dart` (130)
+- `lib/core/widgets/mic_pulse_button.dart` (107)
+- `lib/core/widgets/draggable_monster_widget.dart` (410)
+- `lib/core/widgets/stat_tile.dart` (64)
+- `lib/core/widgets/hunter_avatar.dart` (62) — duplica `RpgAvatar`
+- `lib/features/missions/presentation/widgets/mission_board_skeleton.dart` (46)
+- `lib/features/vocabulary/presentation/widgets/srs_flashcard_modal.dart` (274)
+
+## Evidencia — métodos sin llamadores
+
+- `mission_repository`: `getSecretMissions`, `getActiveEmergencies`, `getRecentRewards`, `getGuildQuestPool`, `getCompletedGuildQuests`, `getGuildQuestById`, `getActiveGuildMissions`, `getActiveGlobalEvents`, `acceptMission`, `getTemplates`, `generateDailyMissions`, `updateProgress`, `applyMissionModifier`, `createSecretMission`, `getEventProgress`, `acceptGuildQuest`, `updateGuildMissionProgress`, `contributeToWeeklyRaid`, `cleanupOldMissions`.
+- `economy_repository`: `useInvocation`, `canInvoke`, `purchaseItem`, `generateDailyPergaminos`, `getPlanManaBonus`.
+- `auth_repository`: `signInWithApple`, `signInAnonymously`.
+- `PlacementRepository` / `PlacementResult` completos.
+- `EquippedTitleNotifier.equip`.
+
+## Evidencia — tablas sin función
+
+`secret_missions`, `emergency_missions`, `global_events`, `player_event_progress`, `guild_collaborative_missions`, `player_pergaminos`, `guild_battle_pass`, `reward_history` (solo escritura), `corrections`, `pronunciation_assessments`, `ai_usage_logs`.
+
+## Criterios de aceptación
+
+- [ ] Decisión por elemento: implementar (con issue propia) o eliminar.
+- [ ] Quitar interfaz **e** implementación a la vez (`@override` huérfano = error).
+- [ ] Eliminar dependencias sin uso: `lottie`, `flutter_animate`, `speech_to_text`.
+- [ ] Documentar el resultado en este issue.
+=== END ===
+
+=== ISSUE ===
+SLUG: orphan-routes-and-duplicates
+TITLE: [P3] Rutas y pantallas huérfanas o duplicadas
+LABELS: P3-bajo, area/ux, deuda-tecnica
+BODY:
+## Contexto
+
+Hay rutas registradas sin punto de entrada y una pantalla duplicada.
+
+## Evidencia
+
+- `lib/app/router.dart:146` — `/disruption` sin ningún `push`/`go`.
+- `lib/app/router.dart:121-124` — `/settings` existe, pero Settings se renderiza inline como tab 3 (`dashboard_screen.dart:162`).
+- `lib/core/widgets/system_mana_disruption_screen.dart` — 148 líneas, huérfano.
+- `oraclePromotionMode` / `oraclePromotionLevel` se reciben y nunca se leen (`conversation_screen.dart:42-43,52-53`).
+- `devMode` se recibe en el resolver y solo se usa en `debugPrint` (`navigation_resolver.dart:63-83`).
+- `isRegisteringProvider` se escribe y nunca se lee (`auth_providers.dart:28`).
+
+## Comportamiento actual
+
+Código y estado muerto que sugiere funcionalidades inexistentes.
+
+## Criterios de aceptación
+
+- [ ] Eliminar o conectar `/disruption` y `/settings`.
+- [ ] Eliminar los parámetros de promoción o implementarlos.
+- [ ] `devMode` afecta al flujo o se elimina.
+- [ ] Eliminar `isRegisteringProvider`.
+=== END ===
+
+=== ISSUE ===
+SLUG: simulated-notifications-and-sfx
+TITLE: [P3] Notificaciones y efectos de sonido simulados
+LABELS: P3-bajo, area/producto, bug
+BODY:
+## Contexto
+
+Settings ofrece notificaciones y SFX que no existen en tiempo de ejecución.
+
+## Evidencia
+
+- `lib/features/dashboard/presentation/screens/settings_screen.dart:780-812` — switch de notificaciones y selector de hora; se guarda en `user_settings`.
+- No hay `flutter_local_notifications` en `pubspec.yaml` ni código de programación.
+- `lib/core/services/audio_sfx_service.dart:33-55` — 4 métodos que solo hacen `debugPrint`.
+- 0 llamadas a `AudioSfxService` en `lib/`.
+- La música solo se controla desde un chip del gremio (`chat_rooms_screen.dart:605-612`); no hay toggle ni volumen en Settings.
+
+## Comportamiento actual
+
+El usuario activa ajustes que no producen ningún efecto.
+
+## Criterios de aceptación
+
+- [ ] Implementar notificaciones locales (recordatorio diario) o retirar el ajuste.
+- [ ] Implementar SFX o retirar el switch.
+- [ ] Añadir control de música y volumen de TTS en Settings.
+=== END ===
+
+=== ISSUE ===
+SLUG: onboarding-inert-fields
+TITLE: [P2] Campos de onboarding que se guardan pero nunca se leen
+LABELS: P2-medio, area/producto, bug
+BODY:
+## Contexto
+
+El onboarding recoge datos que no alimentan ninguna decisión, y promete personalización que no existe.
+
+## Evidencia
+
+| Campo | Se guarda en | Se lee en |
+|---|---|---|
+| País | `users.country_code` | Nada |
+| Meta diaria | `user_settings.daily_goal_minutes` | Solo ordena recomendaciones, cuyo consumidor está muerto |
+| Intereses | `user_settings.interests` | Nada |
+| Estilo de corrección | `user_settings.correction_style` | Nada (el prompt lee `correction_level`) |
+| Obstáculo declarado | `user_ai_profiles` (ignorado por el repo) | Nada |
+| Nombre de personaje | Nunca se asigna (`CharacterCreationData.name` queda `''`) | Nada |
+| STR/INT/DEX/LUK | Literal en `users.bio` | Nada |
+
+- `lib/features/onboarding/presentation/screens/onboarding_screen.dart:216-218` — `country_code`.
+- `:239` — `'[Stats|STR:5|INT:5|DEX:5|LUK:5] ...'` dentro de `bio`.
+- `:46-50` — constantes de meta, intereses y estilo.
+- `lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:143-152` — `learning_style` hardcodeado; parámetros ignorados.
+- `lib/features/onboarding/presentation/widgets/character_creation_wizard.dart:14,291` — `name` nunca se pasa.
+
+## Comportamiento actual
+
+El usuario cree configurar su experiencia y nada cambia.
+
+## Criterios de aceptación
+
+- [ ] Decisión por campo: conectar a una decisión real o eliminar del onboarding.
+- [ ] El nombre del personaje se captura y se usa.
+- [ ] Eliminar el truco de stats en `bio`.
+- [ ] `correction_style` y `correction_level` unificados.
+=== END ===
+
+=== ISSUE ===
+SLUG: chat-moderation-fake
+TITLE: [P2] La moderación de chat es inexistente: "Moderated by AI" es solo texto
+LABELS: P2-medio, area/seguridad, producto
+BODY:
+## Contexto
+
+La sala de voz anuncia moderación por IA en tiempo real. No existe ningún filtro ni moderador automático.
+
+## Evidencia
+
+- `lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:647` — copy "Moderated by AI Tutor in Real Time".
+- `lib/features/chat_rooms/data/repositories/chat_rooms_repository_impl.dart:285-289` — inserta el mensaje sin filtrar.
+- Búsqueda de profanity/toxicity/filter en `lib/` → 0.
+- `supabase/migrations/20260729_add_room_moderation.sql` — define `moderator_type IN ('ai','creator','assigned')` y `assigned_moderator_id`, pero no hay lógica de IA.
+- `moderatorStand` solo expulsa del asiento.
+
+## Comportamiento actual
+
+Un usuario puede escribir o decir cualquier cosa sin moderación, con una promesa explícita de lo contrario.
+
+## Comportamiento esperado
+
+O moderación real (filtro de texto/audio + revisión), o retirar la afirmación de la UI.
+
+## Criterios de aceptación
+
+- [ ] Decisión documentada: implementar moderación o retirar el copy.
+- [ ] Si se implementa: filtro previo al insert y registro de acciones.
+- [ ] Política de reportes accesible al usuario.
+=== END ===
+
+=== ISSUE ===
+SLUG: presence-ghost-rows
+TITLE: [P3] Presencia duplicada y filas fantasma en el gremio
+LABELS: P3-bajo, area/backend, bug
+BODY:
+## Contexto
+
+Hay dos sistemas de presencia desconectados. El roster del gremio usa participantes de sala sin filtrar por última actividad, y la fila solo se borra al salir explícitamente.
+
+## Evidencia
+
+- `supabase/migrations/20260821_user_presence.sql:45-50` — RLS de `user_presence`: solo el propio usuario o admin (pensada para el panel web).
+- `lib/features/presence/presentation/providers/presence_providers.dart:41-62` — heartbeat cada 30 s.
+- `lib/features/chat_rooms/data/repositories/chat_rooms_repository_impl.dart:660-704` — roster desde `chat_room_participants`.
+- `:674-677` — sin filtro de `last_seen_at`.
+- `lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:169-187` — borrado solo en `_leaveRoom`.
+
+## Comportamiento actual
+
+Usuarios que cerraron la app siguen apareciendo "conectados"; el contador del gremio no refleja la realidad.
+
+## Criterios de aceptación
+
+- [ ] Filtrar por `last_seen_at` reciente.
+- [ ] Job de limpieza de participantes inactivos.
+- [ ] Unificar o documentar los dos sistemas de presencia.
+=== END ===
+
+=== ISSUE ===
+SLUG: skill-coverage-gaps
+TITLE: [P2] Sin evaluación de comprensión auditiva, lectura ni escritura
+LABELS: P2-medio, area/aprendizaje, producto
+BODY:
+## Contexto
+
+El producto se presenta como aprendizaje de inglés integral, pero solo practica producción oral (sin medirla) y evaluación de objetivos. Tres competencias no tienen actividad ni medición.
+
+## Evidencia
+
+| Competencia | Actividad | Medición |
+|---|---|---|
+| Expresión oral | ✅ voz | ❌ |
+| Comprensión auditiva | Solo TTS del tutor; sin preguntas de comprensión | ❌ |
+| Pronunciación | ❌ | 🎭 Levenshtein de texto |
+| Fluidez | ❌ | 🎭 constante 1,8 s |
+| Vocabulario | ✅ extracción de 6 palabras/sesión | 🟡 conteo |
+| Gramática | 🟡 corrección inline | ❌ |
+| Lectura | ❌ | ❌ |
+| Escritura | 🟡 chat de texto | ❌ |
+
+- `lib/features/conversation/presentation/providers/conversation_providers.dart:257-273` — TTS solo narra al tutor.
+- No existe ningún ejercicio de comprensión, lectura o escritura en `lib/features/`.
+- `lib/features/dashboard/data/models/lesson_catalog.dart` — las lecciones solo definen objetivos conversacionales.
+
+## Comportamiento actual
+
+El alumno no puede entrenar ni demostrar la mitad de las competencias que implica "aprender inglés".
+
+## Criterios de aceptación
+
+- [ ] Decisión de alcance: qué competencias se cubren oficialmente.
+- [ ] Ajustar el marketing a las competencias reales.
+- [ ] Diseñar al menos una actividad medible por competencia declarada.
+=== END ===
+
+=== ISSUE ===
+SLUG: tests-replicate-logic
+TITLE: [P3] Tres tests replican la lógica en vez de importarla (falsa cobertura)
+LABELS: P3-bajo, area/calidad, deuda-tecnica
+BODY:
+## Contexto
+
+Parte de la suite valida copias de constantes y fórmulas, no el código de producción. Los cambios reales no romperían esos tests.
+
+## Evidencia
+
+- `test/economy_repository_helpers_test.dart:7-8` — *"Este test NO instancia el repositorio"*; replica tiers de recompensa e `invocations_max`.
+- `test/oracle_conversation_test.dart:9-10` — *"Este test NO importa esos archivos"*; replica umbrales 6/12/20/32.
+- `test/latency_benchmark_test.dart` — valida un mock de 4 `Future.delayed`; nombres obsoletos ("Faster Whisper", "Edge TTS").
+
+## Cobertura ausente
+
+- Pipeline de voz (record → STT → LLM → TTS): 0 tests.
+- Integridad de economía (`consume_mana`, doble gasto): 0.
+- RLS / políticas: 0.
+- SM-2 y su mapeo de respuestas: 0.
+- Parser `[RESULT:CEFR=…]` y clamp de promoción: 0.
+- Contrato JSON de evaluación de objetivos: 0.
+
+## Criterios de aceptación
+
+- [ ] Reescribir los 3 tests para importar el código real.
+- [ ] Añadir tests de los 6 huecos listados.
+- [ ] Meta de cobertura acordada y medida en CI.
+=== END ===
+
+=== ISSUE ===
+SLUG: agents-md-stale
+TITLE: [P3] AGENTS.md está desactualizado y contradice al código en 16 puntos
+LABELS: P3-bajo, area/calidad, deuda-tecnica
+BODY:
+## Contexto
+
+`AGENTS.md` es la guía para agentes y desarrolladores, pero varias afirmaciones son falsas hoy. Inducen a error en cada nueva sesión de trabajo.
+
+## Evidencia
+
+| Afirmación en AGENTS.md | Realidad |
+|---|---|
+| "El repo tiene un solo commit" | **6 commits** |
+| "~56 infos/warnings" | **177 problemas** (36 W + 141 I) |
+| "Modelo `deepseek-chat`" | **`deepseek-v4-flash`** |
+| "Evaluación de objetivos por keyword (`isSatisfiedBy`)" | **LLM**; `isSatisfiedBy` tiene 0 llamadas |
+| "Hold-to-talk" | **Tap-to-toggle** |
+| "`HankenGrotesk` eliminado" | Sigue en `conversation_screen.dart:293,587` |
+| "5 archivos de test" | **15 archivos / 138 casos** |
+| "12 rutas" | **16 rutas** |
+| "`/hunter-status`, `/oracle-test`, `/shop` planificadas" | `/oracle-test` y `/shop` ya existen |
+
+## Criterios de aceptación
+
+- [ ] Actualizar las 16 afirmaciones verificadas.
+- [ ] Añadir al documento el comando de verificación (`flutter analyze`, `flutter test`).
+- [ ] Sustituir las listas de código muerto por un enlace a este backlog.
+- [ ] Revisión tras cada hito importante.
+=== END ===
+
