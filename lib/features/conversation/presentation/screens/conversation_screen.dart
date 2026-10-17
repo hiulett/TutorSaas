@@ -1123,6 +1123,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             onPressed: _submitTextMessage,
                           ),
                           IconButton(
+                            tooltip: 'Cerrar',
                             icon: const Icon(Icons.close_rounded, color: Colors.white54),
                             onPressed: () {
                               setState(() {
@@ -1144,6 +1145,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         // Icon 1: Compass (GuÃ­a de MisiÃ³n) â€” oculto en el examen del OrÃ¡culo
                         if (!isOracle)
                           IconButton(
+                          tooltip: 'Objetivos de la misión',
                           icon: const Icon(Icons.explore_outlined, color: Colors.white70, size: 28),
                           onPressed: () => _showScenarioMissionModal(context),
                         ),
@@ -1151,6 +1153,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         // Icon 2: Hashtag (20 TÃ³picos al azar) â€” oculto en el examen del OrÃ¡culo
                         if (!isOracle)
                           IconButton(
+                          tooltip: 'Temas sugeridos',
                           icon: Icon(
                             Icons.tag_rounded,
                             color: _showTopicsBar ? AppColors.runeViolet : Colors.white70,
@@ -1239,6 +1242,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
                         // Icon 4: Fingerprint (Huella de Voz & BiometrÃ­a)
                         IconButton(
+                          tooltip: 'Huella de voz',
                           icon: const Icon(Icons.fingerprint_rounded, color: AppColors.runeViolet, size: 28),
                           onPressed: () => _showSpeechDnaModal(context),
                         ),

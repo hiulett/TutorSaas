@@ -9,7 +9,6 @@ import '../../../../app/navigation_resolver.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -22,6 +21,16 @@ class WelcomeScreen extends ConsumerStatefulWidget {
 
 class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   bool _isAuthenticating = false;
+  bool _isRegisterMode = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   /// Query mínimo para despertar el pool/instancia de Supabase EN PARALELO con
   /// el flujo de Google: el query de perfil que el redirect ejecuta justo tras
@@ -133,11 +142,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       ),
                     ],
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 16),
 
-                  _buildCurrentView(theme, l10n),
-
-                  const Spacer(),
+                  Expanded(
+                    child: _buildCurrentView(theme, l10n),
+                  ),
                 ],
               ),
             ),
@@ -209,154 +218,464 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   }
 
   Widget _buildCurrentView(ThemeData theme, AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        GlassCard(
-          opacity: AppColors.glassOpacity,
-          blur: 25.0,
-          borderRadius: 4.0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Título limpio de bienvenida (sin SYSTEM MESSAGE)
+          Text(
+            l10n.login_title,
+            textAlign: TextAlign.center,
+            style: AppTypography.headline(context).copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.login_subtitle,
+            textAlign: TextAlign.center,
+            style: AppTypography.bodyMuted(context).copyWith(
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 28),
+          _buildEmailForm(theme, l10n),
+          const SizedBox(height: 20),
+          // Separador
+          Row(
             children: [
-              Text(
-                l10n.welcome_title,
-                textAlign: TextAlign.center,
-                style: AppTypography.headline(context).copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.welcome_desc,
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMuted(context).copyWith(
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 48),
-        // Registro directo con Google (cuenta nueva → onboarding explícito).
-        DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.runeViolet.withValues(alpha: 0.35),
-                blurRadius: 12,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ElevatedButton(
-            onPressed: () async {
-              setState(() => _isAuthenticating = true);
-              unawaited(_warmUpBackend());
-              try {
-                // El registro es explícito: tras autenticar con Google, el
-                // nuevo aventurero va SIEMPRE al onboarding (crear identidad).
-                ref.read(isRegisteringProvider.notifier).state = true;
-                final user = await ref.read(authRepositoryProvider).signInWithGoogle();
-                if (!mounted) return;
-                if (user == null) {
-                  // Cancelado/sin sesión: nunca dejar el spinner infinito.
-                  setState(() => _isAuthenticating = false);
-                  return;
-                }
-                context.go('/onboarding');
-              } catch (e) {
-                if (mounted) {
-                  setState(() => _isAuthenticating = false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.register_google_error)),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.runeViolet,
-              foregroundColor: AppColors.onSurface,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(4.0)),
-              ),
-              elevation: 0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.onSurface, width: 1.5),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Text(
-                    'G',
-                    style: AppTypography.label(context).copyWith(
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(l10n.register_google),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Inicio de sesión con Google (cuenta existente → el router decide).
-        OutlinedButton(
-          onPressed: () async {
-            setState(() => _isAuthenticating = true);
-            unawaited(_warmUpBackend());
-            try {
-              // Login: el router decide (sesión + perfil) sin heredar contexto.
-              ref.read(isRegisteringProvider.notifier).state = false;
-              final user = await ref.read(authRepositoryProvider).signInWithGoogle();
-              await _completeLogin(user);
-            } catch (e) {
-              if (mounted) {
-                setState(() => _isAuthenticating = false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.login_google_error)),
-                );
-              }
-            }
-          },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.onBackground,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            side: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.15)),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(4.0)),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.onBackground, width: 1.5),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
+              Expanded(child: Divider(color: AppColors.onSurface.withValues(alpha: 0.15))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  'G',
-                  style: AppTypography.label(context).copyWith(
-                    color: AppColors.onBackground,
+                  l10n.continue_google,
+                  style: AppTypography.tiny(context).copyWith(
+                    color: AppColors.onSurfaceVariant,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(l10n.login_google),
+              Expanded(child: Divider(color: AppColors.onSurface.withValues(alpha: 0.15))),
             ],
+          ),
+          const SizedBox(height: 20),
+          _buildGoogleRegisterButton(),
+          const SizedBox(height: 12),
+          _buildGoogleButton(l10n.login_google),
+        ],
+      ),
+    );
+  }
+
+  /// Registro directo con Google (cuenta nueva → onboarding explícito).
+  Widget _buildGoogleRegisterButton() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.runeViolet.withValues(alpha: 0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: () async {
+          setState(() => _isAuthenticating = true);
+          unawaited(_warmUpBackend());
+          try {
+            ref.read(isRegisteringProvider.notifier).state = true;
+            final user = await ref.read(authRepositoryProvider).signInWithGoogle();
+            if (!mounted) return;
+            if (user == null) {
+              setState(() => _isAuthenticating = false);
+              return;
+            }
+            context.go('/onboarding');
+          } catch (e) {
+            if (mounted) {
+              setState(() => _isAuthenticating = false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(AppLocalizations.of(context)?.register_google_error ?? 'Error')),
+              );
+            }
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.runeViolet,
+          foregroundColor: AppColors.onSurface,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(4.0)),
+          ),
+          elevation: 0,
+        ),
+        child: _googleRow(AppLocalizations.of(context)?.register_google ?? 'REGISTER WITH GOOGLE'),
+      ),
+    );
+  }
+
+  Widget _buildGoogleButton(String label) {
+    return OutlinedButton(
+      onPressed: () async {
+        setState(() => _isAuthenticating = true);
+        unawaited(_warmUpBackend());
+        try {
+          ref.read(isRegisteringProvider.notifier).state = false;
+          final user = await ref.read(authRepositoryProvider).signInWithGoogle();
+          await _completeLogin(user);
+        } catch (e) {
+          if (mounted) {
+            setState(() => _isAuthenticating = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(AppLocalizations.of(context)?.login_google_error ?? 'Error')),
+            );
+          }
+        }
+      },
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.onBackground,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        side: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.15)),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4.0)),
+        ),
+      ),
+      child: _googleRow(label),
+    );
+  }
+
+  Widget _googleRow(String label) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.onSurface, width: 1.5),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Text(
+            'G',
+            style: AppTypography.label(context).copyWith(
+              color: AppColors.onSurface,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            label,
+            style: AppTypography.label(context).copyWith(
+              color: AppColors.onSurface,
+            ),
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildEmailForm(ThemeData theme, AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Título del modo actual (INICIAR SESIÓN / CREAR CUENTA)
+        Text(
+          _isRegisterMode ? l10n.register : l10n.login,
+          textAlign: TextAlign.center,
+          style: AppTypography.subtitle(context).copyWith(
+            color: AppColors.manaCyan,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          autocorrect: false,
+          style: AppTypography.body(context).copyWith(color: AppColors.onSurface),
+          decoration: InputDecoration(
+            hintText: l10n.login_email_hint,
+            hintStyle: AppTypography.body(context).copyWith(color: AppColors.onSurface.withValues(alpha: 0.6)),
+            labelText: l10n.email_label,
+            labelStyle: AppTypography.label(context).copyWith(color: AppColors.manaCyan),
+            prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.manaCyan, size: 20),
+            filled: true,
+            fillColor: AppColors.onSurface.withValues(alpha: 0.05),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: const BorderSide(color: AppColors.manaCyan),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _passwordController,
+          obscureText: true,
+          style: AppTypography.body(context).copyWith(color: AppColors.onSurface),
+          decoration: InputDecoration(
+            hintText: '••••••••',
+            hintStyle: AppTypography.body(context).copyWith(color: AppColors.onSurface.withValues(alpha: 0.6)),
+            labelText: l10n.password_label,
+            labelStyle: AppTypography.label(context).copyWith(color: AppColors.manaCyan),
+            prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.manaCyan, size: 20),
+            filled: true,
+            fillColor: AppColors.onSurface.withValues(alpha: 0.05),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: const BorderSide(color: AppColors.manaCyan),
+            ),
+          ),
+          onSubmitted: (_) => _submitEmailAuth(l10n),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _isAuthenticating ? null : () => _submitEmailAuth(l10n),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.runeViolet,
+            foregroundColor: AppColors.onSurface,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4.0)),
+            ),
+            elevation: 8,
+            shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
+          ),
+          child: _isAuthenticating
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
+                )
+              : Text(
+                  _isRegisterMode ? l10n.register_email : l10n.login_email,
+                  style: AppTypography.title(context),
+                ),
+        ),
+        if (!_isRegisterMode) ...[
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: () => _showPasswordResetDialog(l10n),
+            child: Text(
+              l10n.forgot_password,
+              textAlign: TextAlign.center,
+              style: AppTypography.label(context).copyWith(
+                color: AppColors.manaCyan,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        // Cambio de modo discreto
+        GestureDetector(
+          onTap: () => setState(() => _isRegisterMode = !_isRegisterMode),
+          child: Text(
+            _isRegisterMode ? l10n.login_prompt : l10n.register_prompt,
+            textAlign: TextAlign.center,
+            style: AppTypography.bodyMuted(context).copyWith(
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Diálogo de recuperación de contraseña (envía enlace al correo).
+  Future<void> _showPasswordResetDialog(AppLocalizations l10n) async {
+    final resetController = TextEditingController(text: _emailController.text.trim());
+    final messenger = ScaffoldMessenger.of(context);
+    final show = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surfaceDeep,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+          side: BorderSide(color: AppColors.manaCyan.withValues(alpha: 0.3)),
+        ),
+        title: Text(
+          l10n.reset_password_title,
+          style: AppTypography.headline(context).copyWith(
+            fontSize: 18,
+            color: AppColors.manaCyan,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.reset_password_desc,
+              style: AppTypography.bodyMuted(context),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: resetController,
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+              style: AppTypography.body(context).copyWith(color: AppColors.onSurface),
+              decoration: InputDecoration(
+                hintText: l10n.login_email_hint,
+                hintStyle: AppTypography.body(context).copyWith(color: AppColors.onSurface.withValues(alpha: 0.6)),
+                labelText: l10n.email_label,
+                labelStyle: AppTypography.label(context).copyWith(color: AppColors.manaCyan),
+                prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.manaCyan, size: 20),
+                filled: true,
+                fillColor: AppColors.onSurface.withValues(alpha: 0.05),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: AppColors.manaCyan),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            style: TextButton.styleFrom(foregroundColor: AppColors.onSurfaceVariant),
+            child: Text(l10n.back),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.runeViolet,
+              foregroundColor: AppColors.onSurface,
+            ),
+            child: Text(l10n.reset_password_send),
+          ),
+        ],
+      ),
+    );
+    resetController.dispose();
+    if (show != true) return;
+
+    final email = resetController.text.trim();
+    if (email.isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.reset_password_email_empty)),
+      );
+      return;
+    }
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.email_invalid)),
+      );
+      return;
+    }
+    try {
+      await ref.read(authRepositoryProvider).sendPasswordResetEmail(email);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.reset_password_sent)),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.reset_password_error)),
+      );
+    }
+  }
+
+  /// Valida y ejecuta el login/registro con correo y contraseña.
+  Future<void> _submitEmailAuth(AppLocalizations l10n) async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.email_required)),
+      );
+      return;
+    }
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.email_invalid)),
+      );
+      return;
+    }
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.password_required)),
+      );
+      return;
+    }
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.password_short)),
+      );
+      return;
+    }
+
+    setState(() => _isAuthenticating = true);
+    try {
+      if (_isRegisterMode) {
+        final user = await ref.read(authRepositoryProvider).signUpWithEmail(email, password);
+        if (!mounted) return;
+        if (user == null) {
+          setState(() => _isAuthenticating = false);
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.register_success)),
+        );
+        context.go('/onboarding');
+      } else {
+        final user = await ref.read(authRepositoryProvider).signInWithEmail(email, password);
+        if (!mounted) return;
+        if (user == null) {
+          setState(() => _isAuthenticating = false);
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.login_success)),
+        );
+        await _completeLogin(user);
+      }
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      setState(() => _isAuthenticating = false);
+      final message = _isRegisterMode && (e.message.contains('already registered') || e.message.contains('registered'))
+          ? l10n.email_already_registered
+          : (_isRegisterMode ? l10n.register_email_error : l10n.login_email_error);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isAuthenticating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_isRegisterMode ? l10n.register_email_error : l10n.login_email_error)),
+      );
+    }
   }
 }

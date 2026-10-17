@@ -431,7 +431,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                         style: const TextStyle(color: AppColors.onSurface, fontSize: 13),
                         decoration: InputDecoration(
                           hintText: 'Type a message...',
-                          hintStyle: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.38), fontSize: 12),
+                          hintStyle: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.6), fontSize: 12),
                           filled: true,
                           fillColor: AppColors.onSurface.withValues(alpha: 0.05),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -878,7 +878,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                             ),
                                             child: Icon(
                                               isMySeat ? Icons.event_seat_rounded : Icons.add_rounded,
-                                              color: isMySeat ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.38),
+                                              color: isMySeat ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.6),
                                               size: 18,
                                             ),
                                           ),
@@ -889,7 +889,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                                 : (AppLocalizations.of(context)?.voice_seat_number('$slotNum') ?? 'SILLA $slotNum'),
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
-                                              color: isMySeat ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.5),
+                                              color: isMySeat ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.6),
                                               fontSize: 9,
                                               fontWeight: FontWeight.bold,
                                             ),

@@ -101,8 +101,11 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
           'created_at': room['created_at'] as String?,
         };
       });
-    } catch (_) {
-      return [];
+    } catch (e) {
+      // Re-lanzar para que el CachedFutureController conserve el último estado
+      // (SWR) en vez de vaciar la lista por un error transitorio.
+      debugPrint('getRooms error: $e');
+      rethrow;
     }
   }
 
@@ -194,9 +197,9 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
       return;
     }
 
-    // RPC leave_table: libera la silla, auto-asienta al primero de la cola y
-    // elimina la mesa si queda vacía. Fallback al borrado directo si el RPC
-    // aún no existe en el proyecto (migración pendiente).
+    // RPC leave_table: libera la silla y auto-asienta al primero de la cola.
+    // Fallback al borrado directo si el RPC aún no existe en el proyecto
+    // (migración pendiente). La mesa vacía se conserva en el gremio.
     try {
       await _supabaseClient.rpc('leave_table', params: {
         'p_room_id': roomId,
@@ -212,18 +215,6 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
         .delete()
         .eq('room_id', roomId)
         .eq('user_id', userId);
-
-    final remaining = await _supabaseClient
-        .from('chat_room_participants')
-        .select('id')
-        .eq('room_id', roomId);
-
-    if (remaining.isEmpty) {
-      await _supabaseClient
-          .from('chat_rooms')
-          .delete()
-          .eq('id', roomId);
-    }
   }
 
   @override
@@ -679,11 +670,18 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
 
       // 2. Participantes presentes en esas mesas (una mesa por sesión ⇒ cada
       //    usuario aparece como máximo una vez; se deduplica por si hay legacy).
+      // Issue #42: solo participantes con heartbeat reciente (<120 s) para no
+      // mostrar como "conectados" a usuarios que cerraron la app.
       final roomIds = rooms.map((r) => r['id'] as String).toList();
+      final cutoff = DateTime.now()
+          .toUtc()
+          .subtract(const Duration(seconds: 120))
+          .toIso8601String();
       final participants = await _supabaseClient
           .from('chat_room_participants')
           .select('user_id')
-          .inFilter('room_id', roomIds);
+          .inFilter('room_id', roomIds)
+          .gte('last_seen_at', cutoff);
 
       final userIds = participants
           .map((p) => p['user_id'] as String?)
@@ -705,8 +703,10 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
         };
       }).toList();
     } catch (e) {
+      // Re-lanzar para que el provider conserven el último valor (SWR) en vez
+      // de vaciar el roster por un error transitorio.
       debugPrint('getOnlineGuildUsers error: $e');
-      return [];
+      rethrow;
     }
   }
 }

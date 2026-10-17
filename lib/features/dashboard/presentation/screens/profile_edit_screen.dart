@@ -30,13 +30,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   bool _isSaving = false;
   bool _isUploading = false;
 
-  // Stat point allocation
-  int _str = 5;
-  int _int = 5;
-  int _dex = 5;
-  int _luk = 5;
-  int _pointsPool = 10;
-
+  // Profile field state (sin stat points: STR/INT/DEX/LUK ya no se usan).
   final List<Map<String, String>> _hunterClasses = [
     {'id': 'warrior', 'name': 'WARRIOR', 'desc': 'Physical strength & high defense'},
     {'id': 'mage', 'name': 'MAGE', 'desc': 'Spell casting & mana manipulation'},
@@ -76,7 +70,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         _nameController.text = profile['display_name'] as String? ?? '';
         _selectedLanguage = profile['native_language'] as String? ?? 'es';
         _currentAvatarUrl = profile['avatar_url'] as String? ?? 'warrior';
-        _parseBio(profile['bio'] as String? ?? '');
+        _bioController.text = profile['bio'] as String? ?? '';
         setState(() {});
       } else {
         final authUser = ref.read(currentUserProvider);
@@ -87,36 +81,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     });
   }
 
-  void _parseBio(String rawBio) {
-    if (rawBio.startsWith('[Stats|')) {
-      try {
-        final regex = RegExp(r'^\[Stats\|STR:(\d+)\|INT:(\d+)\|DEX:(\d+)\|LUK:(\d+)\]\s*(.*)$');
-        final match = regex.firstMatch(rawBio);
-        if (match != null) {
-          _str = int.parse(match.group(1)!);
-          _int = int.parse(match.group(2)!);
-          _dex = int.parse(match.group(3)!);
-          _luk = int.parse(match.group(4)!);
-          _bioController.text = match.group(5)!;
-          
-          final totalUsed = (_str - 5) + (_int - 5) + (_dex - 5) + (_luk - 5);
-          _pointsPool = 10 - totalUsed;
-          if (_pointsPool < 0) _pointsPool = 0;
-          return;
-        }
-      } catch (_) {}
-    }
-    _bioController.text = rawBio;
-    _str = 5;
-    _int = 5;
-    _dex = 5;
-    _luk = 5;
-    _pointsPool = 10;
-  }
-
-  String _formatBio() {
-    return '[Stats|STR:$_str|INT:$_int|DEX:$_dex|LUK:$_luk] ${_bioController.text.trim()}';
-  }
+  String _formatBio() => _bioController.text.trim();
 
   @override
   void dispose() {
@@ -274,35 +239,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         );
       },
     );
-  }
-
-  void _adjustStat(String stat, int delta) {
-    setState(() {
-      if (delta > 0 && _pointsPool > 0) {
-        if (stat == 'STR') _str++;
-        if (stat == 'INT') _int++;
-        if (stat == 'DEX') _dex++;
-        if (stat == 'LUK') _luk++;
-        _pointsPool--;
-      } else if (delta < 0) {
-        if (stat == 'STR' && _str > 5) {
-          _str--;
-          _pointsPool++;
-        }
-        if (stat == 'INT' && _int > 5) {
-          _int--;
-          _pointsPool++;
-        }
-        if (stat == 'DEX' && _dex > 5) {
-          _dex--;
-          _pointsPool++;
-        }
-        if (stat == 'LUK' && _luk > 5) {
-          _luk--;
-          _pointsPool++;
-        }
-      }
-    });
   }
 
   @override
@@ -506,50 +442,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Section: Stats Allocation
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              l10n.profile_edit_stat_allocation,
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.manaCyan,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              color: AppColors.runeViolet.withValues(alpha: 0.2),
-                              child: Text(
-                                l10n.profile_edit_stat_pool(_pointsPool),
-                                style: GoogleFonts.jetBrainsMono(
-                                  color: AppColors.manaCyan,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        GlassCard(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              _buildStatRow('STR', _str, l10n.profile_edit_stat_str_desc),
-                              Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
-                              _buildStatRow('INT', _int, l10n.profile_edit_stat_int_desc),
-                              Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
-                              _buildStatRow('DEX', _dex, l10n.profile_edit_stat_dex_desc),
-                              Divider(color: AppColors.onSurface.withValues(alpha: 0.10)),
-                              _buildStatRow('LUK', _luk, l10n.profile_edit_stat_luk_desc),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
                         // Profile fields
                         Text(
                           'IDENTIFICATION DETAILS',
@@ -570,7 +462,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             filled: true,
                             fillColor: AppColors.onSurface.withValues(alpha: 0.03),
                             labelText: l10n.profile_edit_full_name,
-                            labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.30), fontSize: 12),
+                            labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.60), fontSize: 12),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.10)),
@@ -598,7 +490,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             filled: true,
                             fillColor: AppColors.onSurface.withValues(alpha: 0.03),
                             labelText: l10n.profile_edit_memoir,
-                            labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.30), fontSize: 12),
+                            labelStyle: GoogleFonts.spaceGrotesk(color: AppColors.onSurface.withValues(alpha: 0.60), fontSize: 12),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.10)),
@@ -680,6 +572,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                     );
 
                                     ref.invalidate(userProfileProvider);
+                                    // Refresca el progreso (rango/nombre del
+                                    // header) para que el cambio se refleje al
+                                    // instante al volver al Status.
+                                    ref.invalidate(userProgressProvider);
 
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
@@ -739,94 +635,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String statName, int val, String desc) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 48,
-            child: Text(
-              statName,
-              style: GoogleFonts.spaceGrotesk(
-                color: AppColors.onSurface,
-                fontWeight: FontWeight.w900,
-                fontSize: 15,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  desc,
-                  style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.54), fontSize: 10),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                // Custom stat bar
-                Stack(
-                  children: [
-                    Container(
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.onSurface.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    FractionallySizedBox(
-                      widthFactor: val / 15.0 > 1.0 ? 1.0 : val / 15.0,
-                      child: Container(
-                        height: 8,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppColors.runeViolet, AppColors.manaCyan],
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            '$val',
-            style: GoogleFonts.jetBrainsMono(
-              color: AppColors.onSurface,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove_circle_outline_rounded, color: AppColors.onSurfaceVariant, size: 20),
-                onPressed: () => _adjustStat(statName, -1),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.manaCyan, size: 20),
-                onPressed: () => _adjustStat(statName, 1),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
