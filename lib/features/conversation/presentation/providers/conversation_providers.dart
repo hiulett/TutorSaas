@@ -21,6 +21,7 @@ import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../../core/ai/placement_ai.dart';
 import '../../../../core/i18n/language_settings.dart';
 import '../../../../core/utils/text_diff_utils.dart';
+import '../../../../core/services/retention_analytics.dart';
 import '../../../onboarding/domain/models/cefr_rank.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -112,6 +113,17 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       activeScenarioId: scenarioId,
       activeScenarioName: scenarioTitle ?? lesson?.title ?? 'Práctica de Conversación',
     );
+
+    // Issue #35: evento de inicio de sesión (estaba documentado pero nunca se
+    // emitía). Best-effort: no bloquea ni falla el flujo.
+    unawaited(RetentionAnalytics.instance.track(
+      _userId!,
+      'session_start',
+      properties: {
+        'scenario_id': scenarioId ?? '',
+        'oracle': false,
+      },
+    ));
 
     // 1. For recommended lessons (with scenarioId), persist to Supabase
     if (scenarioId != null && scenarioId.isNotEmpty) {
@@ -1440,6 +1452,22 @@ ENDING:
         _ref.invalidate(earnedTitlesProvider);
       } catch (_) {}
 
+      try {
+        // Issue #35: cierre de sesión con volumen real de actividad.
+        final turns = state.messages.where((m) => m.sender == 'user').length;
+        final completed =
+            state.goalEvaluationResults.values.where((v) => v).length;
+        unawaited(RetentionAnalytics.instance.track(
+          _userId!,
+          'session_end',
+          properties: {
+            'turns': turns,
+            'goals_completed': completed,
+            'goals_total': state.goalEvaluationResults.length,
+            'oracle': state.isOracleEvaluation,
+          },
+        ));
+      } catch (_) {}
       try {
         _ref.invalidate(userProgressProvider);
         _ref.invalidate(userAchievementsProvider);

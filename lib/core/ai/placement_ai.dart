@@ -243,34 +243,34 @@ Return ONLY a valid JSON object with EXACTLY these keys (no markdown, no code fe
     return null;
   }
 
+  /// Clasificación por longitud media de respuesta (respaldo del Oráculo).
+  ///
+  /// Público a propósito: los tests deben ejercitar este código y no una copia.
+  static String classifyCefrByWordCount(List<String> userResponses) {
+    if (userResponses.isEmpty) return 'A1';
+
+    int wordCount(String text) => text
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .length;
+
+    final totalWords =
+        userResponses.fold<int>(0, (sum, a) => sum + wordCount(a));
+    final avg = totalWords / userResponses.length;
+
+    if (avg >= 32) return 'C1';
+    if (avg >= 20) return 'B2';
+    if (avg >= 12) return 'B1';
+    if (avg >= 6) return 'A2';
+    return 'A1';
+  }
+
   /// Heurística de respaldo: clasifica por palabras promedio por respuesta,
   /// replicando el umbral del Oracle (A1<6, A2 6-11, B1 12-19, B2 20-31,
   /// C1>=32).
   static Map<String, dynamic> _heuristicFallback(List<String> userResponses) {
-    String cefr = 'A1';
-    if (userResponses.isNotEmpty) {
-      int wordCount(String text) => text
-          .trim()
-          .split(RegExp(r'\s+'))
-          .where((w) => w.isNotEmpty)
-          .length;
-
-      final totalWords =
-          userResponses.fold<int>(0, (sum, a) => sum + wordCount(a));
-      final avg = totalWords / userResponses.length;
-
-      if (avg >= 32) {
-        cefr = 'C1';
-      } else if (avg >= 20) {
-        cefr = 'B2';
-      } else if (avg >= 12) {
-        cefr = 'B1';
-      } else if (avg >= 6) {
-        cefr = 'A2';
-      } else {
-        cefr = 'A1';
-      }
-    }
+    final cefr = classifyCefrByWordCount(userResponses);
 
     debugPrint('Placement AI heuristic fallback -> $cefr');
     return {

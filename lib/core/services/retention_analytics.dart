@@ -23,7 +23,7 @@ class RetentionAnalytics {
 
   /// Logs a usage event. [eventName] should be one of:
   /// 'app_open' | 'session_start' | 'session_end' | 'invoke_llm' |
-  /// 'claim_daily' | 'purchase_item'.
+  /// 'claim_daily' | 'purchase_item' | 'paywall_viewed'.
   Future<void> track(
     String userId,
     String eventName, {
@@ -40,6 +40,15 @@ class RetentionAnalytics {
     } catch (e) {
       debugPrint('[Analytics] Error tracking event ($eventName): $e');
     }
+  }
+  /// Issue #35: `app_open` estaba documentado pero nunca se emitía. Se emite
+  /// una sola vez por proceso para no inflar la tabla en cada rebuild.
+  static bool _appOpenTracked = false;
+
+  Future<void> trackAppOpenOnce(String userId) async {
+    if (_appOpenTracked) return;
+    _appOpenTracked = true;
+    await track(userId, 'app_open');
   }
 }
 

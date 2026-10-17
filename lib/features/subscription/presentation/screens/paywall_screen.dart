@@ -6,9 +6,11 @@ import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/services/revenuecat_service.dart';
+import '../../../../core/services/retention_analytics.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../providers/subscription_providers.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Pantalla de suscripción basada en el **paywall nativo de RevenueCat**.
@@ -30,6 +32,20 @@ class PaywallScreen extends ConsumerStatefulWidget {
 
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   bool _isPresenting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Issue #35: embudo del paywall (no se registraba ninguna vista).
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      RetentionAnalytics.instance.track(
+        user.id,
+        'paywall_viewed',
+        properties: const {'source': 'paywall_screen'},
+      );
+    }
+  }
 
   Future<void> _openPaywall() async {
     if (_isPresenting) return;

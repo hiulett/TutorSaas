@@ -10,6 +10,8 @@ import 'package:tutorsaas/features/missions/presentation/providers/mission_provi
 import 'package:tutorsaas/features/economy/presentation/providers/economy_providers.dart';
 import 'package:tutorsaas/features/dashboard/presentation/widgets/league_leaderboard_widget.dart';
 import 'package:tutorsaas/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:tutorsaas/features/onboarding/presentation/screens/welcome_screen.dart';
+import 'package:tutorsaas/features/economy/presentation/screens/dungeon_guardian_screen.dart';
 import 'package:tutorsaas/l10n/app_localizations.dart';
 
 void main() {
@@ -171,6 +173,15 @@ void main() {
           weeklyRaidProvider.overrideWith((ref) => Future.value(null)),
           battlePassProvider.overrideWith((ref) => Future.value({'level': 1, 'xp_progress': 0, 'is_premium': false, 'claimed_rewards': []})),
           guildCompletedMissionsProvider.overrideWith((ref) => Future.value(0)),
+          // Caso real: 8 cazadores online, varios sin display_name (el crash
+          // del roster ocurría con nombres vacíos).
+          guildOnlineUsersProvider.overrideWith((ref) async => List.generate(8, (i) {
+            return {
+              'user_id': 'u$i',
+              'display_name': i == 0 ? '' : 'Hunter ${i + 1}',
+              'avatar_url': 'warrior',
+            };
+          })),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -195,5 +206,119 @@ void main() {
     FlutterError.onError = originalOnError;
 
     expect(exceptions, isEmpty, reason: 'No exceptions should be thrown');
+  });
+
+  testWidgets('WelcomeScreen (login) does not overflow at 312x576', (WidgetTester tester) async {
+    // Pantalla pequeña: altura útil ~576 (el bug reportado desbordaba 68px).
+    tester.binding.window.physicalSizeTestValue = const Size(312 * 3.0, 576 * 3.0);
+    tester.binding.window.devicePixelRatioTestValue = 3.0;
+
+    final List<dynamic> exceptions = [];
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final msg = details.toString();
+      if (!msg.contains('NetworkImageLoadException') &&
+          !msg.contains('HTTP request failed') &&
+          !msg.contains('semantics') &&
+          !msg.contains('parentData')) {
+        exceptions.add(details.exception);
+        originalOnError?.call(details);
+      }
+    };
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('es'),
+          home: Scaffold(
+            body: SizedBox(
+              width: 312,
+              height: 576,
+              child: ExcludeSemantics(
+                child: WelcomeScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    FlutterError.onError = originalOnError;
+
+    final overflows = exceptions
+        .where((e) => e.toString().contains('overflowed'))
+        .toList();
+    expect(overflows, isEmpty, reason: 'No RenderFlex overflows on the login at 312x576');
+  });
+
+  testWidgets('DungeonGuardianScreen does not overflow or fail at 312x576', (WidgetTester tester) async {
+    tester.binding.window.physicalSizeTestValue = const Size(312 * 3.0, 576 * 3.0);
+    tester.binding.window.devicePixelRatioTestValue = 3.0;
+
+    final List<dynamic> exceptions = [];
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final msg = details.toString();
+      if (!msg.contains('NetworkImageLoadException') &&
+          !msg.contains('HTTP request failed') &&
+          !msg.contains('semantics') &&
+          !msg.contains('parentData')) {
+        exceptions.add(details.exception);
+        originalOnError?.call(details);
+      }
+    };
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          manaStateProvider.overrideWith((ref) => CachedFutureController<Map<String, dynamic>>(
+                userIdGetter: () => 'test',
+                fetcher: () async => {
+                  'allowance': 1800,
+                  'purchased': 0,
+                  'used': 0,
+                  'remaining': 0,
+                  'expires_at': null,
+                  'plan': 'Plan Gratuito',
+                  'is_free': true,
+                  'daily_limit': 200,
+                  'daily_used': 200,
+                  'daily_remaining': 0,
+                },
+              )),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('es'),
+          home: Scaffold(
+            body: SizedBox(
+              width: 312,
+              height: 576,
+              child: ExcludeSemantics(
+                child: DungeonGuardianScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    FlutterError.onError = originalOnError;
+
+    final overflows = exceptions
+        .where((e) => e.toString().contains('overflowed'))
+        .toList();
+    expect(overflows, isEmpty, reason: 'No RenderFlex overflows on the guardian at 312x576');
   });
 }

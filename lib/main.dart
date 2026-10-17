@@ -1,11 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/app.dart';
 import 'core/constants/api_constants.dart';
 import 'core/utils/error_tracker.dart';
-import 'core/utils/latency_benchmark.dart';
 
 import 'core/widgets/configuration_error_widget.dart';
 import 'core/theme/app_theme.dart';
@@ -47,8 +45,8 @@ void main() async {
     return;
   }
 
-  // Run latency benchmark diagnostics
-  unawaited(LatencyBenchmark.runPipelineBenchmark());
+  // Issue #44: se eliminó el "benchmark" de latencia simulado (4 Future.delayed
+  // con éxito hardcodeado). No medía nada real y arrancaba un isolate inútil.
 
   runApp(
     const ProviderScope(
