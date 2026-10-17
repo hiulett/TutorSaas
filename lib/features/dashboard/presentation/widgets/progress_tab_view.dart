@@ -6,15 +6,15 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
-import '../../../../core/widgets/system_snack.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
-import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
+import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../providers/dashboard_providers.dart';
 import '../screens/dashboard_screen.dart';
 import 'daily_quests_widget.dart';
 import 'league_leaderboard_widget.dart';
+import 'charts/skills_radar_chart.dart';
 
 class ProgressTabView extends ConsumerWidget {
   final Map<String, dynamic> profile;
@@ -26,13 +26,15 @@ class ProgressTabView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final weeklyPracticeAsync = ref.watch(weeklyPracticeProvider);
-    final learnedVocabularyAsync = ref.watch(learnedVocabularyProvider);
     final leaderboardAsync = ref.watch(leaderboardProvider);
     final currentUser = ref.watch(currentUserProvider);
     final String avatarUrl = profile['avatar_url'] as String? ?? 'warrior';
     final String displayName = profile['display_name'] as String? ?? 'Estudiante TutorSaaS';
     final String cefrCode = progress['level_code'] as String? ?? 'B1';
-    final String cefrName = progress['level'] as String? ?? 'Intermedio';
+    // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
+    final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
+        ? (progress['game_rank'] as String)!
+        : CefrRank.gameRankFromCefr(cefrCode);
     final String langEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
     final String langName = progress['language'] as String? ?? 'Inglés';
     final int xp = progress['xp'] as int? ?? 0;
@@ -92,7 +94,7 @@ class ProgressTabView extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '$langEmoji Aprendiendo $langName • Nivel $cefrCode ($cefrName)',
+                          '$langEmoji Aprendiendo $langName • Rango $gameRank',
                           style: const TextStyle(
                             color: AppColors.manaCyan,
                             fontSize: 12,
@@ -259,11 +261,11 @@ class ProgressTabView extends ConsumerWidget {
                         const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 22),
                         const SizedBox(height: 6),
                         Text(
-                          cefrCode,
+                          'Rango $gameRank',
                           style: const TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         Text(
-                          l10n.progress_active_level,
+                          l10n.progress_active_rank,
                           style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10),
                         ),
                       ],
@@ -275,8 +277,8 @@ class ProgressTabView extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
-            // Atributos del Cazador (matriz de 11, datos reales)
-            _HunterAttributesSection(),
+            // Radar Holográfico de Habilidades (6 ejes, datos reales del Oráculo)
+            const SkillsRadarChart(),
 
             const SizedBox(height: 24),
 
@@ -363,13 +365,8 @@ class ProgressTabView extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
-            // Daily Quests Gamification Widget
-            DailyQuestsWidget(
-              streakDays: streak,
-              onClaimReward: (xpEarned) {
-                SystemSnack.show(context, '¡Recompensa Canjeada! +$xpEarned XP sumados a tu perfil', type: SystemSnackType.success);
-              },
-            ),
+            // Daily Quests Gamification Widget (conectado a misiones reales)
+            DailyQuestsWidget(streakDays: streak),
 
             const SizedBox(height: 24),
 
@@ -379,344 +376,14 @@ class ProgressTabView extends ConsumerWidget {
               currentUserId: currentUser?.id,
               currentDisplayName: displayName,
               currentXp: xp,
-              currentLevel: cefrCode,
+              currentLevel: gameRank,
             ),
 
             const SizedBox(height: 24),
 
-            // Learned Vocabulary Section with SRS Repaso Button
-            learnedVocabularyAsync.when(
-              data: (vocabList) {
-                final displayList = vocabList.take(4).toList();
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppLocalizations.of(context)?.progress_vocab_learned(vocabList.length) ?? 'Vocabulario Aprendido (\)',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.onSurface,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Row(
-                          children: [
-                            if (vocabList.isNotEmpty)
-                              ElevatedButton.icon(
-                                onPressed: () => SrsFlashcardModal.show(context, vocabList),
-                                icon: const Icon(Icons.style_rounded, size: 14),
-                                label: Text(l10n.progress_srs_review, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.runeViolet,
-                                  foregroundColor: AppColors.onSurface,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
-                                ),
-                              ),
-                            if (vocabList.isNotEmpty)
-                              TextButton(
-                                onPressed: () => _showAllVocabModal(context, vocabList),
-                                child: Text(l10n.progress_see_all, style: const TextStyle(color: AppColors.manaCyan, fontSize: 12, fontWeight: FontWeight.bold)),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (displayList.isEmpty)
-                      GlassCard(
-                        blur: 20,
-                        opacity: AppColors.glassOpacity,
-                        padding: const EdgeInsets.all(20),
-                        child: Center(
-                          child: Text(
-                            AppLocalizations.of(context)?.progress_vocab_empty ?? 'Aún no has acumulado vocabulario en las llamadas de voz.',
-                            style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
-                          ),
-                        ),
-                      )
-                    else
-                      ...displayList.map((item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: GlassCard(
-                              blur: 20,
-                              opacity: AppColors.glassOpacity,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item['word'] as String? ?? '',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: AppColors.onSurface,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        Text(
-                                          item['translation'] as String? ?? '',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: AppColors.onSurfaceVariant,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.runeViolet.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(AppRadius.md),
-                                    ),
-                                    child: Text(
-                                      item['category'] as String? ?? (AppLocalizations.of(context)?.progress_vocab_section ?? 'Vocabulario'),
-                                      style: const TextStyle(
-                                        color: AppColors.manaCyan,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )),
-                  ],
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
-
-
             const SizedBox(height: 100),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showAllVocabModal(BuildContext context, List<Map<String, dynamic>> vocabList) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.sheetBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
-      ),
-      isScrollControlled: true,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          maxChildSize: 0.9,
-          minChildSize: 0.4,
-          builder: (context, scrollController) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.onSurface.withValues(alpha: 0.24),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppLocalizations.of(context)?.progress_vocab_learned(vocabList.length) ?? 'Vocabulario Aprendido (\)',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.separated(
-                      controller: scrollController,
-                      itemCount: vocabList.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final item = vocabList[index];
-                        return GlassCard(
-                          blur: 20,
-                          opacity: AppColors.glassOpacity,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item['word'] as String? ?? '',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: AppColors.onSurface,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    Text(
-                                      item['translation'] as String? ?? '',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: AppColors.onSurfaceVariant,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.runeViolet.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                ),
-                                child: Text(
-                                  item['category'] as String? ?? (AppLocalizations.of(context)?.progress_vocab_section ?? 'Vocabulario'),
-                                  style: const TextStyle(
-                                    color: AppColors.manaCyan,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-
-}
-
-/// Matriz de 11 atributos del cazador (datos reales de `hunterAttributesProvider`).
-class _HunterAttributesSection extends ConsumerWidget {
-  const _HunterAttributesSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final attrsAsync = ref.watch(hunterAttributesProvider);
-    final attrs = attrsAsync.value ?? const <String, double>{};
-
-    return GlassCard(
-      blur: 20,
-      opacity: AppColors.glassOpacity,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  AppLocalizations.of(context)?.progress_hunter_attributes ?? 'ATRIBUTOS DEL CAZADOR',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (attrs.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: CircularProgressIndicator(color: AppColors.runeViolet, strokeWidth: 2),
-              ),
-            )
-          else
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 4.5,
-              children: hunterAttributeMeta.keys.map((key) {
-                final raw = attrs[key] ?? 0.0;
-                final color = hunterAttributeColor(key);
-                final meta = hunterAttributeMeta[key]!;
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: color.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(meta['icon'] ?? '', style: const TextStyle(fontSize: 13)),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: Text(
-                          (meta['name'] ?? key).toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.jetBrainsMono(
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        hunterAttributeValueText(key, raw),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-        ],
       ),
     );
   }

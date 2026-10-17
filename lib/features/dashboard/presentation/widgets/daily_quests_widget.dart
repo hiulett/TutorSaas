@@ -1,87 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../missions/domain/models/mission_models.dart';
+import '../../../missions/presentation/providers/mission_providers.dart';
 
-class DailyQuestsWidget extends StatefulWidget {
+/// Misiones Diarias (conectadas a `mission_instances` reales).
+///
+/// Muestra las misiones activas del usuario con su progreso real y, al
+/// reclamar, aplica la recompensa XP vía `claimReward` (RPC add_xp).
+class DailyQuestsWidget extends ConsumerWidget {
   final int streakDays;
-  final Function(int xpEarned) onClaimReward;
 
-  const DailyQuestsWidget({
-    super.key,
-    required this.streakDays,
-    required this.onClaimReward,
-  });
+  const DailyQuestsWidget({super.key, required this.streakDays});
 
-  @override
-  State<DailyQuestsWidget> createState() => _DailyQuestsWidgetState();
-}
-
-class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
-  final List<Map<String, dynamic>> _quests = [
-    {
-      'id': 'quest_1',
-      'title': 'Habla 10 minutos de voz',
-      'description': 'Completa una sesión conversacional fluida',
-      'icon': '🎙️',
-      'current': 7,
-      'target': 10,
-      'xp': 50,
-      'isClaimed': false,
-    },
-    {
-      'id': 'quest_2',
-      'title': 'Aprende 5 palabras nuevas',
-      'description': 'Acumula vocabulario en tus llamadas',
-      'icon': '📚',
-      'current': 5,
-      'target': 5,
-      'xp': 75,
-      'isClaimed': false,
-    },
-    {
-      'id': 'quest_3',
-      'title': 'Logra >85% en Pronunciación',
-      'description': 'Supera una prueba de huella de voz',
-      'icon': '🎯',
-      'current': 1,
-      'target': 1,
-      'xp': 100,
-      'isClaimed': false,
-    },
-  ];
+  /// Icono por tipo de objetivo.
+  String _iconFor(String objectiveType) {
+    switch (objectiveType) {
+      case 'speak_minutes':
+        return '🎙️';
+      case 'vocab_words':
+        return '📚';
+      case 'sessions':
+        return '🗣️';
+      case 'conversation_turns':
+        return '💬';
+      case 'practice_session':
+        return '🎯';
+      default:
+        return '⚔️';
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-
-    String questTitle(String id) {
-      switch (id) {
-        case 'quest_1':
-          return l10n?.quest_speak_10min ?? 'Habla 10 minutos de voz';
-        case 'quest_2':
-          return l10n?.quest_learn_5_words ?? 'Aprende 5 palabras nuevas';
-        case 'quest_3':
-          return l10n?.quest_85_pronunciation ?? 'Logra >85% en Pronunciación';
-        default:
-          return id;
-      }
-    }
-
-    String questDescription(String id) {
-      switch (id) {
-        case 'quest_1':
-          return l10n?.quest_desc_session ?? 'Completa una sesión conversacional fluida';
-        case 'quest_2':
-          return l10n?.quest_desc_vocab ?? 'Acumula vocabulario en tus llamadas';
-        case 'quest_3':
-          return l10n?.quest_desc_pronunciation ?? 'Supera una prueba de huella de voz';
-        default:
-          return id;
-      }
-    }
+    final user = ref.watch(currentUserProvider);
+    final missionsAsync = ref.watch(dailyMissionsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +79,7 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
                   const Icon(Icons.local_fire_department_rounded, color: AppColors.royalGold, size: 14),
                   const SizedBox(width: 4),
                   Text(
-                    '${widget.streakDays} ${l10n?.days ?? 'Días'}',
+                    '$streakDays ${l10n?.days ?? 'Días'}',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -132,99 +92,147 @@ class _DailyQuestsWidgetState extends State<DailyQuestsWidget> {
           ],
         ),
         const SizedBox(height: 12),
-        ..._quests.map((quest) {
-          final isCompleted = (quest['current'] as int) >= (quest['target'] as int);
-          final isClaimed = quest['isClaimed'] as bool;
-          final progressRatio = ((quest['current'] as int) / (quest['target'] as int)).clamp(0.0, 1.0);
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10.0),
-            child: GlassCard(
-              blur: 20,
-              opacity: AppColors.glassOpacity,
-              padding: const EdgeInsets.all(14),
-              child: Row(
+        missionsAsync.when(
+          data: (missions) {
+            if (missions.isEmpty) {
+              return GlassCard(
+                blur: 20,
+                opacity: AppColors.glassOpacity,
+                padding: const EdgeInsets.all(20),
+                child: Center(
+                  child: Text(
+                    l10n?.quest_empty ?? 'No hay misiones diarias activas por ahora.',
+                    style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: missions.map((m) => _buildQuestCard(context, ref, user?.id, m)).toList(),
+            );
+          },
+          loading: () => const GlassCard(
+            blur: 20,
+            opacity: AppColors.glassOpacity,
+            padding: EdgeInsets.symmetric(vertical: 30),
+            child: Center(child: CircularProgressIndicator(color: AppColors.runeViolet, strokeWidth: 2)),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuestCard(
+    BuildContext context,
+    WidgetRef ref,
+    String? userId,
+    MissionInstance m,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final isCompleted = m.isCompleted || m.progress >= 1.0;
+    final isClaimed = m.isRewardClaimed;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: GlassCard(
+        blur: 20,
+        opacity: AppColors.glassOpacity,
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Text(_iconFor(m.objectiveType), style: const TextStyle(fontSize: 22)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(quest['icon'] as String, style: const TextStyle(fontSize: 22)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          questTitle(quest['id'] as String),
-                          style: const TextStyle(
-                            color: AppColors.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          questDescription(quest['id'] as String),
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progressRatio,
-                            minHeight: 4,
-                            backgroundColor: AppColors.onSurface.withValues(alpha: 0.10),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isCompleted ? AppColors.accentGreen : AppColors.runeViolet,
-                            ),
-                          ),
-                        ),
-                      ],
+                  Text(
+                    m.title,
+                    style: const TextStyle(
+                      color: AppColors.onSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  if (isClaimed)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      child: const Icon(Icons.check_circle_rounded, color: AppColors.accentGreen, size: 22),
-                    )
-                  else if (isCompleted)
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            quest['isClaimed'] = true;
-                          });
-                          widget.onClaimReward(quest['xp'] as int);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accentGreen,
-                          foregroundColor: AppColors.onSurface,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
-                        ),
-                        child: Text(
-                          '+${quest['xp']} XP',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    )
-                  else
-                    Text(
-                      '${quest['current']}/${quest['target']}',
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 2),
+                  Text(
+                    m.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: m.progress,
+                      minHeight: 4,
+                      backgroundColor: AppColors.onSurface.withValues(alpha: 0.10),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isCompleted ? AppColors.accentGreen : AppColors.runeViolet,
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
-          );
-        }),
-      ],
+            const SizedBox(width: 12),
+            if (isClaimed)
+              const Icon(Icons.check_circle_rounded, color: AppColors.accentGreen, size: 22)
+            else if (isCompleted)
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (userId == null) return;
+                    final ok = await ref
+                        .read(missionRepositoryProvider)
+                        .claimReward(m.id, userId);
+                    if (ok && context.mounted) {
+                      ref.invalidate(dailyMissionsProvider);
+                      ref.invalidate(userProgressProvider);
+                      if (m.xpReward > 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              l10n?.quest_claimed(m.xpReward) ??
+                                  '¡Recompensa canjeada! +${m.xpReward} XP',
+                            ),
+                            backgroundColor: AppColors.accentGreen,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentGreen,
+                    foregroundColor: AppColors.onSurface,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                  ),
+                  child: Text(
+                    '+${m.xpReward} XP',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              )
+            else
+              Text(
+                '${m.currentValue}/${m.targetValue}',
+                style: const TextStyle(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

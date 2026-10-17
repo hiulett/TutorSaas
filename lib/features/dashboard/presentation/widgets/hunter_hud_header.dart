@@ -13,6 +13,7 @@ import '../providers/dashboard_providers.dart';
 import '../../data/models/hunter_catalog.dart';
 import '../../data/models/hunter_skill_titles.dart';
 import '../../domain/models/aura_system.dart';
+import '../../../onboarding/domain/models/cefr_rank.dart';
 import 'aura_hud.dart';
 
 /// HUD central del dashboard (paridad con PlantillaHtml/hunter_control_center_dashboard).
@@ -131,6 +132,10 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
     });
 
     final String cefrCode = progress['level_code'] as String? ?? 'A1';
+    // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
+    final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
+        ? (progress['game_rank'] as String)!
+        : CefrRank.gameRankFromCefr(cefrCode);
     final int xp = progress['xp'] as int? ?? 0;
     final int streak = progress['streak'] as int? ?? 0;
     final String languageEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
@@ -224,7 +229,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                         border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
                       ),
                       child: Text(
-                        l10n?.cefr_level(cefrCode) ?? 'CEFR $cefrCode',
+                        'RANGO $gameRank',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.jetBrainsMono(

@@ -11,6 +11,8 @@ import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../widgets/learning_path_roadmap.dart';
 import '../widgets/hunter_hud_header.dart';
+import '../../data/models/lesson_catalog.dart';
+import '../../domain/models/lesson_unlock_service.dart';
 import '../widgets/progress_tab_view.dart';
 import '../../../economy/presentation/widgets/daily_reward_modal.dart';
 import 'settings_screen.dart';
@@ -27,6 +29,116 @@ final dashboardTabProvider = StateProvider<int>((ref) => 0);
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
+
+  /// Issue #22: acción principal del dashboard.
+  ///
+  /// Antes, el único punto de entrada a la práctica era un nodo dentro del
+  /// roadmap, por debajo de insignias y accesos rápidos. Ahora hay una CTA
+  /// explícita que inicia la siguiente lección pendiente del nivel del usuario.
+  Widget _buildPrimaryCta(
+    BuildContext context,
+    WidgetRef ref,
+    String cefrCode,
+  ) {
+    final goalRows =
+        ref.watch(completedGoalsProvider).value ?? const <Map<String, dynamic>>[];
+    final lesson = _nextLesson(cefrCode, goalRows);
+    if (lesson == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: GlassCard(
+        borderColor: AppColors.manaCyan.withValues(alpha: 0.35),
+        showRunicCorners: true,
+        runicColor: AppColors.manaCyan,
+        onTap: () => context.push(
+          '/conversation?scenarioId=${lesson.id}&scenarioTitle=${Uri.encodeComponent(lesson.title)}',
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.manaCyan.withValues(alpha: 0.12),
+                border: Border.all(
+                  color: AppColors.manaCyan.withValues(alpha: 0.5),
+                ),
+              ),
+              child: const Icon(
+                Icons.mic_rounded,
+                color: AppColors.manaCyan,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CONTINUAR AVENTURA',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.manaCyan,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    lesson.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${lesson.level} · ${lesson.goals.length} objetivos',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_rounded,
+              color: AppColors.manaCyan,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Primera lección disponible del nivel; si ya están todas superadas,
+  /// devuelve la primera como repaso.
+  LessonData? _nextLesson(String level, List<Map<String, dynamic>> goalRows) {
+    final normalized = level.toUpperCase();
+    final lessons = LessonCatalog.catalog
+        .where((l) => l.level.toUpperCase() == normalized)
+        .toList();
+    if (lessons.isEmpty) return null;
+
+    for (final lesson in lessons) {
+      final state = LessonUnlockService.classify(
+        lesson: lesson,
+        userCefr: normalized,
+        goalRows: goalRows,
+        catalog: LessonCatalog.catalog,
+      );
+      if (state == LessonUnlockState.nextAvailable) return lesson;
+    }
+    return lessons.first;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -332,6 +444,9 @@ class DashboardScreen extends ConsumerWidget {
                                     ),
 
                                     const SizedBox(height: 24),
+
+                                    // Issue #22: CTA principal de práctica.
+                                    _buildPrimaryCta(context, ref, cefrCode),
 
                                     // 2. Ruta de Aprendizaje por Etapas (Roadmap Interactivo A1-C2)
                                     LearningPathRoadmap(

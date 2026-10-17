@@ -4,14 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/glass_card.dart';
 import '../../providers/dashboard_providers.dart';
+import '../../../../../l10n/app_localizations.dart';
 
-/// Radar Holográfico 5-D de Habilidades (fl_chart).
-/// Extraído de dashboard_screen (REF-01).
+/// Radar Holográfico 6-D de Habilidades (fl_chart).
+/// Extraído de dashboard_screen (REF-01). Usa datos reales del Oráculo
+/// (oracle_turns) con fallback a métricas diarias.
 class SkillsRadarChart extends ConsumerWidget {
-  const SkillsRadarChart();
+  const SkillsRadarChart({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final radarAsync = ref.watch(skillsRadarProvider);
 
     return GlassCard(
@@ -27,7 +30,7 @@ class SkillsRadarChart extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Radar Holográfico 5-D de Habilidades',
+                  l10n?.radar_title ?? 'Radar Holográfico de Habilidades',
                   style: const TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 14),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -36,14 +39,15 @@ class SkillsRadarChart extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 180,
+            height: 200,
             child: radarAsync.when(
               data: (radarMap) {
-                final fluency = radarMap['fluency'] ?? 80;
-                final vocab = radarMap['vocab'] ?? 75;
-                final phonetics = radarMap['phonetics'] ?? 85;
-                final grammar = radarMap['grammar'] ?? 82;
-                final goals = radarMap['goals'] ?? 90;
+                final fluency = (radarMap['fluency'] ?? 0).toDouble();
+                final vocab = (radarMap['vocab'] ?? 0).toDouble();
+                final phonetics = (radarMap['phonetics'] ?? 0).toDouble();
+                final grammar = (radarMap['grammar'] ?? 0).toDouble();
+                final comprehension = (radarMap['comprehension'] ?? 0).toDouble();
+                final naturalness = (radarMap['naturalness'] ?? 0).toDouble();
 
                 return RadarChart(
                   RadarChartData(
@@ -53,21 +57,20 @@ class SkillsRadarChart extends ConsumerWidget {
                     radarBackgroundColor: Colors.transparent,
                     ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 0),
                     tickBorderData: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.05)),
+                    titlePositionPercentageOffset: 0.38,
                     getTitle: (index, angle) {
-                      switch (index) {
-                        case 0:
-                          return RadarChartTitle(text: 'Fluidez\n${fluency.toInt()}%');
-                        case 1:
-                          return RadarChartTitle(text: 'Vocabulario\n${vocab.toInt()}%');
-                        case 2:
-                          return RadarChartTitle(text: 'Fonética\n${phonetics.toInt()}%');
-                        case 3:
-                          return RadarChartTitle(text: 'Gramática\n${grammar.toInt()}%');
-                        case 4:
-                          return RadarChartTitle(text: 'Metas\n${goals.toInt()}%');
-                        default:
-                          return const RadarChartTitle(text: '');
-                      }
+                      final labels = [
+                        ('${l10n?.radar_fluency ?? 'Fluidez'}', fluency),
+                        ('${l10n?.radar_vocab ?? 'Vocabulario'}', vocab),
+                        ('${l10n?.radar_phonetics ?? 'Fonética'}', phonetics),
+                        ('${l10n?.radar_grammar ?? 'Gramática'}', grammar),
+                        ('${l10n?.radar_comprehension ?? 'Comprensión'}', comprehension),
+                        ('${l10n?.radar_naturalness ?? 'Naturalidad'}', naturalness),
+                      ];
+                      final idx = index % labels.length;
+                      return RadarChartTitle(
+                        text: '${labels[idx].$1}\n${labels[idx].$2.round()}%',
+                      );
                     },
                     dataSets: [
                       RadarDataSet(
@@ -80,7 +83,8 @@ class SkillsRadarChart extends ConsumerWidget {
                           RadarEntry(value: vocab),
                           RadarEntry(value: phonetics),
                           RadarEntry(value: grammar),
-                          RadarEntry(value: goals),
+                          RadarEntry(value: comprehension),
+                          RadarEntry(value: naturalness),
                         ],
                       ),
                     ],

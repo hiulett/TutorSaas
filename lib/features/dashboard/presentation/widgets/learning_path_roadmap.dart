@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
@@ -32,6 +33,20 @@ class LearningPathRoadmap extends ConsumerStatefulWidget {
 class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
   late String _selectedLevel;
   final List<String> _levels = ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+  /// Alto estimado de cada tile del mapa (~96px) para limitar 12 visibles.
+  static const double _tileHeight = 96.0;
+
+  /// ¿La lección [candidate] es una sub misión de [parent]?
+  /// Convención: las sub misiones generadas usan el id del padre como prefijo
+  /// (p. ej. `parentId_refuerzo_vocab`) o comparten categoría + skill.
+  static bool _isSubMissionOf(LessonData candidate, LessonData parent) {
+    final cId = candidate.id.toLowerCase();
+    final pId = parent.id.toLowerCase();
+    if (cId.startsWith('${pId}_')) return true;
+    if (cId.contains('_refuerzo_') || cId.contains('_sub_')) return true;
+    return false;
+  }
 
   @override
   void initState() {
@@ -233,52 +248,100 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
             ),
           )
         else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: stageLessons.length,
-            itemBuilder: (context, index) {
-              final lesson = stageLessons[index];
-              final state = LessonUnlockService.classify(
-                lesson: lesson,
-                userCefr: widget.activeUserLevel,
-                goalRows: completedGoalRows,
-                catalog: LessonCatalog.catalog,
-              );
-              final isCompleted = state == LessonUnlockState.completedByPlayer;
-              final isNextLesson = state == LessonUnlockState.nextAvailable;
-              final isUnlockedByOracle = state == LessonUnlockState.unlockedByOracle;
-              final isLocked = state == LessonUnlockState.locked;
+          // Mapa de Mazmorras: solo 12 nodos visibles; el resto con scroll
+          // interno (el tile tiene ~96px de alto). La altura no excede el
+          // viewport disponible (evita overflow en pantallas pequeñas/tests).
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final maxH = constraints.maxHeight > 0
+                  ? constraints.maxHeight
+                  : double.infinity;
+              final desired = 12 * _tileHeight;
+              final height = maxH.isFinite && desired > maxH ? maxH : desired;
+              return SizedBox(
+                height: height,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: stageLessons.length,
+                  itemBuilder: (context, index) {
+                    final lesson = stageLessons[index];
+                    final state = LessonUnlockService.classify(
+                      lesson: lesson,
+                  userCefr: widget.activeUserLevel,
+                  goalRows: completedGoalRows,
+                  catalog: LessonCatalog.catalog,
+                );
+                final isCompleted = state == LessonUnlockState.completedByPlayer;
+                final isNextLesson = state == LessonUnlockState.nextAvailable;
+                final isUnlockedByOracle = state == LessonUnlockState.unlockedByOracle;
+                final isLocked = state == LessonUnlockState.locked;
 
-              final lessonCompletedGoals = MissionProgressService
-                  .completedGoalsForScenario(completedGoalRows, lesson.id);
-              final lessonTotalGoals = lesson.goals.length;
-              final lessonProgress = MissionProgressService.lessonProgress(
-                completedGoals: lessonCompletedGoals,
-                totalGoals: lessonTotalGoals,
-              );
-              final isMastered = lessonProgress >= 1.0;
-              final iconData = _getIconData(lesson.iconKey);
+                final lessonCompletedGoals = MissionProgressService
+                    .completedGoalsForScenario(completedGoalRows, lesson.id);
+                final lessonTotalGoals = lesson.goals.length;
+                final lessonProgress = MissionProgressService.lessonProgress(
+                  completedGoals: lessonCompletedGoals,
+                  totalGoals: lessonTotalGoals,
+                );
+                final isMastered = lessonProgress >= 1.0;
+                final iconData = _getIconData(lesson.iconKey);
 
-              return _RoadmapNodeTile(
-                lesson: lesson,
-                index: index + 1,
-                total: stageLessons.length,
-                isCompleted: isCompleted,
-                isNextLesson: isNextLesson,
-                isUnlockedByOracle: isUnlockedByOracle,
-                isLocked: isLocked,
-                isMastered: isMastered,
-                haloColor: LessonHalo.colorFor(lessonProgress),
-                haloAlpha: LessonHalo.intensityFor(lessonProgress),
-                haloBlur: LessonHalo.blurFor(lessonProgress),
-                progress: lessonProgress,
-                progressSegments: lessonTotalGoals <= 0 ? 1 : lessonTotalGoals,
-                iconData: iconData,
-                isLast: index == stageLessons.length - 1,
+                // Sub misiones de esta lección (mazmorras ocultas desbloqueadas):
+                // lecciones generadas cuyo skill_focus coincide o que son de la
+                // misma "misión" (se resuelven por el id de padre en la BD).
+                final submisions = LessonCatalog.catalog
+                    .where((l) =>
+                        l.level == lesson.level &&
+                        l.id != lesson.id &&
+                        (l.id.contains(lesson.id) || _isSubMissionOf(l, lesson)))
+                    .take(3)
+                    .toList();
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _RoadmapNodeTile(
+                      lesson: lesson,
+                      index: index + 1,
+                      total: stageLessons.length,
+                      isCompleted: isCompleted,
+                      isNextLesson: isNextLesson,
+                      isUnlockedByOracle: isUnlockedByOracle,
+                      isLocked: isLocked,
+                      isMastered: isMastered,
+                      haloColor: LessonHalo.colorFor(lessonProgress),
+                      haloAlpha: LessonHalo.intensityFor(lessonProgress),
+                      haloBlur: LessonHalo.blurFor(lessonProgress),
+                      progress: lessonProgress,
+                      progressSegments: lessonTotalGoals <= 0 ? 1 : lessonTotalGoals,
+                      iconData: iconData,
+                      isLast: false,
+                    ),
+                    // Sub misiones indentadas (solo las desbloqueadas).
+                    ...submisions.map((sm) => _SubMissionTile(lesson: sm)),
+                  ],
+                );
+              },
+            ),
               );
             },
           ),
+        const SizedBox(height: 14),
+        // Tarjeta "Evaluación del Oráculo" — reto de promoción del nivel.
+        _OracleChallengeCard(
+          level: _selectedLevel,
+          completedLessons: stageLessons
+              .where((l) => LessonUnlockService.classify(
+                    lesson: l,
+                    userCefr: widget.activeUserLevel,
+                    goalRows: completedGoalRows,
+                    catalog: LessonCatalog.catalog,
+                  ) ==
+                  LessonUnlockState.completedByPlayer)
+              .length,
+          totalLessons: stageLessons.length,
+        ),
       ],
     );
   }
@@ -495,6 +558,171 @@ class _RoadmapNodeTileState extends State<_RoadmapNodeTile>
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tile de sub misión (mazmorra oculta desbloqueada): indentado bajo su lección
+/// padre, con conector visual y estilo de "refuerzo" (maná cyan, menor tamaño).
+class _SubMissionTile extends ConsumerWidget {
+  final LessonData lesson;
+
+  const _SubMissionTile({required this.lesson});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final completedGoalRows = ref.watch(completedGoalsProvider).value ?? [];
+    final lessonProgress = MissionProgressService.lessonProgress(
+      completedGoals: MissionProgressService.completedGoalsForScenario(
+        completedGoalRows,
+        lesson.id,
+      ),
+      totalGoals: lesson.goals.length,
+    );
+    final isMastered = lessonProgress >= 1.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 28, bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 2,
+            height: 40,
+            color: AppColors.manaCyan.withValues(alpha: 0.3),
+          ),
+          const SizedBox(width: 10),
+          Icon(
+            isMastered ? Icons.check_circle_rounded : Icons.auto_awesome_rounded,
+            color: isMastered ? AppColors.emeraldGreen : AppColors.manaCyan,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => context.push(
+                '/conversation?scenarioId=${lesson.id}&scenarioTitle=${Uri.encodeComponent(lesson.title)}',
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    lesson.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isMastered ? AppColors.onSurfaceVariant : AppColors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Sub-Misión · ${(lessonProgress * 100).round()}%',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 9,
+                      color: AppColors.manaCyan.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tarjeta "Evaluación del Oráculo" — gate de promoción del nivel.
+/// Se desbloquea al completar ≥80% de las lecciones del nivel; permite retar
+/// al Oráculo para subir de nivel (nunca baja).
+class _OracleChallengeCard extends ConsumerWidget {
+  final String level;
+  final int completedLessons;
+  final int totalLessons;
+
+  const _OracleChallengeCard({
+    required this.level,
+    required this.completedLessons,
+    required this.totalLessons,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final ratio = totalLessons > 0 ? completedLessons / totalLessons : 0.0;
+    final unlocked = ratio >= 0.80;
+    final pct = (ratio * 100).round();
+
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      border: Border.all(
+        color: unlocked ? AppColors.royalGold : AppColors.onSurface.withValues(alpha: 0.1),
+        width: unlocked ? 1.5 : 1,
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: (unlocked ? AppColors.royalGold : AppColors.runeViolet).withValues(alpha: 0.2),
+              border: Border.all(color: unlocked ? AppColors.royalGold : AppColors.runeViolet),
+            ),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: unlocked ? AppColors.royalGold : AppColors.runeViolet,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n?.oracle_challenge_title ?? 'EVALUACIÓN DEL ORÁCULO',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  unlocked
+                      ? (l10n?.oracle_challenge_ready ?? 'El Oráculo te espera. ¡Reto disponible!')
+                      : (l10n != null
+                          ? l10n.oracle_challenge_progress(pct)
+                          : 'Completa el 80% para retar al Oráculo ($pct%)'),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (unlocked)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward_rounded, color: AppColors.royalGold),
+              onPressed: () => context.push(
+                '/oracle-test?mode=promotion&level=$level',
+              ),
+            )
+          else
+            Icon(
+              Icons.lock_rounded,
+              color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+              size: 18,
+            ),
         ],
       ),
     );
