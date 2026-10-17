@@ -14,6 +14,8 @@ import '../../domain/repositories/conversation_repository.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../dashboard/data/models/hunter_skill_titles.dart';
+import '../../../dashboard/domain/services/lesson_generator_service.dart';
+import '../../../dashboard/domain/models/lesson_unlock_service.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../../core/ai/placement_ai.dart';
@@ -61,6 +63,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   int _turnCounter = 0;
   DateTime? _lastOracleQuestionAt;
 
+  /// Idempotencia del cierre de sesión: garantiza que `endSession` se ejecute
+  /// una sola vez aunque la salida ocurra por varias vías (pop, back, go, dispose).
+  bool _sessionFinalized = false;
+
   ConversationNotifier(this._repository, this._ref)
       : super(ConversationState.initial()) {
     _initTts();
@@ -71,6 +77,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   Future<void> initSession({String? scenarioId, String? scenarioTitle}) async {
     final user = _ref.read(currentUserProvider);
     _userId = user?.id ?? 'guest_user';
+    _sessionFinalized = false; // nueva sesión → se permite cerrar de nuevo
 
     // Reset completo del estado: nunca debe heredar flags de una sesión previa
     // (p.ej. isOracleEvaluation=true de la Evaluación del Oráculo del onboarding).
@@ -184,6 +191,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   }) async {
     final user = _ref.read(currentUserProvider);
     _userId = user?.id ?? 'guest_user';
+    _sessionFinalized = false; // evaluación nueva → cerrar permitido
 
     final target = (targetLanguage?.isNotEmpty ?? false)
         ? targetLanguage!
@@ -590,15 +598,46 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
   /// Construye el historial de mensajes para el examinador Oráculo, con el
   /// system prompt de examen oral adaptativo CEFR (A1→C2) — v2.
+  ///
+  /// Si el usuario ya tiene un nivel asignado (no es placement inicial), la
+  /// evaluación es de PROMOCIÓN: arranca en el nivel actual y evalúa subir o
+  /// mantener (nunca baja). Se inyecta el contexto del historial (skills radar,
+  /// debilidades) para evaluar "en base a lo aprendido".
   List<Map<String, String>> _buildOracleHistory() {
     final target = state.oracleTargetLanguage;
     final native = state.oracleNativeLanguage;
+
+    // Nivel actual del usuario (placement previo o asignado en onboarding).
+    final currentLevel =
+        (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? '';
+    // Promoción = el usuario ya tiene un nivel asignado (re-evaluación para
+    // subir); placement inicial = sin nivel previo.
+    final isPromotion = currentLevel.isNotEmpty;
+
+    // Contexto del historial para la evaluación contextual (skills + debilidades).
+    final radar = _ref.read(skillsRadarProvider).value ?? const {};
+    final profile = _ref.read(userProfileProvider).value ?? const {};
+    final weaknesses = (profile['placement_weaknesses'] as List?) ?? const [];
+
+    final startingLine = isPromotion
+        ? 'PROGRESSION RULES:\n- Start at the student CURRENT level ($currentLevel). Assess whether they have IMPROVED enough to move UP one band. If they perform at or below their current level, keep them at $currentLevel (NEVER assign a lower level).'
+        : 'PROGRESSION RULES:\n- Start at A1. After each answer, silently assess it.';
+
+    final contextLine = isPromotion
+        ? 'STUDENT CONTEXT (use to focus the exam on their known gaps):\n'
+              '- Current level: $currentLevel\n'
+              '- Skill radar: ${radar.isNotEmpty ? radar.toString() : "unknown"}\n'
+              '- Known weaknesses: ${weaknesses.isNotEmpty ? weaknesses.toString() : "none recorded"}\n'
+              'Focus questions on their weakest skills to confirm real improvement.\n'
+        : '';
+
     final systemPrompt = '''
-You are the Oracle of the Guild, an ancient and wise being that examines young adventurers with a natural spoken conversation. You are conducting an ORAL PLACEMENT EXAM in $target for a student whose native language is $native. The exam must feel like a pleasant chat with a guild mentor, never like a form or a test.
+You are the Oracle of the Guild, an ancient and wise being that examines young adventurers with a natural spoken conversation. You are conducting an ${isPromotion ? 'PROMOTION EXAM' : 'ORAL PLACEMENT EXAM'} in $target for a student whose native language is $native. The exam must feel like a pleasant chat with a guild mentor, never like a form or a test.
 
 OPENING (FIRST TURN ONLY):
-Say exactly this warm greeting, then ask if they are ready:
-"Hello! Welcome to the Adventurer's Guild. My name is Oracle. Before assigning your first missions I'd like to know you a little better. Don't worry — this isn't an exam, just speak naturally. Are you ready?"
+${isPromotion
+  ? 'Say a warm, mystical greeting, acknowledge they have trained and return to be re-assessed at level $currentLevel, then ask if they are ready.'
+  : 'Say exactly this warm greeting, then ask if they are ready:\n"Hello! Welcome to the Adventurer\'s Guild. My name is Oracle. Before assigning your first missions I\'d like to know you a little better. Don\'t worry — this isn\'t an exam, just speak naturally. Are you ready?"'}
 
 CONVERSATION RULES:
 - Always speak ONLY in $target. Never use $native (except one short hint if the student is completely stuck).
@@ -607,6 +646,7 @@ CONVERSATION RULES:
 - Keep each turn short (1-2 sentences plus one question).
 - Do NOT correct or teach during the exam. You are assessing, not tutoring.
 
+$contextLine
 CEFR PROGRESSION (ask ~5 questions per band, adapting to the student's level):
 - PRE-A1 (single words, minimal vocabulary, no sentences): say hello, your name, yes/no, numbers, colors. One-word answers are perfectly acceptable.
 - A1 (basic vocabulary): name, where from, age, likes, family.
@@ -616,8 +656,7 @@ CEFR PROGRESSION (ask ~5 questions per band, adapting to the student's level):
 - C1 (complex language, connectors, abstraction): impact of AI, technology in education, an ethical dilemma, compare two cultures, what makes a good leader.
 - C2 (fully natural, advanced, abstract): freedom vs responsibility, culture shapes identity, globalization effects, success: effort vs opportunity, society in 50 years.
 
-PROGRESSION RULES:
-- Start at A1. After each answer, silently assess it.
+$startingLine
 - Move to the NEXT band only when the student answers well (roughly 3 of the last 5 with sufficient fluency and comprehension).
 - If the student can ONLY produce isolated words (one-word answers), cannot form even a basic A1 sentence, or clearly struggles on 2 consecutive questions in the current band, STOP: the student's level is the last band they dominated. If they never dominate A1, assign PRE-A1.
 - Never advance just because you reached a count of questions — advance based on ability.
@@ -650,7 +689,7 @@ ENDING:
       {'role': 'system', 'content': systemPrompt},
       ...window.map((m) => {
             'role': m.sender == 'user' ? 'user' : 'assistant',
-            'content': m.text,
+            'content': _stripControlTokens(m.text),
           }),
     ];
   }
@@ -687,13 +726,33 @@ ENDING:
       String cefrLevel = (declaredCefr != null && validCefrs.contains(declaredCefr))
           ? declaredCefr
           : (validCefrs.contains(aiCefr) ? aiCefr : 'A1');
-      String gameRank = (declaredRank != null && declaredRank.isNotEmpty)
+      // Issue #14: el rango declarado por el modelo se valida contra la escala
+      // cerrada. Un valor arbitrario (p. ej. RANK=ZZ) se descarta.
+      const validRanks = ['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
+      String gameRank = (declaredRank != null && validRanks.contains(declaredRank))
           ? declaredRank
-          : (aiRank.isNotEmpty ? aiRank : CefrRank.gameRankFromCefr(cefrLevel));
+          : (validRanks.contains(aiRank)
+              ? aiRank
+              : CefrRank.gameRankFromCefr(cefrLevel));
+
+      // Modo PROMOCIÓN: nunca baja de nivel. Si el Oráculo evalúa un nivel
+      // inferior al actual, se mantiene el nivel actual (la experiencia nunca
+      // castiga; el skill_radar refleja el deterioro real).
+      final currentLevel =
+          (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? '';
+      if (currentLevel.isNotEmpty && currentLevel != cefrLevel) {
+        final currentIdx = validCefrs.indexOf(currentLevel);
+        final evalIdx = validCefrs.indexOf(cefrLevel);
+        final isPromotion = currentLevel.isNotEmpty;
+        if (isPromotion && currentIdx >= 0 && evalIdx >= 0 && evalIdx < currentIdx) {
+          cefrLevel = currentLevel;
+          gameRank = CefrRank.gameRankFromCefr(cefrLevel);
+        }
+      }
 
       // Validación cruzada: si el rango declarado no es coherente con el CEFR
       // (marcador mal formado), se deriva del CEFR elegido.
-      if (declaredRank == null || declaredRank.isEmpty) {
+      if (!validRanks.contains(gameRank)) {
         gameRank = CefrRank.gameRankFromCefr(cefrLevel);
       }
 
@@ -868,6 +927,27 @@ ENDING:
     return DateTime.now().millisecondsSinceEpoch ~/ 1000 - start;
   }
 
+  /// Issue #31: ventana deslizante de contexto para el chat de rol. Enviar el
+  /// historial completo hacía crecer el coste y la latencia en cada turno.
+  static const int maxChatContextMessages = 24;
+
+  List<ConversationMessage> _chatWindow() {
+    final withText =
+        state.messages.where((m) => m.text.trim().isNotEmpty).toList();
+    if (withText.length <= maxChatContextMessages) return withText;
+    return withText.sublist(withText.length - maxChatContextMessages);
+  }
+
+  /// Issue #14: evita que el alumno inyecte el marcador de control del examen
+  /// del Oráculo a través de su propio mensaje.
+  static String _stripControlTokens(String text) {
+    return text
+        .replaceAll(
+            RegExp(r'\[EVALUATION_COMPLETE\]', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\[RESULT:[^\]]*\]', caseSensitive: false), '')
+        .trim();
+  }
+
   String _stringField(Map<String, dynamic> map, String key, String fallback) {
     final value = map[key];
     if (value is String && value.trim().isNotEmpty) return value.trim();
@@ -881,6 +961,50 @@ ENDING:
       return value.whereType<String>().where((s) => s.trim().isNotEmpty).toList();
     }
     return const [];
+  }
+
+  /// Descuento optimista del maná en la barra: aplica el costo sobre el valor
+  /// cacheado de `manaStateProvider` para que la barra baje al instante, sin
+  /// esperar el refresh en segundo plano del CachedFutureController.
+  void _applyOptimisticManaDeduction(String actionCode, Map<String, dynamic> result) {
+    try {
+      final controller = _ref.read(manaStateProvider.notifier);
+      final current = controller.state.value;
+      if (current == null) return;
+
+      // Costo real devuelto por el RPC (fallback: según action code).
+      final cost = (result['cost'] as num?)?.toInt() ?? _actionCost(actionCode);
+
+      // Para free: descontar del límite diario (la barra muestra el maná de hoy).
+      // Para pago: descontar del saldo mensual.
+      final isFree = current['is_free'] as bool? ?? true;
+      final Map<String, dynamic> updated = Map<String, dynamic>.from(current);
+      if (isFree) {
+        final dailyRemaining = (current['daily_remaining'] as num?)?.toInt() ?? 0;
+        final dailyUsed = (current['daily_used'] as num?)?.toInt() ?? 0;
+        updated['daily_remaining'] = (dailyRemaining - cost).clamp(0, 1 << 31);
+        updated['daily_used'] = dailyUsed + cost;
+      } else {
+        final remaining = (current['remaining'] as num?)?.toInt() ?? 0;
+        final used = (current['used'] as num?)?.toInt() ?? 0;
+        updated['remaining'] = (remaining - cost).clamp(0, 1 << 31);
+        updated['used'] = used + cost;
+      }
+      controller.state = AsyncValue.data(updated);
+    } catch (_) {}
+  }
+
+  /// Costo por defecto de una acción si el RPC no lo devolvió.
+  int _actionCost(String actionCode) {
+    switch (actionCode) {
+      case 'oracle_eval':
+        return 30;
+      case 'dungeon_turn':
+        return 12;
+      case 'free_chat_turn':
+      default:
+        return 8;
+    }
   }
 
   // ── Process Transcription / Text → LLM → Supabase → TTS ────────────────────
@@ -906,6 +1030,9 @@ ENDING:
           );
           return;
         }
+        // Consumo optimista: descuenta el costo localmente para feedback
+        // inmediato en la barra, además del refresh en segundo plano.
+        _applyOptimisticManaDeduction(actionCode, result);
         _ref.invalidate(manaStateProvider);
       } catch (_) {}
     }
@@ -992,9 +1119,9 @@ ENDING:
               'If the user writes in Spanish, gently remind them to use English and help them translate. '
               'Ask a natural follow-up question to continue the conversation.',
         },
-        ...state.messages.map((m) => {
+        ..._chatWindow().map((m) => {
               'role': m.sender == 'user' ? 'user' : 'assistant',
-              'content': m.text,
+              'content': _stripControlTokens(m.text),
             }),
       ];
 
@@ -1181,11 +1308,74 @@ ENDING:
 
   /// End the conversation session — persists final data and refreshes dashboard.
   Future<void> endSession({int practiceMinutes = 1}) async {
+    if (_sessionFinalized) return; // idempotente: una sola persistencia
+    _sessionFinalized = true;
     if (_userId != null) {
       try {
         final repo = _ref.read(dashboardRepositoryProvider);
         await repo.logPracticeSession(_userId!, practiceMinutes);
       } catch (_) {}
+
+      // Registro de superación de la lección (lesson_progress):
+      //  - passed si cumple ≥80% de metas (LessonUnlockService.passThreshold).
+      //  - failed si no; permite reintentar gastando maná.
+      final scenarioId = state.activeScenarioId;
+      if (scenarioId != null && !state.isOracleEvaluation) {
+        try {
+          final lesson = LessonCatalog.getLessonById(scenarioId);
+          final evaluated = state.goalEvaluationResults.length;
+          final totalGoals = lesson?.goals.length ?? evaluated;
+          final completedGoals =
+              state.goalEvaluationResults.values.where((v) => v).length;
+          // Issue #18: sin evaluación no se puede afirmar que la lección se
+          // superó. Antes, una evaluación vacía daba ratio 1.0 => "passed".
+          if (evaluated > 0 && totalGoals > 0) {
+            final status = LessonUnlockService.meetsThreshold(
+              completedGoals,
+              totalGoals,
+            )
+                ? 'passed'
+                : 'failed';
+            await Supabase.instance.client.from('lesson_progress').insert({
+              'user_id': _userId,
+              'lesson_id': scenarioId,
+              'status': status,
+              'completed_at': DateTime.now().toIso8601String(),
+            });
+          }
+        } catch (_) {}
+      }
+
+      // Router pedagógico: si la lección NO se superó (<80% de metas), se
+      // genera/reutiliza una SUB MISIÓN de refuerzo para el skill más débil
+      // (vía lesson-generator, que debita 100 maná server-side). El resultado
+      // se inyecta al catálogo para que el mapa la muestre como mazmorra oculta.
+      if (scenarioId != null && !state.isOracleEvaluation) {
+        try {
+          final lesson = LessonCatalog.getLessonById(scenarioId);
+          final evaluated = state.goalEvaluationResults.length;
+          final totalGoals = lesson?.goals.length ?? evaluated;
+          final completedGoals =
+              state.goalEvaluationResults.values.where((v) => v).length;
+          final ratio = totalGoals > 0 ? completedGoals / totalGoals : 1.0;
+          if (evaluated > 0 && ratio < LessonUnlockService.passThreshold) {
+            final radar = await _ref.read(skillsRadarProvider.future);
+            final skill = LessonGeneratorService.weakestSkill(radar);
+            final level = (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? 'A1';
+            final sub = await LessonGeneratorService.ensureLessonForWeakness(
+              skillFocus: skill,
+              level: level.toUpperCase(),
+              weakness: skill,
+              parentId: scenarioId,
+            );
+            if (sub != null) {
+              // Inyecta la sub misión al catálogo local para que el mapa la muestre.
+              LessonCatalog.updateCatalogFromMap(sub);
+              _ref.invalidate(recommendedLessonsProvider);
+            }
+          }
+        } catch (_) {}
+      }
 
       // Loot/drops (FASE B): las sesiones otorgan ITEMS (fragmentos, oro) y
       // AURA (mérito sin tope). NUNCA otorgan maná ni gemas de maná.
@@ -1219,22 +1409,6 @@ ENDING:
             await economyRepo.addAuraXp(_userId!, sessionId, radar, completedGoals, levelBonus);
             _ref.invalidate(auraXpProvider);
           } catch (_) {}
-
-          // Bonus de stats RPG (STR/INT/DEX/LUK → XP real):
-          // cada punto por encima de la base (5) suma XP por meta completada.
-          final profile = _ref.read(userProfileProvider).value;
-          final str = (profile?['str_stat'] as num?)?.toInt() ?? 5;
-          final intt = (profile?['int_stat'] as num?)?.toInt() ?? 5;
-          final dex = (profile?['dex_stat'] as num?)?.toInt() ?? 5;
-          final luk = (profile?['luk_stat'] as num?)?.toInt() ?? 5;
-          final statBonus = ((str - 5) + (intt - 5) + (dex - 5) + (luk - 5)) * completedGoals;
-          if (statBonus > 0) {
-            final client = Supabase.instance.client;
-            await client.rpc('add_xp', params: {
-              'p_user_id': _userId,
-              'p_amount': statBonus,
-            });
-          }
         }
         await economyRepo.updateStreak(_userId!);
       } catch (_) {}
@@ -1270,6 +1444,9 @@ ENDING:
         _ref.invalidate(userProgressProvider);
         _ref.invalidate(userAchievementsProvider);
         _ref.invalidate(recommendedLessonsProvider);
+        // El maná se consumió por turno durante la sesión: forzar el refresco
+        // de la barra al volver al dashboard (evita mostrar el saldo viejo).
+        _ref.invalidate(manaStateProvider);
         // Also increment the refresh trigger for non-autoDispose safety
         _ref.read(dashboardRefreshProvider.notifier).state++;
       } catch (_) {}

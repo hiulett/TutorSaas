@@ -15,10 +15,23 @@ Deno.serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  // Auth: cron invocations must send a secret token (set CRON_SECRET in Edge Function secrets)
-  const auth = req.headers.get('authorization') ?? '';
+  // Auth: cron invocations must send a secret token.
+  // Issue #13: fail-closed. Antes, si CRON_SECRET no estaba configurado la
+  // comprobación se omitía y cualquiera podía ejecutar la rotación con
+  // service_role.
   const expected = Deno.env.get('CRON_SECRET');
-  if (expected && auth !== `Bearer ${expected}`) {
+  if (!expected) {
+    return new Response(
+      JSON.stringify({ error: 'CRON_SECRET not configured' }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  const auth = req.headers.get('authorization') ?? '';
+  if (auth !== `Bearer ${expected}`) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

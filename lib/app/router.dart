@@ -7,13 +7,12 @@ import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/conversation/presentation/screens/conversation_screen.dart';
 import '../features/dashboard/presentation/screens/session_summary_screen.dart';
 import '../features/subscription/presentation/screens/paywall_screen.dart';
-import '../features/dashboard/presentation/screens/settings_screen.dart';
 import '../features/dashboard/presentation/screens/profile_edit_screen.dart';
 import '../features/chat_rooms/presentation/screens/voice_room_screen.dart';
 import '../features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import '../features/economy/presentation/screens/shop_screen.dart';
 import '../features/economy/presentation/screens/inventory_screen.dart';
-import '../core/widgets/system_mana_disruption_screen.dart';
+import '../features/economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
 import 'splash_screen.dart';
 import 'navigation_resolver.dart';
@@ -74,9 +73,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state) {
         final target = state.uri.queryParameters['target'];
         final native = state.uri.queryParameters['native'];
+        // mode=promotion&level=B1 → reto del Oráculo (no baja de nivel).
+        // El notifier detecta promotion por el nivel actual del usuario.
+        // Issue #38: los parámetros de promoción no se usaban en ninguna parte.
         return ConversationScreen(
           oracleMode: true,
-          oracleTargetLanguage: target,
+          oracleTargetLanguage: target ?? 'en',
           oracleNativeLanguage: native,
         );
       },
@@ -112,10 +114,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const PaywallScreen(),
     ),
     GoRoute(
-      path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
-    ),
-    GoRoute(
       path: '/profile-edit',
       builder: (context, state) => const ProfileEditScreen(),
     ),
@@ -132,11 +130,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const InventoryScreen(),
     ),
     GoRoute(
-      path: '/disruption',
-      builder: (context, state) {
-        final message = state.uri.queryParameters['message'] ?? 'DESCONEXIÓN DETECTADA CON LOS CRISTALES DE COMUNICACIÓN';
-        return SystemManaDisruptionScreen(errorMessage: message);
-      },
+      path: '/dungeon-guardian',
+      builder: (context, state) => const DungeonGuardianScreen(),
     ),
   ],
   );

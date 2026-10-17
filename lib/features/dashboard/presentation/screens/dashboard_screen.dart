@@ -43,9 +43,10 @@ class DashboardScreen extends ConsumerWidget {
     final dailyClaimed = (dailyStateAsync.value?['daily_reward_claimed'] as bool?) ?? false;
     final progressAsync = ref.watch(userProgressProvider);
     final currentTab = ref.watch(dashboardTabProvider);
+    // Issue #32: mientras carga no se inventan cifras (antes: 2450 XP, racha 7).
     final progress = progressAsync.value ?? {
-      'xp': 2450,
-      'streak': 7,
+      'xp': 0,
+      'streak': 0,
       'level_code': 'A1',
       'level': 'Principiante',
       'language': 'Inglés',

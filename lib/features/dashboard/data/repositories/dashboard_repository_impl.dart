@@ -22,8 +22,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
       if (response == null) {
         return {
-          'xp': 120,
-          'streak': 1,
+          'xp': 0,
+          'streak': 0,
           'level': 'Principiante',
           'level_code': 'A1',
           'game_rank': 'E',
@@ -58,8 +58,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
       };
     } catch (_) {
       return {
-        'xp': 120,
-        'streak': 1,
+        'xp': 0,
+        'streak': 0,
         'level': 'Principiante',
         'level_code': 'A1',
         'game_rank': 'E',

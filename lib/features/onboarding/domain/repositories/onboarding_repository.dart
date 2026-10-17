@@ -12,4 +12,12 @@ abstract class OnboardingRepository {
     String? primaryObstacle,
     String? learningStyle,
   });
+
+  /// Issue #23: actualiza solo idioma objetivo y nivel CEFR sin resetear
+  /// progreso (XP, racha) ni sobrescribir el perfil de `users`.
+  Future<void> updateLanguagePreferences({
+    required String userId,
+    String? targetLanguageCode,
+    String? cefrLevelCode,
+  });
 }

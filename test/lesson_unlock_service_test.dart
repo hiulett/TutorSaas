@@ -9,8 +9,10 @@ import 'package:tutorsaas/features/dashboard/domain/models/lesson_unlock_service
 /// lección disponible (nextAvailable) y el resto secuencial (locked), y los
 /// niveles superiores bloqueados (locked).
 ///
-/// Una lección se considera "superada" (desbloquea la siguiente) al alcanzar
-/// el 70% de sus metas (`user_scenario_goals`), no por abrir la conversación.
+/// Una lección se considera "superada" (desbloquea la siguiente) cuando cumple
+/// `LessonUnlockService.meetsThreshold` (issue #17): todas las metas, o como
+/// máximo una fallada en lecciones de 4 metas o menos, o el 75 % en lecciones
+/// largas.
 void main() {
   LessonData make(String id, String level, {int goals = 4}) => LessonData(
         id: id,
@@ -82,8 +84,15 @@ void main() {
   });
 
   group('Usuario B1 — progreso de metas', () {
-    test('≥70% de metas → completedByPlayer y desbloquea la siguiente', () {
-      // 3/4 = 75% ≥ 70%
+    test('4/4 metas → completedByPlayer y desbloquea la siguiente', () {
+      final done = doneGoals('b1_one', 4);
+      expect(classify(catalog[2], 'B1', done),
+          LessonUnlockState.completedByPlayer);
+      expect(classify(catalog[3], 'B1', done),
+          LessonUnlockState.nextAvailable);
+    });
+
+    test('3/4 metas → se supera (issue #17)', () {
       final done = doneGoals('b1_one', 3);
       expect(classify(catalog[2], 'B1', done),
           LessonUnlockState.completedByPlayer);
@@ -91,28 +100,66 @@ void main() {
           LessonUnlockState.nextAvailable);
     });
 
-    test('<70% de metas → NO se completa ni desbloquea la siguiente', () {
-      // 2/4 = 50% < 70%
+    test('2/4 metas → NO se supera', () {
       final done = doneGoals('b1_one', 2);
       expect(classify(catalog[2], 'B1', done),
           isNot(LessonUnlockState.completedByPlayer));
       expect(classify(catalog[3], 'B1', done), LessonUnlockState.locked);
     });
 
-    test('Límite exacto: 70% (7/10) → superada; 60% (6/10) → no', () {
+    test('2/3 metas → se supera (una meta fallada de tres)', () {
+      final short = make('s_one', 'B1', goals: 3);
+      final rows = doneGoals('s_one', 2);
+      expect(
+        LessonUnlockService.classify(
+          lesson: short,
+          userCefr: 'B1',
+          goalRows: rows,
+          catalog: [short],
+        ),
+        LessonUnlockState.completedByPlayer,
+      );
+    });
+
+    test('1/3 metas → NO se supera', () {
+      final short = make('s_two', 'B1', goals: 3);
+      final rows = doneGoals('s_two', 1);
+      expect(
+        LessonUnlockService.classify(
+          lesson: short,
+          userCefr: 'B1',
+          goalRows: rows,
+          catalog: [short],
+        ),
+        isNot(LessonUnlockState.completedByPlayer),
+      );
+    });
+
+    test('Límite en lecciones largas: 8/10 supera, 7/10 no', () {
       final tenGoals = make('c_one', 'B1', goals: 10);
+      final c80 = LessonUnlockService.completionRatio(
+        doneGoals('c_one', 8),
+        tenGoals,
+      );
       final c70 = LessonUnlockService.completionRatio(
         doneGoals('c_one', 7),
         tenGoals,
       );
-      final c60 = LessonUnlockService.completionRatio(
-        doneGoals('c_one', 6),
-        tenGoals,
-      );
+      expect(c80, closeTo(0.80, 0.0001));
       expect(c70, closeTo(0.70, 0.0001));
-      expect(c60, closeTo(0.60, 0.0001));
-      expect(c70 >= LessonUnlockService.passThreshold, isTrue);
-      expect(c60 >= LessonUnlockService.passThreshold, isFalse);
+      expect(c80 >= LessonUnlockService.passThreshold, isTrue);
+      expect(c70 >= LessonUnlockService.passThreshold, isFalse);
+    });
+
+    test('meetsThreshold cubre los casos límite', () {
+      expect(LessonUnlockService.meetsThreshold(4, 4), isTrue);
+      expect(LessonUnlockService.meetsThreshold(3, 4), isTrue);
+      expect(LessonUnlockService.meetsThreshold(2, 4), isFalse);
+      expect(LessonUnlockService.meetsThreshold(2, 3), isTrue);
+      expect(LessonUnlockService.meetsThreshold(1, 3), isFalse);
+      expect(LessonUnlockService.meetsThreshold(8, 10), isTrue);
+      expect(LessonUnlockService.meetsThreshold(7, 10), isFalse);
+      expect(LessonUnlockService.meetsThreshold(0, 0), isTrue);
     });
 
     test('Lección sin metas → se considera superada', () {

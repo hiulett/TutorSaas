@@ -136,7 +136,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
         if (diff == 1) {
           newStreak = ((streak['current_streak'] as int?) ?? 0) + 1;
         } else if (diff == 0) {
-          newStreak = (streak['current_streak'] as int?) ?? 0;
+          final current = (streak['current_streak'] as int?) ?? 0;
+          // Issue #29: en el primer día la fila nace con last_active_date=hoy y
+          // current_streak=0; mantener 0 dejaba la racha en 0 hasta el día 2.
+          newStreak = current > 0 ? current : 1;
         } else {
           // Day was lost (diff > 1): consume a freeze if available,
           // otherwise reset the streak.
@@ -174,16 +177,17 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
-  Future<bool> claimDailyReward(String userId) async {
+  @override
+  Future<Map<String, int>> claimDailyReward(String userId) async {
     try {
       final today = DateTime.now().toIso8601String().split('T').first;
       final state = await getDailyState(userId);
-      if (state['daily_reward_claimed'] == true) return false;
+      if (state['daily_reward_claimed'] == true) return const {};
 
       final streak = await getStreak(userId);
       final days = (streak['current_streak'] as int?) ?? 0;
 
-      // Calculate reward based on streak
+      // Calculate reward based on streak (fuente única de la recompensa).
       int gems = 5;
       int pergaminos = 2;
       if (days >= 7) { gems = 50; pergaminos = 5; }
@@ -208,9 +212,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
       unawaited(_logEvent(userId, 'claim_daily'));
       unawaited(RetentionAnalytics.instance.track(userId, 'claim_daily'));
-      return true;
+      return {'gems': gems, 'pergaminos': pergaminos};
     } catch (_) {
-      return false;
+      return const {};
     }
   }
 
@@ -628,8 +632,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
       return Map<String, dynamic>.from(res as Map);
     } catch (e) {
       debugPrint('getManaState error: $e');
-      return {'allowance': 1800, 'purchased': 0, 'used': 0, 'remaining': 1800,
-              'expires_at': null, 'plan': 'Plan Gratuito', 'class': 'plebeyo'};
+      // Fallback sin inventar saldo: 0 en lugar de un valor falso (1800).
+      return {'allowance': 0, 'purchased': 0, 'used': 0, 'remaining': 0,
+              'expires_at': null, 'plan': 'Plan Gratuito', 'class': 'plebeyo',
+              'is_free': true, 'daily_limit': 200, 'daily_used': 0, 'daily_remaining': 0};
     }
   }
 
@@ -669,6 +675,18 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
+  Future<void> addXp(String userId, int amount) async {
+    try {
+      await _client.rpc('add_xp', params: {
+        'p_user_id': userId,
+        'p_amount': amount,
+      });
+    } catch (e) {
+      debugPrint('addXp error: $e');
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>> getPrestigeTitle(String userId) async {
     try {
       final res = await _client.rpc('get_prestige_title', params: {'p_user_id': userId});
@@ -691,6 +709,51 @@ class EconomyRepositoryImpl implements EconomyRepository {
     } catch (e) {
       debugPrint('createManaCheckout error: $e');
       return null;
+    }
+  }
+
+  // ── Inventario equipable de maná ─────────────────────────────────────────
+
+  @override
+  Future<List<Map<String, dynamic>>> getManaItems(String userId) async {
+    try {
+      final res = await _client
+          .from('mana_items')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(res);
+    } catch (e) {
+      debugPrint('getManaItems error: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<bool> equipManaItem(String userId, String itemId) async {
+    try {
+      final res = await _client.rpc('equip_mana_item', params: {
+        'p_user_id': userId,
+        'p_item_id': itemId,
+      });
+      return res == true;
+    } catch (e) {
+      debugPrint('equipManaItem error: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> desequipManaItem(String userId, String itemId) async {
+    try {
+      final res = await _client.rpc('desequip_mana_item', params: {
+        'p_user_id': userId,
+        'p_item_id': itemId,
+      });
+      return res == true;
+    } catch (e) {
+      debugPrint('desequipManaItem error: $e');
+      return false;
     }
   }
 }

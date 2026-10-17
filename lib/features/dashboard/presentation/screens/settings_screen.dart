@@ -27,6 +27,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isSaving = false;
   String _selectedTargetLanguage = 'en';
   String _selectedCefrLevel = 'B1';
+  bool _prefsHydrated = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +37,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     // Initialize local copy from remote settings once they are ready
     _localSettings ??= remoteSettings;
+
+    // Issue #23: hidrata idioma/nivel desde el perfil real una sola vez, para
+    // no mostrar (y guardar) los valores por defecto en cada visita.
+    if (!_prefsHydrated) {
+      final progress = ref.watch(userProgressProvider).value;
+      final code = progress?['level_code'] as String?;
+      if (code != null && code.isNotEmpty) {
+        _selectedCefrLevel = code.toUpperCase();
+      }
+      final learning = ref.watch(userLanguageProvider).learningLanguage;
+      if (learning.isNotEmpty) _selectedTargetLanguage = learning;
+      _prefsHydrated = true;
+    }
 
     final currentSettings = _localSettings ?? remoteSettings;
 
@@ -196,16 +210,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                     final user = ref.read(currentUserProvider);
                     if (user != null) {
-                      await ref.read(onboardingRepositoryProvider).saveOnboardingData(
+                      // Issue #23: solo se actualizan idioma y nivel. Antes
+                      // saveOnboardingData reseteaba XP/racha, el idioma
+                      // nativo y podía fijar el CEFR en B1.
+                      await ref
+                          .read(onboardingRepositoryProvider)
+                          .updateLanguagePreferences(
                             userId: user.id,
                             targetLanguageCode: _selectedTargetLanguage,
-                            nativeLanguageCode: 'es',
                             cefrLevelCode: _selectedCefrLevel,
-                            dailyGoalMinutes: currentSettings.dailyGoalMinutes,
-                            interests: currentSettings.interests,
-                            motivation: currentSettings.motivation,
-                            correctionStyle: currentSettings.correctionStyle,
-                            tutorPersonality: currentSettings.tutorPersonality,
                           );
                     }
 

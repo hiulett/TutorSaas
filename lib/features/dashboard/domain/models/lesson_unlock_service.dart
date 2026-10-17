@@ -36,7 +36,23 @@ class LessonUnlockService {
   const LessonUnlockService._();
 
   /// Umbral de metas (0..1) para considerar una lección superada.
-  static const double passThreshold = 0.70;
+  static const double passThreshold = 0.75;
+
+  /// Regla de superación de una lección (issue #17).
+  ///
+  /// Se supera cuando:
+  ///  - se completan todas las metas, o
+  ///  - con 4 metas o menos, falla como máximo una, o
+  ///  - se alcanza [passThreshold] del total (lecciones largas).
+  ///
+  /// El umbral anterior (0.80) exigía el 100 % en lecciones de 3–4 metas y
+  /// dejaba al alumno bloqueado con 3/4 (75 %).
+  static bool meetsThreshold(int completed, int total) {
+    if (total <= 0) return true;
+    if (completed >= total) return true;
+    if (total <= 4 && completed >= total - 1) return true;
+    return (completed / total) >= passThreshold;
+  }
 
   /// Índice canónico del nivel; -1 si no se reconoce.
   /// Orden CEFR centralizado en [CefrRank.cefrOrder].
@@ -60,7 +76,10 @@ class LessonUnlockService {
     List<Map<String, dynamic>> goalRows,
     LessonData lesson,
   ) {
-    return completionRatio(goalRows, lesson) >= passThreshold;
+    if (lesson.goals.isEmpty) return true;
+    final done =
+        MissionProgressService.completedGoalsForScenario(goalRows, lesson.id);
+    return meetsThreshold(done, lesson.goals.length);
   }
 
   /// Clasifica el estado de una lección según el nivel del usuario.

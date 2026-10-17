@@ -155,6 +155,69 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
     }
   }
 
+  /// Issue #23: actualiza solo idioma objetivo y nivel CEFR. No toca XP, racha
+  /// ni el perfil de `users`, a diferencia de [saveOnboardingData].
+  @override
+  Future<void> updateLanguagePreferences({
+    required String userId,
+    String? targetLanguageCode,
+    String? cefrLevelCode,
+  }) async {
+    final patch = <String, dynamic>{};
+    if (targetLanguageCode != null && targetLanguageCode.isNotEmpty) {
+      patch['language_id'] = await _resolveLanguageId(targetLanguageCode);
+    }
+    if (cefrLevelCode != null && cefrLevelCode.isNotEmpty) {
+      patch['cefr_level_id'] = await _resolveCefrId(cefrLevelCode);
+    }
+    if (patch.isEmpty) return;
+
+    await _supabaseClient
+        .from('user_language_profiles')
+        .update(patch)
+        .eq('user_id', userId);
+  }
+
+  Future<int> _resolveLanguageId(String code) async {
+    final existing = await _supabaseClient
+        .from('languages')
+        .select('id')
+        .eq('code', code)
+        .maybeSingle();
+    if (existing != null) return existing['id'] as int;
+    final inserted = await _supabaseClient
+        .from('languages')
+        .insert({
+          'code': code,
+          'name': _getLanguageName(code),
+          'native_name': _getNativeLanguageName(code),
+          'flag_emoji': _getLanguageEmoji(code),
+        })
+        .select('id')
+        .single();
+    return inserted['id'] as int;
+  }
+
+  Future<int> _resolveCefrId(String code) async {
+    final existing = await _supabaseClient
+        .from('cefr_levels')
+        .select('id')
+        .eq('code', code)
+        .maybeSingle();
+    if (existing != null) return existing['id'] as int;
+    final inserted = await _supabaseClient
+        .from('cefr_levels')
+        .insert({
+          'code': code,
+          'name': _getCefrName(code),
+          'description': 'Nivel CEFR $code',
+          'order_index': _getCefrOrder(code),
+        })
+        .select('id')
+        .single();
+    return inserted['id'] as int;
+  }
+
   String _getLanguageName(String code) {
     switch (code) {
       case 'fr': return 'Francés';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'lesson_unlock_service.dart';
 
 /// Tier de brillo de una lección según el % de metas completadas.
 enum LessonHaloTier { locked, inProgress, passed, mastered }
@@ -14,7 +15,7 @@ class LessonHalo {
   const LessonHalo._();
 
   /// Umbral de metas para considerar la lección superada.
-  static const double passThreshold = 0.70;
+  static const double passThreshold = LessonUnlockService.passThreshold;
 
   static LessonHaloTier tierFor(double p) {
     if (p <= 0) return LessonHaloTier.locked;

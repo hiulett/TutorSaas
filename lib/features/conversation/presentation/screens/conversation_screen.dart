@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import '../providers/conversation_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../dashboard/domain/models/mission_progress_service.dart';
+import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/live_goals_tracker_bar.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
@@ -19,7 +21,8 @@ import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../dashboard/data/models/hunter_catalog.dart';
-import '../../../economy/presentation/widgets/nucleo_arcano_limit_screen.dart';
+import '../../../economy/presentation/screens/dungeon_guardian_screen.dart';
+import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -59,6 +62,44 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   // Auto-scroll de la conversación: baja hasta el último mensaje al avanzar.
   final ScrollController _chatScrollController = ScrollController();
 
+  /// Cierre centralizado de la sesión: terminarla por CUALQUIER salida
+  /// (pop, back, go, dispose) persiste el progreso una sola vez (idempotente).
+  ///
+  /// - [showSummary]: muestra `/summary` (solo en salida normal con interacción).
+  /// - [navigate]: si es false, solo persiste (dispose) sin navegar.
+  Future<void> _handleExit({
+    required bool isOracle,
+    bool showSummary = true,
+    bool navigate = true,
+  }) async {
+    // Detener TTS siempre (antes del dispose, para no narrar en otra pantalla).
+    ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
+
+    // Oráculo: solo pop con el resultado (no registra sesión normal).
+    if (isOracle) return;
+
+    // Solo hay registro/summary si hubo interacción real (al menos un turno).
+    final latest = ref.read(conversationStateProvider);
+    final hasUserTurns = latest.messages.any((m) => m.sender == 'user');
+    if (!hasUserTurns) return;
+
+    final duration = DateTime.now().difference(_startTime);
+    final minutes = duration.inMinutes;
+    final minutesToSave = minutes > 0 ? minutes : 1;
+    // Idempotente: endSession solo persiste la primera vez (flag en el notifier).
+    await ref.read(conversationStateProvider.notifier).endSession(
+      practiceMinutes: minutesToSave,
+    );
+
+    if (!navigate || !mounted) return;
+    if (showSummary) {
+      final router = GoRouter.of(context);
+      try {
+        router.push('/summary');
+      } catch (_) {}
+    }
+  }
+
   final List<Map<String, String>> _randomTopics = const [
     {'icon': '💼', 'title': 'Tech & AI'},
     {'icon': '✈️', 'title': 'Travel & Culture'},
@@ -88,13 +129,40 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     _startTime = DateTime.now();
 
     // Initialize session with optional scenario persistence
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (widget.oracleMode) {
         ref.read(conversationStateProvider.notifier).initOracleSession(
               targetLanguage: widget.oracleTargetLanguage,
               nativeLanguage: widget.oracleNativeLanguage,
             );
       } else {
+        // 🏰 Guardián de la Mazmorra: sin maná no se puede entrar a una
+        // lección/mazmorra. Espera a que el estado de maná cargue (hasta ~6s)
+        // y, si no hay energía, bloquea el acceso en lugar de iniciar la sesión.
+        Map<String, dynamic>? manaState;
+        try {
+          manaState = ref.read(manaStateProvider).value;
+          if (manaState == null) {
+            await ref.read(manaStateProvider.notifier).load().timeout(const Duration(seconds: 6));
+            manaState = ref.read(manaStateProvider).value;
+          }
+        } catch (_) {}
+        if (manaState != null) {
+          final isFree = manaState['is_free'] as bool? ?? true;
+          final dailyRemaining = (manaState['daily_remaining'] as num?)?.toInt() ?? 0;
+          final remaining = (manaState['remaining'] as num?)?.toInt() ?? 0;
+          // Coste mínimo para al menos UN turno de mazmorra (ai_action_costs:
+          // dungeon_turn = 12). Si el maná no alcanza ni para eso, se bloquea.
+          const int minTurnCost = 12;
+          final available = isFree ? dailyRemaining : remaining;
+          final blocked = available < minTurnCost;
+          if (blocked) {
+            if (mounted) {
+              context.pushReplacement('/dungeon-guardian');
+            }
+            return;
+          }
+        }
         ref.read(conversationStateProvider.notifier).initSession(
               scenarioId: widget.scenarioId,
               scenarioTitle: widget.scenarioTitle,
@@ -111,6 +179,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // salida dispare una nueva narración.
     try {
       ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
+    } catch (_) {}
+    // Red de seguridad: si la sesión NO se cerró por ninguna vía previa
+    // (app muerta, kill de widget, salida por go), persiste el progreso aquí.
+    // Idempotente: endSession solo guarda la primera vez (flag en el notifier).
+    try {
+      final isOracleEval =
+          ref.read(conversationStateProvider).isOracleEvaluation;
+      if (!isOracleEval) {
+        unawaited(ref.read(conversationStateProvider.notifier).endSession());
+      }
     } catch (_) {}
     _textController.dispose();
     _chatScrollController.dispose();
@@ -389,11 +467,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         ? 'N/A'
         : '${math.min(99, math.max(72, 80 + math.min(18, (wordCount / 5).round())))}%';
 
-    // Get real CEFR level and language from user profile
+    // Get real rank (F→SSS) and language from user profile
     final progressAsync = ref.read(userProgressProvider);
     final cefrCode = progressAsync.value?['level_code'] as String? ?? 'A1';
+    final gameRank = (progressAsync.value?['game_rank'] as String?)?.isNotEmpty == true
+        ? (progressAsync.value?['game_rank'] as String)!
+        : CefrRank.gameRankFromCefr(cefrCode);
     final cefrLevel = progressAsync.value?['level'] as String? ?? 'Principiante';
-    final cefrText = '$cefrCode ($cefrLevel)';
+    final cefrText = '$gameRank ($cefrLevel)';
     final languageName = progressAsync.value?['language'] as String? ?? 'Inglés';
     final cleanLanguage = languageName.toLowerCase();
 
@@ -599,14 +680,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final isOracle = conversationState.isOracleEvaluation;
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
-      // Maná agotado → abrir la pantalla SIN MANÁ (compra/espera) en vez de un snack.
+      // Maná agotado → abrir el Guardián de la Mazmorra (compra/espera/equipar)
+      // en vez de un snack.
       if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
         final isManaDepleted = next.errorMessage!.contains('SIN MANÁ');
         if (isManaDepleted) {
           if (mounted) {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => const NucleoArcanoLimitScreen(),
+                builder: (_) => const DungeonGuardianScreen(),
               ),
             );
           }
@@ -658,34 +740,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         child: PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, result) async {
-          // Al salir (pop), suprimir y detener el TTS de inmediato, antes del
-          // dispose, para que ningún turno en vuelo narre en otras pantallas.
-          if (didPop) {
-            ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
-          }
-          if (didPop && !isOracle) {
-            // Capturamos el router antes de cualquier await: tras cerrar la
-            // sesión esta pantalla ya se está removiendo y su contexto muere.
-            final router = GoRouter.of(context);
-
-            // Solo hay resumen si hubo interacción real (al menos un turno del
-            // usuario). Si se entra y se sale sin hablar, se regresa al dashboard
-            // directamente sin summary ni registro de práctica.
-            final latest = ref.read(conversationStateProvider);
-            final hasUserTurns = latest.messages.any((m) => m.sender == 'user');
-            if (!hasUserTurns) return;
-
-            final duration = DateTime.now().difference(_startTime);
-            final minutes = duration.inMinutes;
-            final minutesToSave = minutes > 0 ? minutes : 1;
-            await ref.read(conversationStateProvider.notifier).endSession(
-              practiceMinutes: minutesToSave,
-            );
-            // Navegar al resumen post-sesión usando el router capturado.
-            try {
-              router.push('/summary');
-            } catch (_) {}
-          }
+          if (!didPop) return;
+          // Salida normal (back/gesto): cerrar sesión y mostrar resumen.
+          await _handleExit(isOracle: isOracle, showSummary: true, navigate: true);
         },
         child: Stack(
           children: [
@@ -715,11 +772,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                              onPressed: () {
-                                if (context.canPop()) {
-                                  context.pop();
-                                } else {
-                                  context.go('/home');
+                              onPressed: () async {
+                                // Cierra la sesión (idempotente) antes de salir.
+                                await _handleExit(isOracle: isOracle, showSummary: true, navigate: false);
+                                if (context.mounted) {
+                                  if (context.canPop()) {
+                                    context.pop();
+                                  } else {
+                                    context.go('/home');
+                                  }
                                 }
                               },
                             ),
@@ -1106,7 +1167,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         // Icon 3: Mic (Tap-to-Talk) — o botón CONTINUAR al terminar el Oráculo
                         if (isOracle && conversationState.oracleFinished)
                           GestureDetector(
-                            onTap: () {
+                            onTap: () async {
+                              // Cierra el TTS/sesión Oráculo (no registra normal).
+                              await _handleExit(isOracle: true, showSummary: false, navigate: false);
                               final navigator = Navigator.of(context);
                               if (navigator.canPop()) {
                                 navigator.pop(conversationState.oracleResult);

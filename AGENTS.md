@@ -1,23 +1,23 @@
 # AGENTS.md — TutorSaas / Dungeon of English
 
 ## Project Overview
-Flutter mobile SaaS for conversational English learning wrapped in an Isekai/Webtoon "System HUD" RPG. Voice pipeline: record (AAC/m4a) → Groq Whisper STT (whisper-large-v3-turbo, language forced `en`) → DeepSeek LLM (SSE streaming, `deepseek-chat`) → flutter_tts (on-device, rate 0.48). Target pipeline latency <1.5s. Supabase BaaS (Postgres, Auth, RLS, Realtime).
+Flutter mobile SaaS for conversational English learning wrapped in an Isekai/Webtoon "System HUD" RPG. Voice pipeline: record (AAC/m4a) → Groq Whisper STT (whisper-large-v3-turbo, language forced `en`) → DeepSeek LLM (SSE streaming, `deepseek-v4-flash`) → flutter_tts (on-device, rate 0.48). Target pipeline latency <1.5s. Supabase BaaS (Postgres, Auth, RLS, Realtime).
 
-## ⚠️ CRITICAL: Git Has a Single Commit
-The repo has **one commit only** (`8c1ef25 Firtcomit`). **All feature work is uncommitted.**
-- `git checkout -- <file>` or `git checkout -- '*.dart'` **reverts files to the initial commit**, destroying hours of work. This happened once already and caused a major regression.
+## ⚠️ CRITICAL: Git History and Uncommitted Work
+The repo has **6 commits**; the initial one is `8c1ef25`. **There is still a large body of uncommitted work** (51 modified files + 29 untracked at the time of the October 2026 audit).
+- `git checkout -- <file>` reverts a file to the **last commit**, which can destroy uncommitted work.
 - **Never use `git checkout`/`git restore` to "fix" or "revert" a Dart file.** Fix problems by editing, not restoring.
 - `git status`/`git diff` do NOT reflect recent feature work on already-tracked files — many intended changes live only as uncommitted edits and new untracked files (`lib/features/economy/`, `lib/features/missions/`, `lib/l10n/`, etc.).
 
 ## Commands
 ```sh
-flutter analyze                     # lint + typecheck (56 infos/warnings, 0 errors is the bar)
-flutter test                        # unit tests in test/ (5 files)
+flutter analyze                     # lint + typecheck (177 issues: 36 warnings + 141 infos, 0 errors is the bar)
+flutter test                        # unit tests in test/ (15 files, 142 cases)
 flutter gen-l10n                    # regenerate lib/l10n/app_localizations* after editing any .arb
 dart run build_runner build --delete-conflicting-outputs  # freezed / json_serializable codegen
 flutter run -d <device>             # device run (e.g. RFCN80FYN6V)
 ```
-- `flutter analyze` will show ~56 infos/warnings (deprecations, unused private widgets). 0 **errors** is the correctness bar; don't chase every info.
+- `flutter analyze` shows 177 issues (36 warnings + 141 infos: deprecations, unused private widgets). 0 **errors** is the correctness bar; don't chase every info.
 - After editing `lib/l10n/app_*.arb`, you **must** run `flutter gen-l10n` before the new keys resolve.
 
 ## Theme — Isekai / Webtoon / System HUD (Dark Only)
@@ -28,15 +28,15 @@ flutter run -d <device>             # device run (e.g. RFCN80FYN6V)
 
 ## Architecture
 - **State:** flutter_riverpod — `StateNotifierProvider` for complex state, `FutureProvider.autoDispose` for async, `StateProvider` for simple. Invalidate providers after mutations. No BLoC/Redux/GetX/legacy Provider.
-- **Routing:** go_router. New screens must be registered in `lib/app/router.dart`. Currently 12 routes; `/hunter-status`, `/oracle-test`, `/shop`, etc. are **planned but not yet wired**.
+- **Routing:** go_router. New screens must be registered in `lib/app/router.dart`. Currently 14 routes; `/oracle-test`, `/shop`, `/inventory` and `/dungeon-guardian` are already wired. `/hunter-status`, `/collections`, `/battle-pass`, `/dungeon-map` do **not** exist.
 - **Dashboard** (`dashboard_screen.dart`) has 4 tabs: Dungeons (0), Guild (1 → pushes `/chat-rooms`), Status (2), Config (3).
 - **Features (feature-first clean architecture):** `auth`, `chat_rooms` (voice rooms/guild hall), `conversation` (voice pipeline + Oracle NPC), `dashboard` (home/progress/profile/settings), `economy` (invocations, gems, streaks), `missions` (mission engine), `onboarding` (wizard, oracle test, placement), `subscription` (paywall/plans), `vocabulary` (SM-2 SRS).
 - **Web admin:** `web_admin/` is a separate React/Vite app (Supabase JS client). Subscription prices/plans are editable there.
 
 ## Voice Pipeline (DO NOT ALTER)
 1. record (AAC/m4a) → 2. Groq Whisper STT (`en` forced) → 3. DeepSeek SSE streaming → 4. flutter_tts (rate 0.48).
-- Hold-to-Talk gesture via `record` package — **not** the native `speech_to_text` plugin (dependency exists but is unused for capture).
-- Goal evaluation uses keyword matching (`isSatisfiedBy`); scenario-based conversations persist, free chats are ephemeral.
+- Recording is **tap-to-toggle** via the `record` package (there is no hold-to-talk; `micModeHoldToTalkProvider` is unused). The native `speech_to_text` plugin is a declared dependency but unused for capture.
+- Goal evaluation is an **LLM call** (`evaluateGoals` in `conversation_repository_impl.dart`). `isSatisfiedBy` exists but has **zero call sites**. Scenario conversations should persist, but lesson chats are currently not saved (see issue #1).
 
 ## i18n / Localization
 - Flutter l10n (`l10n.yaml`, `pubspec.yaml: generate: true`). Templates: `lib/l10n/app_en.arb` (source), `app_es.arb`, `app_pt.arb`.
@@ -45,13 +45,14 @@ flutter run -d <device>             # device run (e.g. RFCN80FYN6V)
 
 ## Database / Migrations
 - Supabase migrations live in `supabase/migrations/`. Many feature migrations (oracle questions, mission engine, economy, chat moderation, pricing) exist as files but may **not be applied** to the live DB.
+- Only **23 of 128** files use the 14-digit timestamp prefix that `supabase db push` requires; the other 105 are silently skipped. `migrations/audit/` and `migrations/misionesgremio/` sit in subfolders the CLI does not read. The repo **cannot reproduce** the live schema (issue #10).
 - RLS must be respected on all queries. Some DDL/writes may fail against the live project with "read-only transaction" — apply via the SQL Editor or a branch instead.
 
 ## Conventions
 - Files `snake_case`; classes `PascalCase`; vars/functions `camelCase`; private `_camelCase`; providers end in `Provider`.
 - `const` constructors wherever possible; avoid `setState` for business logic.
 - All API calls wrapped in try-catch with `debugPrint`.
-- Typography: `SpaceGrotesk` (headlines), `Inter` (body), `JetBrainsMono` (stats/labels) via google_fonts — do not introduce other families (e.g. `HankenGrotesk` was removed).
+- Typography: `SpaceGrotesk` (headlines), `Inter` (body), `JetBrainsMono` (stats/labels) via google_fonts — do not introduce other families. Note: `HankenGrotesk` is **still present** in `conversation_screen.dart` (~lines 293 and 587) and must be removed (issue #34).
 
 ## ⚠️ Trabajo pendiente — limpieza de código muerto (no urgente, no rompe nada)
 Se eliminaron pantallas (hunter-status, collections, fragments-exchange, battle-pass, guild-quest-board/detail, dungeon-map). Quedó **código muerto** por limpiar, verificado como sin consumidores (solo interfaz+impl):
