@@ -7,8 +7,27 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../providers/chat_rooms_providers.dart';
 import '../../../../l10n/app_localizations.dart';
+
+/// Fusiona un chunk del stream en el historial del mini-chat del Maestre.
+///
+/// Issue #62: el historial guarda `_streaming` como String (`'true'`). Antes se
+/// comparaba con el booleano `true`, la condición nunca se cumplía y **cada
+/// chunk añadía una burbuja nueva** con todo el texto acumulado.
+///
+/// Se extrae para poder probarlo sin montar el widget completo.
+@visibleForTesting
+void applyGuildMasterChunk(List<Map<String, String>> history, String text) {
+  if (history.isNotEmpty &&
+      history.last['role'] == 'assistant' &&
+      history.last['_streaming'] == 'true') {
+    history.last['content'] = text;
+    return;
+  }
+  history.add({'role': 'assistant', 'content': text, '_streaming': 'true'});
+}
 
 /// NPC Maestre de Mesa (Fase 7 · G-F) — control flotante arrastrable.
 ///
@@ -116,9 +135,12 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
           'and practice tips. Be brief, warm and RPG-themed (2-3 sentences). Always '
           'answer in English, at CEFR $cefr level.',
     };
-    final history = [
+    // Issue #62: `_chatHistory` lleva la marca interna `_streaming`, que no
+    // forma parte del contrato de DeepSeek; se filtra antes de enviar.
+    final history = <Map<String, String>>[
       system,
-      ..._chatHistory,
+      for (final m in _chatHistory)
+        {'role': m['role'] ?? 'user', 'content': m['content'] ?? ''},
     ];
 
     try {
@@ -127,13 +149,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
       await for (final chunk in repo.getTutorResponseStream(history)) {
         buffer.write(chunk);
         setState(() {
-          _chatHistory.removeWhere((m) => m['role'] == 'assistant' && m['content'] == '');
-          final last = _chatHistory.isEmpty ? null : _chatHistory.last;
-          if (last != null && last['role'] == 'assistant' && last['_streaming'] == true) {
-            last['content'] = buffer.toString();
-          } else {
-            _chatHistory.add({'role': 'assistant', 'content': buffer.toString(), '_streaming': 'true'});
-          }
+          applyGuildMasterChunk(_chatHistory, buffer.toString());
         });
         _scrollToBottom();
       }
@@ -173,6 +189,9 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
   Widget build(BuildContext context) {
     final progress = ref.watch(userProgressProvider).value ?? {};
     final cefr = progress['level_code'] as String? ?? 'A1';
+    final gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
+        ? (progress['game_rank'] as String)!
+        : CefrRank.gameRankFromCefr(cefr);
     final screenSize = MediaQuery.of(context).size;
 
     return Positioned(
@@ -192,7 +211,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
           _isExpanded = !_isExpanded;
           _isChatOpen = false;
         }),
-        child: _isExpanded ? _buildExpanded(cefr) : _buildCollapsed(cefr),
+        child: _isExpanded ? _buildExpanded(gameRank) : _buildCollapsed(gameRank),
       ),
     );
   }
@@ -221,6 +240,12 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
               width: 30,
               height: 30,
               fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: 30,
+                height: 30,
+                color: AppColors.surfaceContainerLow,
+                child: const Icon(Icons.auto_awesome_rounded, color: AppColors.royalGold, size: 14),
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -238,7 +263,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                 ),
               ),
               Text(
-                AppLocalizations.of(context)?.guild_rank_level(cefr) ?? 'RANGO SSS · Nivel $cefr',
+                AppLocalizations.of(context)?.guild_rank_level(cefr) ?? 'RANGO $cefr',
                 style: TextStyle(
                   fontSize: 8,
                   fontWeight: FontWeight.w600,
@@ -275,6 +300,12 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                   width: 34,
                   height: 34,
                   fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 34,
+                    height: 34,
+                    color: AppColors.surfaceContainerLow,
+                    child: const Icon(Icons.auto_awesome_rounded, color: AppColors.royalGold, size: 16),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -294,7 +325,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      AppLocalizations.of(context)?.guild_rank_level(cefr) ?? 'RANGO SSS · Nivel $cefr',
+                      AppLocalizations.of(context)?.guild_rank_level(cefr) ?? 'RANGO $cefr',
                       style: TextStyle(
                         fontSize: 8,
                         color: AppColors.onSurface.withValues(alpha: 0.6),
