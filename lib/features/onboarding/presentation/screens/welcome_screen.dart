@@ -295,6 +295,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             }
             context.go('/onboarding');
           } catch (e) {
+            // Sin traza era imposible saber si falló Google, Supabase o la red.
+            debugPrint('Google sign-up failed: $e');
             if (mounted) {
               setState(() => _isAuthenticating = false);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -327,6 +329,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
           final user = await ref.read(authRepositoryProvider).signInWithGoogle();
           await _completeLogin(user);
         } catch (e) {
+          debugPrint('Google sign-in failed: $e');
           if (mounted) {
             setState(() => _isAuthenticating = false);
             ScaffoldMessenger.of(context).showSnackBar(
@@ -455,7 +458,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.runeViolet,
             foregroundColor: AppColors.onSurface,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            // Issue #60: «INICIAR SESIÓN CON CORREO» desbordaba el ancho del
+            // botón en pantallas estrechas o con la fuente ampliada.
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(4.0)),
             ),
@@ -468,9 +473,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   height: 24,
                   child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
                 )
-              : Text(
-                  _isRegisterMode ? l10n.register_email : l10n.login_email,
-                  style: AppTypography.title(context),
+              : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _isRegisterMode ? l10n.register_email : l10n.login_email,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.title(context),
+                  ),
                 ),
         ),
         if (!_isRegisterMode) ...[
@@ -686,6 +695,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
         await _completeLogin(user);
       }
     } on AuthException catch (e) {
+      debugPrint('Email auth failed: ${e.message} (status ${e.statusCode})');
       if (!mounted) return;
       setState(() => _isAuthenticating = false);
       // Issue #55: mensaje accionable cuando el correo no está confirmado.

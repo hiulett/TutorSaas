@@ -409,7 +409,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.runeViolet,
                         foregroundColor: AppColors.onSurface,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        // Issue #60: el texto largo desbordaba el ancho del botón.
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(4.0)),
                         ),
@@ -422,9 +423,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               height: 24,
                               child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
                             )
-                          : Text(
-                              _currentPage == 3 ? l10n.onboarding_start_eval : l10n.btn_continue,
-                              style: AppTypography.title(context),
+                          : FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _currentPage == 3 ? l10n.onboarding_start_eval : l10n.btn_continue,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.title(context),
+                              ),
                             ),
                     ),
                   if (_currentPage != 4) const SizedBox(height: 12),
