@@ -25,7 +25,9 @@ class ShopScreen extends ConsumerStatefulWidget {
 }
 
 class _ShopScreenState extends ConsumerState<ShopScreen> {
-  String _selectedTab = 'mana'; // 'mana' | 'oro'
+  // Issue #8: la pestaña de maná (Stripe en navegador externo) se retiró.
+  // Se mantiene 'oro'; el maná se obtiene con el plan (RevenueCat).
+  String _selectedTab = 'oro'; // 'oro'
   bool _isBuying = false;
 
   Future<bool> _confirmPurchase(String name, String priceLabel) async {
@@ -251,15 +253,13 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 ),
               ),
 
-              // Secciones: MANÁ | ORO | accesos
+              // Secciones: ORO | accesos (la pestaña MANÁ se retiró en #8)
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
                   children: [
-                    _buildTabButton('mana', l10n?.mana_label ?? 'MANÁ', Icons.bolt_rounded),
-                    const SizedBox(width: 12),
                     _buildTabButton('oro', l10n?.gold_shop_tab ?? 'TIENDA DE ORO', Icons.monetization_on_rounded),
                     const SizedBox(width: 12),
                     GestureDetector(
