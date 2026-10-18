@@ -1,24 +1,22 @@
 // revenuecat-webhook — Procesa eventos de RevenueCat de forma segura.
 //
-// RevenueCat envía eventos (INITIAL_PURCHASE, RENEWAL, PRODUCT_CHANGE,
-// TRANSFER, UNCANCELLATION, EXPIRATION, CANCELLATION, customer_info.updated)
-// con firma `Authorization: Bearer <AUTH_TOKEN>`.
+// RevenueCat envía eventos con `Authorization: Bearer <AUTH_TOKEN>`.
 //
-// Modelo de producto de la app (DungeonsSpeak) — matriz 2 estamentos × 2 ciclos:
-//   - Entitlement: DungeonsSpeak_Pro (el único; el acceso premium).
-//   - Products (NO SUBSCRIPTION LIFETIME por el costo de la IA):
-//       dungeonsspeak_noble_monthly    -> plan `noble`    · ciclo monthly
-//       dungeonsspeak_noble_yearly     -> plan `noble`    · ciclo annual
-//       dungeonsspeak_realeza_monthly  -> plan `realeza`  · ciclo monthly
-//       dungeonsspeak_realeza_yearly   -> plan `realeza`  · ciclo annual
+// Modelo de producto (DungeonsSpeak) — 3 estamentos × 2 ciclos:
+//   dungeonsspeak_noble_*    -> plan `noble`
+//   dungeonsspeak_realeza_*  -> plan `realeza`
+//   dungeonsspeak_divino_*   -> plan `divino`
 //
-// Al recibir un entitlement Pro activo:
-//   - Activa el plan en `user_subscriptions` (columna stripe_subscription_id
-//     reutilizada como id de entidad del store).
-//   - Llama a `renew_mana_cycle` para renovar el maná (allowance del plan).
+// Issue #71: este webhook ya no escribe `user_subscriptions` a mano. Delega
+// todo en la RPC `sync_entitlement`, que es idempotente y no degrada (compara
+// expiraciones). Así el webhook y la reconciliación de la app (#69) usan el
+// mismo camino y no pueden dejarse el estado a medias.
 //
-// Secretos requeridos (supabase secrets set ...):
-//   REVENUECAT_AUTH_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+// Idempotencia: cada `event.id` se registra en `revenuecat_events`; si ya
+// existe, se responde 200 sin volver a aplicar nada (RevenueCat reintenta).
+//
+// Secretos requeridos: REVENUECAT_AUTH_TOKEN, SUPABASE_URL,
+// SUPABASE_SERVICE_ROLE_KEY.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const authToken = Deno.env.get('REVENUECAT_AUTH_TOKEN') ?? '';
@@ -38,90 +36,56 @@ const json = (body: unknown, status = 200) =>
 const PRO_ENTITLEMENT = 'DungeonsSpeak Pro';
 
 // Mapeo product_id → plan (id en subscription_plans). El product_id es la
-// fuente canónica (lo define el id del product en Google Play / App Store).
+// fuente canónica (lo define el id del product en Google Play).
 function planIdForProduct(productId: string): string {
   const key = productId.toLowerCase();
   if (key.includes('divino') || key.includes('divine')) return 'divino';
   if (key.includes('realeza') || key.includes('royalty')) return 'realeza';
-  return 'noble'; // incluye dungeonsspeak_noble_* y cualquier default
+  return 'noble';
 }
 
-// Ciclo derivado del product_id (anual si contiene 'yearly'/'annual').
-function billingCycleForProduct(productId: string): string {
-  const key = productId.toLowerCase();
-  return key.includes('yearly') || key.includes('annual') ? 'annual' : 'monthly';
-}
-
-async function activatePlan(
-  userId: string,
-  productId: string,
-  expiresAt?: string,
-): Promise<boolean> {
-  const planId = planIdForProduct(productId);
-  const billingCycle = billingCycleForProduct(productId);
-
-  const { data: plan } = await supabase
-    .from('subscription_plans')
-    .select('id, mana_allowance')
-    .eq('id', planId)
-    .maybeSingle();
-  if (!plan) {
-    console.error('revenuecat-webhook: plan not found', planId);
-    return false;
-  }
-
-  const allowance = Number(plan['mana_allowance'] ?? 1800);
-  const now = new Date();
-  const end = expiresAt ? new Date(expiresAt) : new Date(now);
-  if (!expiresAt) end.setMonth(end.getMonth() + (billingCycle === 'annual' ? 12 : 1));
-
-  const { error: manaErr } = await supabase.rpc('renew_mana_cycle', {
+/// Aplica el estado del entitlement mediante la RPC única.
+async function applyEntitlement(params: {
+  userId: string;
+  productId: string;
+  expiresAt?: string;
+  active: boolean;
+}): Promise<boolean> {
+  const { userId, productId, expiresAt, active } = params;
+  const { error } = await supabase.rpc('sync_entitlement', {
     p_user_id: userId,
-    p_allowance: allowance,
-    p_expires_at: end.toISOString(),
+    p_plan_id: planIdForProduct(productId),
+    p_product_id: productId || null,
+    p_expires_at: expiresAt ?? null,
+    p_store: 'play',
+    p_is_active: active,
   });
-  if (manaErr) {
-    console.error('renew_mana_cycle error:', manaErr);
-  }
-
-  const { error: upErr } = await supabase
-    .from('user_subscriptions')
-    .upsert({
-      user_id: userId,
-      plan_id: planId,
-      status: 'active',
-      billing_cycle: billingCycle,
-      period_start: now.toISOString(),
-      period_end: end.toISOString(),
-      // Issue #69: estos campos permiten que la sincronización desde la app
-      // detecte que el periodo ya está aplicado y no vuelva a dar maná.
-      store: 'play',
-      rc_product_id: productId,
-      rc_expires_at: expiresAt ?? end.toISOString(),
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
-  if (upErr) {
-    console.error('upsert subscription error:', upErr);
+  if (error) {
+    console.error('sync_entitlement rpc error:', error);
     return false;
   }
   return true;
 }
 
-async function expirePlan(userId: string): Promise<void> {
-  // Issue #66: al expirar hay que bajar el plan a `plebeyo`. Antes solo se
-  // cambiaba el status y, como el resto de la app decide por `plan_id`, el
-  // usuario conservaba el premium indefinidamente.
+/// Periodo de gracia: Play reintenta el cobro, el acceso se mantiene.
+async function setGrace(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('user_subscriptions')
+    .update({ status: 'in_grace', updated_at: new Date().toISOString() })
+    .eq('user_id', userId);
+  if (error) console.error('set grace error:', error);
+}
+
+/// Marca/desmarca la cancelación programada sin tocar el plan.
+async function setCancelAtPeriodEnd(userId: string, value: boolean): Promise<void> {
   const { error } = await supabase
     .from('user_subscriptions')
     .update({
-      plan_id: 'plebeyo',
-      status: 'expired',
-      billing_cycle: null,
-      mana_expires_at: new Date().toISOString(),
+      cancel_at_period_end: value,
       updated_at: new Date().toISOString(),
     })
     .eq('user_id', userId);
-  if (error) console.error('expire subscription error:', error);
+  if (error) console.error('set cancel_at_period_end error:', error);
 }
 
 Deno.serve(async (req: Request) => {
@@ -156,40 +120,103 @@ Deno.serve(async (req: Request) => {
       return json({ received: true, ignored: 'no app user' });
     }
 
+    // Issue #71: idempotencia. RevenueCat reintenta; un RENEWAL repetido no
+    // debe volver a reponer el maná.
+    const eventId = event['id']
+      ? String(event['id'])
+      : `${type}:${appUserId}:${event['event_timestamp_ms'] ?? ''}`;
+    const { data: seen } = await supabase
+      .from('revenuecat_events')
+      .select('id')
+      .eq('id', eventId)
+      .maybeSingle();
+    if (seen) {
+      return json({ received: true, duplicate: true, event_id: eventId });
+    }
+
+    const expiresAt = event['expiration_at_ms']
+      ? new Date(Number(event['expiration_at_ms'])).toISOString()
+      : undefined;
     const grantsPro = (entitlementIds ?? []).includes(PRO_ENTITLEMENT);
 
-    // Eventos de compra/renovación/recuperación del entitlement Pro.
-    const purchaseTypes = [
-      'INITIAL_PURCHASE',
-      'RENEWAL',
-      'PRODUCT_CHANGE',
-      'TRANSFER',
-      'UNCANCELLATION',
-      'SUBSCRIPTION_EXTENDED',
-      'customer_info.updated',
-    ];
+    let handled = true;
 
-    if (purchaseTypes.includes(type) && grantsPro) {
-      const expiresAt = event['expiration_at_ms']
-        ? new Date(Number(event['expiration_at_ms'])).toISOString()
-        : undefined;
-      await activatePlan(appUserId, productId, expiresAt);
-      return json({ received: true });
+    switch (type) {
+      // Compra, renovación, cambio de producto y reactivación.
+      case 'INITIAL_PURCHASE':
+      case 'RENEWAL':
+      case 'PRODUCT_CHANGE':
+      case 'UNCANCELLATION':
+      case 'SUBSCRIPTION_EXTENDED':
+        if (grantsPro) {
+          await applyEntitlement({
+            userId: appUserId,
+            productId,
+            expiresAt,
+            active: true,
+          });
+        }
+        await setCancelAtPeriodEnd(appUserId, false);
+        break;
+
+      // Cambio de titular: se revoca al origen y se concede al destino.
+      case 'TRANSFER': {
+        const from = (event['transferred_from'] ?? []) as string[];
+        for (const oldUserId of from) {
+          if (!oldUserId || oldUserId.startsWith('$')) continue;
+          await applyEntitlement({
+            userId: oldUserId,
+            productId: '',
+            active: false,
+          });
+        }
+        if (grantsPro) {
+          await applyEntitlement({
+            userId: appUserId,
+            productId,
+            expiresAt,
+            active: true,
+          });
+        }
+        break;
+      }
+
+      // El usuario desactiva la renovación: conserva el acceso hasta expirar.
+      case 'CANCELLATION':
+        await setCancelAtPeriodEnd(appUserId, true);
+        break;
+
+      // Fin real del acceso (o reembolso).
+      case 'EXPIRATION':
+      case 'REFUND':
+        if (type === 'REFUND' || grantsPro) {
+          await applyEntitlement({
+            userId: appUserId,
+            productId: '',
+            active: false,
+          });
+        }
+        break;
+
+      // Play reintenta el cobro: periodo de gracia, sin cortar el acceso.
+      case 'BILLING_ISSUE':
+        await setGrace(appUserId);
+        break;
+
+      default:
+        handled = false;
     }
 
-    if (type === 'EXPIRATION' && grantsPro) {
-      // Expiración real (no renovada) = pierde premium.
-      await expirePlan(appUserId);
-      return json({ received: true });
-    }
+    // Registrar el evento procesado (idempotencia para reintentos).
+    const { error: logErr } = await supabase
+      .from('revenuecat_events')
+      .upsert(
+        { id: eventId, type, app_user_id: appUserId },
+        { onConflict: 'id', ignoreDuplicates: true },
+      );
+    if (logErr) console.error('revenuecat_events insert error:', logErr);
 
-    // Issue #66: CANCELLATION solo desactiva la renovación; el acceso se
-    // mantiene hasta `expiration_at_ms`. No se toca el plan aquí.
-    if (type === 'CANCELLATION' || type === 'UNCANCELLATION') {
-      return json({ received: true, deferred: type });
-    }
-
-    return json({ received: true, unhandled: type });
+    return json({ received: true, handled, type, event_id: eventId });
   } catch (e) {
     console.error('revenuecat-webhook processing error:', e);
     return json({ received: true, error: String(e) }, 200);
