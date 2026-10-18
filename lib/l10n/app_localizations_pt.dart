@@ -431,6 +431,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get btn_continue => 'Continuar';
 
   @override
+  String get onboarding_start_eval => 'INICIAR AVALIAÇÃO';
+
+  @override
+  String get register_confirm_email =>
+      'Verifique seu e-mail e confirme a conta para continuar.';
+
+  @override
+  String get resend_confirmation => 'REENVIAR';
+
+  @override
+  String get login_email_not_confirmed =>
+      'Seu e-mail ainda não foi confirmado. Verifique a caixa de entrada ou peça um novo envio.';
+
+  @override
   String get complete_onboarding => 'Completar Onboarding';
 
   @override
@@ -2632,9 +2646,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String onboarding_device_lang(String lang) {
     return 'We detected that your device uses $lang. The app will be shown in that language.';
   }
-
-  @override
-  String get onboarding_start_eval => 'START EVALUATION';
 
   @override
   String get onboarding_beginner => 'I AM AN ABSOLUTE BEGINNER (PRE-A1)';

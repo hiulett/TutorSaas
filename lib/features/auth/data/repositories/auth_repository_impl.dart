@@ -76,6 +76,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> resendConfirmationEmail(String email) async {
+    await _supabaseClient.auth
+        .resend(type: OtpType.signup, email: email)
+        .timeout(const Duration(seconds: 15));
+  }
+
+  @override
   Future<void> sendPasswordResetEmail(String email) async {
     await _supabaseClient.auth
         .resetPasswordForEmail(email)

@@ -641,10 +641,34 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
       if (_isRegisterMode) {
         final user = await ref.read(authRepositoryProvider).signUpWithEmail(email, password);
         if (!mounted) return;
+
         if (user == null) {
           setState(() => _isAuthenticating = false);
           return;
         }
+
+        // Issue #55: con la confirmación de email activa, `signUp` crea el
+        // usuario pero NO crea sesión. Navegar al onboarding en ese estado
+        // dejaba la cuenta sin perfil y devolvía al login.
+        final hasSession =
+            ref.read(supabaseClientProvider).auth.currentSession != null;
+        if (!hasSession) {
+          setState(() => _isAuthenticating = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.register_confirm_email),
+              duration: const Duration(seconds: 10),
+              action: SnackBarAction(
+                label: l10n.resend_confirmation,
+                onPressed: () => ref
+                    .read(authRepositoryProvider)
+                    .resendConfirmationEmail(email),
+              ),
+            ),
+          );
+          return;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.register_success)),
         );
@@ -664,9 +688,15 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
     } on AuthException catch (e) {
       if (!mounted) return;
       setState(() => _isAuthenticating = false);
-      final message = _isRegisterMode && (e.message.contains('already registered') || e.message.contains('registered'))
-          ? l10n.email_already_registered
-          : (_isRegisterMode ? l10n.register_email_error : l10n.login_email_error);
+      // Issue #55: mensaje accionable cuando el correo no está confirmado.
+      final raw = e.message.toLowerCase();
+      final notConfirmed =
+          raw.contains('not confirmed') || raw.contains('email not confirmed');
+      final message = notConfirmed
+          ? l10n.login_email_not_confirmed
+          : (_isRegisterMode && (e.message.contains('already registered') || e.message.contains('registered'))
+              ? l10n.email_already_registered
+              : (_isRegisterMode ? l10n.register_email_error : l10n.login_email_error));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );

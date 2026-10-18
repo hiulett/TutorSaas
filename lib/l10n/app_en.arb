@@ -143,7 +143,11 @@
   "onboarding_correction": "TACTICAL APPROACH",
   "onboarding_obstacle": "BOSS IDENTIFICATION",
 
-  "btn_continue": "btn_continue",
+  "btn_continue": "Continue",
+  "onboarding_start_eval": "START EVALUATION",
+  "register_confirm_email": "Check your inbox and confirm your account to continue.",
+  "resend_confirmation": "RESEND",
+  "login_email_not_confirmed": "Your email is not confirmed yet. Check your inbox or request a new link.",
   "complete_onboarding": "Complete Onboarding",
 
   "exam_timer": "Time Remaining",

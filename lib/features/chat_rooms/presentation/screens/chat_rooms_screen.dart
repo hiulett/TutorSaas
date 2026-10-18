@@ -12,7 +12,6 @@ import '../../../../core/widgets/system_window.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/chat_rooms_providers.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
-import '../../../../core/widgets/runic_button.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../widgets/guild_master_floating_banner.dart';
@@ -70,6 +69,14 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
       count += (r['standing_count'] as int? ?? 0);
     }
     return count;
+  }
+
+  /// Inicial del nombre para el avatar, con fallback seguro (evita RangeError
+  /// cuando el nombre está vacío o es null).
+  String _safeInitials(String? name) {
+    final trimmed = name?.trim() ?? '';
+    if (trimmed.isEmpty) return 'C';
+    return trimmed.substring(0, 1).toUpperCase();
   }
 
   /// Badge de ocupación de una sala: color/etiqueta según llenado.
@@ -513,28 +520,33 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                         Consumer(builder: (context, ref, _) {
                           final online = ref.watch(guildOnlineUsersProvider).value ?? const <Map<String, dynamic>>[];
                           final total = online.isEmpty ? _connectedCount(roomsAsync.value ?? []) : online.length;
+                          // Ajusta el nº de avatares al ancho disponible para no
+                          // desbordar la fila en pantallas estrechas.
+                          final maxAvatars = (total <= 3) ? total : (total <= 5 ? 5 : 3);
                           return Row(
                             children: [
                               const Icon(Icons.people_alt_rounded, color: AppColors.manaCyan, size: 16),
                               const SizedBox(width: 8),
-                              Text(
-                                '$total CONECTADOS',
-                                style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan, letterSpacing: 0.6),
+                              Flexible(
+                                child: Text(
+                                  '$total CONECTADOS',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan, letterSpacing: 0.6),
+                                ),
                               ),
-                              const Spacer(),
+                              const SizedBox(width: 8),
                               // Mini-roster: avatares de cazadores reales.
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  for (var i = 0; i < online.length && i < 5; i++)
+                                  for (var i = 0; i < online.length && i < maxAvatars; i++)
                                     Padding(
                                       padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
                                       child: RpgAvatar(
                                         avatarUrl: online[i]['avatar_url'] as String? ?? 'warrior',
                                         hunterClass: online[i]['avatar_url'] as String? ?? 'warrior',
-                                        initials: (online[i]['display_name'] as String? ?? 'C')
-                                            .substring(0, 1)
-                                            .toUpperCase(),
+                                        initials: _safeInitials(online[i]['display_name'] as String?),
                                         size: 26,
                                         borderColor: AppColors.manaCyan,
                                       ),
@@ -623,12 +635,28 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      RunicButton(
-                        label: l10n.initialize_room.toUpperCase(),
-                        icon: Icons.add_rounded,
+                      // Botón compacto "Crear Mesa" (sin icono +, texto pequeño)
+                      ElevatedButton(
                         onPressed: _showCreateRoomDialog,
-                        backgroundColor: AppColors.runeViolet,
-                        foregroundColor: AppColors.onSurface,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.runeViolet,
+                          foregroundColor: AppColors.onSurface,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          elevation: 0,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                          ),
+                        ),
+                        child: Text(
+                          l10n.initialize_room,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -739,6 +767,11 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                               context.push('/voice-room?roomId=${room['id']}');
                             },
                             child: GlassCard(
+                              // Issue #56: el GestureDetector interno del
+                              // GlassCard bloquea el tap del padre.
+                              onTap: () {
+                                context.push('/voice-room?roomId=${room['id']}');
+                              },
                               blur: 20,
                               opacity: AppColors.glassOpacity,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

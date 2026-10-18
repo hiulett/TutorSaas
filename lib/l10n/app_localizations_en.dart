@@ -426,7 +426,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_obstacle => 'BOSS IDENTIFICATION';
 
   @override
-  String get btn_continue => 'btn_continue';
+  String get btn_continue => 'Continue';
+
+  @override
+  String get onboarding_start_eval => 'START EVALUATION';
+
+  @override
+  String get register_confirm_email =>
+      'Check your inbox and confirm your account to continue.';
+
+  @override
+  String get resend_confirmation => 'RESEND';
+
+  @override
+  String get login_email_not_confirmed =>
+      'Your email is not confirmed yet. Check your inbox or request a new link.';
 
   @override
   String get complete_onboarding => 'Complete Onboarding';
@@ -2626,9 +2640,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String onboarding_device_lang(String lang) {
     return 'We detected that your device uses $lang. The app will be shown in that language.';
   }
-
-  @override
-  String get onboarding_start_eval => 'START EVALUATION';
 
   @override
   String get onboarding_beginner => 'I AM AN ABSOLUTE BEGINNER (PRE-A1)';

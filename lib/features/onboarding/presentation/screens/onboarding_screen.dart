@@ -182,7 +182,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _isSaving = true);
     try {
       final user = ref.read(currentUserProvider) ?? ref.read(supabaseClientProvider).auth.currentUser;
-      final String targetUserId = user?.id ?? 'guest_${DateTime.now().millisecondsSinceEpoch}';
+
+      // Issue #55: sin sesión no se puede guardar el perfil. Antes se usaba un
+      // id `guest_<timestamp>` que rompía el upsert y acababa devolviendo al
+      // login sin mensaje.
+      if (user == null) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          SystemSnack.show(
+            context,
+            'SESIÓN NO VÁLIDA: vuelve a iniciar sesión.',
+            type: SystemSnackType.error,
+          );
+        }
+        return;
+      }
+
+      final String targetUserId = user.id;
 
       // Si el usuario omitió la evaluación del Oráculo (paso opcional), se
       // parte del rango inicial A1.
@@ -229,8 +245,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       }
 
       try {
-        final accountName = (user?.userMetadata?['full_name'] as String?) ??
-            (user?.email?.split('@').first ?? 'Hunter');
+        final accountName = (user.userMetadata?['full_name'] as String?) ??
+            (user.email?.split('@').first ?? 'Hunter');
         await ref.read(dashboardRepositoryProvider).updateUserProfile(
           targetUserId,
           displayName: _characterName.isNotEmpty ? _characterName : accountName,
@@ -255,9 +271,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         });
       }
     } catch (e) {
+      debugPrint('Onboarding save failed: $e');
       if (mounted) {
         setState(() => _isSaving = false);
-        context.go('/home');
+        // Issue #55: antes se redirigía a /home en silencio y el router
+        // devolvía al login sin explicar nada.
+        SystemSnack.show(
+          context,
+          'NO SE PUDO GUARDAR TU PERFIL. Revisa tu conexión e inténtalo de nuevo.',
+          type: SystemSnackType.error,
+        );
       }
     }
   }
@@ -734,6 +757,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   });
                 },
                 child: GlassCard(
+                  // Issue #56: el GlassCard tiene su propio GestureDetector y
+                  // bloquea el tap del padre; el callback debe ir aquí.
+                  onTap: () {
+                    setState(() {
+                      _selectedNativeLanguageCode = lang['code']!;
+                    });
+                  },
                   border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.10)),
                   opacity: AppColors.glassOpacity,
                   child: Padding(

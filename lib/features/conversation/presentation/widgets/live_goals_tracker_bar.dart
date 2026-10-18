@@ -33,6 +33,8 @@ class LiveGoalsTrackerBar extends StatelessWidget {
     return GestureDetector(
       onTap: onTapCompass,
       child: GlassCard(
+        // Issue #56: el detector interno bloquea el tap del padre.
+        onTap: onTapCompass,
         blur: 4, opacity: AppColors.glassOpacity,
         border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

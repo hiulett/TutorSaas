@@ -144,6 +144,10 @@
   "onboarding_obstacle": "IDENTIFICACIÓN DEL JEFE",
 
   "btn_continue": "Continuar",
+  "onboarding_start_eval": "INICIAR EVALUACIÓN",
+  "register_confirm_email": "Revisa tu correo y confirma la cuenta para continuar.",
+  "resend_confirmation": "REENVIAR",
+  "login_email_not_confirmed": "Tu correo aún no está confirmado. Revisa tu bandeja o pide un nuevo envío.",
   "complete_onboarding": "Completar Onboarding",
 
   "exam_timer": "Tiempo Restante",
