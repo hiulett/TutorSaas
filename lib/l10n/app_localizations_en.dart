@@ -2196,10 +2196,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get session_words => 'WORDS';
 
   @override
-  String get session_accuracy => 'ACCURACY';
+  String get session_accuracy => 'ACCURACY (EST.)';
 
   @override
-  String get session_fluency => 'Fluency';
+  String get session_fluency => 'Fluency (est.)';
 
   @override
   String get session_pronunciation => 'Pronunciation';

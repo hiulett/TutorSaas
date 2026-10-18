@@ -2201,10 +2201,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get session_words => 'PALAVRAS';
 
   @override
-  String get session_accuracy => 'PRECISÃO';
+  String get session_accuracy => 'PRECISÃO (EST.)';
 
   @override
-  String get session_fluency => 'Fluência';
+  String get session_fluency => 'Fluência (est.)';
 
   @override
   String get session_pronunciation => 'Pronúncia';

@@ -8,7 +8,9 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/segmented_bar.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../data/models/lesson_catalog.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
+import '../../../economy/presentation/widgets/session_drop_controller.dart';
 import '../providers/dashboard_providers.dart';
 
 /// Resumen post-sesión de conversación.
@@ -94,6 +96,11 @@ class SessionSummaryScreen extends ConsumerWidget {
             ),
           ),
 
+          // Drop sorpresa de fin de sesión (aplica XP + notificación épica).
+          SessionDropController(
+            completedGoals: convState.goalEvaluationResults.values.where((v) => v).length,
+          ),
+
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -129,7 +136,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                           value: fluencyVal,
                           color: AppColors.manaCyan,
                           size: 76,
-                          label: '$fluencyPct%',
+                          label: '~$fluencyPct%',
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -160,7 +167,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   _MiniTag(
                                     icon: Icons.check_circle_rounded,
                                     color: AppColors.emeraldGreen,
-                                    text: '$pronPct% precisión',
+                                    text: '~$pronPct% precisión',
                                   ),
                                 ],
                               ),
@@ -201,7 +208,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                         child: _MetricCell(
                           icon: Icons.gps_fixed_rounded,
                           color: AppColors.emeraldGreen,
-                          value: '$pronPct%',
+                          value: '~$pronPct%',
                           label: l10n.session_accuracy,
                         ),
                       ),
@@ -366,6 +373,9 @@ class SessionSummaryScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 12),
+                        // Continuar con la siguiente lección del nivel (si superada).
+                        _buildNextLessonButton(context, convState),
                       ],
                     ),
                   ),
@@ -375,6 +385,52 @@ class SessionSummaryScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Botón "Siguiente lección": navega a la próxima lección desbloqueada del
+  /// mismo nivel CEFR, encadenando el flujo de práctica.
+  Widget _buildNextLessonButton(BuildContext context, dynamic convState) {
+    final l10n = AppLocalizations.of(context)!;
+    final scenarioId = convState?.activeScenarioId as String?;
+    if (scenarioId == null || scenarioId.isEmpty) return const SizedBox.shrink();
+
+    final current = LessonCatalog.getLessonById(
+      scenarioId,
+      title: convState?.activeScenarioName as String?,
+    );
+    if (current == null) return const SizedBox.shrink();
+
+    final levelLessons = LessonCatalog.catalog
+        .where((l) => l.level.toUpperCase() == current.level.toUpperCase())
+        .toList();
+    final idx = levelLessons.indexWhere((l) => l.id == current.id);
+    if (idx < 0 || idx >= levelLessons.length - 1) return const SizedBox.shrink();
+
+    final next = levelLessons[idx + 1];
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+        label: Text(
+          '${l10n.summary_next_lesson ?? 'SIGUIENTE LECCIÓN'}: ${next.title}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        onPressed: () => context.push(
+          '/conversation?scenarioId=${next.id}&scenarioTitle=${Uri.encodeComponent(next.title)}',
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.emeraldGreen,
+          foregroundColor: AppColors.voidBg,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          elevation: 3,
+        ),
       ),
     );
   }

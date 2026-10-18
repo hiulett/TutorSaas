@@ -2204,10 +2204,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get session_words => 'PALABRAS';
 
   @override
-  String get session_accuracy => 'PRECISIÓN';
+  String get session_accuracy => 'PRECISIÓN (EST.)';
 
   @override
-  String get session_fluency => 'Fluidez';
+  String get session_fluency => 'Fluidez (est.)';
 
   @override
   String get session_pronunciation => 'Pronunciación';

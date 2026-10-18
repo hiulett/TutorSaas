@@ -466,38 +466,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Navigator.pop(context);
                   },
                 ),
-                const SizedBox(height: 10),
-                _buildOption(
-                  title: 'FRENCH (FR)',
-                  description: 'Engage in conversational French modules.',
-                  isActive: _selectedTargetLanguage == 'fr',
-                  icon: Icons.language_rounded,
-                  onTap: () {
-                    setState(() => _selectedTargetLanguage = 'fr');
-                    Navigator.pop(context);
-                  },
-                ),
-                const SizedBox(height: 10),
-                _buildOption(
-                  title: 'GERMAN (DE)',
-                  description: 'Engage in structured German trials.',
-                  isActive: _selectedTargetLanguage == 'de',
-                  icon: Icons.language_rounded,
-                  onTap: () {
-                    setState(() => _selectedTargetLanguage = 'de');
-                    Navigator.pop(context);
-                  },
-                ),
-                const SizedBox(height: 10),
-                _buildOption(
-                  title: 'ITALIAN (IT)',
-                  description: 'Engage in fluent Italian practice.',
-                  isActive: _selectedTargetLanguage == 'it',
-                  icon: Icons.language_rounded,
-                  onTap: () {
-                    setState(() => _selectedTargetLanguage = 'it');
-                    Navigator.pop(context);
-                  },
+                const SizedBox(height: 12),
+                // Issue #20: el producto es solo inglés. Se retiraron las
+                // opciones FR/DE/IT para no prometer idiomas no soportados.
+                Text(
+                  'More languages coming soon.',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
