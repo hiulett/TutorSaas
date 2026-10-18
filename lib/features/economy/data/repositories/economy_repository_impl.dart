@@ -312,36 +312,19 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<bool> purchaseCosmeticWithGold(String userId, String itemCode) async {
     try {
-      final existing = await _client
-          .from('player_inventory')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('item_code', itemCode)
-          .maybeSingle();
-      if (existing != null) return false;
-
-      final catalog = await _client
-          .from('cosmetic_catalog')
-          .select('price_gold, category')
-          .eq('id', itemCode)
-          .maybeSingle();
-      if (catalog == null) return false;
-      final price = catalog['price_gold'] as int? ?? 0;
-      if (price <= 0) return false;
-
-      final spent = await spendGold(userId, price);
-      if (!spent) return false;
-
-      await _client.from('player_inventory').insert({
-        'user_id': userId,
-        'item_code': itemCode,
-        'item_type': catalog['category'] as String? ?? 'cosmetic',
-        'is_equipped': false,
+      // Issue #2: compra atómica en servidor (valida saldo, catálogo,
+      // disponibilidad y ownership; entrega el ítem en la misma transacción).
+      final res = await _client.rpc('purchase_cosmetic', params: {
+        'p_user_id': userId,
+        'p_item_id': itemCode,
+        'p_currency': 'gold',
       });
-
-      unawaited(_logEvent(userId, 'purchase_cosmetic_gold'));
-      unawaited(RetentionAnalytics.instance.track(userId, 'purchase_cosmetic_gold'));
-      return true;
+      final ok = res is Map && res['success'] == true;
+      if (ok) {
+        unawaited(_logEvent(userId, 'purchase_cosmetic_gold'));
+        unawaited(RetentionAnalytics.instance.track(userId, 'purchase_cosmetic_gold'));
+      }
+      return ok;
     } catch (_) {
       return false;
     }
@@ -352,16 +335,19 @@ class EconomyRepositoryImpl implements EconomyRepository {
     try {
       final item = await _client
           .from('player_inventory')
-          .select('id, is_equipped')
+          .select('is_equipped')
           .eq('user_id', userId)
           .eq('item_code', itemCode)
           .maybeSingle();
       if (item == null) return;
 
-      await _client
-          .from('player_inventory')
-          .update({'is_equipped': item['is_equipped'] != true})
-          .eq('id', item['id']);
+      // Issue #2: el equipado también pasa por RPC; la tabla sigue sin INSERT
+      // ni UPDATE directo para que un cliente no pueda autoentregarse ítems.
+      await _client.rpc('equip_cosmetic', params: {
+        'p_user_id': userId,
+        'p_item_id': itemCode,
+        'p_equip': item['is_equipped'] != true,
+      });
     } catch (_) {}
   }
 
