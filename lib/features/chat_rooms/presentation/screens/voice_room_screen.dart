@@ -719,6 +719,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 2.0),
                   child: GlassCard(
+                    // Issue #58: el detector interno del GlassCard bloquea el
+                    // tap del padre; el callback va aquí.
+                    onTap: () => setState(() => _showDemoBanner = !_showDemoBanner),
                     blur: 20,
                     opacity: AppColors.glassOpacity,
                     border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.35)),
@@ -982,6 +985,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                             child: GestureDetector(
                               onTap: () => setState(() => _showAudience = !_showAudience),
                               child: GlassCard(
+                                // Issue #58: el detector interno bloquea el tap del padre.
+                                onTap: () => setState(() => _showAudience = !_showAudience),
                                 blur: 20,
                                 opacity: AppColors.glassOpacity,
                                 border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.25)),
@@ -1057,6 +1062,8 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                             child: GestureDetector(
                               onTap: _openChatSheet,
                               child: GlassCard(
+                                // Issue #58: el detector interno bloquea el tap del padre.
+                                onTap: _openChatSheet,
                                 blur: 20,
                                 opacity: AppColors.glassOpacity,
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

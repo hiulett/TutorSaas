@@ -160,6 +160,12 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                   });
                 },
                 child: GlassCard(
+                  // Issue #58: el detector interno bloquea el tap del padre.
+                  onTap: () {
+                    setState(() {
+                      _isFlipped = !_isFlipped;
+                    });
+                  },
                   blur: 30,
                   opacity: AppColors.glassOpacity,
                   border: Border.all(
