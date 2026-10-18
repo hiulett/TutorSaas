@@ -2974,18 +2974,6 @@ abstract class AppLocalizations {
   /// **'BUY'**
   String get buy;
 
-  /// No description provided for @purchase_error_stripe.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not start payment. Check Stripe configuration.'**
-  String get purchase_error_stripe;
-
-  /// No description provided for @checkout_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not open checkout.'**
-  String get checkout_error;
-
   /// No description provided for @cosmetic_purchased.
   ///
   /// In en, this message translates to:
@@ -5805,12 +5793,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel anytime via App Store / Play Store. Terms and Conditions apply.'**
   String get paywall_legal;
-
-  /// No description provided for @paywall_err_stripe.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not start the payment. Check the Stripe configuration.'**
-  String get paywall_err_stripe;
 
   /// No description provided for @paywall_err_checkout.
   ///

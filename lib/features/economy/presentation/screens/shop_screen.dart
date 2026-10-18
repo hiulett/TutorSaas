@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -60,36 +59,6 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       ),
     );
     return result ?? false;
-  }
-
-  /// Compra de maná: crea el Checkout de Stripe y lo abre en el navegador.
-  /// El webhook acredita el maná; al volver, el saldo se refresca solo.
-  Future<void> _goBuyMana(Map<String, dynamic> product, String type) async {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
-    final url = await ref
-        .read(economyRepositoryProvider)
-        .createManaCheckout(user.id, product['id'] as String? ?? '', type);
-    if (!mounted) return;
-    if (url == null || url.isEmpty) {
-      SystemSnack.show(
-        context,
-        AppLocalizations.of(context)?.purchase_error_stripe ??
-            'No se pudo iniciar el pago. Revisa la configuración de Stripe.',
-        type: SystemSnackType.error,
-      );
-      return;
-    }
-    final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    if (ok) {
-      ref.invalidate(manaStateProvider);
-    } else if (mounted) {
-      SystemSnack.show(
-        context,
-        AppLocalizations.of(context)?.checkout_error ?? 'No se pudo abrir el checkout.',
-        type: SystemSnackType.error,
-      );
-    }
   }
 
   Future<void> _buyGoldCosmetic(Map<String, dynamic> item) async {
@@ -289,145 +258,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               const SizedBox(height: 16),
 
               // Contenido
-              Expanded(
-                child: _selectedTab == 'mana'
-                    ? _buildManaTab()
-                    : _buildGoldTab(inventory),
-              ),
+              Expanded(child: _buildGoldTab(inventory)),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // ── Tab MANÁ ──────────────────────────────────────────────────────────────
-  Widget _buildManaTab() {
-    final l10n = AppLocalizations.of(context);
-    final potionsAsync = ref.watch(manaPotionsProvider);
-    final gemsAsync = ref.watch(manaGemsProvider);
-    final potions = potionsAsync.value ?? const <Map<String, dynamic>>[];
-    final gems = gemsAsync.value ?? const <Map<String, dynamic>>[];
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      children: [
-        Text(
-          l10n?.mana_potions_title ?? 'PORCIONES DE MANÁ',
-          style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.runeViolet, letterSpacing: 1),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n?.mana_potions_desc ??
-              'El maná es la energía de toda acción IA. Se adquiere con dinero real: tu estamento incluye una asignación mensual y las porciones la amplían.',
-          style: GoogleFonts.inter(fontSize: 11, color: AppColors.onSurfaceVariant, height: 1.4),
-        ),
-        const SizedBox(height: 12),
-        ...potions.map((p) => _buildManaProductCard(
-              title: p['name'] as String? ?? 'PORCIÓN',
-              mana: (p['mana_amount'] as num?)?.toInt() ?? 0,
-              price: (p['price_usd'] as num?)?.toDouble() ?? 0,
-              badge: null,
-              onBuy: () => _goBuyMana(p, 'potion'),
-            )),
-        const SizedBox(height: 20),
-        Text(
-          l10n?.mana_gems_packs_title ?? 'PACKS DE GEMAS DE MANÁ',
-          style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.manaCyan, letterSpacing: 1),
-        ),
-        const SizedBox(height: 12),
-        ...gems.map((g) => _buildManaProductCard(
-              title: g['name'] as String? ?? 'PACK',
-              mana: (g['mana_amount'] as num?)?.toInt() ?? 0,
-              price: (g['price_usd'] as num?)?.toDouble() ?? 0,
-              badge: g['badge'] as String?,
-              onBuy: () => _goBuyMana(g, 'gem_pack'),
-            )),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildManaProductCard({
-    required String title,
-    required int mana,
-    required double price,
-    String? badge,
-    required VoidCallback onBuy,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: GlassCard(
-        borderColor: AppColors.runeViolet.withValues(alpha: 0.3),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.runeViolet.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.4)),
-              ),
-              child: const Icon(Icons.bolt_rounded, color: AppColors.runeViolet, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          title,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.onSurface),
-                        ),
-                      ),
-                      if (badge != null) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.royalGold.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(2),
-                            border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
-                          ),
-                          child: Text(
-                            badge,
-                            style: GoogleFonts.jetBrainsMono(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.royalGold),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    (AppLocalizations.of(context)?.plus_mana(mana) ?? '+$mana maná'),
-                    style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: _isBuying ? null : onBuy,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.runeViolet,
-                foregroundColor: AppColors.voidBg,
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-              ),
-              child: Text(
-                price > 0
-                    ? '\$${price.toStringAsFixed(2)}'
-                    : (AppLocalizations.of(context)?.buy ?? 'COMPRAR'),
-                style: GoogleFonts.spaceGrotesk(fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
         ),
       ),
     );

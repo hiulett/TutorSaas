@@ -541,8 +541,6 @@
 
   "confirm_purchase": "CONFIRM PURCHASE",
   "buy": "BUY",
-  "purchase_error_stripe": "Could not start payment. Check Stripe configuration.",
-  "checkout_error": "Could not open checkout.",
   "cosmetic_purchased": "COSMETIC ACQUIRED! 🪙",
   "gold_insufficient": "INSUFFICIENT GOLD OR ALREADY OWNED ❌",
   "cosmetic_title": "TITLE",
@@ -1087,7 +1085,6 @@
   "paywall_subscribe": "SUBSCRIBE NOW",
   "paywall_restore": "RESTORE",
   "paywall_legal": "Cancel anytime via App Store / Play Store. Terms and Conditions apply.",
-  "paywall_err_stripe": "Could not start the payment. Check the Stripe configuration.",
   "paywall_err_checkout": "Could not open the checkout.",
   "paywall_feature_mana": "Realtime Mana consumption & voice metrics tracker",
   "paywall_feature_titles": "Unlock the 63 Rank Titles Inventory (from F to SSS Rank)",

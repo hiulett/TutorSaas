@@ -133,7 +133,7 @@ final fragmentBalanceProvider = FutureProvider.autoDispose<int>((ref) async {
 final manaStateProvider = StateNotifierProvider<CachedFutureController<Map<String, dynamic>>, AsyncValue<Map<String, dynamic>>>((ref) {
   final repo = ref.watch(economyRepositoryProvider);
   return CachedFutureController<Map<String, dynamic>>(
-    ttl: const Duration(minutes: 3),
+    ttl: const Duration(minutes: 1),
     userIdGetter: () => ref.read(currentUserProvider)?.id,
     fetcher: () async {
       final user = ref.read(currentUserProvider);
@@ -146,6 +146,10 @@ final manaStateProvider = StateNotifierProvider<CachedFutureController<Map<Strin
           'expires_at': null,
           'plan': 'Plan Gratuito',
           'class': 'plebeyo',
+          'is_free': true,
+          'daily_limit': 200,
+          'daily_used': 0,
+          'daily_remaining': 200,
         };
       }
       return repo.getManaState(user.id);
@@ -243,4 +247,41 @@ final goldCosmeticsProvider = StateNotifierProvider<CachedFutureController<List<
       }
     },
   );
+});
+
+// ── Inventario equipable de maná (elixires/gemas) ───────────────────────────
+
+/// Inventario de maná del usuario (mana_items). Se invalida al comprar/equipar.
+final manaItemsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const [];
+  final repo = ref.watch(economyRepositoryProvider);
+  return repo.getManaItems(user.id);
+});
+
+/// El ítem equipado (activo) del usuario, si existe.
+final equippedManaItemProvider = Provider<Map<String, dynamic>?>((ref) {
+  final items = ref.watch(manaItemsProvider).value ?? const [];
+  if (items.isEmpty) return null;
+  for (final item in items) {
+    if (item['status'] == 'equipped') return item;
+  }
+  return null;
+});
+
+/// Maná restante del ítem equipado, o 0 si no hay.
+final equippedManaRemainingProvider = Provider<int>((ref) {
+  final equipped = ref.watch(equippedManaItemProvider);
+  return (equipped?['mana_amount'] as num?)?.toInt() ?? 0;
+});
+
+/// Segundos hasta que expire el ítem equipado (48h gema / 15d elixir), o null.
+final equippedManaExpiryProvider = Provider<Duration?>((ref) {
+  final equipped = ref.watch(equippedManaItemProvider);
+  final expires = equipped?['expires_at'] as String?;
+  if (expires == null) return null;
+  final t = DateTime.tryParse(expires);
+  if (t == null) return null;
+  final diff = t.difference(DateTime.now());
+  return diff.isNegative ? Duration.zero : diff;
 });

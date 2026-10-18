@@ -40,6 +40,10 @@ class ConversationState with _$ConversationState {
 
     /// Non-null once the Oracle finishes the exam; holds the placement result.
     Map<String, dynamic>? oracleResult,
+
+    /// Momento en que arrancó la sesión (para el resumen real de duración).
+    /// Se fija en [initSession] y en la sesión del Oráculo.
+    DateTime? sessionStartedAt,
   }) = _ConversationState;
 
   /// Returns initial empty state. First message is set by [initSession].

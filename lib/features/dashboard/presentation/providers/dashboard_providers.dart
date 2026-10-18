@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/cache/cached_future_controller.dart';
 import '../../../../core/cache/json_disk_cache.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../data/models/hunter_catalog.dart';
@@ -214,6 +212,28 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((ref
           .maybeSingle(),
     ]);
 
+    // Oracle turns: scores reales de la última evaluación del Oráculo
+    // (pronunciación, fluidez, gramática, vocabulario, comprensión, naturalidad).
+    Map<String, dynamic>? oracleTurn;
+    try {
+      final assessment = await supabase
+          .from('oracle_assessments')
+          .select('id')
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (assessment != null) {
+        oracleTurn = await supabase
+            .from('oracle_turns')
+            .select('pronunciation_score, fluency_score, grammar_score, vocabulary_score, comprehension_score, naturalness_score')
+            .eq('assessment_id', assessment['id'])
+            .order('turn_order', ascending: false)
+            .limit(1)
+            .maybeSingle();
+      }
+    } catch (_) {}
+
     // 1. Goals score (completed / total)
     final goalsRes = (results[0] as List).cast<Map<String, dynamic>>();
     final totalGoals = goalsRes.length;
@@ -234,32 +254,35 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((ref
     final dnaRes = results[3] as Map<String, dynamic>?;
     final phoneticsScore = (dnaRes?['phonetic_clarity_score'] as num?)?.toDouble() ?? 0.0;
 
-    // 5. Grammar score from profile or session stats
-    final profileRes = results[4] as Map<String, dynamic>?;
-    final cefrLevel = profileRes?['cefr_levels']?['code'] as String? ?? 'B1';
-    double grammarScore = 0.0;
-    if (fluencyScore > 0 || totalVocab > 0 || totalGoals > 0) {
-      switch (cefrLevel.toUpperCase()) {
-        case 'PRE-A1': grammarScore = 30.0; break;
-        case 'A1': grammarScore = 40.0; break;
-        case 'A2': grammarScore = 55.0; break;
-        case 'B1': grammarScore = 70.0; break;
-        case 'B2': grammarScore = 82.0; break;
-        case 'C1': grammarScore = 90.0; break;
-        case 'C2': grammarScore = 96.0; break;
-        default: grammarScore = 65.0;
-      }
-    }
+    // 5. Scores reales del último turno del Oráculo (6 ejes).
+    //    Fuente real: oracle_turns (evaluación conversacional por IA).
+    final pronunciationScore = (oracleTurn?['pronunciation_score'] as num?)?.toDouble() ?? 0.0;
+    final oracleFluencyScore = (oracleTurn?['fluency_score'] as num?)?.toDouble() ?? 0.0;
+    final grammarScore = (oracleTurn?['grammar_score'] as num?)?.toDouble() ?? 0.0;
+    final vocabularyScore = (oracleTurn?['vocabulary_score'] as num?)?.toDouble() ?? 0.0;
+    final comprehensionScore = (oracleTurn?['comprehension_score'] as num?)?.toDouble() ?? 0.0;
+    final naturalnessScore = (oracleTurn?['naturalness_score'] as num?)?.toDouble() ?? 0.0;
+
+    // Fallback por fuente: si el Oráculo no tiene datos, se usan las métricas
+    // diarias (fluidez/daily, fonética/dna) para no mostrar 0 inventado.
+    final effFluency = oracleFluencyScore > 0 ? oracleFluencyScore : fluencyScore;
+    final effPhonetics = pronunciationScore > 0 ? pronunciationScore : phoneticsScore;
+    final effVocab = vocabularyScore > 0 ? vocabularyScore : vocabScore;
 
     return {
-      'fluency': fluencyScore.clamp(0.0, 100.0),
-      'vocab': vocabScore.clamp(0.0, 100.0),
-      'phonetics': phoneticsScore.clamp(0.0, 100.0),
+      'fluency': effFluency.clamp(0.0, 100.0),
+      'vocab': effVocab.clamp(0.0, 100.0),
+      'phonetics': effPhonetics.clamp(0.0, 100.0),
       'grammar': grammarScore.clamp(0.0, 100.0),
       'goals': goalsScore.clamp(0.0, 100.0),
+      'comprehension': comprehensionScore.clamp(0.0, 100.0),
+      'naturalness': naturalnessScore.clamp(0.0, 100.0),
     };
   } catch (_) {
-    return {'fluency': 0.0, 'vocab': 0.0, 'phonetics': 0.0, 'grammar': 0.0, 'goals': 0.0};
+    return {
+      'fluency': 0.0, 'vocab': 0.0, 'phonetics': 0.0, 'grammar': 0.0, 'goals': 0.0,
+      'comprehension': 0.0, 'naturalness': 0.0,
+    };
   }
 });
 
@@ -328,74 +351,6 @@ final practiceHeatmapProvider = FutureProvider.autoDispose<List<Map<String, dyna
     return [];
   }
 });
-
-/// Computes the 11 hunter attributes normalized to 0.0–1.0 for the Status Window.
-final hunterAttributesProvider = FutureProvider.autoDispose<Map<String, double>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return {};
-  ref.watch(dashboardRefreshProvider);
-  final radar = await ref.read(skillsRadarProvider.future);
-
-  final grammar = (radar['grammar'] ?? 0.0) / 100.0;
-  final vocabScore = (radar['vocab'] ?? 0.0) / 100.0;
-  final phonetics = (radar['phonetics'] ?? 0.0) / 100.0;
-  final fluency = (radar['fluency'] ?? 0.0) / 100.0;
-
-  return {
-    'grammar': grammar, 'latency': 0.75, 'blind': 0.5,
-    'vocabulary': vocabScore, 'phonetics': phonetics, 'volume': 0.6,
-    'presence': fluency, 'stage': 0.5, 'hosting': 0.3, 'chalice': 0.3, 'chat': 0.4,
-  };
-});
-
-const Map<String, Map<String, String>> hunterAttributeMeta = {
-  'grammar': {'name': 'Precisión Gramatical', 'icon': '📝'},
-  'latency': {'name': 'Latencia de Respuesta', 'icon': '⚡'},
-  'blind': {'name': 'Agudeza Auditiva a Ciegas', 'icon': '🦇'},
-  'vocabulary': {'name': 'Capacidad Léxica SRS', 'icon': '📖'},
-  'phonetics': {'name': 'Precisión Fonética', 'icon': '🎤'},
-  'volume': {'name': 'Volumen de Oratoria', 'icon': '📢'},
-  'presence': {'name': 'Presencia Social', 'icon': '👥'},
-  'stage': {'name': 'Dominio del Escenario', 'icon': '🎭'},
-  'hosting': {'name': 'Liderazgo de Gremio', 'icon': '🏰'},
-  'chalice': {'name': 'Audacia del Cáliz', 'icon': '🏆'},
-  'chat': {'name': 'Comunicación Táctica', 'icon': '💬'},
-};
-
-Color hunterAttributeColor(String key) {
-  switch (key) {
-    case 'grammar': return AppColors.emeraldGreen;
-    case 'latency': return AppColors.royalGold;
-    case 'blind': return AppColors.manaCyan;
-    case 'vocabulary': return AppColors.vocabularyBlue;
-    case 'phonetics': return AppColors.emeraldGreen;
-    case 'volume': return AppColors.rarityLegendary;
-    case 'presence': return AppColors.presencePink;
-    case 'stage': return AppColors.runeViolet;
-    case 'hosting': return AppColors.hostingAmber;
-    case 'chalice': return AppColors.royalGold;
-    case 'chat': return AppColors.chatBlue;
-    default: return AppColors.manaCyan;
-  }
-}
-
-String hunterAttributeValueText(String key, double raw) {
-  final pct = (raw * 100).round();
-  switch (key) {
-    case 'grammar': return '$pct%';
-    case 'latency': return '${(1.0 - raw) * 3.7 + 0.3}s';
-    case 'blind': return '${(raw * 30).round()} Gates';
-    case 'vocabulary': return '$pct%';
-    case 'phonetics': return '$pct%';
-    case 'volume': return '${(raw * 200).round()} WPM';
-    case 'presence': return '${(raw * 300).round()} Min';
-    case 'stage': return '$pct%';
-    case 'hosting': return '$pct%';
-    case 'chalice': return '$pct%';
-    case 'chat': return '$pct%';
-    default: return '$pct%';
-  }
-}
 
 /// Manages the currently equipped title code.
 class EquippedTitleNotifier extends StateNotifier<String> {

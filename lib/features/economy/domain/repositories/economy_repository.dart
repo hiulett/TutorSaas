@@ -110,10 +110,6 @@ abstract class EconomyRepository {
   /// Título de prestigio actual: `{tier_code, name}`.
   Future<Map<String, dynamic>> getPrestigeTitle(String userId);
 
-  /// Crea una sesión de Checkout de Stripe para maná (type: 'potion'|'gem_pack').
-  /// Devuelve la URL de Checkout o null en error.
-  Future<String?> createManaCheckout(String userId, String productId, String type);
-
   // ── Inventario equipable de maná (elixires/gemas) ─────────────────────────
 
   /// Inventario del usuario: lista de `mana_items` (inventory + equipped).

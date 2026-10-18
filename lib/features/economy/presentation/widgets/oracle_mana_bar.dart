@@ -12,6 +12,10 @@ import '../providers/economy_providers.dart';
 /// Saldo = asignación mensual del plan + maná comprado (porciones/gemas) − usado.
 /// Toda acción IA descuenta el costo configurable (ai_action_costs); nada se
 /// gana jugando. Se recarga al renovar el ciclo (expira en `expires_at`).
+///
+/// En el plan GRATUITO la barra refleja el MANÁ DIARIO (daily_limit=200):
+/// el consumo de lecciones descuenta `daily_used` y la barra muestra lo que
+/// queda del día, reiniciando cada día.
 class OracleManaBar extends ConsumerWidget {
   final bool showLabel;
   final bool compact;
@@ -36,17 +40,32 @@ class OracleManaBar extends ConsumerWidget {
       'remaining': 1800,
       'expires_at': null,
       'plan': 'Plan Gratuito',
+      'is_free': true,
+      'daily_limit': 200,
+      'daily_used': 0,
+      'daily_remaining': 200,
     };
+    final bool isFree = mana['is_free'] as bool? ?? true;
     final int allowance = mana['allowance'] as int? ?? 1800;
     final int purchased = mana['purchased'] as int? ?? 0;
     final int remaining = mana['remaining'] as int? ?? 0;
     final int available = allowance + purchased;
+
+    // Maná diario (plan free): tope diario y lo que queda hoy.
+    final int dailyLimit = mana['daily_limit'] as int? ?? 200;
+    final int dailyRemaining = mana['daily_remaining'] as int? ?? 0;
+
     final DateTime? expiresAt = mana['expires_at'] is String
         ? DateTime.tryParse(mana['expires_at'] as String)
         : null;
 
-    final double progress = available > 0 ? (remaining / available).clamp(0.0, 1.0) : 0.0;
-    final bool exhausted = remaining <= 0;
+    // Qué muestra la barra según el plan:
+    //   free  → maná diario (dailyRemaining/dailyLimit), se recarga cada día.
+    //   pago  → saldo mensual (remaining/available), se recarga al renovar.
+    final int barValue = isFree ? dailyRemaining : remaining;
+    final int barMax = isFree ? dailyLimit : available;
+    final double progress = barMax > 0 ? (barValue / barMax).clamp(0.0, 1.0) : 0.0;
+    final bool exhausted = barValue <= 0;
 
     final double titleSize = compact ? 9 : 10;
     final double numSize = compact ? 10 : 11;
@@ -74,7 +93,7 @@ class OracleManaBar extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '$remaining / $available',
+                '$barValue / $barMax',
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: numSize,
                   fontWeight: FontWeight.bold,
@@ -101,7 +120,7 @@ class OracleManaBar extends ConsumerWidget {
           Row(
             children: [
               AnimatedCounter(
-                target: remaining,
+                target: barValue,
                 duration: const Duration(milliseconds: 600),
                 style: GoogleFonts.jetBrainsMono(
                   fontWeight: FontWeight.bold,
@@ -112,13 +131,15 @@ class OracleManaBar extends ConsumerWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  l10n?.mana_available ?? 'maná disponible',
+                  isFree
+                      ? (l10n?.mana_daily_available ?? 'maná disponible hoy')
+                      : (l10n?.mana_available ?? 'maná disponible'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: titleSize, color: AppColors.onSurfaceVariant),
                 ),
               ),
-              if (expiresAt != null) ...[
+              if (!isFree && expiresAt != null) ...[
                 const SizedBox(width: 8),
                 Text(
                   l10n?.mana_expires(_formatDate(expiresAt)) ??

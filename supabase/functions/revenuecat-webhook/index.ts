@@ -93,7 +93,6 @@ async function activatePlan(
       billing_cycle: billingCycle,
       period_start: now.toISOString(),
       period_end: end.toISOString(),
-      stripe_subscription_id: productId,
       // Issue #69: estos campos permiten que la sincronización desde la app
       // detecte que el periodo ya está aplicado y no vuelva a dar maná.
       store: 'play',

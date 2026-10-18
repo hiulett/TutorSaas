@@ -1565,13 +1565,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buy => 'COMPRAR';
 
   @override
-  String get purchase_error_stripe =>
-      'No se pudo iniciar el pago. Revisa la configuración de Stripe.';
-
-  @override
-  String get checkout_error => 'No se pudo abrir el checkout.';
-
-  @override
   String get cosmetic_purchased => '¡COSMÉTICO ADQUIRIDO! 🪙';
 
   @override
@@ -3143,10 +3136,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get paywall_legal =>
       'Cancela cuando quieras desde App Store / Play Store. Se aplican Términos y Condiciones.';
-
-  @override
-  String get paywall_err_stripe =>
-      'No se pudo iniciar el pago. Revisa la configuración de Stripe.';
 
   @override
   String get paywall_err_checkout => 'No se pudo abrir el checkout.';

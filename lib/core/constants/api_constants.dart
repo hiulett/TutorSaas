@@ -59,10 +59,10 @@ class ApiConstants {
 
   /// RevenueCat public SDK key (configuración: copiar config.sample.json).
   /// En producción se inyecta con --dart-define-from-file=config.json
-  /// (clave: REVENUECAT_API_KEY). Default = test key pública (solo dev/tests).
+  /// (clave: REVENUECAT_API_KEY). Default = key pública de la app de Play Store.
   static const String revenueCatApiKey = String.fromEnvironment(
     'REVENUECAT_API_KEY',
-    defaultValue: 'test_pZvnwshDFcmtFESTyYwBSYFGdCN',
+    defaultValue: 'goog_GPhVDtofHXRaAUEjVfrkgGRIOwF',
   );
 
   /// Entitlement de Premium en RevenueCat (DungeonsSpeak Pro).

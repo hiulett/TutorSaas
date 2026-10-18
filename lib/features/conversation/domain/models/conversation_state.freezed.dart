@@ -52,6 +52,10 @@ mixin _$ConversationState {
   /// Non-null once the Oracle finishes the exam; holds the placement result.
   Map<String, dynamic>? get oracleResult => throw _privateConstructorUsedError;
 
+  /// Momento en que arrancó la sesión (para el resumen real de duración).
+  /// Se fija en [initSession] y en la sesión del Oráculo.
+  DateTime? get sessionStartedAt => throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $ConversationStateCopyWith<ConversationState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -79,7 +83,8 @@ abstract class $ConversationStateCopyWith<$Res> {
       String oracleNativeLanguage,
       bool oracleEvaluating,
       bool oracleFinished,
-      Map<String, dynamic>? oracleResult});
+      Map<String, dynamic>? oracleResult,
+      DateTime? sessionStartedAt});
 }
 
 /// @nodoc
@@ -111,6 +116,7 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
     Object? oracleEvaluating = null,
     Object? oracleFinished = null,
     Object? oracleResult = freezed,
+    Object? sessionStartedAt = freezed,
   }) {
     return _then(_value.copyWith(
       messages: null == messages
@@ -177,6 +183,10 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
           ? _value.oracleResult
           : oracleResult // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      sessionStartedAt: freezed == sessionStartedAt
+          ? _value.sessionStartedAt
+          : sessionStartedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -205,7 +215,8 @@ abstract class _$$ConversationStateImplCopyWith<$Res>
       String oracleNativeLanguage,
       bool oracleEvaluating,
       bool oracleFinished,
-      Map<String, dynamic>? oracleResult});
+      Map<String, dynamic>? oracleResult,
+      DateTime? sessionStartedAt});
 }
 
 /// @nodoc
@@ -235,6 +246,7 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
     Object? oracleEvaluating = null,
     Object? oracleFinished = null,
     Object? oracleResult = freezed,
+    Object? sessionStartedAt = freezed,
   }) {
     return _then(_$ConversationStateImpl(
       messages: null == messages
@@ -301,6 +313,10 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
           ? _value._oracleResult
           : oracleResult // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      sessionStartedAt: freezed == sessionStartedAt
+          ? _value.sessionStartedAt
+          : sessionStartedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -324,7 +340,8 @@ class _$ConversationStateImpl implements _ConversationState {
       this.oracleNativeLanguage = 'es',
       this.oracleEvaluating = false,
       this.oracleFinished = false,
-      final Map<String, dynamic>? oracleResult})
+      final Map<String, dynamic>? oracleResult,
+      this.sessionStartedAt})
       : _messages = messages,
         _goalEvaluationResults = goalEvaluationResults,
         _oracleResult = oracleResult;
@@ -414,9 +431,14 @@ class _$ConversationStateImpl implements _ConversationState {
     return EqualUnmodifiableMapView(value);
   }
 
+  /// Momento en que arrancó la sesión (para el resumen real de duración).
+  /// Se fija en [initSession] y en la sesión del Oráculo.
+  @override
+  final DateTime? sessionStartedAt;
+
   @override
   String toString() {
-    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleEvaluating: $oracleEvaluating, oracleFinished: $oracleFinished, oracleResult: $oracleResult)';
+    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleEvaluating: $oracleEvaluating, oracleFinished: $oracleFinished, oracleResult: $oracleResult, sessionStartedAt: $sessionStartedAt)';
   }
 
   @override
@@ -455,7 +477,9 @@ class _$ConversationStateImpl implements _ConversationState {
             (identical(other.oracleFinished, oracleFinished) ||
                 other.oracleFinished == oracleFinished) &&
             const DeepCollectionEquality()
-                .equals(other._oracleResult, _oracleResult));
+                .equals(other._oracleResult, _oracleResult) &&
+            (identical(other.sessionStartedAt, sessionStartedAt) ||
+                other.sessionStartedAt == sessionStartedAt));
   }
 
   @override
@@ -476,7 +500,8 @@ class _$ConversationStateImpl implements _ConversationState {
       oracleNativeLanguage,
       oracleEvaluating,
       oracleFinished,
-      const DeepCollectionEquality().hash(_oracleResult));
+      const DeepCollectionEquality().hash(_oracleResult),
+      sessionStartedAt);
 
   @JsonKey(ignore: true)
   @override
@@ -503,7 +528,8 @@ abstract class _ConversationState implements ConversationState {
       final String oracleNativeLanguage,
       final bool oracleEvaluating,
       final bool oracleFinished,
-      final Map<String, dynamic>? oracleResult}) = _$ConversationStateImpl;
+      final Map<String, dynamic>? oracleResult,
+      final DateTime? sessionStartedAt}) = _$ConversationStateImpl;
 
   @override
   List<ConversationMessage> get messages;
@@ -554,6 +580,11 @@ abstract class _ConversationState implements ConversationState {
 
   /// Non-null once the Oracle finishes the exam; holds the placement result.
   Map<String, dynamic>? get oracleResult;
+  @override
+
+  /// Momento en que arrancó la sesión (para el resumen real de duración).
+  /// Se fija en [initSession] y en la sesión del Oráculo.
+  DateTime? get sessionStartedAt;
   @override
   @JsonKey(ignore: true)
   _$$ConversationStateImplCopyWith<_$ConversationStateImpl> get copyWith =>

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../data/repositories/mission_repository.dart';
 import '../../domain/repositories/mission_repository.dart';
 import '../../domain/models/mission_models.dart';
@@ -54,6 +55,16 @@ final completedMissionsProvider = FutureProvider.autoDispose<List<MissionInstanc
   final user = ref.watch(currentUserProvider);
   if (user == null) return [];
   return ref.watch(missionRepositoryProvider).getCompletedMissions(user.id);
+});
+
+/// Misiones diarias activas del usuario (mission_instances con mission_type='daily').
+/// Se conecta a la DB real; se invalida al reclamar una recompensa.
+final dailyMissionsProvider = FutureProvider.autoDispose<List<MissionInstance>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  ref.watch(dashboardRefreshProvider);
+  final missions = await ref.watch(missionRepositoryProvider).getActiveMissions(user.id);
+  return missions.where((m) => m.missionType == 'daily').toList();
 });
 
 /// Evento semanal en curso, estable por semana ISO: `semana % 5` rota el

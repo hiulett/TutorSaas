@@ -524,8 +524,6 @@
 
   "confirm_purchase": "CONFIRMAR COMPRA",
   "buy": "COMPRAR",
-  "purchase_error_stripe": "Não foi possível iniciar o pagamento. Verifique a configuração do Stripe.",
-  "checkout_error": "Não foi possível abrir o checkout.",
   "cosmetic_purchased": "COSMÉTICO ADQUIRIDO! 🪙",
   "gold_insufficient": "OURO INSUFICIENTE OU JÁ ADQUIRIDO ❌",
   "cosmetic_title": "TÍTULO",
@@ -853,7 +851,6 @@
   "paywall_subscribe": "ASSINAR AGORA",
   "paywall_restore": "RESTAURAR",
   "paywall_legal": "Cancele quando quiser pela App Store / Play Store. Aplicam-se Termos e Condições.",
-  "paywall_err_stripe": "Não foi possível iniciar o pagamento. Verifique a configuração do Stripe.",
   "paywall_err_checkout": "Não foi possível abrir o checkout.",
   "paywall_feature_mana": "Consumo de mana em tempo real e métricas de voz",
   "paywall_feature_titles": "Desbloqueie o inventário de 63 títulos de ranque (de F a SSS)",

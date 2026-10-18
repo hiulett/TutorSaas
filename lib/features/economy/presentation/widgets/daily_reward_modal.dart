@@ -28,17 +28,21 @@ class DailyRewardModal extends ConsumerStatefulWidget {
 class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
   bool _isClaiming = false;
   bool _claimed = false;
+  Map<String, int> _claimedReward = const {};
 
   Future<void> _claim() async {
     setState(() => _isClaiming = true);
     final user = ref.read(currentUserProvider);
     if (user != null) {
-      final ok = await ref.read(economyRepositoryProvider).claimDailyReward(user.id);
-      if (ok) {
+      final reward = await ref.read(economyRepositoryProvider).claimDailyReward(user.id);
+      if (reward.isNotEmpty) {
         ref.invalidate(dailyStateProvider);
         ref.invalidate(streakProvider);
         ref.invalidate(gemBalanceProvider);
-        if (mounted) setState(() => _claimed = true);
+        if (mounted) setState(() {
+          _claimed = true;
+          _claimedReward = reward;
+        });
       }
     }
     if (mounted) setState(() => _isClaiming = false);
@@ -52,14 +56,18 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
     final streak = streakAsync.value?['current_streak'] as int? ?? 0;
     final alreadyClaimed = (dailyAsync.value?['daily_reward_claimed'] as bool?) ?? false;
 
-    final (int gems, int pergaminos) = switch (streak) {
+    final effectiveClaimed = _claimed || alreadyClaimed;
+
+    // Previsión escalonada por racha (solo para la preview). La recompensa
+    // REAL aplicada viene de _claimedReward tras reclamar.
+    final (int previewGems, int previewPergaminos) = switch (streak) {
       >= 30 => (300, 15),
       >= 14 => (100, 8),
       >= 7 => (50, 5),
       _ => (5, 2),
     };
-
-    final effectiveClaimed = _claimed || alreadyClaimed;
+    final int gems = effectiveClaimed && _claimed ? (_claimedReward['gems'] ?? previewGems) : previewGems;
+    final int pergaminos = effectiveClaimed && _claimed ? (_claimedReward['pergaminos'] ?? previewPergaminos) : previewPergaminos;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),

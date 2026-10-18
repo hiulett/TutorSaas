@@ -706,21 +706,6 @@ class EconomyRepositoryImpl implements EconomyRepository {
     }
   }
 
-  @override
-  Future<String?> createManaCheckout(String userId, String productId, String type) async {
-    try {
-      final res = await _client.functions.invoke('stripe-checkout', body: {
-        'type': type,
-        'product_id': productId,
-      });
-      final data = (res.data as Map?) ?? const {};
-      return data['url'] as String?;
-    } catch (e) {
-      debugPrint('createManaCheckout error: $e');
-      return null;
-    }
-  }
-
   // ── Inventario equipable de maná ─────────────────────────────────────────
 
   @override
