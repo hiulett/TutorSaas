@@ -12,6 +12,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get app_name => 'Dungeon of English';
 
   @override
+  String get login_title => 'Bienvenido de nuevo, Cazador';
+
+  @override
+  String get login_subtitle => 'Inicia sesión para continuar tu aventura.';
+
+  @override
+  String get register_prompt => '¿Nuevo Cazador? Crea una cuenta';
+
+  @override
+  String get login_prompt => '¿Ya eres un Cazador? Inicia sesión';
+
+  @override
   String get welcome_title =>
       '[MENSAJE DEL SISTEMA: DESPERTANDO NÚCLEO DE CAZADOR...]';
 
@@ -60,6 +72,74 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get create_account_desc =>
       'Regístrate con Google para personalizar tu tutor de idiomas con IA y medir tu progreso.';
+
+  @override
+  String get email_label => 'Correo electrónico';
+
+  @override
+  String get password_label => 'Contraseña';
+
+  @override
+  String get email_required => 'Ingresa tu correo electrónico';
+
+  @override
+  String get password_required => 'Ingresa tu contraseña';
+
+  @override
+  String get email_invalid => 'Ingresa un correo válido';
+
+  @override
+  String get password_short => 'La contraseña debe tener al menos 6 caracteres';
+
+  @override
+  String get login_email => 'INICIAR SESIÓN CON CORREO';
+
+  @override
+  String get register_email => 'CREAR CUENTA CON CORREO';
+
+  @override
+  String get login_email_error => 'Error al iniciar sesión con correo.';
+
+  @override
+  String get register_email_error => 'Error al crear la cuenta.';
+
+  @override
+  String get email_already_registered =>
+      'Este correo ya está registrado. Inicia sesión en su lugar.';
+
+  @override
+  String get login_success => 'Inicio de sesión exitoso. Entrando al reino...';
+
+  @override
+  String get register_success => 'Cuenta creada. Entrando al reino...';
+
+  @override
+  String get login_email_hint => 'tucorreo@email.com';
+
+  @override
+  String get forgot_password => '¿OLVIDASTE TU CONTRASEÑA?';
+
+  @override
+  String get reset_password_title => 'RECUPERAR CONTRASEÑA';
+
+  @override
+  String get reset_password_desc =>
+      'Ingresa tu correo y te enviaremos un enlace para recuperar tu contraseña.';
+
+  @override
+  String get reset_password_send => 'ENVIAR ENLACE DE RECUPERACIÓN';
+
+  @override
+  String get reset_password_sent =>
+      'Enlace de recuperación enviado. Revisa tu bandeja de correo.';
+
+  @override
+  String get reset_password_error =>
+      'Error al enviar el enlace. Revisa el correo e inténtalo de nuevo.';
+
+  @override
+  String get reset_password_email_empty =>
+      'Ingresa tu correo para recuperar tu contraseña.';
 
   @override
   String get sync_progress => 'SINCRONIZANDO NIVEL CEFR...';
@@ -227,7 +307,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get wpm => 'PPM';
 
   @override
-  String get radar_title => 'Radar de Habilidades 5-D';
+  String get radar_title => 'Radar Holográfico de Habilidades';
 
   @override
   String get heatmap_title => 'Consistencia de Práctica (4 Semanas)';
@@ -428,7 +508,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get live_coop => 'Salas de Raid Co-Op en Vivo';
 
   @override
-  String get initialize_room => 'Inicializar Sala';
+  String get initialize_room => 'Crear Mesa';
 
   @override
   String get enter_raid => 'Entrar a la Raid';
@@ -966,8 +1046,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get onb_validate_target => 'Selecciona el idioma que deseas aprender.';
 
   @override
-  String get login_google_error =>
-      'Error al iniciar sesión con Google: \$error';
+  String get login_google_error => 'Error al iniciar sesión con Google.';
 
   @override
   String get register_google_error => 'Error al registrarse con Google.';
@@ -1095,6 +1174,27 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get progress_active_level => 'Nivel Activo';
+
+  @override
+  String get progress_active_rank => 'Rango del Gremio';
+
+  @override
+  String get radar_fluency => 'Fluidez';
+
+  @override
+  String get radar_vocab => 'Vocabulario';
+
+  @override
+  String get radar_phonetics => 'Fonética';
+
+  @override
+  String get radar_grammar => 'Gramática';
+
+  @override
+  String get radar_comprehension => 'Comprensión';
+
+  @override
+  String get radar_naturalness => 'Naturalidad';
 
   @override
   String get progress_srs_review => 'Repaso SRS';
@@ -1293,6 +1393,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get mana_available => 'maná disponible';
+
+  @override
+  String get mana_daily_available => 'maná disponible hoy';
+
+  @override
+  String get guardian_title => 'SANTUARIO DE MANÁ';
+
+  @override
+  String get guardian_sealed => 'Sellada';
+
+  @override
+  String get guardian_cry => 'TU MANÁ SE HA AGOTADO.\nEL SANTUARIO TE ESPERA.';
+
+  @override
+  String get guardian_desc =>
+      'Toda acción de IA cuesta maná. Recupéralo con tu plan, porciones o equipando un elixir o gema de tu bolsa.';
+
+  @override
+  String get guardian_get_mana => 'OBTENER MANÁ';
+
+  @override
+  String get guardian_get_mana_desc => 'MÁS MANÁ MENSUAL POR ESTAMENTO';
+
+  @override
+  String get guardian_equip_item => 'EQUIPAR ELIXIR / GEMA';
+
+  @override
+  String get guardian_equip_item_desc => 'Equipa un ítem de maná de tu bolsa';
+
+  @override
+  String get guardian_go_back => 'Volver al Gremio';
 
   @override
   String mana_balance(int remaining, int total) {
@@ -1703,7 +1834,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get voice_guild_chamber => 'SALA DE VOZ DEL GREMIO';
 
   @override
-  String get voice_moderated => 'Moderado por un Tutor IA en tiempo real';
+  String get voice_moderated => 'Sala de voz del gremio';
 
   @override
   String get voice_leave => 'Salir de la sala';
@@ -1809,7 +1940,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String guild_rank_level(String cefr) {
-    return 'RANGO SSS — Nivel $cefr';
+    return 'RANGO $cefr';
   }
 
   @override
@@ -2140,6 +2271,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quest_daily_title => 'Misiones Diarias';
 
   @override
+  String quest_claimed(int xp) {
+    return '¡Recompensa canjeada! +$xp XP';
+  }
+
+  @override
+  String get quest_empty => 'No hay misiones diarias activas por ahora.';
+
+  @override
   String get quest_speak_10min => 'Habla 10 minutos de voz';
 
   @override
@@ -2250,7 +2389,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recommended_speak => 'Speak';
 
   @override
-  String get path_roadmap_title => 'Stage Path (CEFR)';
+  String get path_roadmap_title => 'MAPA DE MAZMORRAS';
 
   @override
   String get path_stage_empty => 'No lessons recorded for this stage yet.';
@@ -3040,4 +3179,47 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get paywall_manage_subscription => 'GESTIONAR SUSCRIPCIÓN';
+
+  @override
+  String get mana_inventory_title => 'INVENTARIO DE MANÁ';
+
+  @override
+  String get mana_inventory_empty =>
+      'Aún no tienes elixires ni gemas en la bolsa.';
+
+  @override
+  String get mana_gem_label => 'GEMA';
+
+  @override
+  String get mana_elixir_label => 'ELIXIR';
+
+  @override
+  String mana_expiry_countdown(Object hours, Object minutes) {
+    return 'Expira en ${hours}h ${minutes}m';
+  }
+
+  @override
+  String get mana_item_equipped => 'Ítem de maná equipado';
+
+  @override
+  String get mana_equip => 'EQUIPAR';
+
+  @override
+  String get summary_next_lesson => 'SIGUIENTE LECCIÓN';
+
+  @override
+  String get oracle_challenge_title => 'EVALUACIÓN DEL ORÁCULO';
+
+  @override
+  String get oracle_challenge_ready =>
+      'El Oráculo te espera. ¡Reto disponible!';
+
+  @override
+  String oracle_challenge_progress(Object percent) {
+    return 'Completa el 80% para retar al Oráculo ($percent%)';
+  }
+
+  @override
+  String get onboarding_english_only =>
+      'Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes.';
 }

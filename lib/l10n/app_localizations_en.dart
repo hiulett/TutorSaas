@@ -12,6 +12,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get app_name => 'Dungeon of English';
 
   @override
+  String get login_title => 'Welcome back, Hunter';
+
+  @override
+  String get login_subtitle => 'Sign in to continue your journey.';
+
+  @override
+  String get register_prompt => 'New Hunter? Create account';
+
+  @override
+  String get login_prompt => 'Already a Hunter? Log in';
+
+  @override
   String get welcome_title => '[SYSTEM MESSAGE: AWAKENING HUNTER CORE...]';
 
   @override
@@ -59,6 +71,74 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get create_account_desc =>
       'Register with Google to personalize your AI language tutor and track progress.';
+
+  @override
+  String get email_label => 'Email';
+
+  @override
+  String get password_label => 'Password';
+
+  @override
+  String get email_required => 'Enter your email';
+
+  @override
+  String get password_required => 'Enter your password';
+
+  @override
+  String get email_invalid => 'Enter a valid email';
+
+  @override
+  String get password_short => 'Password must be at least 6 characters';
+
+  @override
+  String get login_email => 'LOG IN WITH EMAIL';
+
+  @override
+  String get register_email => 'CREATE ACCOUNT WITH EMAIL';
+
+  @override
+  String get login_email_error => 'Error signing in with email.';
+
+  @override
+  String get register_email_error => 'Error creating the account.';
+
+  @override
+  String get email_already_registered =>
+      'This email is already registered. Log in instead.';
+
+  @override
+  String get login_success => 'Login successful. Entering the realm...';
+
+  @override
+  String get register_success => 'Account created. Entering the realm...';
+
+  @override
+  String get login_email_hint => 'your@email.com';
+
+  @override
+  String get forgot_password => 'FORGOT PASSWORD?';
+
+  @override
+  String get reset_password_title => 'RECOVER PASSWORD';
+
+  @override
+  String get reset_password_desc =>
+      'Enter your email and we will send you a link to recover your password.';
+
+  @override
+  String get reset_password_send => 'SEND RECOVERY LINK';
+
+  @override
+  String get reset_password_sent =>
+      'Recovery link sent. Check your email inbox.';
+
+  @override
+  String get reset_password_error =>
+      'Error sending the recovery link. Check the email and try again.';
+
+  @override
+  String get reset_password_email_empty =>
+      'Enter your email to recover your password.';
 
   @override
   String get sync_progress => 'SYNC CEFR LANGUAGE...';
@@ -225,7 +305,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wpm => 'WPM';
 
   @override
-  String get radar_title => '5-D Skills Radar';
+  String get radar_title => 'Holographic Skills Radar';
 
   @override
   String get heatmap_title => 'Practice Consistency (4 Weeks)';
@@ -425,7 +505,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get live_coop => 'Live Co-Op Raid Rooms';
 
   @override
-  String get initialize_room => 'Initialize Room';
+  String get initialize_room => 'Create Table';
 
   @override
   String get enter_raid => 'Enter Raid';
@@ -1089,6 +1169,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progress_active_level => 'Active Level';
 
   @override
+  String get progress_active_rank => 'Guild Rank';
+
+  @override
+  String get radar_fluency => 'Fluency';
+
+  @override
+  String get radar_vocab => 'Vocabulary';
+
+  @override
+  String get radar_phonetics => 'Phonetics';
+
+  @override
+  String get radar_grammar => 'Grammar';
+
+  @override
+  String get radar_comprehension => 'Comprehension';
+
+  @override
+  String get radar_naturalness => 'Naturalness';
+
+  @override
   String get progress_srs_review => 'SRS Review';
 
   @override
@@ -1285,6 +1386,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mana_available => 'mana available';
+
+  @override
+  String get mana_daily_available => 'mana available today';
+
+  @override
+  String get guardian_title => 'MANA SANCTUARY';
+
+  @override
+  String get guardian_sealed => 'Sealed';
+
+  @override
+  String get guardian_cry => 'YOUR MANA IS DEPLETED.\nTHE SANCTUARY AWAITS.';
+
+  @override
+  String get guardian_desc =>
+      'Every AI action costs mana. Recover it with your plan, potions, or an elixir/gem from your bag.';
+
+  @override
+  String get guardian_get_mana => 'GET MANA';
+
+  @override
+  String get guardian_get_mana_desc => 'MORE MANA PER MONTH BY ESTATE';
+
+  @override
+  String get guardian_equip_item => 'EQUIP ELIXIR / GEM';
+
+  @override
+  String get guardian_equip_item_desc => 'Equip a mana item from your bag';
+
+  @override
+  String get guardian_go_back => 'Return to the Guild';
 
   @override
   String mana_balance(int remaining, int total) {
@@ -1695,7 +1827,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_guild_chamber => 'GUILD VOICE CHAMBER';
 
   @override
-  String get voice_moderated => 'Moderated by AI Tutor in Real Time';
+  String get voice_moderated => 'Guild voice room';
 
   @override
   String get voice_leave => 'Leave the room';
@@ -1801,7 +1933,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String guild_rank_level(String cefr) {
-    return 'RANK SSS — Level $cefr';
+    return 'RANK $cefr';
   }
 
   @override
@@ -2130,6 +2262,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quest_daily_title => 'Daily Quests';
 
   @override
+  String quest_claimed(int xp) {
+    return 'Reward claimed! +$xp XP';
+  }
+
+  @override
+  String get quest_empty => 'No active daily quests right now.';
+
+  @override
   String get quest_speak_10min => 'Speak 10 minutes of voice';
 
   @override
@@ -2240,7 +2380,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recommended_speak => 'Speak';
 
   @override
-  String get path_roadmap_title => 'Stage Path (CEFR)';
+  String get path_roadmap_title => 'DUNGEON MAP';
 
   @override
   String get path_stage_empty => 'No lessons recorded for this stage yet.';
@@ -3027,4 +3167,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paywall_manage_subscription => 'MANAGE SUBSCRIPTION';
+
+  @override
+  String get mana_inventory_title => 'MANA INVENTORY';
+
+  @override
+  String get mana_inventory_empty => 'No elixirs or gems in your bag yet.';
+
+  @override
+  String get mana_gem_label => 'GEM';
+
+  @override
+  String get mana_elixir_label => 'ELIXIR';
+
+  @override
+  String mana_expiry_countdown(Object hours, Object minutes) {
+    return 'Expires in ${hours}h ${minutes}m';
+  }
+
+  @override
+  String get mana_item_equipped => 'Mana item equipped';
+
+  @override
+  String get mana_equip => 'EQUIP';
+
+  @override
+  String get summary_next_lesson => 'NEXT LESSON';
+
+  @override
+  String get oracle_challenge_title => 'ORACLE EVALUATION';
+
+  @override
+  String get oracle_challenge_ready =>
+      'The Oracle awaits you. Challenge available!';
+
+  @override
+  String oracle_challenge_progress(Object percent) {
+    return 'Complete 80% to challenge the Oracle ($percent%)';
+  }
+
+  @override
+  String get onboarding_english_only =>
+      'You will learn English. You can change the interface language in Settings.';
 }

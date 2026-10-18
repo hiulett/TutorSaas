@@ -644,7 +644,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                   ],
                                 ),
                                 Text(
-                                  AppLocalizations.of(context)?.voice_moderated ?? 'Moderated by AI Tutor in Real Time',
+                                  AppLocalizations.of(context)?.voice_moderated ?? 'Guild voice room',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10),
