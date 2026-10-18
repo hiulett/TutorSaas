@@ -4,7 +4,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import '../constants/api_constants.dart';
 
-/// Servicio de suscripciones vía RevenueCat (Google Play Billing + Apple IAP).
+/// Servicio de suscripciones vía RevenueCat (Google Play Billing).
 ///
 /// Reemplaza el flujo Stripe in-app (no permitido para bienes digitales). La
 /// compra se hace con el SDK de RevenueCat; el webhook `revenuecat-webhook`

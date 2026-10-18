@@ -3,7 +3,7 @@
 ## Project Overview
 Flutter mobile SaaS for conversational English learning wrapped in an Isekai/Webtoon "System HUD" RPG. Voice pipeline: record (AAC/m4a) → Groq Whisper STT (whisper-large-v3-turbo, language forced `en`) → DeepSeek LLM (SSE streaming, `deepseek-v4-flash`) → flutter_tts (on-device, rate 0.48). Target pipeline latency <1.5s. Supabase BaaS (Postgres, Auth, RLS, Realtime).
 
-**Plataforma: Android únicamente.** No se desarrolla ni se publica en iOS. El andamiaje de `ios/` sigue en el repo y está pendiente de retirar (issue #50); no añadir código específico de iOS.
+**Plataforma: Android únicamente.** No existe carpeta `ios/` ni código específico de iOS. No añadir rutas, plugins ni configuraciones de iOS.
 
 ## ⚠️ CRITICAL: Git History and Uncommitted Work
 The repo has **6 commits**; the initial one is `8c1ef25`. **There is still a large body of uncommitted work** (51 modified files + 29 untracked at the time of the October 2026 audit).

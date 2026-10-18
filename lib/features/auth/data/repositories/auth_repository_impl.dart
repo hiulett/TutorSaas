@@ -11,7 +11,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   String? get _redirectTo {
     if (kIsWeb) return null;
-    if (Platform.isAndroid || Platform.isIOS) {
+    // Issue #50: el producto es Android únicamente.
+    if (Platform.isAndroid) {
       return 'io.supabase.tutorsaas://login-callback';
     }
     return null;
@@ -19,9 +20,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User?> signInWithGoogle() async {
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    if (!kIsWeb && Platform.isAndroid) {
       final googleSignIn = GoogleSignIn(
-        serverClientId: '466224796344-6t32htovvg5o9lqem38npfu1og3larjp.apps.googleusercontent.com',
+        serverClientId: '879543775149-f9fqcrpbgq9qbk16i2rkbi78spo9jceo.apps.googleusercontent.com',
       );
       // Timeouts: si Google/Supabase no responde, se lanza y el UI lo captura
       // (snackbar) en vez de dejar el spinner bloqueado para siempre.
@@ -53,19 +54,32 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<User?> signInWithApple() async {
-    // Perform Apple Sign In through Supabase OAuth flow
-    await _supabaseClient.auth.signInWithOAuth(
-      OAuthProvider.apple,
-      redirectTo: _redirectTo,
-    );
-    return _supabaseClient.auth.currentUser;
-  }
-
-  @override
   Future<User?> signInAnonymously() async {
     final response = await _supabaseClient.auth.signInAnonymously();
     return response.user;
+  }
+
+  @override
+  Future<User?> signInWithEmail(String email, String password) async {
+    final response = await _supabaseClient.auth
+        .signInWithPassword(email: email, password: password)
+        .timeout(const Duration(seconds: 15));
+    return response.user;
+  }
+
+  @override
+  Future<User?> signUpWithEmail(String email, String password) async {
+    final response = await _supabaseClient.auth
+        .signUp(email: email, password: password)
+        .timeout(const Duration(seconds: 15));
+    return response.user;
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _supabaseClient.auth
+        .resetPasswordForEmail(email)
+        .timeout(const Duration(seconds: 15));
   }
 
   @override
