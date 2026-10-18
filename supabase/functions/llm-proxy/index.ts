@@ -8,13 +8,19 @@
 // Endpoints:
 //   POST /chat        { messages, stream } -> DeepSeek chat completions (SSE)
 //   POST /transcribe  multipart (file)     -> Groq Whisper transcription
-//   GET  /health                            -> estado de la función
+//   GET  /health                           -> estado de la función
+//
+// Issue #9: cuota por usuario (30 peticiones/minuto) y allow-list de modelo.
+// Antes cualquier usuario autenticado podía consumir la clave sin límite y
+// elegir el modelo que quisiera.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const admin = createClient(supabaseUrl, serviceRoleKey || supabaseAnonKey);
 
 const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY') ?? '';
 const deepseekBaseUrl = Deno.env.get('DEEPSEEK_BASE_URL') ?? 'https://api.deepseek.com/v1';
@@ -25,6 +31,17 @@ const deepseekBaseUrl = Deno.env.get('DEEPSEEK_BASE_URL') ?? 'https://api.deepse
 // si el cliente no lo envía o lo excede, usa los valores siguientes.
 const DEFAULT_MAX_TOKENS = 200;
 const MAX_TOKENS_CAP = 600;
+
+// Issue #9: solo se permite el modelo que usa la app.
+const DEFAULT_MODEL = 'deepseek-v4-flash';
+const ALLOWED_MODELS = new Set([DEFAULT_MODEL]);
+
+// Issue #9: ventana de 60 s, 30 peticiones (un turno hace ~2 llamadas).
+const QUOTA_LIMIT_PER_MINUTE = 30;
+
+// Issue #9: límite de audio por transcripción (10 MB).
+const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+
 const groqApiKey = Deno.env.get('GROQ_API_KEY') ?? '';
 const groqSttUrl = Deno.env.get('GROQ_STT_URL') ?? 'https://api.groq.com/openai/v1/audio/transcriptions';
 
@@ -40,8 +57,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 
-const unauthorized = () =>
-  json({ error: 'Unauthorized' }, 401);
+const unauthorized = () => json({ error: 'Unauthorized' }, 401);
 
 function readJwt(req: Request): string {
   const auth = req.headers.get('authorization') ?? '';
@@ -51,14 +67,34 @@ function readJwt(req: Request): string {
   return bearer;
 }
 
-async function requireUser(req: Request): Promise<boolean> {
+async function requireUser(req: Request): Promise<{ id: string } | null> {
   try {
     const token = readJwt(req);
-    if (!token) return false;
+    if (!token) return null;
     const { data, error } = await supabase.auth.getUser(token);
-    return !error && !!data.user;
+    if (error || !data.user) return null;
+    return { id: data.user.id };
   } catch {
-    return false;
+    return null;
+  }
+}
+
+/// Ventana deslizante por usuario. Fail-open: si la comprobación falla por un
+/// problema de base de datos, no se bloquea la conversación del alumno.
+async function withinQuota(userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await admin.rpc('check_llm_quota', {
+      p_user_id: userId,
+      p_limit: QUOTA_LIMIT_PER_MINUTE,
+    });
+    if (error) {
+      console.error('quota check failed:', error.message);
+      return true;
+    }
+    return data === true;
+  } catch (e) {
+    console.error('quota check error:', e);
+    return true;
   }
 }
 
@@ -87,8 +123,18 @@ Deno.serve(async (req: Request) => {
   }
 
   // Auth: todo endpoint de IA exige un usuario autenticado (JWT válido).
-  if (!(await requireUser(req))) {
-    return unauthorized();
+  const user = await requireUser(req);
+  if (!user) return unauthorized();
+
+  // Issue #9: cuota antes de gastar tokens del proveedor.
+  if (!(await withinQuota(user.id))) {
+    return json(
+      {
+        error: 'rate_limited',
+        message: 'Demasiadas peticiones. Espera un momento y vuelve a intentarlo.',
+      },
+      429,
+    );
   }
 
   try {
@@ -113,7 +159,15 @@ async function handleChat(req: Request): Promise<Response> {
     return json({ error: 'messages array is required' }, 400);
   }
   const stream = body?.stream ?? true;
-  const model = body?.model ?? 'deepseek-v4-flash';
+
+  // Issue #9: el modelo lo decide el servidor. Si el cliente pide otro, se
+  // degrada al permitido en lugar de reenviarlo.
+  const requestedModel = typeof body?.model === 'string' ? body.model : DEFAULT_MODEL;
+  const model = ALLOWED_MODELS.has(requestedModel) ? requestedModel : DEFAULT_MODEL;
+  if (model !== requestedModel) {
+    console.warn('model not allowed, falling back:', requestedModel);
+  }
+
   const temperature = body?.temperature;
   const requestedMaxTokens = typeof body?.max_tokens === 'number'
     ? body.max_tokens
@@ -181,6 +235,12 @@ async function handleTranscribe(req: Request): Promise<Response> {
   if (!(file instanceof File)) {
     return json({ error: 'file is required' }, 400);
   }
+
+  // Issue #9: no se aceptan audios desproporcionados.
+  if (file.size > MAX_AUDIO_BYTES) {
+    return json({ error: 'audio too large', max_bytes: MAX_AUDIO_BYTES }, 413);
+  }
+
   const model = (form.get('model') as string) ?? 'whisper-large-v3-turbo';
   const language = (form.get('language') as string) ?? 'en';
   const responseFormat = (form.get('response_format') as string) ?? 'json';
