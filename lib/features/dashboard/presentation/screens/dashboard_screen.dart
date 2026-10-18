@@ -165,6 +165,11 @@ class DashboardScreen extends ConsumerWidget {
     final int streak = progress['streak'] as int;
     final String cefrCode = progress['level_code'] as String;
 
+    // Issue #63: al abrirse el teclado el Scaffold encoge el body y el dock
+    // flotante subía con él, superponiéndose al contenido. Se oculta desplazándolo
+    // fuera del área visible (el Stack recorta con Clip.hardEdge).
+    final bool isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     final completedLessonsAsync = ref.watch(completedLessonsProvider);
     final completedLessons = completedLessonsAsync.value ?? [];
 
@@ -430,7 +435,7 @@ class DashboardScreen extends ConsumerWidget {
 
           // Floating Bottom Navigation Bar (4 Items: Dungeons, Guild→/chat-rooms, Status, Config)
           Positioned(
-            bottom: 24,
+            bottom: isKeyboardOpen ? -160 : 24,
             left: 16,
             right: 16,
             child: ClipRRect(
