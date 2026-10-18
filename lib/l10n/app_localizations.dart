@@ -106,6 +106,30 @@ abstract class AppLocalizations {
   /// **'Dungeon of English'**
   String get app_name;
 
+  /// No description provided for @login_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back, Hunter'**
+  String get login_title;
+
+  /// No description provided for @login_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to continue your journey.'**
+  String get login_subtitle;
+
+  /// No description provided for @register_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'New Hunter? Create account'**
+  String get register_prompt;
+
+  /// No description provided for @login_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Already a Hunter? Log in'**
+  String get login_prompt;
+
   /// No description provided for @welcome_title.
   ///
   /// In en, this message translates to:
@@ -195,6 +219,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Register with Google to personalize your AI language tutor and track progress.'**
   String get create_account_desc;
+
+  /// No description provided for @email_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email_label;
+
+  /// No description provided for @password_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password_label;
+
+  /// No description provided for @email_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get email_required;
+
+  /// No description provided for @password_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get password_required;
+
+  /// No description provided for @email_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email'**
+  String get email_invalid;
+
+  /// No description provided for @password_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get password_short;
+
+  /// No description provided for @login_email.
+  ///
+  /// In en, this message translates to:
+  /// **'LOG IN WITH EMAIL'**
+  String get login_email;
+
+  /// No description provided for @register_email.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE ACCOUNT WITH EMAIL'**
+  String get register_email;
+
+  /// No description provided for @login_email_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error signing in with email.'**
+  String get login_email_error;
+
+  /// No description provided for @register_email_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error creating the account.'**
+  String get register_email_error;
+
+  /// No description provided for @email_already_registered.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered. Log in instead.'**
+  String get email_already_registered;
+
+  /// No description provided for @login_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Login successful. Entering the realm...'**
+  String get login_success;
+
+  /// No description provided for @register_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created. Entering the realm...'**
+  String get register_success;
+
+  /// No description provided for @login_email_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'your@email.com'**
+  String get login_email_hint;
+
+  /// No description provided for @forgot_password.
+  ///
+  /// In en, this message translates to:
+  /// **'FORGOT PASSWORD?'**
+  String get forgot_password;
+
+  /// No description provided for @reset_password_title.
+  ///
+  /// In en, this message translates to:
+  /// **'RECOVER PASSWORD'**
+  String get reset_password_title;
+
+  /// No description provided for @reset_password_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and we will send you a link to recover your password.'**
+  String get reset_password_desc;
+
+  /// No description provided for @reset_password_send.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND RECOVERY LINK'**
+  String get reset_password_send;
+
+  /// No description provided for @reset_password_sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery link sent. Check your email inbox.'**
+  String get reset_password_sent;
+
+  /// No description provided for @reset_password_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error sending the recovery link. Check the email and try again.'**
+  String get reset_password_error;
+
+  /// No description provided for @reset_password_email_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email to recover your password.'**
+  String get reset_password_email_empty;
 
   /// No description provided for @sync_progress.
   ///
@@ -523,7 +673,7 @@ abstract class AppLocalizations {
   /// No description provided for @radar_title.
   ///
   /// In en, this message translates to:
-  /// **'5-D Skills Radar'**
+  /// **'Holographic Skills Radar'**
   String get radar_title;
 
   /// No description provided for @heatmap_title.
@@ -763,8 +913,32 @@ abstract class AppLocalizations {
   /// No description provided for @btn_continue.
   ///
   /// In en, this message translates to:
-  /// **'btn_continue'**
+  /// **'Continue'**
   String get btn_continue;
+
+  /// No description provided for @onboarding_start_eval.
+  ///
+  /// In en, this message translates to:
+  /// **'START EVALUATION'**
+  String get onboarding_start_eval;
+
+  /// No description provided for @register_confirm_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your inbox and confirm your account to continue.'**
+  String get register_confirm_email;
+
+  /// No description provided for @resend_confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'RESEND'**
+  String get resend_confirmation;
+
+  /// No description provided for @login_email_not_confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email is not confirmed yet. Check your inbox or request a new link.'**
+  String get login_email_not_confirmed;
 
   /// No description provided for @complete_onboarding.
   ///
@@ -919,7 +1093,7 @@ abstract class AppLocalizations {
   /// No description provided for @initialize_room.
   ///
   /// In en, this message translates to:
-  /// **'Initialize Room'**
+  /// **'Create Table'**
   String get initialize_room;
 
   /// No description provided for @enter_raid.
@@ -2080,6 +2254,12 @@ abstract class AppLocalizations {
   /// **'Purchases successfully restored.'**
   String get paywall_restored;
 
+  /// No description provided for @paywall_nothing_to_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no purchases to restore.'**
+  String get paywall_nothing_to_restore;
+
   /// No description provided for @lessons_voice_rooms.
   ///
   /// In en, this message translates to:
@@ -2127,6 +2307,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Active Level'**
   String get progress_active_level;
+
+  /// No description provided for @progress_active_rank.
+  ///
+  /// In en, this message translates to:
+  /// **'Guild Rank'**
+  String get progress_active_rank;
+
+  /// No description provided for @radar_fluency.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluency'**
+  String get radar_fluency;
+
+  /// No description provided for @radar_vocab.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary'**
+  String get radar_vocab;
+
+  /// No description provided for @radar_phonetics.
+  ///
+  /// In en, this message translates to:
+  /// **'Phonetics'**
+  String get radar_phonetics;
+
+  /// No description provided for @radar_grammar.
+  ///
+  /// In en, this message translates to:
+  /// **'Grammar'**
+  String get radar_grammar;
+
+  /// No description provided for @radar_comprehension.
+  ///
+  /// In en, this message translates to:
+  /// **'Comprehension'**
+  String get radar_comprehension;
+
+  /// No description provided for @radar_naturalness.
+  ///
+  /// In en, this message translates to:
+  /// **'Naturalness'**
+  String get radar_naturalness;
 
   /// No description provided for @progress_srs_review.
   ///
@@ -2499,6 +2721,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'mana available'**
   String get mana_available;
+
+  /// No description provided for @mana_daily_available.
+  ///
+  /// In en, this message translates to:
+  /// **'mana available today'**
+  String get mana_daily_available;
+
+  /// No description provided for @guardian_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MANA SANCTUARY'**
+  String get guardian_title;
+
+  /// No description provided for @guardian_sealed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sealed'**
+  String get guardian_sealed;
+
+  /// No description provided for @guardian_cry.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR MANA IS DEPLETED.\nTHE SANCTUARY AWAITS.'**
+  String get guardian_cry;
+
+  /// No description provided for @guardian_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Every AI action costs mana. Recover it with your plan, potions, or an elixir/gem from your bag.'**
+  String get guardian_desc;
+
+  /// No description provided for @guardian_get_mana.
+  ///
+  /// In en, this message translates to:
+  /// **'GET MANA'**
+  String get guardian_get_mana;
+
+  /// No description provided for @guardian_get_mana_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'MORE MANA PER MONTH BY ESTATE'**
+  String get guardian_get_mana_desc;
+
+  /// No description provided for @guardian_equip_item.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIP ELIXIR / GEM'**
+  String get guardian_equip_item;
+
+  /// No description provided for @guardian_equip_item_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Equip a mana item from your bag'**
+  String get guardian_equip_item_desc;
+
+  /// No description provided for @guardian_go_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to the Guild'**
+  String get guardian_go_back;
 
   /// No description provided for @mana_balance.
   ///
@@ -3211,7 +3493,7 @@ abstract class AppLocalizations {
   /// No description provided for @voice_moderated.
   ///
   /// In en, this message translates to:
-  /// **'Moderated by AI Tutor in Real Time'**
+  /// **'Guild voice room'**
   String get voice_moderated;
 
   /// No description provided for @voice_leave.
@@ -3391,7 +3673,7 @@ abstract class AppLocalizations {
   /// No description provided for @guild_rank_level.
   ///
   /// In en, this message translates to:
-  /// **'RANK SSS — Level {cefr}'**
+  /// **'RANK {cefr}'**
   String guild_rank_level(String cefr);
 
   /// No description provided for @guild_follow_suggestion.
@@ -3859,13 +4141,13 @@ abstract class AppLocalizations {
   /// No description provided for @session_accuracy.
   ///
   /// In en, this message translates to:
-  /// **'ACCURACY'**
+  /// **'ACCURACY (EST.)'**
   String get session_accuracy;
 
   /// No description provided for @session_fluency.
   ///
   /// In en, this message translates to:
-  /// **'Fluency'**
+  /// **'Fluency (est.)'**
   String get session_fluency;
 
   /// No description provided for @session_pronunciation.
@@ -3981,6 +4263,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily Quests'**
   String get quest_daily_title;
+
+  /// No description provided for @quest_claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward claimed! +{xp} XP'**
+  String quest_claimed(int xp);
+
+  /// No description provided for @quest_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No active daily quests right now.'**
+  String get quest_empty;
 
   /// No description provided for @quest_speak_10min.
   ///
@@ -4171,7 +4465,7 @@ abstract class AppLocalizations {
   /// No description provided for @path_roadmap_title.
   ///
   /// In en, this message translates to:
-  /// **'Stage Path (CEFR)'**
+  /// **'DUNGEON MAP'**
   String get path_roadmap_title;
 
   /// No description provided for @path_stage_empty.
@@ -4629,12 +4923,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We detected that your device uses {lang}. The app will be shown in that language.'**
   String onboarding_device_lang(String lang);
-
-  /// No description provided for @onboarding_start_eval.
-  ///
-  /// In en, this message translates to:
-  /// **'START EVALUATION'**
-  String get onboarding_start_eval;
 
   /// No description provided for @onboarding_beginner.
   ///
@@ -5601,6 +5889,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MANAGE SUBSCRIPTION'**
   String get paywall_manage_subscription;
+
+  /// No description provided for @mana_inventory_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MANA INVENTORY'**
+  String get mana_inventory_title;
+
+  /// No description provided for @mana_inventory_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No elixirs or gems in your bag yet.'**
+  String get mana_inventory_empty;
+
+  /// No description provided for @mana_gem_label.
+  ///
+  /// In en, this message translates to:
+  /// **'GEM'**
+  String get mana_gem_label;
+
+  /// No description provided for @mana_elixir_label.
+  ///
+  /// In en, this message translates to:
+  /// **'ELIXIR'**
+  String get mana_elixir_label;
+
+  /// No description provided for @mana_expiry_countdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {hours}h {minutes}m'**
+  String mana_expiry_countdown(Object hours, Object minutes);
+
+  /// No description provided for @mana_item_equipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Mana item equipped'**
+  String get mana_item_equipped;
+
+  /// No description provided for @mana_equip.
+  ///
+  /// In en, this message translates to:
+  /// **'EQUIP'**
+  String get mana_equip;
+
+  /// No description provided for @summary_next_lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT LESSON'**
+  String get summary_next_lesson;
+
+  /// No description provided for @oracle_challenge_title.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE EVALUATION'**
+  String get oracle_challenge_title;
+
+  /// No description provided for @oracle_challenge_ready.
+  ///
+  /// In en, this message translates to:
+  /// **'The Oracle awaits you. Challenge available!'**
+  String get oracle_challenge_ready;
+
+  /// No description provided for @oracle_challenge_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete 80% to challenge the Oracle ({percent}%)'**
+  String oracle_challenge_progress(Object percent);
+
+  /// No description provided for @onboarding_english_only.
+  ///
+  /// In en, this message translates to:
+  /// **'You will learn English. You can change the interface language in Settings.'**
+  String get onboarding_english_only;
 }
 
 class _AppLocalizationsDelegate

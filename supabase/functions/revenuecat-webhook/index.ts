@@ -35,12 +35,13 @@ const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
-const PRO_ENTITLEMENT = 'DungeonsSpeak_Pro';
+const PRO_ENTITLEMENT = 'DungeonsSpeak Pro';
 
 // Mapeo product_id → plan (id en subscription_plans). El product_id es la
 // fuente canónica (lo define el id del product en Google Play / App Store).
 function planIdForProduct(productId: string): string {
   const key = productId.toLowerCase();
+  if (key.includes('divino') || key.includes('divine')) return 'divino';
   if (key.includes('realeza') || key.includes('royalty')) return 'realeza';
   return 'noble'; // incluye dungeonsspeak_noble_* y cualquier default
 }
@@ -103,9 +104,18 @@ async function activatePlan(
 }
 
 async function expirePlan(userId: string): Promise<void> {
+  // Issue #66: al expirar hay que bajar el plan a `plebeyo`. Antes solo se
+  // cambiaba el status y, como el resto de la app decide por `plan_id`, el
+  // usuario conservaba el premium indefinidamente.
   const { error } = await supabase
     .from('user_subscriptions')
-    .update({ status: 'expired', updated_at: new Date().toISOString() })
+    .update({
+      plan_id: 'plebeyo',
+      status: 'expired',
+      billing_cycle: null,
+      mana_expires_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
     .eq('user_id', userId);
   if (error) console.error('expire subscription error:', error);
 }
@@ -167,6 +177,12 @@ Deno.serve(async (req: Request) => {
       // Expiración real (no renovada) = pierde premium.
       await expirePlan(appUserId);
       return json({ received: true });
+    }
+
+    // Issue #66: CANCELLATION solo desactiva la renovación; el acceso se
+    // mantiene hasta `expiration_at_ms`. No se toca el plan aquí.
+    if (type === 'CANCELLATION' || type === 'UNCANCELLATION') {
+      return json({ received: true, deferred: type });
     }
 
     return json({ received: true, unhandled: type });

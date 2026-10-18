@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../domain/premium_status.dart';
 import '../../domain/repositories/subscription_repository.dart';
 
 class SubscriptionRepositoryImpl implements SubscriptionRepository {
@@ -11,15 +12,12 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
     try {
       final response = await _supabaseClient
           .from('user_subscriptions')
-          .select('plan_id, status')
+          .select('plan_id, status, period_end')
           .eq('user_id', userId)
           .maybeSingle();
 
-      if (response != null) {
-        final planId = response['plan_id'] as String?;
-        return planId != null && planId != 'plebeyo';
-      }
-      return false;
+      // Issue #65: plan + estado + fecha, no solo el plan_id.
+      return isPremiumSubscription(response);
     } catch (_) {
       return false;
     }

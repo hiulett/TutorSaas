@@ -395,6 +395,7 @@
   "paywall_failure": "Purchase failure: {err}",
   "@paywall_failure": {"placeholders": {"err": {"type": "String"}}},
   "paywall_restored": "Purchases successfully restored.",
+  "paywall_nothing_to_restore": "There are no purchases to restore.",
   "lessons_voice_rooms": "Voice Rooms",
   "lessons_view_goals": "View Goals",
   "exam_mute": "MUTE",

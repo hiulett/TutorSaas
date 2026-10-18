@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/retention_analytics.dart';
+import '../../../subscription/domain/premium_status.dart';
 import '../../domain/repositories/economy_repository.dart';
 
 class EconomyRepositoryImpl implements EconomyRepository {
@@ -575,11 +576,12 @@ class EconomyRepositoryImpl implements EconomyRepository {
     try {
       final sub = await _client
           .from('user_subscriptions')
-          .select('plan_id')
+          .select('plan_id, status, period_end')
           .eq('user_id', userId)
           .maybeSingle();
-      final planId = sub?['plan_id'] as String?;
-      if (planId == null || planId == 'plebeyo') return 0;
+      // Issue #65: misma regla que en el resto de la app.
+      if (!isPremiumSubscription(sub)) return 0;
+      final planId = sub!['plan_id'] as String;
 
       final plan = await _client
           .from('subscription_plans')

@@ -9,6 +9,7 @@ import '../../../../core/services/revenuecat_service.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
+import '../../../economy/presentation/providers/economy_providers.dart';
 import '../providers/subscription_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -47,6 +48,50 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     }
   }
 
+  /// Issue #67: refresca plan, maná y clase tras comprar o restaurar.
+  void _refreshAfterPurchase() {
+    ref.invalidate(revenueCatEntitlementsProvider);
+    ref.invalidate(revenueCatProProvider);
+    ref.invalidate(revenueCatCustomerInfoProvider);
+    ref.invalidate(manaStateProvider);
+    ref.invalidate(dailyStateProvider);
+    ref.invalidate(canInvokeProvider);
+  }
+
+  /// Issue #67: restaura compras de verdad (antes solo abría el paywall).
+  Future<void> _restorePurchases() async {
+    if (_isPresenting) return;
+    setState(() => _isPresenting = true);
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await ref.read(revenueCatReadyProvider.future);
+      if (!mounted) return;
+      final service = ref.read(revenueCatServiceProvider);
+      final info = await service.restore();
+      if (!mounted) return;
+      if (service.resultGrantsPro(info)) {
+        ref.read(isPremiumProvider.notifier).setPremium(true);
+        _refreshAfterPurchase();
+        SystemSnack.show(context, l10n.paywall_restored,
+            type: SystemSnackType.success);
+      } else {
+        SystemSnack.show(
+          context,
+          l10n.paywall_nothing_to_restore,
+          type: SystemSnackType.info,
+        );
+      }
+    } catch (e) {
+      debugPrint('Restore purchases failed: $e');
+      if (mounted) {
+        SystemSnack.show(context, l10n.paywall_load_error,
+            type: SystemSnackType.error);
+      }
+    } finally {
+      if (mounted) setState(() => _isPresenting = false);
+    }
+  }
+
   Future<void> _openPaywall() async {
     if (_isPresenting) return;
     setState(() => _isPresenting = true);
@@ -63,8 +108,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       switch (result) {
         case PaywallResult.purchased:
           ref.read(isPremiumProvider.notifier).setPremium(true);
-          ref.invalidate(revenueCatEntitlementsProvider);
-          ref.invalidate(revenueCatProProvider);
+          _refreshAfterPurchase();
           SystemSnack.show(
             context,
             l10n.paywall_success,
@@ -72,8 +116,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           );
           break;
         case PaywallResult.restored:
-          ref.invalidate(revenueCatEntitlementsProvider);
-          ref.invalidate(revenueCatProProvider);
+          _refreshAfterPurchase();
           SystemSnack.show(context, l10n.paywall_restored,
               type: SystemSnackType.success);
           break;
@@ -140,7 +183,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                       },
                     ),
                     TextButton(
-                      onPressed: _isPresenting ? null : _openPaywall,
+                      onPressed: _isPresenting ? null : _restorePurchases,
                       style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                       child: Text(
                         l10n.paywall_restore,
@@ -279,7 +322,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         const SizedBox(height: 12),
         if (isPremium)
           TextButton(
-            onPressed: _openPaywall,
+            onPressed: _isPresenting ? null : _restorePurchases,
             child: Text(
               l10n.paywall_restore,
               style: AppTypography.stat(context).copyWith(

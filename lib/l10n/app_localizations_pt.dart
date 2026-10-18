@@ -1163,6 +1163,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paywall_restored => 'Compras restauradas com sucesso.';
 
   @override
+  String get paywall_nothing_to_restore => 'Não há compras para restaurar.';
+
+  @override
   String get lessons_voice_rooms => 'Salas de Voz';
 
   @override

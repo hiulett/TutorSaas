@@ -395,6 +395,7 @@
   "paywall_failure": "Error en la compra: {err}",
   "@paywall_failure": {"placeholders": {"err": {"type": "String"}}},
   "paywall_restored": "Compras restauradas correctamente.",
+  "paywall_nothing_to_restore": "No hay compras que restaurar.",
   "lessons_voice_rooms": "Salas de Voz",
   "lessons_view_goals": "Ver Objetivos",
   "exam_mute": "SILENCIAR",
