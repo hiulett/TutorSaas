@@ -67,6 +67,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// Idempotencia del cierre de sesión: garantiza que `endSession` se ejecute
   /// una sola vez aunque la salida ocurra por varias vías (pop, back, go, dispose).
   bool _sessionFinalized = false;
+  bool _oracleEvalCharged = false;
 
   ConversationNotifier(this._repository, this._ref)
       : super(ConversationState.initial()) {
@@ -717,6 +718,22 @@ ENDING:
     try {
       state = state.copyWith(isProcessing: true, oracleEvaluating: true);
 
+      // Issue #47: el cierre del examen se cobra una sola vez (oracle_eval=30).
+      // Los turnos intermedios ya se cobraron como oracle_turn (15).
+      if (!_oracleEvalCharged &&
+          _userId != null &&
+          !_userId!.startsWith('guest_')) {
+        _oracleEvalCharged = true;
+        try {
+          final economyRepo = _ref.read(economyRepositoryProvider);
+          final charge = await economyRepo.consumeMana(_userId!, 'oracle_eval');
+          if (charge['success'] == true) {
+            _applyOptimisticManaDeduction('oracle_eval', charge);
+            _ref.invalidate(manaStateProvider);
+          }
+        } catch (_) {}
+      }
+
       final answers = state.messages
           .where((m) => m.sender == 'user')
           .map((m) => m.text)
@@ -1009,6 +1026,8 @@ ENDING:
   /// Costo por defecto de una acción si el RPC no lo devolvió.
   int _actionCost(String actionCode) {
     switch (actionCode) {
+      case 'oracle_turn':
+        return 15;
       case 'oracle_eval':
         return 30;
       case 'dungeon_turn':
@@ -1028,8 +1047,10 @@ ENDING:
     // Consumo de Maná (FASE B): TODA acción de IA cuesta maná. El costo se lee
     // de la BD (ai_action_costs) y lo debita el RPC consume_mana (server-side).
     if (_userId != null && !_userId!.startsWith('guest_')) {
+      // Issue #47: el turno del Oráculo cuesta `oracle_turn` (15). El cierre
+      // del examen cobra `oracle_eval` (30) una sola vez en el finalize.
       final actionCode = state.isOracleEvaluation
-          ? 'oracle_eval'
+          ? 'oracle_turn'
           : (state.activeScenarioId != null ? 'dungeon_turn' : 'free_chat_turn');
       try {
         final economyRepo = _ref.read(economyRepositoryProvider);
