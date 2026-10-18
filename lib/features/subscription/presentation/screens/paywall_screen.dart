@@ -52,6 +52,10 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     setState(() => _isPresenting = true);
     final l10n = AppLocalizations.of(context)!;
     try {
+      // Issue #64: el SDK debe estar configurado antes de presentar el paywall;
+      // si no, `presentPaywall` falla con configurationError.
+      await ref.read(revenueCatReadyProvider.future);
+      if (!mounted) return;
       final service = ref.read(revenueCatServiceProvider);
       final result = await service.presentPaywall();
 
@@ -96,6 +100,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   Future<void> _openCustomerCenter() async {
     final l10n = AppLocalizations.of(context)!;
     try {
+      // Issue #64: misma garantía que en el paywall.
+      await ref.read(revenueCatReadyProvider.future);
+      if (!mounted) return;
       await ref.read(revenueCatServiceProvider).presentCustomerCenter();
     } catch (e) {
       if (mounted) {

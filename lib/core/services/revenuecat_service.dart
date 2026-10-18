@@ -14,21 +14,37 @@ import '../constants/api_constants.dart';
 /// el default es la test key pública (solo dev).
 class RevenueCatService {
   bool _configured = false;
+  String? _configuredUserId;
+
+  /// True cuando el SDK ya está inicializado y acepta llamadas.
+  bool get isConfigured => _configured;
 
   /// Configura el SDK. Debe llamarse tras autenticarse (appUserID = supabase uid).
-  /// Idempotente: no re-configura si ya está inicializado con el mismo usuario.
+  ///
+  /// Idempotente con el mismo usuario. Si cambia el usuario se re-vincula con
+  /// `logIn`, porque `Purchases.configure` solo puede invocarse una vez por
+  /// proceso (Issue #64: antes se ignoraba el cambio y las compras quedaban
+  /// atribuidas al usuario anterior).
   Future<void> configure(String userId) async {
     if (ApiConstants.revenueCatApiKey.isEmpty) return;
-    if (_configured) return;
-    await Purchases.configure(
-      PurchasesConfiguration(ApiConstants.revenueCatApiKey)
-        ..appUserID = userId
-        // Best practice: habilita la verificación de entitlements del lado
-        // del servidor de RevenueCat (reduce riesgo de spoofing en compras).
-        ..entitlementVerificationMode = EntitlementVerificationMode.informational,
-    );
-    await Purchases.setLogLevel(LogLevel.warn);
-    _configured = true;
+    if (_configured && _configuredUserId == userId) return;
+
+    if (!_configured) {
+      await Purchases.configure(
+        PurchasesConfiguration(ApiConstants.revenueCatApiKey)
+          ..appUserID = userId
+          // Best practice: habilita la verificación de entitlements del lado
+          // del servidor de RevenueCat (reduce riesgo de spoofing en compras).
+          ..entitlementVerificationMode = EntitlementVerificationMode.informational,
+      );
+      await Purchases.setLogLevel(LogLevel.warn);
+      _configured = true;
+      _configuredUserId = userId;
+      return;
+    }
+
+    await Purchases.logIn(userId);
+    _configuredUserId = userId;
   }
 
   /// Offerings activos (el paywall los muestra). `current` es el principal.

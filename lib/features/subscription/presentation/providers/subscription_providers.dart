@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/revenuecat_service.dart';
@@ -8,6 +9,22 @@ import '../../domain/repositories/subscription_repository.dart';
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
   final supabaseClient = ref.watch(supabaseClientProvider);
   return SubscriptionRepositoryImpl(supabaseClient);
+});
+
+/// Issue #64: garantiza que el SDK de RevenueCat esté configurado con el
+/// usuario actual **antes** de presentar el paywall o el Customer Center.
+///
+/// Antes, `configure()` solo se lanzaba (sin esperarse) desde
+/// `PremiumStatusNotifier`, así que pulsar «comprar» rápido abría el paywall
+/// con el SDK sin inicializar y fallaba con `configurationError`.
+final revenueCatReadyProvider = FutureProvider<void>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return;
+  try {
+    await ref.read(revenueCatServiceProvider).configure(user.id);
+  } catch (e) {
+    debugPrint('RevenueCat configure failed: $e');
+  }
 });
 
 /// Estado premium derivado de RevenueCat (entitlement "DungeonsSpeak Pro")
