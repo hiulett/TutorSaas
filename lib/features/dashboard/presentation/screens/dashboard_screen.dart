@@ -149,8 +149,6 @@ class DashboardScreen extends ConsumerWidget {
     final cosmetics = ref.watch(equippedCosmeticsProvider);
 
     final isPremium = ref.watch(isPremiumProvider);
-    final gemsAsync = ref.watch(gemBalanceProvider);
-    final gems = gemsAsync.value ?? 0;
     final dailyStateAsync = ref.watch(dailyStateProvider);
     final dailyClaimed = (dailyStateAsync.value?['daily_reward_claimed'] as bool?) ?? false;
     final progressAsync = ref.watch(userProgressProvider);
@@ -291,46 +289,9 @@ class DashboardScreen extends ConsumerWidget {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        // Gems badge (taps to open shop)
-                                        SizedBox(
-                                          height: 48,
-                                          child: GestureDetector(
-                                            behavior: HitTestBehavior.opaque,
-                                            onTap: () => context.push('/shop'),
-                                            child: Center(
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.manaCyan.withValues(alpha: 0.1),
-                                                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                                                  border: Border.all(
-                                                    color: AppColors.manaCyan.withValues(alpha: 0.4),
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    const Icon(
-                                                      Icons.diamond_rounded,
-                                                      color: AppColors.manaCyan,
-                                                      size: 15,
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      '$gems',
-                                                      style: GoogleFonts.jetBrainsMono(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 11,
-                                                        color: AppColors.onSurface,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                        // Issue #27: el badge de gemas se retiró.
+                                        // Las gemas se siguen acumulando en la BD,
+                                        // pero no se muestran hasta que tengan uso.
                                         // Streak badge
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

@@ -14,6 +14,7 @@ import '../../data/models/hunter_catalog.dart';
 import '../../data/models/hunter_skill_titles.dart';
 import '../../domain/models/aura_system.dart';
 import '../../../onboarding/domain/models/cefr_rank.dart';
+import '../../domain/models/hunter_level.dart';
 import 'aura_hud.dart';
 
 /// HUD central del dashboard (paridad con PlantillaHtml/hunter_control_center_dashboard).
@@ -28,7 +29,7 @@ class HunterHudHeader extends ConsumerStatefulWidget {
 }
 
 class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
-  static const int _xpPerLevel = 1000;
+  static const int _xpPerLevel = HunterLevel.xpPerLevel;
   int _lastLevel = 0;
   bool _awakeningBannerShown = false;
 
@@ -236,6 +237,26 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: AppColors.royalGold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Issue #28: el XP ahora tiene nivel visible.
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.manaCyan.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        'Nv. ${HunterLevel.levelFor(xp)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.manaCyan,
                         ),
                       ),
                     ),

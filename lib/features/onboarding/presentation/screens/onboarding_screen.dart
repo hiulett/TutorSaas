@@ -65,13 +65,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     {'code': 'ja', 'name': 'Japanese', 'native': '日本語'},
   ];
 
-  final List<Map<String, String>> _targetLanguages = [
-    {'code': 'en', 'name': 'English', 'native': 'English', 'desc': 'Global communication & professional growth'},
-    {'code': 'fr', 'name': 'French', 'native': 'Français', 'desc': 'Culture, gastronomy & international relations'},
-    {'code': 'de', 'name': 'German', 'native': 'Deutsch', 'desc': 'Engineering, science & European business'},
-    {'code': 'it', 'name': 'Italian', 'native': 'Italiano', 'desc': 'Art, design, music & tourism'},
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -243,7 +236,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           displayName: _characterName.isNotEmpty ? _characterName : accountName,
           avatarUrl: _characterClass,
           nativeLanguage: _selectedNativeLanguageCode,
-          bio: '[Stats|STR:5|INT:5|DEX:5|LUK:5] ¡Hola! Soy un cazador aventurero.',
+          bio: '¡Hola! Soy un cazador aventurero.',
         );
         ref.invalidate(userProfileProvider);
       } catch (_) {}
@@ -891,52 +884,47 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 24),
 
-          ..._targetLanguages.map((lang) {
-            final isSelected = _selectedLanguageCode == lang['code'];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              constraints: const BoxConstraints(minHeight: 48),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedLanguageCode = lang['code']!;
-                  });
-                },
-                child: GlassCard(
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.10)),
-                  opacity: AppColors.glassOpacity,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    child: Row(
-                      children: [
-                        Text(
-                          lang['code']!.toUpperCase(),
-                          style: AppTypography.stat(context).copyWith(
-                            color: isSelected ? AppColors.runeViolet : AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            '${lang['name']} (${lang['native']})',
-                            style: AppTypography.body(context).copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? AppColors.runeViolet : AppColors.onSurface,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 20),
-                        ],
-                      ],
+          // Idioma único (EN): DungeonSpeak enseña inglés por defecto.
+          // Sin selector de idioma — la app fija 'en' como idioma objetivo.
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            constraints: const BoxConstraints(minHeight: 48),
+            child: GlassCard(
+              border: Border.all(color: AppColors.runeViolet, width: 1.5),
+              opacity: AppColors.glassOpacity,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(
+                  children: [
+                    Text(
+                      'EN',
+                      style: AppTypography.stat(context).copyWith(
+                        color: AppColors.runeViolet,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'English (English)',
+                        style: AppTypography.body(context).copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.runeViolet,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 20),
+                  ],
                 ),
               ),
-            );
-          }),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.onboarding_english_only ?? 'Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes.',
+            style: AppTypography.bodyMuted(context),
+          ),
           const SizedBox(height: 24),
         ],
       ),
