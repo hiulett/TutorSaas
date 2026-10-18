@@ -1405,10 +1405,17 @@ ENDING:
             'C2' => 5,
             _ => 0,
           };
-          final fragments = completedGoals * (5 + levelBonus);
-          final gold = completedGoals * (10 + levelBonus);
-          await economyRepo.addFragments(_userId!, fragments);
-          await economyRepo.addGold(_userId!, gold);
+          final sessionId = _conversationId ??
+              '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
+          // Issue #3/#4: importes calculados y aplicados en servidor
+          // (idempotente por sessionId). El cliente ya no elige cuánto gana.
+          await economyRepo.applySessionRewards(
+            userId: _userId!,
+            sessionId: sessionId,
+            objectives: completedGoals,
+            minutes: practiceMinutes,
+            levelCode: levelCode,
+          );
           _ref.invalidate(fragmentBalanceProvider);
           _ref.invalidate(goldBalanceProvider);
 
@@ -1416,9 +1423,8 @@ ENDING:
           // pondera la ganancia pero nunca topa el total) e idempotencia por sesión.
           try {
             final radar = await _ref.read(skillsRadarProvider.future);
-            final sessionId = _conversationId ??
-                '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
-            await economyRepo.addAuraXp(_userId!, sessionId, radar, completedGoals, levelBonus);
+            await economyRepo.addAuraXp(
+                _userId!, sessionId, radar, completedGoals, levelBonus);
             _ref.invalidate(auraXpProvider);
           } catch (_) {}
         }

@@ -12,7 +12,9 @@ abstract class EconomyRepository {
   Future<Map<String, dynamic>> updateStreak(String userId);
 
   /// Claim daily reward
-  Future<bool> claimDailyReward(String userId);
+  /// Reclama la recompensa diaria. Devuelve un mapa `{gems, pergaminos}` con
+  /// la recompensa REAL aplicada, o vacío si no se pudo reclamar.
+  Future<Map<String, int>> claimDailyReward(String userId);
 
   /// Check if user has enough invocations
   Future<bool> canInvoke(String userId);
@@ -74,6 +76,20 @@ abstract class EconomyRepository {
   Future<Map<String, dynamic>> consumeMana(String userId, String actionCode);
 
   /// Saldo de maná: `{allowance, purchased, used, remaining, expires_at, plan, class}`.
+  /// Issue #3 / #4: aplica las recompensas de una sesión en servidor.
+  ///
+  /// El cliente ya no calcula importes ni llama a `add_xp`/`add_gold`/
+  /// `add_fragments`: el RPC valida rangos, calcula y es idempotente por
+  /// [sessionId].
+  Future<Map<String, dynamic>> applySessionRewards({
+    required String userId,
+    required String sessionId,
+    required int objectives,
+    required int minutes,
+    required String levelCode,
+    int languageId = 1,
+  });
+
   Future<Map<String, dynamic>> getManaState(String userId);
 
   /// Suma Aura XP por sesión (idempotente por session_id, factor_radar server-side).
@@ -88,10 +104,24 @@ abstract class EconomyRepository {
   /// Recompensa de oro (moneda cosmética). NUNCA otorga maná.
   Future<void> addGold(String userId, int amount);
 
+  /// Suma XP real al perfil (RPC add_xp). Usado por drops de sesión.
+  Future<void> addXp(String userId, int amount);
+
   /// Título de prestigio actual: `{tier_code, name}`.
   Future<Map<String, dynamic>> getPrestigeTitle(String userId);
 
   /// Crea una sesión de Checkout de Stripe para maná (type: 'potion'|'gem_pack').
   /// Devuelve la URL de Checkout o null en error.
   Future<String?> createManaCheckout(String userId, String productId, String type);
+
+  // ── Inventario equipable de maná (elixires/gemas) ─────────────────────────
+
+  /// Inventario del usuario: lista de `mana_items` (inventory + equipped).
+  Future<List<Map<String, dynamic>>> getManaItems(String userId);
+
+  /// Equipa un ítem del inventario (1 activo; inicia expiración 48h gema/15d elixir).
+  Future<bool> equipManaItem(String userId, String itemId);
+
+  /// Desequipa el ítem activo (vuelve a inventario, sin expiración).
+  Future<bool> desequipManaItem(String userId, String itemId);
 }

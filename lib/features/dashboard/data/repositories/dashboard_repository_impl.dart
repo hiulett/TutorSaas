@@ -556,14 +556,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Also update total minutes, xp_points and streak in user language profile
       final currentProfile = await _supabaseClient
           .from('user_language_profiles')
-          .select('total_minutes, xp_points, current_streak, longest_streak, last_practice_date')
+          .select('total_minutes, current_streak, longest_streak, last_practice_date')
           .eq('user_id', userId)
           .eq('language_id', langId)
           .maybeSingle();
 
       if (currentProfile != null) {
         final totalMins = currentProfile['total_minutes'] as int? ?? 0;
-        final xpPoints = currentProfile['xp_points'] as int? ?? 0;
         int currentStreak = currentProfile['current_streak'] as int? ?? 0;
         int longestStreak = currentProfile['longest_streak'] as int? ?? 0;
         final lastPracticeStr = currentProfile['last_practice_date'] as String?;
@@ -596,7 +595,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
             .from('user_language_profiles')
             .update({
               'total_minutes': totalMins + minutes,
-              'xp_points': xpPoints + (minutes * 10),
               'current_streak': currentStreak,
               'longest_streak': longestStreak,
               'last_practice_date': todayStr,
