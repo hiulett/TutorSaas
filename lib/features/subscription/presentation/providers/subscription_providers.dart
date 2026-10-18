@@ -46,6 +46,9 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
       // RevenueCat: entitlement Pro activo = premium (fuente autoritativa).
       if (ApiConstants.revenueCatApiKey.isNotEmpty) {
         await _rcService.configure(_userId!);
+        // Issue #69: alinea Supabase con RevenueCat antes de leer el estado,
+        // así el maná y la clase reflejan la compra aunque el webhook falle.
+        await _repository.syncEntitlement();
         final active = await _rcService.isProActive();
         if (mounted) {
           state = active;

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/premium_status.dart';
 import '../../domain/repositories/subscription_repository.dart';
@@ -113,6 +114,19 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       return data['url'] as String?;
     } catch (_) {
       return null;
+    }
+  }
+
+  @override
+  Future<void> syncEntitlement() async {
+    try {
+      await _supabaseClient.functions
+          .invoke('sync-entitlement')
+          .timeout(const Duration(seconds: 12));
+    } catch (e) {
+      // Si la función no está configurada (falta el secreto de RevenueCat) o no
+      // hay red, se sigue con el estado que ya tenga la base de datos.
+      debugPrint('sync-entitlement failed: $e');
     }
   }
 

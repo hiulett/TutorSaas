@@ -94,6 +94,11 @@ async function activatePlan(
       period_start: now.toISOString(),
       period_end: end.toISOString(),
       stripe_subscription_id: productId,
+      // Issue #69: estos campos permiten que la sincronización desde la app
+      // detecte que el periodo ya está aplicado y no vuelva a dar maná.
+      store: 'play',
+      rc_product_id: productId,
+      rc_expires_at: expiresAt ?? end.toISOString(),
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
   if (upErr) {
