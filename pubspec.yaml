@@ -74,6 +74,7 @@ flutter:
     - assets/google_fonts/
     - assets/images/
     - assets/images/avatars/
-    - assets/videos/
+    # Issue #52: `assets/videos/` y `assets/images/shop/` no se usan en la app
+    # (0 referencias en lib/). Se dejan en el repo para el futuro pero fuera del
+    # bundle: -8,6 MB.
     - assets/music/
-    - assets/images/shop/
