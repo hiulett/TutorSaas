@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../missions/presentation/providers/mission_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class SrsFlashcardModal extends ConsumerStatefulWidget {
@@ -51,6 +53,12 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 difficultyScore,
               );
         } catch (_) {}
+
+        // Issue #5: cada palabra repasada cuenta para las misiones de
+        // `vocab_words`.
+        unawaited(ref
+            .read(missionRepositoryProvider)
+            .advanceMissions('vocab_words'));
       }
     }
 

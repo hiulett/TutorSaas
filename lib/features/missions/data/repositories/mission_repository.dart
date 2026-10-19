@@ -212,6 +212,21 @@ class MissionRepositoryImpl implements MissionRepository {
     }
   }
 
+  /// Issue #5: avanza las misiones activas del usuario por tipo de objetivo.
+  /// Best-effort: nunca interrumpe el flujo de juego si la RPC falla.
+  @override
+  Future<void> advanceMissions(String objectiveType, {int delta = 1}) async {
+    if (delta <= 0) return;
+    try {
+      await _client.rpc('advance_my_missions', params: {
+        'p_type': objectiveType,
+        'p_delta': delta,
+      });
+    } catch (e) {
+      debugPrint('advanceMissions($objectiveType, $delta) failed: $e');
+    }
+  }
+
   Future<bool> claimReward(String instanceId, String userId) async {
     try {
       final instance = await _client

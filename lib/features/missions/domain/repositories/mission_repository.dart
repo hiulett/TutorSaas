@@ -28,6 +28,11 @@ abstract class MissionRepository {
   /// persiste el progreso parcial en vivo (T-402).
   Future<bool> updateProgress(String instanceId, {int delta = 1});
 
+  /// Issue #5: avanza **todas** las misiones activas del usuario cuyo
+  /// `objective_type` coincide. Usa la RPC `advance_my_missions`, que toma el
+  /// usuario de la sesión (auth.uid()) y no puede escribir misiones ajenas.
+  Future<void> advanceMissions(String objectiveType, {int delta = 1});
+
   Future<bool> claimReward(String instanceId, String userId);
 
   /// Aplica un item `mission_modifier` a una misión activa (Fase 9 · MM-03).
