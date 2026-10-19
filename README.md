@@ -48,6 +48,7 @@ Backend y despliegue: [docs/OPERATIONS.md](docs/OPERATIONS.md),
 
 | Documento | Contenido |
 |---|---|
+| [docs/CONTEXTO_ACTUAL.md](docs/CONTEXTO_ACTUAL.md) | **Traspaso**: estado, trabajo abierto y cómo continuar |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Capas, features, rutas, pipeline de voz, estado |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Tablas, RLS, RPC, migraciones |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Entornos, secretos, Edge Functions, cron, webhooks |
