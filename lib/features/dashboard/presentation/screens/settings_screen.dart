@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
-import '../../../../core/services/audio_sfx_service.dart';
 import '../../../../core/i18n/language_settings.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/user_settings.dart';
@@ -166,7 +165,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                         _SectionHeader(title: l10n?.settings_audio_comms ?? 'AUDIO & COMMUNICATIONS'),
                         const SizedBox(height: 12),
-                        _buildNotificationTiles(context, currentSettings),
+                        // Issue #39: los controles de SFX y notificaciones se retiraron;
+                // ninguna de las dos cosas existía en tiempo de ejecución.
                         const SizedBox(height: 24),
 
                         _SectionHeader(title: l10n?.settings_account ?? 'ACCOUNT'),
@@ -705,127 +705,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // --- Notification Tiles ---
-  Widget _buildNotificationTiles(BuildContext context, UserSettings currentSettings) {
-    final enabled = currentSettings.notificationsEnabled;
-    final time = currentSettings.notificationTime;
-    final isSfxOn = ref.watch(sfxEnabledProvider);
-
-    return GlassCard(
-      blur: 20,
-      opacity: AppColors.glassOpacity,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.volume_up_rounded, color: AppColors.manaCyan, size: 24),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'AUDIO SFX CHANNELS',
-                      style: GoogleFonts.spaceGrotesk(
-                        color: AppColors.onSurface,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      AppLocalizations.of(context)?.settings_opt_sfx_desc ?? 'Combat, mana charges, and level calibration sfx',
-                      style: GoogleFonts.inter(color: AppColors.onSurface.withValues(alpha: 0.54), fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: isSfxOn,
-                activeColor: AppColors.manaCyan,
-                activeTrackColor: AppColors.manaCyan.withValues(alpha: 0.2),
-                inactiveThumbColor: AppColors.onSurface.withValues(alpha: 0.6),
-                inactiveTrackColor: AppColors.onSurface.withValues(alpha: 0.12),
-                onChanged: (val) {
-                  ref.read(sfxEnabledProvider.notifier).setSfxEnabled(val);
-                },
-              ),
-            ],
-          ),
-          Divider(color: AppColors.onSurface.withValues(alpha: 0.12), height: 24),
-          Row(
-            children: [
-              const Icon(Icons.notifications_active_rounded, color: AppColors.runeViolet, size: 24),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  'DAILY ALERT EMISSIONS',
-                  style: GoogleFonts.spaceGrotesk(
-                    color: AppColors.onSurface,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-              Switch(
-                value: enabled,
-                activeColor: AppColors.runeViolet,
-                activeTrackColor: AppColors.runeViolet.withValues(alpha: 0.2),
-                inactiveThumbColor: AppColors.onSurface.withValues(alpha: 0.6),
-                inactiveTrackColor: AppColors.onSurface.withValues(alpha: 0.12),
-                onChanged: (val) {
-                  setState(() {
-                    _localSettings = currentSettings.copyWith(notificationsEnabled: val);
-                  });
-                },
-              ),
-            ],
-          ),
-          if (enabled) ...[
-            Divider(color: AppColors.onSurface.withValues(alpha: 0.12), height: 24),
-            InkWell(
-              onTap: () async {
-                final parts = time.split(':');
-                final initialTime = TimeOfDay(
-                  hour: parts.isNotEmpty ? int.tryParse(parts[0]) ?? 20 : 20,
-                  minute: parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0,
-                );
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: initialTime,
-                );
-                if (picked != null) {
-                  final formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00';
-                  setState(() {
-                    _localSettings = currentSettings.copyWith(notificationTime: formattedTime);
-                  });
-                }
-              },
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time_rounded, color: AppColors.onSurfaceVariant, size: 20),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      'ALERTS DISPATCH TIME',
-                      style: GoogleFonts.inter(color: AppColors.onSurface.withValues(alpha: 0.7), fontSize: 14),
-                    ),
-                  ),
-                  Text(
-                    time.substring(0, 5),
-                    style: GoogleFonts.jetBrainsMono(color: AppColors.onSurface, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   // --- Bottom Sheet Helpers ---
   void _showCorrectionLevelBottomSheet(BuildContext context, String currentLevel) {
     showModalBottomSheet(
