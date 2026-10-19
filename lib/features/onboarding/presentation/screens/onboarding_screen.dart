@@ -16,7 +16,6 @@ import '../../domain/models/cefr_rank.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../../core/i18n/language_settings.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../data/country_catalog.dart';
 import '../../domain/models/hunter_class.dart';
 import '../../../../app/navigation_resolver.dart';
 
@@ -40,7 +39,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Selected values
   String _selectedLanguageCode = 'en'; // App Default Target Language: English
   String _selectedNativeLanguageCode = 'es'; // Native language
-  String _selectedCountryCode = 'MX';
   String _selectedCefrCode = 'A1';
   String? _gameRank;
   int _selectedDailyGoal = 15;
@@ -94,7 +92,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _nextPage() {
     final l10n = AppLocalizations.of(context)!;
-    // Onboarding de 5 pasos (T04-T06): nativo → país → objetivo → clasificación IA → personaje.
+    // Onboarding de 4 pasos: nativo → objetivo → clasificación IA → personaje.
     if (_currentPage == 0 && _selectedNativeLanguageCode.isEmpty) {
       SystemSnack.show(context, l10n.onb_validate_native,
           type: SystemSnackType.warning,
@@ -102,19 +100,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       return;
     }
 
-    if (_currentPage == 2 && _selectedLanguageCode.isEmpty) {
+    if (_currentPage == 1 && _selectedLanguageCode.isEmpty) {
       SystemSnack.show(context, l10n.onb_validate_target,
           type: SystemSnackType.warning,
           duration: const Duration(milliseconds: 1500));
       return;
     }
 
-    if (_currentPage == 3) {
+    if (_currentPage == 2) {
       _startOracleEvaluation();
       return;
     }
 
-    if (_currentPage < 4) {
+    if (_currentPage < 3) {
       setState(() {
         _currentPage++;
       });
@@ -150,14 +148,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
     if (!mounted) return;
     setState(() {
-      _currentPage = 4;
+      _currentPage = 3;
       if (result != null && result['cefrLevel'] != null) {
         _selectedCefrCode = result['cefrLevel'] as String;
         _gameRank = result['gameRank'] as String? ?? _gameRank;
       }
     });
     _pageController.animateToPage(
-      4,
+      3,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
@@ -169,10 +167,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() {
       _selectedCefrCode = 'PRE-A1';
       _gameRank = 'F';
-      _currentPage = 4;
+      _currentPage = 3;
     });
     _pageController.animateToPage(
-      4,
+      3,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
@@ -228,12 +226,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await languageNotifier.setAiExplanationsInNative(
           _selectedCorrectionExplanationLanguage == 'native');
 
-      try {
-        await ref.read(supabaseClientProvider).from('users').update({
-          'country_code': _selectedCountryCode,
-        }).eq('id', targetUserId);
-      } catch (_) {}
-
       if (_gameRank != null || _characterClass.isNotEmpty) {
         try {
           await ref.read(supabaseClientProvider).from('user_language_profiles').update({
@@ -288,10 +280,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   CyberBgMode _getOnboardingBgMode() {
     switch (_currentPage) {
       case 0: return CyberBgMode.onboardingStep0;
-      case 1: return CyberBgMode.onboardingStep1;
-      case 2: return CyberBgMode.onboardingStep2;
-      case 3: return CyberBgMode.onboardingStep7;
-      case 4: return CyberBgMode.onboardingStep3;
+      case 1: return CyberBgMode.onboardingStep2;
+      case 2: return CyberBgMode.onboardingStep7;
+      case 3: return CyberBgMode.onboardingStep3;
       default: return CyberBgMode.onboardingStep0;
     }
   }
@@ -358,7 +349,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       Expanded(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(5, (index) {
+                          children: List.generate(4, (index) {
                             final isActive = index <= _currentPage;
                             return Expanded(
                               child: Container(
@@ -377,7 +368,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        '${_currentPage + 1}/5',
+                        '${_currentPage + 1}/4',
                         style: AppTypography.stat(context).copyWith(
                           color: AppColors.onSurfaceVariant,
                         ),
@@ -386,14 +377,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Scrollable Questionnaire Pages (5 pasos — UX-01)
+                  // Scrollable Questionnaire Pages (4 pasos)
                   Expanded(
                     child: PageView(
                       controller: _pageController,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
                         _buildNativeLanguagePage(theme),
-                        _buildCountryPage(theme),
                         _buildTargetLanguagePage(theme),
                         _buildAiClassificationPage(theme),
                         _buildCharacterCreationPage(theme),
@@ -403,7 +393,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: 16),
 
                   // Bottom Action Button (oculto en el paso 4 — el wizard de personaje tiene su propio botón)
-                  if (_currentPage != 4)
+                  if (_currentPage != 3)
                     ElevatedButton(
                       onPressed: _isSaving ? null : _nextPage,
                       style: ElevatedButton.styleFrom(
@@ -426,13 +416,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           : FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                _currentPage == 3 ? l10n.onboarding_start_eval : l10n.btn_continue,
+                                _currentPage == 2 ? l10n.onboarding_start_eval : l10n.btn_continue,
                                 textAlign: TextAlign.center,
                                 style: AppTypography.title(context),
                               ),
                             ),
                     ),
-                  if (_currentPage != 4) const SizedBox(height: 12),
+                  if (_currentPage != 3) const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -818,87 +808,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   // 🟢 Página 1: País de Origen
-  Widget _buildCountryPage(ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
-    final locale = Localizations.localeOf(context).languageCode;
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.onboarding_country_title,
-            style: AppTypography.headline(context),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.onboarding_country_desc,
-            style: AppTypography.body(context).copyWith(
-              color: AppColors.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Dropdown con buscador sobre el catálogo completo de países
-          Builder(
-            builder: (context) {
-              final currentSelected = CountryCatalog.countries
-                  .firstWhere((c) => c.code == _selectedCountryCode, orElse: () => CountryCatalog.countries.first);
-              return GestureDetector(
-                onTap: () => _openCountryDropdown(context, locale),
-                child: Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(minHeight: 52),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.onSurface.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          currentSelected.getName(locale),
-                          style: AppTypography.body(context).copyWith(color: AppColors.onSurface),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_drop_down_rounded, color: AppColors.manaCyan, size: 28),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _openCountryDropdown(BuildContext context, String locale) async {
-    final selected = await showModalBottomSheet<CountryCatalogItem>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surfaceDeep,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
-      builder: (sheetContext) => _CountryDropdownSheet(
-        locale: locale,
-        currentCode: _selectedCountryCode,
-      ),
-    );
-    if (selected != null && mounted) {
-      setState(() {
-        _selectedCountryCode = selected.code;
-      });
-    }
-  }
-
-  // 🟢 Página 2: Idioma a Aprender
   Widget _buildTargetLanguagePage(ThemeData theme) {
     final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
@@ -1088,142 +997,3 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-class _CountryDropdownSheet extends StatefulWidget {
-  final String locale;
-  final String currentCode;
-
-  const _CountryDropdownSheet({required this.locale, required this.currentCode});
-
-  @override
-  State<_CountryDropdownSheet> createState() => _CountryDropdownSheetState();
-}
-
-class _CountryDropdownSheetState extends State<_CountryDropdownSheet> {
-  final TextEditingController _searchController = TextEditingController();
-  List<CountryCatalogItem> _results = CountryCatalog.countries;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _onSearchChanged(String query) {
-    final q = query.toLowerCase();
-    setState(() {
-      _results = q.isEmpty
-          ? CountryCatalog.countries
-          : CountryCatalog.countries.where((c) {
-              final name = c.getName(widget.locale).toLowerCase();
-              return name.contains(q) || c.code.toLowerCase().contains(q);
-            }).toList();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: FractionallySizedBox(
-          heightFactor: 0.75,
-          child: Column(
-            children: [
-              // Handle
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 10, bottom: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.onSurface.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Search field
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  onChanged: _onSearchChanged,
-                  style: AppTypography.body(context).copyWith(color: AppColors.onSurface),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.onSurface.withValues(alpha: 0.05),
-                    hintText: l10n.onboarding_country_search_hint,
-                    hintStyle: AppTypography.body(context).copyWith(color: AppColors.onSurface.withValues(alpha: 0.3)),
-                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.onSurfaceVariant),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.close_rounded, color: AppColors.onSurfaceVariant),
-                            onPressed: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            },
-                          )
-                        : null,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                      borderSide: BorderSide(color: AppColors.manaCyan.withValues(alpha: 0.3)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                      borderSide: BorderSide(color: AppColors.onSurface.withValues(alpha: 0.12)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                      borderSide: const BorderSide(color: AppColors.manaCyan),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Country list
-              Expanded(
-                child: _results.isEmpty
-                    ? Center(
-                        child: Text(
-                          l10n.onboarding_country_no_results,
-                          style: AppTypography.bodyMuted(context),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemCount: _results.length,
-                        itemBuilder: (context, index) {
-                          final item = _results[index];
-                          final isSelected = item.code == widget.currentCode;
-                          return ListTile(
-                            dense: true,
-                            leading: Text(
-                              item.code,
-                              style: AppTypography.label(context).copyWith(
-                                color: isSelected ? AppColors.manaCyan : AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                            title: Text(
-                              item.getName(widget.locale),
-                              style: AppTypography.body(context).copyWith(
-                                color: AppColors.onSurface,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            ),
-                            trailing: isSelected
-                                ? const Icon(Icons.check_circle_rounded, color: AppColors.manaCyan, size: 20)
-                                : null,
-                            onTap: () => Navigator.of(context).pop(item),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
