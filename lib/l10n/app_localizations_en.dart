@@ -1132,6 +1132,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get srs_hard => 'HARD';
 
   @override
+  String get srs_review_title => 'DAILY REVIEW';
+
+  @override
+  String srs_review_due(int count) {
+    return '$count words waiting for review';
+  }
+
+  @override
+  String get srs_review_cta => 'REVIEW';
+
+  @override
   String get srs_normal => 'NORMAL';
 
   @override

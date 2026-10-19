@@ -385,6 +385,16 @@
   "mission_claim": "RESGATAR",
   "srs_close": "FECHAR",
   "srs_hard": "DIFÍCIL",
+  "srs_review_title": "REVISÃO DO DIA",
+  "srs_review_due": "{count} palavras aguardam revisão",
+  "@srs_review_due": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "srs_review_cta": "REVISAR",
   "srs_normal": "NORMAL",
   "srs_easy": "FÁCIL",
   "nucleo_recharge": "RECARREGAR +5",

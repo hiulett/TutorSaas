@@ -1136,6 +1136,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get srs_hard => 'DIFÍCIL';
 
   @override
+  String get srs_review_title => 'REVISÃO DO DIA';
+
+  @override
+  String srs_review_due(int count) {
+    return '$count palavras aguardam revisão';
+  }
+
+  @override
+  String get srs_review_cta => 'REVISAR';
+
+  @override
   String get srs_normal => 'NORMAL';
 
   @override

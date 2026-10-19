@@ -1139,6 +1139,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get srs_hard => 'DIFÍCIL';
 
   @override
+  String get srs_review_title => 'REPASO DEL DÍA';
+
+  @override
+  String srs_review_due(int count) {
+    return '$count palabras esperan repaso';
+  }
+
+  @override
+  String get srs_review_cta => 'REPASAR';
+
+  @override
   String get srs_normal => 'NORMAL';
 
   @override

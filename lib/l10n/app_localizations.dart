@@ -2206,6 +2206,24 @@ abstract class AppLocalizations {
   /// **'HARD'**
   String get srs_hard;
 
+  /// No description provided for @srs_review_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY REVIEW'**
+  String get srs_review_title;
+
+  /// No description provided for @srs_review_due.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} words waiting for review'**
+  String srs_review_due(int count);
+
+  /// No description provided for @srs_review_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW'**
+  String get srs_review_cta;
+
   /// No description provided for @srs_normal.
   ///
   /// In en, this message translates to:

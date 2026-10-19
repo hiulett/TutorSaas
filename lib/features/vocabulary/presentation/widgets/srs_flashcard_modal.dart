@@ -16,8 +16,8 @@ class SrsFlashcardModal extends ConsumerStatefulWidget {
     required this.vocabularyItems,
   });
 
-  static void show(BuildContext context, List<Map<String, dynamic>> items) {
-    showModalBottomSheet(
+  static Future<void> show(BuildContext context, List<Map<String, dynamic>> items) {
+    return showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surfaceDeep,
       shape: const RoundedRectangleBorder(
@@ -237,7 +237,10 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _evaluateWord(1.0),
+                      // Issue #24: HARD es el único que debe contar como lapso.
+                      // Antes NORMAL (2.5) también caía en `q < 3.0` y reiniciaba
+                      // el intervalo, así que repasar bien no hacía progresar.
+                      onPressed: () => _evaluateWord(2.0),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.errorRed,
                         side: const BorderSide(color: AppColors.errorRed),
@@ -249,7 +252,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _evaluateWord(2.5),
+                      onPressed: () => _evaluateWord(3.0),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.royalGold,
                         side: const BorderSide(color: AppColors.royalGold),

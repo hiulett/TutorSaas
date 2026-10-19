@@ -781,6 +781,35 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getDueVocabulary(String userId, {int limit = 10}) async {
+    try {
+      final nowIso = DateTime.now().toUtc().toIso8601String();
+      // Issue #24: antes `next_review_at` solo se escribía; nunca se consultaba.
+      final res = await _supabaseClient
+          .from('user_vocabulary')
+          .select('id, vocabulary_id, next_review_at, vocabulary_items:vocabulary_id(word, translation)')
+          .eq('user_id', userId)
+          .or('next_review_at.is.null,next_review_at.lte.$nowIso')
+          .order('next_review_at', ascending: true, nullsFirst: true)
+          .limit(limit);
+
+      return (res as List).map((row) {
+        final map = Map<String, dynamic>.from(row as Map);
+        final vocab = (map['vocabulary_items'] as Map?)?.cast<String, dynamic>() ?? const {};
+        return <String, dynamic>{
+          'id': map['id'],
+          'vocabulary_id': map['vocabulary_id'],
+          'word': vocab['word'] ?? '',
+          'translation': vocab['translation'] ?? '',
+        };
+      }).where((m) => (m['word'] as String).isNotEmpty).toList();
+    } catch (e) {
+      debugPrint('getDueVocabulary error: $e');
+      return const [];
+    }
+  }
+
+  @override
   Future<void> updateUserProfile(
     String userId, {
     String? displayName,

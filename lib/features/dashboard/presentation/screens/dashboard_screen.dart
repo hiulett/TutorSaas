@@ -15,6 +15,7 @@ import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
 import '../widgets/progress_tab_view.dart';
 import '../../../economy/presentation/widgets/daily_reward_modal.dart';
+import '../../../vocabulary/presentation/widgets/srs_review_card.dart';
 import 'settings_screen.dart';
 import 'package:tutorsaas/features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -289,6 +290,9 @@ class DashboardScreen extends ConsumerWidget {
                                     const HunterHudHeader(),
 
                                     const SizedBox(height: 12),
+
+                                    // Issue #24: repaso espaciado (solo si hay palabras vencidas).
+                                    const SrsReviewCard(),
 
                                     // Accesos rápidos: gemas, racha, premium
                                     Row(

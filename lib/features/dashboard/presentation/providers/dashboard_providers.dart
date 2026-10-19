@@ -17,6 +17,13 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
 
 final dashboardRefreshProvider = StateProvider<int>((ref) => 0);
 
+/// Issue #24: palabras pendientes de repaso (SM-2).
+final dueVocabularyProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const [];
+  return ref.watch(dashboardRepositoryProvider).getDueVocabulary(user.id);
+});
+
 final userProgressProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   ref.keepAlive();
   final user = ref.watch(currentUserProvider);

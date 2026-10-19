@@ -386,6 +386,16 @@
   "mission_claim": "CLAIM",
   "srs_close": "CLOSE",
   "srs_hard": "HARD",
+  "srs_review_title": "DAILY REVIEW",
+  "srs_review_due": "{count} words waiting for review",
+  "@srs_review_due": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "srs_review_cta": "REVIEW",
   "srs_normal": "NORMAL",
   "srs_easy": "EASY",
   "nucleo_recharge": "RECHARGE +5",

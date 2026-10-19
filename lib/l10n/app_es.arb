@@ -386,6 +386,16 @@
   "mission_claim": "RECLAMAR",
   "srs_close": "CERRAR",
   "srs_hard": "DIFÍCIL",
+  "srs_review_title": "REPASO DEL DÍA",
+  "srs_review_due": "{count} palabras esperan repaso",
+  "@srs_review_due": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "srs_review_cta": "REPASAR",
   "srs_normal": "NORMAL",
   "srs_easy": "FÁCIL",
   "nucleo_recharge": "RECARGAR +5",
