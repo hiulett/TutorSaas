@@ -20,7 +20,7 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 | Tests / analyze | 155 en verde · 0 errores (36 warnings, 128 infos) |
 | AAB / APK | 104,0 MB / 131,9 MB |
 | Backend | Supabase `sipiumfdpvnszthykyog` (producción) |
-| Issues | 85: 49 implementados · 20 parciales · 12 pendientes · 2 decisión · 1 descartado · 1 epic |
+| Issues | 85: 49 implementados · 21 parciales · 11 pendientes · 2 decisión · 1 descartado · 1 epic |
 | Último commit | `866ecbc` — 14 docs de estrategia |
 
 ---
@@ -45,8 +45,8 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 
 ### Siguiente en la cola (nadie lo ha empezado)
 
-- **#74 (P0)** — evidencia de aprendizaje: retención a 7 días, progreso
-  comparable y transferencia.
+- **#74 (resto)** — función `learning_evidence()` + mostrar la retención en
+  Estado. La base (historial de repasos + SM-2 en servidor) ya está.
 - **#85 (P1)** — el cliente puede marcar misiones como completadas sin jugar
   (hallazgo colateral al cerrar #5).
 - **#73 (resto)** — Edge Function `evaluate-placement` para calcular el nivel en
@@ -61,6 +61,9 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
   cambiar `cefr_level_id`, `game_rank`, `xp_points`, oro, gemas, fragmentos,
   rachas ni placement. Las RPC `SECURITY DEFINER` siguen funcionando. Verificado
   con rol simulado.
+- **#74 (parcial)** — tabla `vocabulary_reviews` (append-only) y SM-2 movido al
+  servidor (`record_vocabulary_review`). `delayed_retrieval` marca los aciertos
+  tras ≥7 días: la primera señal real de retención. Falta la métrica y su UI.
 
 ### Las 12 historias de la fase 2
 
