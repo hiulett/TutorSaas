@@ -20,7 +20,7 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 | Tests / analyze | 155 en verde · 0 errores (36 warnings, 128 infos) |
 | AAB / APK | 104,0 MB / 131,9 MB |
 | Backend | Supabase `sipiumfdpvnszthykyog` (producción) |
-| Issues | 85: 49 implementados · 19 parciales · 13 pendientes · 2 decisión · 1 descartado · 1 epic |
+| Issues | 85: 49 implementados · 20 parciales · 12 pendientes · 2 decisión · 1 descartado · 1 epic |
 | Último commit | `866ecbc` — 14 docs de estrategia |
 
 ---
@@ -45,19 +45,22 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 
 ### Siguiente en la cola (nadie lo ha empezado)
 
-- **#73 (P0)** — cálculo del placement en servidor (hoy el CEFR es escribible
-  por el cliente).
 - **#74 (P0)** — evidencia de aprendizaje: retención a 7 días, progreso
   comparable y transferencia.
 - **#85 (P1)** — el cliente puede marcar misiones como completadas sin jugar
   (hallazgo colateral al cerrar #5).
+- **#73 (resto)** — Edge Function `evaluate-placement` para calcular el nivel en
+  servidor. Toca el onboarding: hacerlo con dispositivo disponible.
 
-### Hecho en la última sesión
+### Hecho en las últimas sesiones
 
 - **#5** — motor de misiones conectado. Nueva RPC `advance_my_missions` ligada
   a `auth.uid()`; la app avanza misiones al cerrar sesión, en cada turno y al
   repasar vocabulario. Verificado en producción (`sessions` pasó a `completed`).
-  Desbloquea #76, #79 y #74.
+- **#73 (parcial)** — trigger `guard_language_profile`: el cliente ya no puede
+  cambiar `cefr_level_id`, `game_rank`, `xp_points`, oro, gemas, fragmentos,
+  rachas ni placement. Las RPC `SECURITY DEFINER` siguen funcionando. Verificado
+  con rol simulado.
 
 ### Las 12 historias de la fase 2
 
