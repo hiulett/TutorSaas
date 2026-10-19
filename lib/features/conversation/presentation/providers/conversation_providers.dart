@@ -87,14 +87,20 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // Nueva sesión → se permite narrar de nuevo (se cancela la supresión previa).
     _ttsSuppressed = false;
 
-    // Fetch latest scenario fields from Supabase DB to sync any edits saved from web_admin
-    if (scenarioId != null || scenarioTitle != null) {
+    // Fetch latest scenario fields from Supabase DB to sync any edits saved from web_admin.
+    // Issue #1: las lecciones usan claves del catálogo Dart (texto) contra
+    // `scenarios.id`, que es UUID. Consultar con una clave de texto lanzaba
+    // 22P02 dentro de un try/catch vacío: una petición perdida en cada apertura.
+    final bool scenarioIdIsUuid = scenarioId != null &&
+        RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+            .hasMatch(scenarioId);
+    if (scenarioIdIsUuid || (scenarioTitle != null && scenarioTitle.isNotEmpty)) {
       try {
         final client = Supabase.instance.client;
         var query = client.from('scenarios').select('*');
-        if (scenarioId != null && scenarioId.isNotEmpty) {
+        if (scenarioIdIsUuid) {
           query = query.eq('id', scenarioId);
-        } else if (scenarioTitle != null && scenarioTitle.isNotEmpty) {
+        } else {
           query = query.ilike('title', '%$scenarioTitle%');
         }
         final res = await query.maybeSingle();
