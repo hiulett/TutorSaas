@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/app.dart';
 import 'core/constants/api_constants.dart';
@@ -12,6 +13,12 @@ void main() async {
   debugPrint('App Main: Iniciando...');
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('App Main: Widgets Binding inicializado.');
+
+  // Issue #53: las tipografías van empaquetadas en `assets/google_fonts/`.
+  // Sin esta bandera, google_fonts intenta descargarlas en el primer arranque
+  // y, sin red, la excepción queda sin manejar (además de renderizar con la
+  // fuente del sistema).
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Initialize Error Tracking & Analytics
   await ErrorTracker.init();
