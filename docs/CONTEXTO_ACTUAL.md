@@ -20,7 +20,7 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 | Tests / analyze | 155 en verde · 0 errores (36 warnings, 128 infos) |
 | AAB / APK | 104,0 MB / 131,9 MB |
 | Backend | Supabase `sipiumfdpvnszthykyog` (producción) |
-| Issues | 85: 50 implementados · 20 parciales · 10 pendientes · 2 decisión · 1 descartado · 1 epic |
+| Issues | 85: 50 implementados · 21 parciales · 10 pendientes · 2 decisión · 1 descartado · 1 epic |
 | Último commit | `866ecbc` — 14 docs de estrategia |
 
 ---
