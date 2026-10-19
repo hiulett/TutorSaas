@@ -10,7 +10,8 @@ abstract class DashboardRepository {
   Future<void> updateUserSettings(String userId, Map<String, dynamic> settings);
   Future<void> logPracticeSession(String userId, int minutes);
   Future<void> saveVocabularyFromSession(String userId, List<String> userTexts);
-  Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore);
+  Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore,
+      {String cardType = 'recognition'});
 
   /// Issue #24: palabras cuyo `next_review_at` ya venció (o nunca se fijó).
   /// Devuelve `{id, vocabulary_id, word, translation}` listo para el modal SRS.

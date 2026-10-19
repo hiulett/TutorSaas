@@ -39,11 +39,25 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
   bool _isFlipped = false;
   int _reviewedCount = 0;
 
+  /// Issue #78: con intervalo >= 6 días la tarjeta muestra la traducción y hay
+  /// que recordar la palabra (producción), no al contrario.
+  bool get _isProductionCard {
+    if (_currentIndex >= widget.vocabularyItems.length) return false;
+    final interval =
+        (widget.vocabularyItems[_currentIndex]['interval_days'] as num?)?.toInt() ?? 1;
+    return interval >= 6;
+  }
+
   void _evaluateWord(double difficultyScore) async {
     if (_currentIndex < widget.vocabularyItems.length) {
       final currentItem = widget.vocabularyItems[_currentIndex];
       final vocabId = currentItem['vocabulary_id'] as String? ?? currentItem['id'] as String?;
       final user = ref.read(currentUserProvider);
+      // Issue #78: a partir de 6 días de intervalo la tarjeta se da la vuelta
+      // (se muestra la traducción y hay que recordar la palabra). Solo estas
+      // cuentan como producción para `mastered`.
+      final isProduction =
+          ((currentItem['interval_days'] as num?)?.toInt() ?? 1) >= 6;
 
       if (user != null && vocabId != null) {
         try {
@@ -51,6 +65,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 user.id,
                 vocabId,
                 difficultyScore,
+                cardType: isProduction ? 'production' : 'recognition',
               );
         } catch (_) {}
 
@@ -190,7 +205,11 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  widget.vocabularyItems[_currentIndex]['translation'] as String? ?? '',
+                                  (_isProductionCard
+                                          ? widget.vocabularyItems[_currentIndex]['word']
+                                          : widget.vocabularyItems[_currentIndex]['translation'])
+                                      as String? ??
+                                      '',
                                   style: GoogleFonts.spaceGrotesk(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
@@ -211,7 +230,11 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  widget.vocabularyItems[_currentIndex]['word'] as String? ?? '',
+                                  (_isProductionCard
+                                          ? widget.vocabularyItems[_currentIndex]['translation']
+                                          : widget.vocabularyItems[_currentIndex]['word'])
+                                      as String? ??
+                                      '',
                                   style: GoogleFonts.spaceGrotesk(
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,

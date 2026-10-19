@@ -730,14 +730,18 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore) async {
+  Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore,
+      {String cardType = 'recognition'}) async {
     // Issue #74: el SM-2 y el registro del repaso se calculan en servidor
     // (record_vocabulary_review) para que la evidencia de retención no dependa
     // de lo que el cliente afirme. La RPC valida la identidad con auth.uid().
+    // Issue #78: `cardType` distingue reconocimiento de producción; solo la
+    // producción cuenta para `mastered`.
     try {
       await _supabaseClient.rpc('record_vocabulary_review', params: {
         'p_vocabulary_id': vocabularyId,
         'p_quality': qualityScore,
+        'p_card_type': cardType,
       });
     } catch (e) {
       debugPrint('record_vocabulary_review failed: $e');
@@ -751,7 +755,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Issue #24: antes `next_review_at` solo se escribía; nunca se consultaba.
       final res = await _supabaseClient
           .from('user_vocabulary')
-          .select('id, vocabulary_id, next_review_at, vocabulary_items:vocabulary_id(word, translation)')
+          .select('id, vocabulary_id, next_review_at, interval_days, vocabulary_items:vocabulary_id(word, translation)')
           .eq('user_id', userId)
           .or('next_review_at.is.null,next_review_at.lte.$nowIso')
           .order('next_review_at', ascending: true, nullsFirst: true)
@@ -765,6 +769,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
           'vocabulary_id': map['vocabulary_id'],
           'word': vocab['word'] ?? '',
           'translation': vocab['translation'] ?? '',
+          'interval_days': map['interval_days'] ?? 1,
         };
       }).where((m) => (m['word'] as String).isNotEmpty).toList();
     } catch (e) {
