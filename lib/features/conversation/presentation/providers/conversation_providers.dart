@@ -40,6 +40,28 @@ final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
 final activeConversationIdProvider = StateProvider<String?>((ref) => null);
 final activeScenarioIdProvider = StateProvider<String?>((ref) => null);
 
+/// Issue #76: resultado de la última visita a una escena.
+/// Se usa para que el mundo «recuerde» el intento anterior (chip en la
+/// conversación) sin volver a llamar al modelo.
+final scenarioProgressProvider =
+    FutureProvider.autoDispose.family<Map<String, dynamic>?, String>((ref, scenarioId) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return null;
+  try {
+    final res = await ref
+        .watch(supabaseClientProvider)
+        .from('scenario_progress')
+        .select('last_outcome, attempts, unlocked_next, best_ratio')
+        .eq('user_id', user.id)
+        .eq('scenario_id', scenarioId)
+        .maybeSingle();
+    return res == null ? null : Map<String, dynamic>.from(res as Map);
+  } catch (e) {
+    debugPrint('scenario_progress read failed: $e');
+    return null;
+  }
+});
+
 // ──────────────────────────────────────────────────────────────────────────────
 // ConversationNotifier — Orchestrates Voice/Text → Groq/DeepSeek → Supabase Persistence
 // ──────────────────────────────────────────────────────────────────────────────
@@ -1471,6 +1493,17 @@ ENDING:
               'status': status,
               'completed_at': DateTime.now().toIso8601String(),
             });
+
+            // Issue #76: el resultado queda en el mundo (consecuencia).
+            // Fallo → el NPC lo recuerda; éxito → desbloquea la siguiente.
+            unawaited(Supabase.instance.client.rpc(
+              'record_scenario_outcome',
+              params: {
+                'p_scenario_id': scenarioId,
+                'p_completed': completedGoals,
+                'p_total': totalGoals,
+              },
+            ).then((_) => _ref.invalidate(scenarioProgressProvider)));
           }
         } catch (_) {}
       }

@@ -395,6 +395,8 @@
       }
     }
   },
+  "npc_remembers_failure": "EL NPC RECUERDA TU ÚLTIMO INTENTO",
+  "npc_remembers_partial": "EL NPC RECUERDA QUE CASI LO LOGRAS",
   "srs_review_cta": "REPASAR",
   "srs_retention": "{percent}% recordado a 7 días · {mastered} dominadas",
   "@srs_retention": {

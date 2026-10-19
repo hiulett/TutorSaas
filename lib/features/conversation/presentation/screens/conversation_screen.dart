@@ -969,6 +969,50 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     isUserSpeaking: conversationState.isRecording,
                   ),
 
+                  // Issue #76: el mundo recuerda el intento anterior.
+                  Builder(builder: (context) {
+                    final scenarioId = conversationState.activeScenarioId;
+                    if (scenarioId == null) return const SizedBox.shrink();
+                    final progress =
+                        ref.watch(scenarioProgressProvider(scenarioId)).value;
+                    if (progress == null) return const SizedBox.shrink();
+                    final attempts =
+                        (progress['attempts'] as num?)?.toInt() ?? 1;
+                    final outcome = progress['last_outcome'] as String?;
+                    if (attempts < 2 || outcome == 'success') {
+                      return const SizedBox.shrink();
+                    }
+                    final l = AppLocalizations.of(context);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.history_rounded,
+                              size: 14, color: AppColors.guildAmber),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              outcome == 'partial'
+                                  ? (l?.npc_remembers_partial ??
+                                      'EL NPC RECUERDA QUE CASI LO LOGRAS')
+                                  : (l?.npc_remembers_failure ??
+                                      'EL NPC RECUERDA TU ÚLTIMO INTENTO'),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                color: AppColors.guildAmber,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+
                   // Conversation Messages Canvas
                   Expanded(
                     child: ListView.builder(

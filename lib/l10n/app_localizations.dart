@@ -2218,6 +2218,18 @@ abstract class AppLocalizations {
   /// **'{count} words waiting for review'**
   String srs_review_due(int count);
 
+  /// No description provided for @npc_remembers_failure.
+  ///
+  /// In en, this message translates to:
+  /// **'THE NPC REMEMBERS YOUR LAST ATTEMPT'**
+  String get npc_remembers_failure;
+
+  /// No description provided for @npc_remembers_partial.
+  ///
+  /// In en, this message translates to:
+  /// **'THE NPC REMEMBERS YOU ALMOST MADE IT'**
+  String get npc_remembers_partial;
+
   /// No description provided for @srs_review_cta.
   ///
   /// In en, this message translates to:

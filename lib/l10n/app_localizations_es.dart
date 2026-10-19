@@ -1147,6 +1147,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get npc_remembers_failure => 'EL NPC RECUERDA TU ÚLTIMO INTENTO';
+
+  @override
+  String get npc_remembers_partial => 'EL NPC RECUERDA QUE CASI LO LOGRAS';
+
+  @override
   String get srs_review_cta => 'REPASAR';
 
   @override

@@ -395,6 +395,8 @@
       }
     }
   },
+  "npc_remembers_failure": "THE NPC REMEMBERS YOUR LAST ATTEMPT",
+  "npc_remembers_partial": "THE NPC REMEMBERS YOU ALMOST MADE IT",
   "srs_review_cta": "REVIEW",
   "srs_retention": "{percent}% recalled after 7 days · {mastered} mastered",
   "@srs_retention": {
