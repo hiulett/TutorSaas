@@ -396,6 +396,17 @@
     }
   },
   "srs_review_cta": "REPASAR",
+  "srs_retention": "{percent}% recordado a 7 días · {mastered} dominadas",
+  "@srs_retention": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "mastered": {
+        "type": "int"
+      }
+    }
+  },
   "srs_normal": "NORMAL",
   "srs_easy": "FÁCIL",
   "nucleo_recharge": "RECARGAR +5",

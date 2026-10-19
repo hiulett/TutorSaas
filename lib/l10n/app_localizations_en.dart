@@ -1143,6 +1143,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get srs_review_cta => 'REVIEW';
 
   @override
+  String srs_retention(int percent, int mastered) {
+    return '$percent% recalled after 7 days · $mastered mastered';
+  }
+
+  @override
   String get srs_normal => 'NORMAL';
 
   @override

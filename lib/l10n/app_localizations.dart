@@ -2224,6 +2224,12 @@ abstract class AppLocalizations {
   /// **'REVIEW'**
   String get srs_review_cta;
 
+  /// No description provided for @srs_retention.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% recalled after 7 days · {mastered} mastered'**
+  String srs_retention(int percent, int mastered);
+
   /// No description provided for @srs_normal.
   ///
   /// In en, this message translates to:

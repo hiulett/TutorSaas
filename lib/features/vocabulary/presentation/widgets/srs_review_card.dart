@@ -24,6 +24,10 @@ class SrsReviewCard extends ConsumerWidget {
     if (due.isEmpty) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context);
+    // Issue #74: retención real (aciertos tras ≥7 días). Null = aún sin datos.
+    final evidence = ref.watch(learningEvidenceProvider).value ?? const {};
+    final retention = (evidence['retention_7d'] as num?)?.toDouble();
+    final mastered = (evidence['mastered_words'] as num?)?.toInt() ?? 0;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -56,6 +60,21 @@ class SrsReviewCard extends ConsumerWidget {
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
+                  if (retention != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        l10n?.srs_retention(
+                              (retention * 100).round(),
+                              mastered,
+                            ) ??
+                            '${(retention * 100).round()}% a 7 días · $mastered dominadas',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 9,
+                          color: AppColors.emeraldGreen,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

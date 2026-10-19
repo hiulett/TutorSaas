@@ -396,6 +396,17 @@
     }
   },
   "srs_review_cta": "REVIEW",
+  "srs_retention": "{percent}% recalled after 7 days · {mastered} mastered",
+  "@srs_retention": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "mastered": {
+        "type": "int"
+      }
+    }
+  },
   "srs_normal": "NORMAL",
   "srs_easy": "EASY",
   "nucleo_recharge": "RECHARGE +5",

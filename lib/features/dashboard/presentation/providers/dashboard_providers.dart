@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/cache/cached_future_controller.dart';
 import '../../../../core/cache/json_disk_cache.dart';
@@ -22,6 +23,21 @@ final dueVocabularyProvider = FutureProvider.autoDispose<List<Map<String, dynami
   final user = ref.watch(currentUserProvider);
   if (user == null) return const [];
   return ref.watch(dashboardRepositoryProvider).getDueVocabulary(user.id);
+});
+
+/// Issue #74: evidencia de aprendizaje calculada en servidor
+/// (`learning_evidence`): retención a 7 días, palabras dominadas y misiones.
+final learningEvidenceProvider =
+    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const {};
+  try {
+    final res = await ref.watch(supabaseClientProvider).rpc('learning_evidence');
+    return Map<String, dynamic>.from(res as Map);
+  } catch (e) {
+    debugPrint('learning_evidence failed: $e');
+    return const {};
+  }
 });
 
 final userProgressProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
