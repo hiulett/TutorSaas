@@ -67,3 +67,11 @@ supabase/functions/**/.temp/
 # Dependencias de herramientas locales de opencode
 .opencode/node_modules/
 
+# Credenciales de service account de Google Play (NUNCA versionar)
+secrets/
+
+# Firma de release Android (NUNCA versionar: contiene private keys)
+**/key.properties
+**/*.jks
+**/*.keystore
+
