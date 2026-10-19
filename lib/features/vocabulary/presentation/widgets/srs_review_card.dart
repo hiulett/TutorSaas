@@ -98,7 +98,9 @@ class SrsReviewCard extends ConsumerWidget {
     List<Map<String, dynamic>> due,
   ) async {
     await SrsFlashcardModal.show(context, due.take(maxItems).toList());
-    // Al cerrar, las palabras repasadas ya tienen nueva fecha: recargar.
+    // Al cerrar, las palabras repasadas ya tienen nueva fecha y la evidencia
+    // cambió: recargar ambas cosas.
     ref.invalidate(dueVocabularyProvider);
+    ref.invalidate(learningEvidenceProvider);
   }
 }
