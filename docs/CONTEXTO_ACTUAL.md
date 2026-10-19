@@ -20,7 +20,7 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 | Tests / analyze | 155 en verde · 0 errores (36 warnings, 128 infos) |
 | AAB / APK | 104,0 MB / 131,9 MB |
 | Backend | Supabase `sipiumfdpvnszthykyog` (producción) |
-| Issues | 85: 50 implementados · 21 parciales · 10 pendientes · 2 decisión · 1 descartado · 1 epic |
+| Issues | 85: 50 implementados · 22 parciales · 9 pendientes · 2 decisión · 1 descartado · 1 epic |
 | Último commit | `866ecbc` — 14 docs de estrategia |
 
 ---
@@ -45,8 +45,8 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 
 ### Siguiente en la cola (nadie lo ha empezado)
 
-- **#76 (P1)** — consecuencia narrativa al cerrar la escena. Es la siguiente
-  pieza grande: requiere tabla de progreso por escena, RPC y UI de desbloqueo.
+- **#76 (resto)** — reacción propia por escena (3 escenas redactadas) y
+  consumir unlocked_next en el mapa.
 - **#85** ✅ hecho — el cliente ya no puede completar misiones sin jugar.
 - **#73 (resto)** — Edge Function `evaluate-placement` para calcular el nivel en
   servidor. Toca el onboarding: hacerlo con dispositivo disponible.
