@@ -34,6 +34,16 @@ class PaywallScreen extends ConsumerStatefulWidget {
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   bool _isPresenting = false;
 
+  /// Issue #72: último error al abrir el paywall. Si no es null se muestra un
+  /// bloque de reintento en lugar de dejar al usuario con un snackbar efímero.
+  String? _paywallError;
+
+  void _track(String event, [Map<String, Object?>? properties]) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    RetentionAnalytics.instance.track(user.id, event, properties: properties);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,9 +82,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       if (service.resultGrantsPro(info)) {
         ref.read(isPremiumProvider.notifier).setPremium(true);
         _refreshAfterPurchase();
+        _track('restore_result', const {'result': 'granted'});
         SystemSnack.show(context, l10n.paywall_restored,
             type: SystemSnackType.success);
       } else {
+        _track('restore_result', const {'result': 'nothing'});
         SystemSnack.show(
           context,
           l10n.paywall_nothing_to_restore,
@@ -83,6 +95,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       }
     } catch (e) {
       debugPrint('Restore purchases failed: $e');
+      _track('restore_result', {'result': 'error', 'error': e.toString()});
       if (mounted) {
         SystemSnack.show(context, l10n.paywall_load_error,
             type: SystemSnackType.error);
@@ -94,8 +107,12 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   Future<void> _openPaywall() async {
     if (_isPresenting) return;
-    setState(() => _isPresenting = true);
+    setState(() {
+      _isPresenting = true;
+      _paywallError = null;
+    });
     final l10n = AppLocalizations.of(context)!;
+    _track('purchase_started');
     try {
       // Issue #64: el SDK debe estar configurado antes de presentar el paywall;
       // si no, `presentPaywall` falla con configurationError.
@@ -109,6 +126,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         case PaywallResult.purchased:
           ref.read(isPremiumProvider.notifier).setPremium(true);
           _refreshAfterPurchase();
+          _track('purchase_succeeded');
           SystemSnack.show(
             context,
             l10n.paywall_success,
@@ -117,6 +135,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           break;
         case PaywallResult.restored:
           _refreshAfterPurchase();
+          _track('purchase_succeeded', const {'via': 'restore'});
           SystemSnack.show(context, l10n.paywall_restored,
               type: SystemSnackType.success);
           break;
@@ -124,11 +143,19 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         // sin acción adicional.
         case PaywallResult.cancelled:
         case PaywallResult.notPresented:
+          _track('purchase_cancelled', {'result': result.name});
+          break;
         case PaywallResult.error:
+          _track('purchase_failed', const {'error': 'paywall_result_error'});
+          if (mounted) setState(() => _paywallError = l10n.paywall_load_error);
           break;
       }
     } catch (e) {
+      debugPrint('Paywall failed: $e');
+      // Issue #72: además del snackbar, dejar un estado con reintento.
+      _track('purchase_failed', {'error': e.toString()});
       if (mounted) {
+        setState(() => _paywallError = l10n.paywall_load_error);
         SystemSnack.show(
           context,
           '${l10n.paywall_load_error} $e',
@@ -284,6 +311,32 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Issue #72: estado de error persistente con reintento (el CTA sigue
+        // activo, así que basta con volver a pulsarlo).
+        if (_paywallError != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.errorRed.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded,
+                    color: AppColors.errorRed, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _paywallError!,
+                    style: AppTypography.bodyMuted(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         ElevatedButton(
           onPressed: _isPresenting
               ? null
