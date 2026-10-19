@@ -572,6 +572,68 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   }
 
   /// Registra un turno de la evaluación en `oracle_turns` (best-effort).
+  /// Issue #25: vuelca las puntuaciones del evaluador a `oracle_turns` (las lee
+  /// el radar del dashboard) y a `speech_dna_metrics` (claridad fonética).
+  Future<void> _persistSkillScores(Map<String, dynamic> ai) async {
+    final userId = _userId;
+    if (userId == null || userId.startsWith('guest_')) return;
+
+    final scores = (ai['scores'] as Map?)?.cast<String, dynamic>();
+    if (scores == null || scores.isEmpty) return;
+
+    int? v(String key) => (scores[key] as num?)?.toInt();
+
+    final pron = v('pronunciation');
+    final fluency = v('fluency') ?? v('speaking');
+    final grammar = v('grammar');
+    final vocab = v('vocabulary');
+    final comprehension = v('listening');
+    final naturalness = v('naturalness') ?? v('sentence_structure');
+
+    final row = <String, dynamic>{
+      if (pron != null) 'pronunciation_score': pron,
+      if (fluency != null) 'fluency_score': fluency,
+      if (grammar != null) 'grammar_score': grammar,
+      if (vocab != null) 'vocabulary_score': vocab,
+      if (comprehension != null) 'comprehension_score': comprehension,
+      if (naturalness != null) 'naturalness_score': naturalness,
+    };
+    if (row.isEmpty) return;
+
+    try {
+      final client = Supabase.instance.client;
+      final assessment = await client
+          .from('oracle_assessments')
+          .select('id')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (assessment == null) return;
+
+      final turn = await client
+          .from('oracle_turns')
+          .select('id')
+          .eq('assessment_id', assessment['id'])
+          .order('turn_order', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (turn == null) return;
+
+      await client.from('oracle_turns').update(row).eq('id', turn['id']);
+
+      if (pron != null) {
+        await client.from('speech_dna_metrics').upsert({
+          'user_id': userId,
+          'phonetic_clarity_score': pron,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'user_id');
+      }
+    } catch (e) {
+      debugPrint('Oracle skill scores failed (non-blocking): $e');
+    }
+  }
+
   /// Guarda la pregunta del Oráculo, la respuesta del usuario, el tiempo de
   /// respuesta y una evaluación parcial simple basada en la longitud de la
   /// respuesta (la evaluación fina la hace la IA al cerrar).
@@ -752,6 +814,11 @@ ENDING:
         final dio = _ref.read(conversationDioProvider);
         ai = await PlacementAiEvaluator.evaluatePlacement(answers, dio: dio);
       } catch (_) {}
+
+      // Issue #25: persistir las 6 dimensiones que lee el radar de habilidades.
+      // Hasta ahora solo se guardaba `partial_score`, así que el radar mostraba
+      // ceros en pronunciación, gramática, vocabulario, comprensión y naturalidad.
+      unawaited(_persistSkillScores(ai));
 
       final validCefrs = const ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
       final aiCefr = _stringField(ai, 'cefr_level', '').toUpperCase();
