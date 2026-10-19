@@ -731,52 +731,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   @override
   Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore) async {
+    // Issue #74: el SM-2 y el registro del repaso se calculan en servidor
+    // (record_vocabulary_review) para que la evidencia de retención no dependa
+    // de lo que el cliente afirme. La RPC valida la identidad con auth.uid().
     try {
-      final existing = await _supabaseClient
-          .from('user_vocabulary')
-          .select('id, ease_factor, interval_days, times_seen, times_correct')
-          .eq('user_id', userId)
-          .eq('vocabulary_id', vocabularyId)
-          .maybeSingle();
-
-      if (existing == null) return;
-
-      double easeFactor = (existing['ease_factor'] as num? ?? 2.5).toDouble();
-      int intervalDays = existing['interval_days'] as int? ?? 1;
-      int timesSeen = existing['times_seen'] as int? ?? 1;
-      int timesCorrect = existing['times_correct'] as int? ?? 1;
-
-      // SuperMemo SM-2 Formula
-      final q = qualityScore.clamp(0.0, 5.0);
-      easeFactor = easeFactor + (0.1 - (5.0 - q) * (0.08 + (5.0 - q) * 0.02));
-      if (easeFactor < 1.3) easeFactor = 1.3;
-
-      if (q < 3.0) {
-        intervalDays = 1;
-      } else {
-        timesCorrect += 1;
-        if (intervalDays == 1) {
-          intervalDays = 6;
-        } else {
-          intervalDays = (intervalDays * easeFactor).round();
-        }
-      }
-
-      timesSeen += 1;
-      final isMastered = timesCorrect >= 3 && intervalDays >= 14;
-      final nextReviewDate = DateTime.now().add(Duration(days: intervalDays)).toIso8601String();
-
-      await _supabaseClient.from('user_vocabulary').update({
-        'ease_factor': easeFactor,
-        'interval_days': intervalDays,
-        'times_seen': timesSeen,
-        'times_correct': timesCorrect,
-        'is_mastered': isMastered,
-        'next_review_at': nextReviewDate,
-        'last_seen_at': DateTime.now().toIso8601String(),
-      }).eq('id', existing['id']);
-    } catch (_) {
-      // Ignore database errors during offline/fallback mode
+      await _supabaseClient.rpc('record_vocabulary_review', params: {
+        'p_vocabulary_id': vocabularyId,
+        'p_quality': qualityScore,
+      });
+    } catch (e) {
+      debugPrint('record_vocabulary_review failed: $e');
     }
   }
 
