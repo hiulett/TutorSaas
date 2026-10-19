@@ -20,7 +20,7 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 | Tests / analyze | 155 en verde · 0 errores (36 warnings, 128 infos) |
 | AAB / APK | 104,0 MB / 131,9 MB |
 | Backend | Supabase `sipiumfdpvnszthykyog` (producción) |
-| Issues | 85: 49 implementados · 21 parciales · 11 pendientes · 2 decisión · 1 descartado · 1 epic |
+| Issues | 85: 50 implementados · 20 parciales · 10 pendientes · 2 decisión · 1 descartado · 1 epic |
 | Último commit | `866ecbc` — 14 docs de estrategia |
 
 ---
@@ -45,10 +45,9 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 
 ### Siguiente en la cola (nadie lo ha empezado)
 
-- **#74 (resto)** — función `learning_evidence()` + mostrar la retención en
-  Estado. La base (historial de repasos + SM-2 en servidor) ya está.
-- **#85 (P1)** — el cliente puede marcar misiones como completadas sin jugar
-  (hallazgo colateral al cerrar #5).
+- **#76 (P1)** — consecuencia narrativa al cerrar la escena. Es la siguiente
+  pieza grande: requiere tabla de progreso por escena, RPC y UI de desbloqueo.
+- **#85** ✅ hecho — el cliente ya no puede completar misiones sin jugar.
 - **#73 (resto)** — Edge Function `evaluate-placement` para calcular el nivel en
   servidor. Toca el onboarding: hacerlo con dispositivo disponible.
 
@@ -61,9 +60,12 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
   cambiar `cefr_level_id`, `game_rank`, `xp_points`, oro, gemas, fragmentos,
   rachas ni placement. Las RPC `SECURITY DEFINER` siguen funcionando. Verificado
   con rol simulado.
-- **#74 (parcial)** — tabla `vocabulary_reviews` (append-only) y SM-2 movido al
-  servidor (`record_vocabulary_review`). `delayed_retrieval` marca los aciertos
-  tras ≥7 días: la primera señal real de retención. Falta la métrica y su UI.
+- **#74 (parcial)** — tabla `vocabulary_reviews` (append-only), SM-2 en servidor
+  (`record_vocabulary_review`) y métrica `learning_evidence()` con
+  `retention_7d` (null si aún no hay datos). La tarjeta SRS muestra la retención.
+  Faltan progreso comparable y transferencia (dependen de #76).
+- **#85** ✅ — `guard_mission_instance` sin `SECURITY DEFINER`: el cliente no
+  puede cambiar `status`, `current_value` ni `completed_at`; la RPC sí.
 
 ### Las 12 historias de la fase 2
 
