@@ -138,7 +138,6 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
         ? (progress['game_rank'] as String)!
         : CefrRank.gameRankFromCefr(cefrCode);
     final int xp = progress['xp'] as int? ?? 0;
-    final int streak = progress['streak'] as int? ?? 0;
     final String languageEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
 
     // Maná (FASE B): única moneda de energía. Saldo = asignación del plan
@@ -261,18 +260,6 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        '🔥 RACHA $streak DÍAS',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: streak > 0 ? AppColors.royalGold : AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

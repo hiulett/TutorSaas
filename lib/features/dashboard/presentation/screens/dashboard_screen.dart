@@ -163,7 +163,6 @@ class DashboardScreen extends ConsumerWidget {
       'language': 'Inglés',
       'language_emoji': '🇺🇸',
     };
-    final int streak = progress['streak'] as int;
     final String cefrCode = progress['level_code'] as String;
 
     // Issue #63: al abrirse el teclado el Scaffold encoge el body y el dock
@@ -294,45 +293,10 @@ class DashboardScreen extends ConsumerWidget {
                                     // Issue #24: repaso espaciado (solo si hay palabras vencidas).
                                     const SrsReviewCard(),
 
-                                    // Accesos rápidos: gemas, racha, premium
+                                    // Acceso a suscripción (la racha vive en Estado, #80)
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
-                                        // Issue #27: el badge de gemas se retiró.
-                                        // Las gemas se siguen acumulando en la BD,
-                                        // pero no se muestran hasta que tengan uso.
-                                        // Streak badge
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.onSurface.withValues(alpha: 0.05),
-                                            borderRadius: BorderRadius.circular(AppRadius.lg),
-                                            border: Border.all(
-                                              color: AppColors.onSurface.withValues(alpha: 0.1),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.local_fire_department_rounded,
-                                                color: AppColors.royalGold,
-                                                size: 16,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                '$streak ${streak == 1 ? "DÍA" : "DÍAS"}',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 11,
-                                                  letterSpacing: 1.0,
-                                                  color: AppColors.onSurface,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
                                         // Premium status badge / Upgrade button
                                         SizedBox(
                                           height: 48,
