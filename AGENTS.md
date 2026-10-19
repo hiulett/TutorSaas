@@ -1,64 +1,105 @@
-# AGENTS.md — TutorSaas / Dungeon of English
+# AGENTS.md — Dungeon of English (TutorSaas)
 
-## Project Overview
-Flutter mobile SaaS for conversational English learning wrapped in an Isekai/Webtoon "System HUD" RPG. Voice pipeline: record (AAC/m4a) → Groq Whisper STT (whisper-large-v3-turbo, language forced `en`) → DeepSeek LLM (SSE streaming, `deepseek-v4-flash`) → flutter_tts (on-device, rate 0.48). Target pipeline latency <1.5s. Supabase BaaS (Postgres, Auth, RLS, Realtime).
+Guía para agentes que trabajen en este repositorio. La documentación de
+referencia está en `docs/`:
 
-**Plataforma: Android únicamente.** No existe carpeta `ios/` ni código específico de iOS. No añadir rutas, plugins ni configuraciones de iOS.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — capas, rutas, pipeline de voz
+- [docs/DATA_MODEL.md](docs/DATA_MODEL.md) — tablas, RLS, migraciones
+- [docs/OPERATIONS.md](docs/OPERATIONS.md) — entornos, secretos, funciones, cron
+- [docs/RELEASE.md](docs/RELEASE.md) — build y publicación
+- [docs/PRODUCT.md](docs/PRODUCT.md) — planes, moneda, decisiones
+- [docs/HISTORY.md](docs/HISTORY.md) — qué cambió y qué ya no es cierto
 
-## ⚠️ CRITICAL: Git History and Uncommitted Work
-The repo has **6 commits**; the initial one is `8c1ef25`. **There is still a large body of uncommitted work** (51 modified files + 29 untracked at the time of the October 2026 audit).
-- `git checkout -- <file>` reverts a file to the **last commit**, which can destroy uncommitted work.
-- **Never use `git checkout`/`git restore` to "fix" or "revert" a Dart file.** Fix problems by editing, not restoring.
-- `git status`/`git diff` do NOT reflect recent feature work on already-tracked files — many intended changes live only as uncommitted edits and new untracked files (`lib/features/economy/`, `lib/features/missions/`, `lib/l10n/`, etc.).
+---
 
-## Commands
+## Proyecto
+
+App **Android** de inglés conversacional con capa RPG. Voz: `record` (AAC) →
+Edge Function `llm-proxy` (Groq Whisper STT, DeepSeek SSE) → `flutter_tts`.
+Backend: Supabase (`sipiumfdpvnszthykyog`). Compras: Play Billing + RevenueCat.
+
+**Versión:** `1.0.21+22`. **No hay código de iOS ni debe añadirse.**
+
+---
+
+## Comandos
+
 ```sh
-flutter analyze                     # lint + typecheck (177 issues: 36 warnings + 141 infos, 0 errors is the bar)
-flutter test                        # unit tests in test/ (15 files, 142 cases)
-flutter gen-l10n                    # regenerate lib/l10n/app_localizations* after editing any .arb
-dart run build_runner build --delete-conflicting-outputs  # freezed / json_serializable codegen
-flutter run -d <device>             # device run (e.g. RFCN80FYN6V)
+flutter analyze     # 0 errores (36 warnings + 128 infos son la línea base)
+flutter test        # 155 pruebas
+flutter gen-l10n    # obligatorio tras editar cualquier .arb
+dart run build_runner build --delete-conflicting-outputs   # freezed/json
+flutter build appbundle --release
 ```
-- `flutter analyze` shows 177 issues (36 warnings + 141 infos: deprecations, unused private widgets). 0 **errors** is the correctness bar; don't chase every info.
-- After editing `lib/l10n/app_*.arb`, you **must** run `flutter gen-l10n` before the new keys resolve.
 
-## Theme — Isekai / Webtoon / System HUD (Dark Only)
-- **Current palette** (in `lib/core/theme/app_colors.dart`): `voidBg` #05070E, `manaCyan` #00E5FF, `royalGold` #FFC700, `runeViolet` #9D4EDD, `emeraldGreen` #00E676. Old palette (`#0B1326`, `#B76DFF`) is **deprecated** — do not reintroduce.
-- No light mode. Border radius standard is **4px** (rounded corners >20px only for avatars/orbs).
-- Floating containers use `GlassCard` (`lib/core/widgets/glass_card.dart`) — supports `borderColor`, `showRunicCorners`, `runicColor` for runic accents.
-- Reusable RPG widgets in `lib/core/widgets/`: `SegmentedBar` (10-segment progress), `AnimatedCounter` (eased number), `FloatingReward` (floating "+XP"), `RpgAvatar`, `CyberManhwaBackground` (13 `CyberBgMode`s; don't add hardcoded hex backgrounds — use AppColors).
+---
 
-## Architecture
-- **State:** flutter_riverpod — `StateNotifierProvider` for complex state, `FutureProvider.autoDispose` for async, `StateProvider` for simple. Invalidate providers after mutations. No BLoC/Redux/GetX/legacy Provider.
-- **Routing:** go_router. New screens must be registered in `lib/app/router.dart`. Currently 14 routes; `/oracle-test`, `/shop`, `/inventory` and `/dungeon-guardian` are already wired. `/hunter-status`, `/collections`, `/battle-pass`, `/dungeon-map` do **not** exist.
-- **Dashboard** (`dashboard_screen.dart`) has 4 tabs: Dungeons (0), Guild (1 → pushes `/chat-rooms`), Status (2), Config (3).
-- **Features (feature-first clean architecture):** `auth`, `chat_rooms` (voice rooms/guild hall), `conversation` (voice pipeline + Oracle NPC), `dashboard` (home/progress/profile/settings), `economy` (invocations, gems, streaks), `missions` (mission engine), `onboarding` (wizard, oracle test, placement), `subscription` (paywall/plans), `vocabulary` (SM-2 SRS).
-- **Web admin:** `web_admin/` is a separate React/Vite app (Supabase JS client). Subscription prices/plans are editable there.
+## Reglas que no se negocian
 
-## Voice Pipeline (DO NOT ALTER)
-1. record (AAC/m4a) → 2. Groq Whisper STT (`en` forced) → 3. DeepSeek SSE streaming → 4. flutter_tts (rate 0.48).
-- Recording is **tap-to-toggle** via the `record` package (there is no hold-to-talk; `micModeHoldToTalkProvider` is unused). The native `speech_to_text` plugin is a declared dependency but unused for capture.
-- Goal evaluation is an **LLM call** (`evaluateGoals` in `conversation_repository_impl.dart`). `isSatisfiedBy` exists but has **zero call sites**. Scenario conversations should persist, but lesson chats are currently not saved (see issue #1).
+1. **Nunca** uses `git checkout -- <archivo>` ni `git restore` para "arreglar"
+   un archivo: se pierde trabajo. Corrige editando.
+2. **Los `.arb` se editan solo con la herramienta de edición**, nunca con
+   scripts de consola (rompen acentos). Después, `flutter gen-l10n`.
+3. El pipeline de voz (record → STT → LLM → TTS) no se altera sin pedido
+   explícito.
+4. Android únicamente. Nada de rutas, plugins ni configuración de iOS.
+5. Las claves de IA viven como secretos de `llm-proxy`; nunca en el cliente.
 
-## i18n / Localization
-- Flutter l10n (`l10n.yaml`, `pubspec.yaml: generate: true`). Templates: `lib/l10n/app_en.arb` (source), `app_es.arb`, `app_pt.arb`.
-- Use generated `AppLocalizations.of(context)!.key`. The legacy `t()` helper in `lib/core/i18n/locale_provider.dart` is a **stub** (returns the key) — don't rely on it for real translations.
-- `UserLanguageSettings` provider (`lib/core/i18n/language_settings.dart`) separates UI language / learning language / AI-explanation language.
+---
 
-## Database / Migrations
-- Supabase migrations live in `supabase/migrations/`. Many feature migrations (oracle questions, mission engine, economy, chat moderation, pricing) exist as files but may **not be applied** to the live DB.
-- Only **23 of 128** files use the 14-digit timestamp prefix that `supabase db push` requires; the other 105 are silently skipped. `migrations/audit/` and `migrations/misionesgremio/` sit in subfolders the CLI does not read. The repo **cannot reproduce** the live schema (issue #10).
-- RLS must be respected on all queries. Some DDL/writes may fail against the live project with "read-only transaction" — apply via the SQL Editor or a branch instead.
+## Arquitectura
 
-## Conventions
-- Files `snake_case`; classes `PascalCase`; vars/functions `camelCase`; private `_camelCase`; providers end in `Provider`.
-- `const` constructors wherever possible; avoid `setState` for business logic.
-- All API calls wrapped in try-catch with `debugPrint`.
-- Typography: `SpaceGrotesk` (headlines), `Inter` (body), `JetBrainsMono` (stats/labels) via google_fonts — do not introduce other families. Note: `HankenGrotesk` is **still present** in `conversation_screen.dart` (~lines 293 and 587) and must be removed (issue #34).
+- **Estado:** `flutter_riverpod` (`StateNotifierProvider`, `FutureProvider`,
+  `StateProvider`). Sin BLoC, Redux ni GetX.
+- **Rutas:** `go_router`, 14 rutas registradas en `lib/app/router.dart`.
+  Toda pantalla nueva debe registrarse ahí.
+- **Features:** `auth`, `onboarding`, `conversation`, `chat_rooms`, `dashboard`,
+  `economy`, `missions`, `presence`, `subscription`, `vocabulary`.
+- **Tema:** solo oscuro, radios de 4 px, paleta en `app_colors.dart`
+  (`voidBg`, `manaCyan`, `royalGold`, `runeViolet`, `emeraldGreen`).
+- **Tipografía:** empaquetada en `assets/google_fonts/` (Space Grotesk, Inter,
+  JetBrains Mono). `google_fonts` no descarga en runtime.
+- **i18n:** `lib/l10n/app_{en,es,pt}.arb`; `app_en.arb` es la plantilla.
 
-## ⚠️ Trabajo pendiente — limpieza de código muerto (no urgente, no rompe nada)
-Se eliminaron pantallas (hunter-status, collections, fragments-exchange, battle-pass, guild-quest-board/detail, dungeon-map). Quedó **código muerto** por limpiar, verificado como sin consumidores (solo interfaz+impl):
-- **8 métodos en `mission_repository`** (interfaz `domain/repositories/mission_repository.dart` + impl `data/repositories/mission_repository.dart`): `getSecretMissions`, `getActiveEmergencies`, `getRecentRewards`, `getGuildQuestPool`, `getCompletedGuildQuests`, `getGuildQuestById`, `getActiveGuildMissions`, `getActiveGlobalEvents`. ⚠️ Quitar SIEMPRE interfaz+impl a la vez (un `@override` huérfano = error `invalid_override`). Conservar `getActiveMissions` (uso interno), `getCompletedMissions`, `getWeeklyRaid`.
-- **~90 claves l10n sin uso** en `lib/l10n/app_*.arb`: prefijos `battle_*`, `dungeon_*`, `fragments_*`, `collections_load_error`, `hunter_equip/skill_titles/cefr_xp/fluency/holographic/practice/points/str/luk/distribute/no_title/max_level`, y la mayoría `mission_*` del tablón/detalle. Listarlas comparando claves del ARB vs uso (`l10n.` / `AppLocalizations.of(context)?.` en lib fuera de `l10n/`). ⚠️ Editar ARB SOLO con la herramienta de edición (nunca scripts de consola: corrompen acentos/emojis). Después `flutter gen-l10n`.
-- Ya limpiado: 10 providers huérfanos en `mission_providers.dart`, 2 métodos de battle pass en `economy_repository`, imports sin uso.
+### Trampa conocida: `GlassCard`
 
+`GlassCard` tiene un `GestureDetector` interno que **gana la arena de gestos**.
+Cualquier acción de toque debe pasarse como `onTap:` al propio `GlassCard`; si
+se envuelve en un `GestureDetector` externo, el tap no llega. `onLongPress` sí
+funciona desde el ancestro.
+
+---
+
+## Base de datos
+
+75 tablas, 120 políticas RLS, 52 funciones, 3 jobs de cron.
+
+- La app **solo lee** `user_subscriptions` y `payments`; las escrituras van por
+  RPC `SECURITY DEFINER` o service role.
+- El plan y el maná se leen de `user_subscriptions`; RevenueCat es la fuente
+  para el entitlement, con reconciliación vía `sync-entitlement`.
+- **No ejecutes `supabase db push`**: el repo no reproduce el esquema (33
+  migraciones se aplicaron desde el SQL Editor). Los cambios se aplican por el
+  SQL Editor o MCP y se guardan como archivo con la **versión real** del
+  historial. Detalle en `docs/runbooks/MIGRATION_STATUS.md`.
+
+---
+
+## Convenciones
+
+- Archivos `snake_case`; clases `PascalCase`; variables `camelCase`;
+  providers terminan en `Provider`.
+- `const` siempre que se pueda; nada de `setState` para lógica de negocio.
+- Toda llamada de red dentro de `try/catch` con `debugPrint` (incluye el
+  mensaje del error, no solo "falló").
+- No introducir familias tipográficas nuevas.
+- Mensajes de error al usuario: siempre accionables; nunca dejar un `catch`
+  vacío que devuelva al login sin explicar.
+
+---
+
+## Estado del backlog
+
+El trabajo vive en los issues de GitHub (`hiulett/TutorSaas`). Los documentos de
+`docs/archive/` son históricos: varias de sus conclusiones ya no son ciertas
+(ver `docs/HISTORY.md`).

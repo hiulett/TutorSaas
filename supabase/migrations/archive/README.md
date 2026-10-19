@@ -23,4 +23,4 @@ Los dos últimos se ejecutaron a mano desde el SQL Editor. Al vivir dentro de `m
 
 Los archivos archivados contienen `TRUNCATE ... CASCADE` sobre `scenarios`. **No deben ejecutarse** en producción: arrastrarían `conversations`, `messages` y `lesson_progress`.
 
-Si en algún momento se necesita reconstruir la base desde cero, el camino es el volcado de `docs/schema/README.md`, no estas semillas.
+Si en algún momento se necesita reconstruir la base desde cero, el camino es el volcado descrito en `docs/runbooks/MIGRATION_STATUS.md`, no estas semillas.

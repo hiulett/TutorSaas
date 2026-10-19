@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Isekai Hunter System HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#11131b",
+                        "error": "#ffb4ab",
+                        "surface": "#11131b",
+                        "on-secondary-fixed": "#251a00",
+                        "primary-container": "#00e5ff",
+                        "outline": "#849396",
+                        "surface-container-high": "#272a32",
+                        "on-primary-fixed-variant": "#004f58",
+                        "secondary-container": "#ffc703",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-container": "#00626e",
+                        "background": "#11131b",
+                        "on-surface-variant": "#bac9cc",
+                        "primary-fixed-dim": "#00daf3",
+                        "surface-bright": "#373942",
+                        "on-error": "#690005",
+                        "on-tertiary": "#4c007d",
+                        "surface-container": "#1d1f27",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "primary": "#c3f5ff",
+                        "error-container": "#93000a",
+                        "secondary": "#ffe9b9",
+                        "inverse-surface": "#e1e2ed",
+                        "tertiary-fixed": "#f2daff",
+                        "surface-container-lowest": "#0b0e16",
+                        "surface-container-low": "#191b23",
+                        "on-tertiary-container": "#7e2cbe",
+                        "on-primary-fixed": "#001f24",
+                        "surface-tint": "#00daf3",
+                        "on-secondary-fixed-variant": "#594400",
+                        "primary-fixed": "#9cf0ff",
+                        "on-secondary": "#3e2e00",
+                        "inverse-primary": "#006875",
+                        "on-secondary-container": "#6e5400",
+                        "outline-variant": "#3b494c",
+                        "on-primary": "#00363d",
+                        "tertiary": "#f8e7ff",
+                        "surface-variant": "#32343d",
+                        "on-background": "#e1e2ed",
+                        "on-surface": "#e1e2ed",
+                        "surface-container-highest": "#32343d",
+                        "inverse-on-surface": "#2e3039",
+                        "secondary-fixed": "#ffdf94",
+                        "tertiary-container": "#e6c3ff",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "on-tertiary-fixed": "#2e004e",
+                        "tertiary-fixed-dim": "#e0b6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "window-padding": "24px",
+                        "margin-desktop": "40px",
+                        "unit": "4px",
+                        "margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "stat-value": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "display-title": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "stat-value": ["20px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #05070E;
+            color: #e1e2ed;
+            overflow-x: hidden;
+        }
+
+        .system-window {
+            background-color: rgba(17, 19, 27, 0.94);
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            position: relative;
+        }
+        
+        .system-window::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1" fill="rgba(0,229,255,0.1)"/></svg>');
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .system-window-gold {
+            background-color: rgba(17, 19, 27, 0.94);
+            border: 1px solid #ffc703;
+            box-shadow: 0 0 12px rgba(255, 199, 3, 0.4);
+            position: relative;
+        }
+        
+        .runic-accent {
+            position: absolute;
+            opacity: 0.1;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            pointer-events: none;
+            animation: pulse-rune 2s infinite alternate;
+        }
+        
+        .runic-tl { top: -10px; left: -10px; }
+        .runic-br { bottom: -10px; right: -10px; }
+
+        @keyframes pulse-rune {
+            from { opacity: 0.05; text-shadow: 0 0 5px #00E5FF; }
+            to { opacity: 0.2; text-shadow: 0 0 15px #00E5FF; }
+        }
+
+        .system-button {
+            border: 1px solid #00E5FF;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-button:hover {
+            background-color: #00E5FF;
+            color: #05070E;
+            box-shadow: 0 0 10px #00E5FF;
+        }
+        
+        .system-button-urgent {
+            border: 1px solid #7e2cbe;
+            background-color: rgba(126, 44, 190, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .system-button-urgent:hover {
+            background-color: #7e2cbe;
+            color: white;
+            box-shadow: 0 0 15px rgba(126, 44, 190, 0.8);
+        }
+
+        .mana-bar-segment {
+            border-right: 1px solid #05070E;
+        }
+        .mana-bar-segment:last-child {
+            border-right: none;
+        }
+
+        /* Scanline effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md bg-background text-on-surface min-h-screen flex flex-col pt-[80px] pb-[80px] relative">
+<div class="scanlines"></div>
+<!-- TopAppBar -->
+<header class="bg-surface-dim/95 text-primary-container font-label-caps text-label-caps font-display-title text-headline-md text-primary-container tracking-tighter fixed top-0 w-full border-b border-primary-container shadow-[0_0_8px_rgba(0,229,255,0.3)] shadow-[0_0_12px_rgba(0,229,255,0.2)] transition-all duration-300 ease-out active:scale-95 flex justify-between items-center px-window-padding py-unit w-full z-50 backdrop-blur-md">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div>
+<div class="font-stat-value text-stat-value text-on-surface">LVL 12</div>
+<div class="text-[10px] text-outline tracking-widest">PLAYER</div>
+</div>
+</div>
+<div class="flex-1 px-4 max-w-[150px]">
+<div class="flex justify-between text-[10px] mb-1">
+<span class="text-primary-container">MP</span>
+<span class="text-primary-container">80/100</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-sm flex overflow-hidden border border-primary-container/30">
+<div class="h-full bg-primary-container w-[80%] flex">
+<div class="flex-1 mana-bar-segment"></div>
+<div class="flex-1 mana-bar-segment"></div>
+<div class="flex-1 mana-bar-segment"></div>
+<div class="flex-1 mana-bar-segment"></div>
+<div class="flex-1 mana-bar-segment"></div>
+<div class="flex-1 mana-bar-segment"></div>
+<div class="flex-1 mana-bar-segment"></div>
+<div class="flex-1 mana-bar-segment"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-error font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                    7 DAYS CLEAR
+                </span>
+</div>
+<div class="w-8 h-8 flex items-center justify-center border border-secondary-container text-secondary-container font-stat-value text-stat-value shadow-[0_0_8px_rgba(255,199,3,0.5)]">
+                 B1
+             </div>
+</div>
+</header>
+<main class="flex-1 px-margin-mobile md:px-margin-desktop py-gutter flex flex-col gap-6 max-w-[600px] mx-auto w-full z-10">
+<!-- Urgent Quest Card -->
+<section class="system-window-gold rounded-lg p-window-padding relative overflow-hidden animate-pulse" style="animation-duration: 4s;">
+<div class="runic-accent runic-tl text-secondary-container">※</div>
+<div class="runic-accent runic-br text-secondary-container">※</div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h2 class="font-headline-md text-headline-md text-secondary-container tracking-wider">URGENT QUEST</h2>
+</div>
+<div class="font-headline-md text-headline-md text-secondary-container border border-secondary-container px-2">A</div>
+</div>
+<h3 class="font-stat-value text-stat-value text-on-surface mb-2 relative z-10">Airport Security Roleplay</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 relative z-10 border-l-2 border-secondary-container/50 pl-3">
+                System detected a spatial distortion at Terminal 4. Infiltrate and pass the verbal security check to seal the rift.
+            </p>
+<button class="w-full system-button-urgent rounded-lg py-3 font-stat-value text-stat-value text-tertiary-fixed tracking-widest flex justify-center items-center gap-2 relative z-10">
+<span class="material-symbols-outlined">login</span>
+                ENTER GATEWAY BATTLE
+            </button>
+</section>
+<!-- Active Quests -->
+<section class="flex flex-col gap-4">
+<h2 class="font-label-caps text-label-caps text-primary-container flex items-center gap-2 border-b border-primary-container/30 pb-2">
+<span class="material-symbols-outlined text-[14px]">checklist</span>
+                ACTIVE QUESTS
+            </h2>
+<!-- Quest 1 -->
+<div class="system-window rounded p-4 flex flex-col gap-3 group hover:border-primary-container transition-colors">
+<div class="flex justify-between items-center">
+<h3 class="font-stat-value text-[16px] text-on-surface">Speak 50 words in a session</h3>
+<span class="font-label-caps text-[10px] text-outline px-2 py-1 border border-outline rounded">DAILY</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex-1 h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[60%] shadow-[0_0_5px_#00E5FF]"></div>
+</div>
+<span class="font-label-caps text-label-caps text-primary-container">30/50</span>
+</div>
+</div>
+<!-- Quest 2 -->
+<div class="system-window rounded p-4 flex flex-col gap-3 group hover:border-primary-container transition-colors">
+<div class="flex justify-between items-center">
+<h3 class="font-stat-value text-[16px] text-on-surface">Clear 1 Vocabulary Dungeon</h3>
+<span class="font-label-caps text-[10px] text-outline px-2 py-1 border border-outline rounded">WEEKLY</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex-1 h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-surface-container-high w-0"></div>
+</div>
+<span class="font-label-caps text-label-caps text-outline">0/1</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container-lowest/90 text-primary-container font-label-caps text-label-caps font-headline-md text-primary-container fixed bottom-0 w-full border-t-2 border-primary-container shadow-[0_-4px_10px_rgba(0,229,255,0.4)] shadow-[0_-2px_15px_rgba(0,229,255,0.2)] transition-transform duration-200 active:scale-90 fixed bottom-0 left-0 w-full z-50 flex justify-around items-stretch h-16 bg-surface-dim md:hidden">
+<button class="flex flex-col items-center justify-center text-primary-container bg-primary-container/20 border-t-4 border-primary-container px-gutter py-2 flex-1 hover:bg-primary-container/10 hover:opacity-100">
+<span class="material-symbols-outlined mb-1">swords</span>
+<span>DUNGEONS</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline opacity-70 px-gutter py-2 flex-1 hover:bg-primary-container/10 hover:opacity-100">
+<span class="material-symbols-outlined mb-1">group</span>
+<span>GUILD</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline opacity-70 px-gutter py-2 flex-1 hover:bg-primary-container/10 hover:opacity-100">
+<span class="material-symbols-outlined mb-1">fitbit_push_ups</span>
+<span>STATUS</span>
+</button>
+</nav>
+<!-- Desktop Sidebar (Hidden on Mobile, required by structural rules though design is mobile first) -->
+<aside class="hidden md:flex flex-col h-full p-window-padding gap-gutter bg-surface-container-high/95 text-secondary-container font-stat-value text-stat-value font-headline-lg text-secondary-container h-full w-80 border-r border-primary-container border-r border-primary-container shadow-[4px_0_15px_rgba(0,229,255,0.1)] shadow-2xl transition-all duration-300 fixed left-0 top-[60px] bottom-0 z-40">
+<div class="flex items-center gap-4 mb-8">
+<div class="w-12 h-12 rounded bg-surface-variant overflow-hidden border border-secondary-container flex items-center justify-center shadow-[0_0_10px_rgba(255,199,3,0.3)]">
+<span class="material-symbols-outlined text-secondary-container text-2xl" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div>
+<div class="text-on-surface font-headline-md">MONARCH</div>
+<div class="text-outline text-label-caps font-label-caps">LVL 99 AWAKENER</div>
+<div class="text-secondary-container text-label-caps font-label-caps mt-1">RANK: S</div>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 p-3 text-secondary-container bg-secondary-container/10 font-bold border-l-4 border-secondary-container hover:bg-surface-variant/50" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span>SKILL TREE</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>INVENTORY</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span>QUEST LOG</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>SYSTEM SETTINGS</span>
+</a>
+</nav>
+</aside>
+</body></html>

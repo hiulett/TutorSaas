@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hunter Record Modification</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..700&amp;family=Space+Grotesk:wght@400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-on-surface": "#2e3039",
+                      "surface-container-highest": "#32343d",
+                      "primary-fixed-dim": "#00daf3",
+                      "on-surface-variant": "#bac9cc",
+                      "surface-dim": "#11131b",
+                      "surface-container": "#1d1f27",
+                      "surface-bright": "#373942",
+                      "surface": "#11131b",
+                      "inverse-surface": "#e1e2ed",
+                      "on-primary-fixed-variant": "#004f58",
+                      "on-error": "#690005",
+                      "error": "#ffb4ab",
+                      "primary": "#c3f5ff",
+                      "background": "#11131b",
+                      "surface-variant": "#32343d",
+                      "on-surface": "#e1e2ed",
+                      "error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#6a0baa",
+                      "outline": "#849396",
+                      "surface-tint": "#00daf3",
+                      "primary-fixed": "#9cf0ff",
+                      "tertiary-container": "#e6c3ff",
+                      "secondary-fixed-dim": "#f5bf00",
+                      "primary-container": "#00e5ff",
+                      "on-primary": "#00363d",
+                      "tertiary": "#f8e7ff",
+                      "inverse-primary": "#006875",
+                      "on-background": "#e1e2ed",
+                      "on-secondary-fixed": "#251a00",
+                      "on-tertiary": "#4c007d",
+                      "on-primary-fixed": "#001f24",
+                      "on-primary-container": "#00626e",
+                      "surface-container-high": "#272a32",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#e0b6ff",
+                      "secondary": "#ffe9b9",
+                      "on-secondary-fixed-variant": "#594400",
+                      "secondary-fixed": "#ffdf94",
+                      "on-secondary-container": "#6e5400",
+                      "tertiary-fixed": "#f2daff",
+                      "secondary-container": "#ffc703",
+                      "on-tertiary-fixed": "#2e004e",
+                      "on-secondary": "#3e2e00",
+                      "outline-variant": "#3b494c",
+                      "surface-container-low": "#191b23",
+                      "on-tertiary-container": "#7e2cbe",
+                      "surface-container-lowest": "#0b0e16",
+                      "system-purple": "#9D4EDD",
+                      "system-cyan": "#00E5FF"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "20px",
+                      "unit": "4px",
+                      "window-padding": "24px",
+                      "margin-desktop": "40px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "display-title": [
+                              "Space Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "JetBrains Mono"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "stat-value": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Space Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Space Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "display-title": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.04em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "stat-value": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+      </script>
+<style>
+        body {
+            background-color: #05070E;
+            color: #e1e2ed;
+        }
+        
+        .system-window {
+            background-color: rgba(17, 19, 27, 0.94);
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-window::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .system-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #00E5FF;
+            color: #e1e2ed;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 8px 0;
+            width: 100%;
+            outline: none;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .system-input:focus {
+            box-shadow: 0 4px 10px -4px rgba(0, 229, 255, 0.5);
+        }
+
+        .system-button {
+            border-radius: 4px;
+            border: 1px solid #00E5FF;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-button:hover {
+            background-color: #00E5FF;
+            color: #000;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+        }
+        
+        .system-cta {
+             border-radius: 4px;
+             border: 1px solid #9D4EDD;
+             background-color: rgba(157, 78, 221, 0.2);
+             color: #e6c3ff;
+             transition: all 0.3s ease;
+        }
+        
+        .system-cta:hover {
+             background-color: #9D4EDD;
+             color: #fff;
+             box-shadow: 0 0 15px rgba(157, 78, 221, 0.8);
+        }
+
+        .holo-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            animation: spin 10s linear infinite;
+            pointer-events: none;
+        }
+        
+        .holo-ring:nth-child(2) {
+             animation: spin-reverse 15s linear infinite;
+             border: 1px dashed rgba(0, 229, 255, 0.3);
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        
+        .runic-glyph {
+             opacity: 0.1;
+             animation: pulse 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.1; text-shadow: 0 0 0px #00E5FF; }
+            100% { opacity: 0.3; text-shadow: 0 0 8px #00E5FF; }
+        }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col font-body-md antialiased pt-16">
+<!-- TopAppBar (Transactional - Nav hidden, but header present) -->
+<header class="bg-surface/90 backdrop-blur-md fixed top-0 w-full border-b border-primary/30 shadow-[0_0_8px_rgba(0,229,255,0.3)] flex justify-between items-center px-window-padding h-16 z-50">
+<div class="flex items-center gap-4 text-primary cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h1 class="font-display-title text-headline-md uppercase tracking-widest text-primary font-bold">SYSTEM STATUS: ONLINE</h1>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center px-margin-mobile py-8 w-full max-w-[600px] mx-auto">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-8 tracking-wider w-full text-center" style="text-shadow: 0 0 10px rgba(0,229,255,0.5);">HUNTER RECORD MODIFICATION</h2>
+<!-- Avatar Section -->
+<section class="system-window p-window-padding w-full rounded mb-gutter flex flex-col items-center justify-center relative">
+<span class="material-symbols-outlined absolute top-2 left-2 text-primary runic-glyph">change_history</span>
+<span class="material-symbols-outlined absolute top-2 right-2 text-primary runic-glyph">change_history</span>
+<span class="material-symbols-outlined absolute bottom-2 left-2 text-primary runic-glyph">change_history</span>
+<span class="material-symbols-outlined absolute bottom-2 right-2 text-primary runic-glyph">change_history</span>
+<div class="relative w-32 h-32 mb-6 flex items-center justify-center">
+<div class="holo-ring w-36 h-36"></div>
+<div class="holo-ring w-40 h-40"></div>
+<div class="w-28 h-28 rounded-full overflow-hidden border-2 border-primary z-10 bg-surface-container shadow-[0_0_15px_rgba(0,229,255,0.4)]">
+<img class="w-full h-full object-cover grayscale opacity-80 mix-blend-screen" data-alt="A futuristic, cyberpunk-style portrait of a male hunter with glowing cyan eyes, wearing dark tactical gear with neon blue accents, set against a dark void background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAm9E76HYzuwPDas-1C-TiygybhpKid8c5ayUtOUc5byvNDewlDeOl6-fLcy9uO3mBsgVXwg_h1t9D6-QOIFjE1LPY4wk5OtqIkpeOLMd--Uu_Wt9gJgbebUnqW5b9BRUAG2Gx2A6Z22YXVIzUbFbZQPYJqCV5QqN18lt0Cuvm-oPRaTayf3iWAexT7nSJNtq3IKAOYyrpKrWe1ON1HLhIB2e8Cryjo0VK4hjAbC_G1IvKn57Kz0CXglkmBfnMwcRvB1C33y3XkeCZJ"/>
+</div>
+</div>
+<button class="system-button px-6 py-2 font-label-caps text-label-caps text-primary uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">flip_camera_ios</span>
+                CHANGE HOLOGRAM
+            </button>
+</section>
+<!-- Form Fields Section -->
+<section class="system-window p-window-padding w-full rounded flex flex-col gap-8 mb-8">
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-caps text-label-caps text-primary/70 uppercase">Display Name</label>
+<input class="system-input" type="text" value="Isaac Mendoza"/>
+</div>
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-caps text-label-caps text-primary/70 uppercase">Native Realm</label>
+<input class="system-input" type="text" value="Spanish"/>
+</div>
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-caps text-label-caps text-primary/70 uppercase">Primary Combat Goal</label>
+<input class="system-input" type="text" value="Career Expansion"/>
+</div>
+</section>
+<!-- CTA Section -->
+<button class="system-cta w-full py-4 font-headline-md text-headline-md uppercase tracking-wider font-bold shadow-[0_0_15px_rgba(157,78,221,0.4)] mt-auto mb-8 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined text-3xl">save</span>
+            SAVE HUNTER DATA
+        </button>
+</main>
+<script>
+        // Simple ambient pulse for runic glyphs (CSS handles most, this just randomizes slightly)
+        document.querySelectorAll('.runic-glyph').forEach(glyph => {
+            glyph.style.animationDelay = `${Math.random() * 2}s`;
+        });
+    </script>
+</body></html>

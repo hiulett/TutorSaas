@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Multi-user Voice Practice Room</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#e0b6ff",
+                      "surface-bright": "#373942",
+                      "on-surface-variant": "#bac9cc",
+                      "on-secondary-fixed": "#251a00",
+                      "surface-container-high": "#272a32",
+                      "primary-fixed": "#9cf0ff",
+                      "on-tertiary": "#4c007d",
+                      "primary": "#c3f5ff",
+                      "surface-container": "#1d1f27",
+                      "surface-container-low": "#191b23",
+                      "background": "#11131b",
+                      "on-primary-fixed": "#001f24",
+                      "on-tertiary-fixed": "#2e004e",
+                      "on-primary": "#00363d",
+                      "surface-variant": "#32343d",
+                      "surface-tint": "#00daf3",
+                      "surface": "#11131b",
+                      "surface-container-highest": "#32343d",
+                      "on-background": "#e1e2ed",
+                      "inverse-primary": "#006875",
+                      "tertiary": "#f8e7ff",
+                      "inverse-on-surface": "#2e3039",
+                      "secondary-container": "#ffc703",
+                      "surface-container-lowest": "#0b0e16",
+                      "on-secondary-container": "#6e5400",
+                      "error": "#ffb4ab",
+                      "on-primary-container": "#00626e",
+                      "on-secondary": "#3e2e00",
+                      "secondary": "#ffe9b9",
+                      "outline-variant": "#3b494c",
+                      "primary-container": "#00e5ff",
+                      "tertiary-fixed": "#f2daff",
+                      "secondary-fixed": "#ffdf94",
+                      "outline": "#849396",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-container": "#e6c3ff",
+                      "on-tertiary-fixed-variant": "#6a0baa",
+                      "on-tertiary-container": "#7e2cbe",
+                      "on-surface": "#e1e2ed",
+                      "on-primary-fixed-variant": "#004f58",
+                      "surface-dim": "#11131b",
+                      "secondary-fixed-dim": "#f5bf00",
+                      "primary-fixed-dim": "#00daf3",
+                      "error-container": "#93000a",
+                      "inverse-surface": "#e1e2ed",
+                      "on-secondary-fixed-variant": "#594400",
+                      "on-error": "#690005",
+                      "raid-red": "#FF1744"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "20px",
+                      "gutter": "16px",
+                      "window-padding": "24px",
+                      "unit": "4px",
+                      "margin-desktop": "40px"
+              },
+              "fontFamily": {
+                      "stat-value": [
+                              "JetBrains Mono"
+                      ],
+                      "label-caps": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Space Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Space Grotesk"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-title": [
+                              "Space Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "stat-value": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-title": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.04em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #05070E;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 229, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(0, 229, 255, 0.05) 0%, transparent 50%);
+            color: #e1e2ed;
+            overflow-x: hidden;
+        }
+
+        .system-window {
+            background-color: rgba(17, 19, 27, 0.94);
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            position: relative;
+        }
+
+        .system-window::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h2v2H0V0zm18 18h2v2h-2v-2z' fill='%2300E5FF' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .avatar-box {
+            position: relative;
+            background-color: rgba(25, 27, 35, 0.8);
+            border: 1px solid #3b494c;
+            transition: all 0.3s ease;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .avatar-box.active-speaker {
+            border-color: #00E5FF;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 15px rgba(0, 229, 255, 0.2);
+            z-index: 10;
+        }
+
+        .avatar-box.active-speaker::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, transparent, #00E5FF, transparent);
+            z-index: -1;
+            opacity: 0.5;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.3; }
+        }
+
+        .chat-bubble {
+            background: rgba(17, 19, 27, 0.9);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            box-shadow: 0 0 5px rgba(0, 229, 255, 0.1);
+        }
+
+        .runic-glyph {
+            position: absolute;
+            opacity: 0.3;
+            color: #00E5FF;
+            animation: rune-pulse 3s infinite alternate;
+        }
+
+        @keyframes rune-pulse {
+            from { opacity: 0.1; text-shadow: 0 0 2px #00E5FF; }
+            to { opacity: 0.4; text-shadow: 0 0 8px #00E5FF; }
+        }
+
+        .mana-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00E5FF;
+            border-radius: 50%;
+            box-shadow: 0 0 4px #00E5FF;
+            animation: float-up linear infinite;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) translateX(20px); opacity: 0; }
+        }
+
+        .system-button {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .system-button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.5s ease;
+        }
+
+        .system-button:hover::before {
+            left: 150%;
+        }
+
+        /* TopAppBar Styles from JSON */
+        .top-app-bar {
+            border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+        }
+        
+        /* BottomNavBar Styles from JSON */
+        .bottom-nav-bar {
+            border-top: 1px solid rgba(0, 229, 255, 0.5);
+            box-shadow: 0 -4px 12px rgba(0, 229, 255, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased min-h-screen flex flex-col pt-[72px] pb-[96px] relative">
+<!-- Particle Container -->
+<div class="fixed inset-0 pointer-events-none z-0" id="particles"></div>
+<!-- JSON: TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile py-4 bg-surface/90 backdrop-blur-md top-app-bar">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-primary overflow-hidden shadow-[0_0_12px_rgba(0,229,255,0.2)]">
+<img alt="Hunter Profile Avatar" class="w-full h-full object-cover" data-alt="A small, stylized avatar portrait of a formidable hunter character with glowing blue eyes, set against a dark void background. Arcane energy minimalist style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCZE1Tcv6-StagJjbHtpe5Sz7qzXbC8aa6WbPkfe0DZYBeqrf5B0ewLUClAd_74mvEVFjM8dlpdsdBCDprQwHOENGktk16LNcDmPYz0mibQxqDB62tgqW0ASVjsZ4DebNPV306kzuVZTLzSlmfoHgl4dwZmguY1Pd3CMDf_zJ1uDFJGBzWdEVgcBxkFxYVx9eytFGDHV00okomN29hJCrFrCVOL8T9mC5zweAg7fU-9HFJNnYUI1QwC8MPFhofVg78H7JVbRYS-uwC"/>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-bold tracking-tighter text-primary dark:text-primary-fixed-dim">SYSTEM INTERFACE</span>
+<span class="font-label-caps text-label-caps text-primary/70">LV. 42 / MANA: 8400</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-primary-container dark:text-primary-container hover:bg-primary/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.5)] rounded-full transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+</button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow flex flex-col relative z-10 px-margin-mobile md:px-margin-desktop gap-6 max-w-[1200px] mx-auto w-full">
+<!-- Top Half: 2x2 Grid of Avatars -->
+<section class="grid grid-cols-2 gap-4 md:gap-6 mt-6">
+<!-- Active Speaker -->
+<div class="avatar-box active-speaker aspect-square md:aspect-video flex flex-col relative overflow-hidden group">
+<span class="runic-glyph top-2 left-2 text-xs font-stat-value">⍙</span>
+<span class="runic-glyph bottom-2 right-2 text-xs font-stat-value">⍚</span>
+<div class="absolute inset-0 z-0">
+<img alt="Hunter 1" class="w-full h-full object-cover opacity-80" data-alt="A mid-shot portrait of a confident male hunter with short dark hair, wearing sleek black modern armor with subtle cyan glowing lines. The lighting is intense and atmospheric, with sharp shadows. Dark glassmorphism style, highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlMG7Eor8zlZy-eEGifZzWk7emXfyxBPasy4bGG35tqqIbMvRw8kOQhZ4UmadYZOhEhsGfIWlqPEOzw9qFMJAil5f_8W2bsvs9xveTLKs3FB2ecr9_NCbu2RHNkp4sonUUw--bVm5Ecr1BPsWrROJctO4PrBVOXsMoJ5_qMAntZ2fNMJSlJaXnJ6fAM11Cphi7dIxowVLy0-DqrKp1GX8ZJSjrZfG7rRhN2sQe9C-YH1K3qbSU-eyHxWeYIWNooflxXyIeVpHD3zpI"/>
+</div>
+<div class="mt-auto p-3 z-10 bg-gradient-to-t from-surface via-surface/80 to-transparent">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-primary">Jin-Woo [Active]</span>
+<div class="flex gap-1 items-end h-4">
+<div class="w-1 bg-primary animate-pulse h-full"></div>
+<div class="w-1 bg-primary animate-pulse h-2/3" style="animation-delay: 0.1s"></div>
+<div class="w-1 bg-primary animate-pulse h-4/5" style="animation-delay: 0.2s"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Inactive Speaker 1 -->
+<div class="avatar-box aspect-square md:aspect-video flex flex-col relative overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Hunter 2" class="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all duration-500" data-alt="A mid-shot portrait of a focused female hunter with silver hair tied back, wearing dark tactical gear with silver runic accents. She is looking slightly off-camera. Dark void background with subtle mana particles. Highly detailed RPG art style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkbP4ewT9BAvpSlhN78NrySdPrK7ks-fNODKrmsWt6xfMoDiywTVwor1Lxv14rpQf-jeeui9bVqSF-RJLLjZtlGpg63O0GwjT2kLAQ56y3kGc-ZvcazyeENJ-YpyFQCOXUICyq03jWI0XIQ9evzC3Pa1vF801861pqL2pMxNrWFIfKEx7-e4n95VhxrNgfEd8ZWqkHlZ29I7ZJdi3CGgh_PaJdnZkCJUUXXWIF7pGcq4oxDuAtJzVbSoIC2DUXDa6066EA2GcYkwc9"/>
+</div>
+<div class="mt-auto p-3 z-10 bg-gradient-to-t from-surface via-surface/80 to-transparent">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Cha Hae-In</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">mic_off</span>
+</div>
+</div>
+</div>
+<!-- Inactive Speaker 2 -->
+<div class="avatar-box aspect-square md:aspect-video flex flex-col relative overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Hunter 3" class="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all duration-500" data-alt="A mid-shot portrait of a burly male tank hunter with a scar across his cheek, wearing heavy obsidian armor. The lighting is dim, emphasizing his silhouette against a faint dark blue glow. High-stakes Isekai aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5_Y4Jr50AQUEghknljzkuizw9pGNEYWJxSFFSCvQElBeHz4IrjGgj6eHgOm5TKTRuefANgsIC4K3HeoEK55TpjGpeCKYkRJla7o5JwD4Ad7ZzMxg-shMOr5_bs0hXO6TKxas9f7sxI2iwE6-tf2j3NcfO3hX31VK_NmWOXb2lFYxn1Y9oMeZXE4X6Y0S2sZN0UXI6_i6hrfJzlEP_7o_LTveyI8bWP48mzxFFlY_5gJShRuSPuguKINj2D49CqCk-uIf2xfCTKNVf"/>
+</div>
+<div class="mt-auto p-3 z-10 bg-gradient-to-t from-surface via-surface/80 to-transparent">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Baek Yoonho</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">mic_off</span>
+</div>
+</div>
+</div>
+<!-- Inactive Speaker 3 -->
+<div class="avatar-box aspect-square md:aspect-video flex flex-col relative overflow-hidden">
+<div class="absolute inset-0 z-0 flex items-center justify-center bg-surface-container-low">
+<span class="material-symbols-outlined text-4xl text-outline-variant">person_add</span>
+</div>
+<div class="mt-auto p-3 z-10 bg-gradient-to-t from-surface via-surface/80 to-transparent">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-outline">Empty Slot</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Middle Area: AI Advice Banner -->
+<div class="system-window p-4 flex items-start gap-4 rounded-sm animate-pulse-slow">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center shrink-0 border border-primary/50">
+<span class="material-symbols-outlined text-primary text-lg">smart_toy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-secondary-fixed-dim mb-1 flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed-dim animate-ping"></span>
+                    SYSTEM ASSISTANT
+                </span>
+<p class="font-body-md text-body-md text-on-surface">
+                    Suggestion: Use <span class="text-primary font-stat-value bg-primary/10 px-1 rounded">"I would like to"</span> instead of <span class="text-error font-stat-value bg-error/10 px-1 rounded">"I want to"</span> to sound more polite in this context.
+                </p>
+</div>
+</div>
+<!-- Bottom Half: Transcription Feed -->
+<section class="flex-grow flex flex-col gap-3 overflow-y-auto mb-20 scrollbar-hide" id="transcription-feed">
+<div class="chat-bubble p-4 rounded-sm max-w-[85%] self-end border-r-2 border-r-primary">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-primary">Jin-Woo</span>
+<span class="font-label-caps text-[10px] text-outline">09:42</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">We need to coordinate our attack on the boss room. I will take the vanguard.</p>
+</div>
+<div class="chat-bubble p-4 rounded-sm max-w-[85%] self-start border-l-2 border-l-outline-variant opacity-70">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Cha Hae-In</span>
+<span class="font-label-caps text-[10px] text-outline">09:43</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Understood. I'll provide cover from the flanks.</p>
+</div>
+<div class="chat-bubble p-4 rounded-sm max-w-[85%] self-end border-r-2 border-r-primary relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5 animate-pulse"></div>
+<div class="flex justify-between items-center mb-1 relative z-10">
+<span class="font-label-caps text-label-caps text-primary flex items-center gap-2">
+                        Jin-Woo 
+                        <span class="material-symbols-outlined text-[14px] animate-spin-slow">graphic_eq</span>
+</span>
+<span class="font-label-caps text-[10px] text-outline">Now</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface relative z-10">I want to... <span class="text-primary-fixed-dim/50 italic animate-pulse">speaking...</span></p>
+</div>
+</section>
+<!-- Controls Bar (Floating above Bottom Nav) -->
+<div class="fixed bottom-[100px] left-0 w-full px-margin-mobile md:px-margin-desktop z-40 flex justify-center pointer-events-none">
+<div class="system-window py-3 px-6 flex items-center gap-6 rounded-full pointer-events-auto backdrop-blur-lg mx-auto max-w-fit">
+<button class="system-button flex flex-col items-center gap-1 group w-16">
+<div class="w-12 h-12 rounded-full border border-primary flex items-center justify-center bg-primary/10 group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-surface">mic</span>
+</div>
+<span class="font-label-caps text-[10px] text-primary">MUTE</span>
+</button>
+<div class="w-px h-8 bg-primary/30"></div>
+<button class="system-button flex flex-col items-center gap-1 group w-16">
+<div class="w-12 h-12 rounded-full border border-secondary-fixed flex items-center justify-center bg-secondary-fixed/10 group-hover:bg-secondary-fixed group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-secondary-fixed group-hover:text-surface">back_hand</span>
+</div>
+<span class="font-label-caps text-[10px] text-secondary-fixed">RAISE</span>
+</button>
+<div class="w-px h-8 bg-primary/30"></div>
+<button class="system-button flex flex-col items-center gap-1 group w-16">
+<div class="w-12 h-12 rounded-full border border-[#FF1744] flex items-center justify-center bg-[#FF1744]/10 hover:bg-[#FF1744] hover:shadow-[0_0_15px_rgba(255,23,68,0.5)] transition-all">
+<span class="material-symbols-outlined text-[#FF1744] group-hover:text-white">logout</span>
+</div>
+<span class="font-label-caps text-[10px] text-[#FF1744]">LEAVE</span>
+</button>
+</div>
+</div>
+</main>
+<!-- JSON: BottomNavBar (Active state on GUILD based on intent: multi-user room) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-2 backdrop-blur-lg bg-surface-container-lowest/90 dark:bg-surface-container-lowest/90 bottom-nav-bar md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all w-20" href="#">
+<span class="material-symbols-outlined mb-1">swords</span>
+<span class="font-label-caps text-label-caps">DUNGEONS</span>
+</a>
+<!-- ACTIVE TAB -->
+<a class="flex flex-col items-center justify-center text-primary-container dark:text-primary-container bg-primary/10 rounded-xl py-2 px-4 shadow-[inset_0_0_8px_rgba(0,229,255,0.4)] animate-pulse scale-105 w-24" href="#">
+<span class="material-symbols-outlined mb-1 text-primary">group</span>
+<span class="font-label-caps text-label-caps text-primary">GUILD</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all w-20" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label-caps text-label-caps">STATUS</span>
+</a>
+</nav>
+<!-- Scripts for minimal interactions -->
+<script>
+        // Particle Generator
+        const particleContainer = document.getElementById('particles');
+        const particleCount = 30;
+
+        for (let i = 0; i < particleCount; i++) {
+            createParticle();
+        }
+
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('mana-particle');
+            
+            // Randomize position, duration, and delay
+            const left = Math.random() * 100;
+            const duration = 5 + Math.random() * 10;
+            const delay = Math.random() * 5;
+            
+            particle.style.left = `${left}vw`;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `${delay}s`;
+            
+            particleContainer.appendChild(particle);
+
+            // Recreate particle when animation ends to keep it infinite but organic
+            particle.addEventListener('animationend', () => {
+                particle.remove();
+                createParticle();
+            });
+        }
+        
+        // Hide scrollbar utility class
+        const style = document.createElement('style');
+        style.textContent = `
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .animate-pulse-slow {
+                animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            .animate-spin-slow {
+                animation: spin 3s linear infinite;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body></html>

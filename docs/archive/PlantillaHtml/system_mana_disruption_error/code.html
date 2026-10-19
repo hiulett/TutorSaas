@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>System Error - Mana Disruption</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#2e004e",
+                        "on-surface": "#e1e2ed",
+                        "on-secondary-fixed-variant": "#594400",
+                        "on-primary-container": "#00626e",
+                        "on-tertiary-container": "#7e2cbe",
+                        "on-secondary-container": "#6e5400",
+                        "primary": "#c3f5ff",
+                        "surface-container-high": "#272a32",
+                        "surface-container": "#1d1f27",
+                        "surface-tint": "#00daf3",
+                        "surface-bright": "#373942",
+                        "inverse-primary": "#006875",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "tertiary": "#f8e7ff",
+                        "surface-container-highest": "#32343d",
+                        "inverse-surface": "#e1e2ed",
+                        "background": "#11131b",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "surface-dim": "#11131b",
+                        "surface": "#11131b",
+                        "tertiary-container": "#e6c3ff",
+                        "tertiary-fixed-dim": "#e0b6ff",
+                        "on-background": "#e1e2ed",
+                        "secondary": "#ffe9b9",
+                        "on-primary-fixed-variant": "#004f58",
+                        "tertiary-fixed": "#f2daff",
+                        "inverse-on-surface": "#2e3039",
+                        "secondary-container": "#ffc703",
+                        "outline": "#849396",
+                        "surface-container-low": "#191b23",
+                        "primary-container": "#00e5ff",
+                        "on-primary": "#00363d",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "surface-variant": "#32343d",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "surface-container-lowest": "#0b0e16",
+                        "secondary-fixed": "#ffdf94",
+                        "on-tertiary": "#4c007d",
+                        "on-surface-variant": "#bac9cc",
+                        "on-secondary": "#3e2e00",
+                        "primary-fixed": "#9cf0ff",
+                        "on-secondary-fixed": "#251a00",
+                        "outline-variant": "#3b494c",
+                        "on-primary-fixed": "#001f24",
+                        "primary-fixed-dim": "#00daf3",
+                        "mana-cyan": "#00E5FF",
+                        "void-black": "#05070E",
+                        "blood-crimson": "#FF1744"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px",
+                        "window-padding": "24px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "display-title": ["Space Grotesk"],
+                        "body-lg": ["Inter"],
+                        "stat-value": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "stat-value": ["20px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #05070E;
+            color: #e1e2ed;
+        }
+        
+        .system-window-error {
+            background-color: rgba(29, 31, 39, 0.94);
+            border: 1px solid #FF1744;
+            box-shadow: 0 0 15px rgba(255, 23, 68, 0.4), inset 0 0 20px rgba(255, 23, 68, 0.1);
+            position: relative;
+        }
+
+        .system-window-error::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 23, 68, 0.05) 45%, rgba(255, 23, 68, 0.1) 50%, rgba(255, 23, 68, 0.05) 55%, transparent 60%);
+            background-size: 200% 200%;
+            animation: glitch-scan 4s infinite linear;
+            pointer-events: none;
+        }
+        
+        @keyframes glitch-scan {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .rune-pulse {
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { opacity: 0.3; filter: drop-shadow(0 0 2px #FF1744); }
+            100% { opacity: 0.8; filter: drop-shadow(0 0 8px #FF1744); }
+        }
+
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+        
+        .glitch-text::before {
+            left: 2px;
+            text-shadow: -1px 0 red;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+        }
+        
+        .glitch-text::after {
+            left: -2px;
+            text-shadow: -1px 0 blue;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim {
+            0% { clip: rect(12px, 9999px, 88px, 0); }
+            10% { clip: rect(69px, 9999px, 7px, 0); }
+            20% { clip: rect(32px, 9999px, 94px, 0); }
+            30% { clip: rect(2px, 9999px, 48px, 0); }
+            40% { clip: rect(74px, 9999px, 20px, 0); }
+            50% { clip: rect(41px, 9999px, 19px, 0); }
+            60% { clip: rect(98px, 9999px, 66px, 0); }
+            70% { clip: rect(10px, 9999px, 83px, 0); }
+            80% { clip: rect(57px, 9999px, 35px, 0); }
+            90% { clip: rect(81px, 9999px, 55px, 0); }
+            100% { clip: rect(14px, 9999px, 12px, 0); }
+        }
+
+        .btn-system {
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-system:hover {
+            background-color: #00E5FF;
+            color: #05070E;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
+        }
+
+        .corner-accent {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid #FF1744;
+        }
+        .tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+        .bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+        .br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop overflow-hidden">
+<!-- Background atmospheric particles -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-30">
+<div class="absolute w-full h-full" style="background: radial-gradient(circle at 50% 50%, rgba(255, 23, 68, 0.1) 0%, transparent 60%);"></div>
+</div>
+<!-- Main Alert Container -->
+<main class="w-full max-w-[500px] z-10 relative">
+<div class="system-window-error p-window-padding rounded flex flex-col items-center text-center space-y-6 backdrop-blur-md">
+<!-- Corner Accents -->
+<div class="corner-accent tl"></div>
+<div class="corner-accent tr"></div>
+<div class="corner-accent bl"></div>
+<div class="corner-accent br"></div>
+<!-- Error Icon -->
+<div class="relative w-24 h-24 flex items-center justify-center">
+<span class="material-symbols-outlined text-[64px] text-blood-crimson rune-pulse absolute" style="font-variation-settings: 'FILL' 1;">
+                    warning
+                </span>
+<!-- Decorative geometric lines around icon -->
+<div class="absolute inset-0 border border-blood-crimson opacity-30 rotate-45 animate-[spin_10s_linear_infinite]"></div>
+<div class="absolute inset-0 border border-blood-crimson opacity-20 -rotate-45 animate-[spin_15s_linear_infinite_reverse]"></div>
+</div>
+<!-- Content -->
+<div class="space-y-4 w-full">
+<h1 class="font-display-title text-headline-md text-blood-crimson tracking-widest uppercase glitch-text" data-text="[SYSTEM ERROR: MANA CONNECTION SEVERED]">
+                    [SYSTEM ERROR:<br/>MANA CONNECTION SEVERED]
+                </h1>
+<div class="w-full h-px bg-blood-crimson/30 relative my-4">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-1 bg-blood-crimson shadow-[0_0_8px_#FF1744]"></div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-90 max-w-sm mx-auto">
+                    Unable to synchronize with the Hunter Database. Please check your internet connection or System API Key configuration to restore dimensional alignment.
+                </p>
+<div class="font-label-caps text-label-caps text-blood-crimson/70 pt-2">
+                    ERROR CODE: ERR_RIFT_BREAK_0x44A
+                </div>
+</div>
+<!-- Action Area -->
+<div class="w-full pt-4">
+<button class="btn-system w-full py-4 px-6 rounded bg-transparent font-label-caps text-label-caps text-primary uppercase tracking-widest flex items-center justify-center gap-2 group relative overflow-hidden">
+<span class="material-symbols-outlined text-[18px] group-hover:animate-spin">sync</span>
+                    REATTEMPT SYSTEM SYNC
+                    <!-- Hover scanline effect -->
+<div class="absolute inset-0 bg-primary/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
+</button>
+</div>
+</div>
+</main>
+</body></html>

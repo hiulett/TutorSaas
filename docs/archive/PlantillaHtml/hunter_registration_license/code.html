@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hunter License</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#11131b",
+                    "error": "#ffb4ab",
+                    "surface": "#11131b",
+                    "on-secondary-fixed": "#251a00",
+                    "primary-container": "#00e5ff",
+                    "outline": "#849396",
+                    "surface-container-high": "#272a32",
+                    "on-primary-fixed-variant": "#004f58",
+                    "secondary-container": "#ffc703",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-container": "#00626e",
+                    "background": "#11131b",
+                    "on-surface-variant": "#bac9cc",
+                    "primary-fixed-dim": "#00daf3",
+                    "surface-bright": "#373942",
+                    "on-error": "#690005",
+                    "on-tertiary": "#4c007d",
+                    "surface-container": "#1d1f27",
+                    "on-tertiary-fixed-variant": "#6a0baa",
+                    "primary": "#c3f5ff",
+                    "error-container": "#93000a",
+                    "secondary": "#ffe9b9",
+                    "inverse-surface": "#e1e2ed",
+                    "tertiary-fixed": "#f2daff",
+                    "surface-container-lowest": "#0b0e16",
+                    "surface-container-low": "#191b23",
+                    "on-tertiary-container": "#7e2cbe",
+                    "on-primary-fixed": "#001f24",
+                    "surface-tint": "#00daf3",
+                    "on-secondary-fixed-variant": "#594400",
+                    "primary-fixed": "#9cf0ff",
+                    "on-secondary": "#3e2e00",
+                    "inverse-primary": "#006875",
+                    "on-secondary-container": "#6e5400",
+                    "outline-variant": "#3b494c",
+                    "on-primary": "#00363d",
+                    "tertiary": "#f8e7ff",
+                    "surface-variant": "#32343d",
+                    "on-background": "#e1e2ed",
+                    "on-surface": "#e1e2ed",
+                    "surface-container-highest": "#32343d",
+                    "inverse-on-surface": "#2e3039",
+                    "secondary-fixed": "#ffdf94",
+                    "tertiary-container": "#e6c3ff",
+                    "secondary-fixed-dim": "#f5bf00",
+                    "on-tertiary-fixed": "#2e004e",
+                    "tertiary-fixed-dim": "#e0b6ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "window-padding": "24px",
+                    "margin-desktop": "40px",
+                    "unit": "4px",
+                    "margin-mobile": "20px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Space Grotesk"],
+                    "headline-lg": ["Space Grotesk"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["JetBrains Mono"],
+                    "stat-value": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "display-title": ["Space Grotesk"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "stat-value": ["20px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "display-title": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #05070E;
+        }
+        .system-window {
+            background-color: rgba(17, 19, 27, 0.94);
+            border: 1px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .system-window::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .rune-bg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 200px;
+            color: rgba(0, 229, 255, 0.03);
+            z-index: 0;
+            pointer-events: none;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -10px;
+        }
+        
+        .system-btn {
+            border: 1px solid #00E5FF;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .system-btn:hover {
+            background-color: #00E5FF;
+            color: #05070E;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
+        }
+        
+        .stat-bar-container {
+            display: flex;
+            gap: 2px;
+            height: 8px;
+            width: 100%;
+        }
+        .stat-bar-segment {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .stat-bar-segment.filled-cyan {
+            background-color: #00E5FF;
+            box-shadow: 0 0 4px rgba(0, 229, 255, 0.5);
+        }
+        .stat-bar-segment.filled-crimson {
+            background-color: #ffb4ab; /* Using error color for HP/attack visual */
+            box-shadow: 0 0 4px rgba(255, 180, 171, 0.5);
+        }
+        .stat-bar-segment.filled-gold {
+            background-color: #ffc703;
+            box-shadow: 0 0 4px rgba(255, 199, 3, 0.5);
+        }
+        
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 229, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+            opacity: 0.5;
+            animation: scan 3s linear infinite;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        @keyframes scan {
+            0% { top: -10%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 110%; opacity: 0; }
+        }
+        
+        .rune-corner {
+            position: absolute;
+            font-size: 10px;
+            color: rgba(0, 229, 255, 0.3);
+            animation: pulse-rune 2s infinite alternate;
+        }
+        .rc-tl { top: 4px; left: 4px; }
+        .rc-tr { top: 4px; right: 4px; }
+        .rc-bl { bottom: 4px; left: 4px; }
+        .rc-br { bottom: 4px; right: 4px; }
+        
+        @keyframes pulse-rune {
+            0% { opacity: 0.2; text-shadow: 0 0 2px rgba(0, 229, 255, 0); }
+            100% { opacity: 0.8; text-shadow: 0 0 5px rgba(0, 229, 255, 0.8); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop text-on-surface">
+<div class="system-window w-full max-w-[400px] md:max-w-[600px] rounded p-window-padding mx-auto flex flex-col gap-6 relative">
+<div class="scan-line"></div>
+<div class="rune-bg">AUTH</div>
+<!-- Runes -->
+<span class="material-symbols-outlined rune-corner rc-tl">change_history</span>
+<span class="material-symbols-outlined rune-corner rc-tr">change_history</span>
+<span class="material-symbols-outlined rune-corner rc-bl">change_history</span>
+<span class="material-symbols-outlined rune-corner rc-br">change_history</span>
+<!-- Header -->
+<div class="flex flex-col items-center gap-2 border-b-2 border-primary-container pb-4 z-10 relative">
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-widest text-center">HUNTER ASSOCIATION LICENSE</h1>
+<div class="flex items-center gap-2 text-secondary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-caps text-label-caps text-secondary-container" style="text-shadow: 0 0 8px rgba(255, 199, 3, 0.5);">E-RANK LICENSED HUNTER</span>
+</div>
+</div>
+<!-- Main Content -->
+<div class="flex flex-col md:flex-row gap-6 z-10 relative">
+<!-- Avatar Frame -->
+<div class="flex-shrink-0 flex justify-center md:justify-start">
+<div class="w-32 h-40 border border-primary-container p-1 relative" style="box-shadow: 0 0 10px rgba(0, 229, 255, 0.2) inset, 0 0 5px rgba(0, 229, 255, 0.2);">
+<div class="absolute -top-1 -left-1 w-2 h-2 bg-primary-container"></div>
+<div class="absolute -bottom-1 -right-1 w-2 h-2 bg-primary-container"></div>
+<img alt="Hunter Avatar" class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500" data-alt="A portrait of a male hunter with dark messy hair, wearing a sleek black and neon blue tactical jacket. The lighting is high-contrast cyan and deep shadow, typical of a dark glassmorphism RPG interface. The background is a digital void." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHCP1TbHa7qzQYFoep5dFU6CTAnGsaA9QLoMSTnQyaRePWB0UjOkS0w4OgF21fDU_cg0NNzEQhUatdG4P0J9p4BegzixLxdWeJSdiwxpSGQO3TTuPxzMlPLt43sciZl6brxyBpRQk7Rdz79apPKXsPSaB74HDqvdhXENFULtvsNNvS4QvLVijl9EoOd4V-XeiOVXZyUWQL4v3Mlv5zl7r0JcyRhs5MWDhVEslplc7gvej_ksUWdJoI6BwuSJrtk5G8Yj6U-aN8us8I"/>
+</div>
+</div>
+<!-- Details -->
+<div class="flex-grow flex flex-col justify-center gap-4">
+<div>
+<div class="font-label-caps text-label-caps text-outline mb-1">IDENTIFICATION</div>
+<div class="font-headline-lg text-headline-lg text-on-surface">Isaac Mendoza</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<div class="font-label-caps text-label-caps text-outline mb-1">REALM</div>
+<div class="font-body-lg text-body-lg text-primary-container">Spanish</div>
+</div>
+<div>
+<div class="font-label-caps text-label-caps text-outline mb-1">CEFR LEVEL</div>
+<div class="font-body-lg text-body-lg text-secondary-container">A2 - Elementary</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats Block -->
+<div class="bg-surface-variant/30 border border-outline-variant p-4 rounded z-10 relative mt-2">
+<div class="font-label-caps text-label-caps text-primary-container mb-4 border-b border-primary-container/30 pb-2">COMBAT CAPABILITIES</div>
+<div class="flex flex-col gap-4">
+<!-- Attack -->
+<div>
+<div class="flex justify-between items-end mb-1">
+<span class="font-body-md text-body-md text-on-surface-variant">Attack Power <span class="text-xs text-outline">(Fluency)</span></span>
+<span class="font-stat-value text-stat-value text-error">120</span>
+</div>
+<div class="stat-bar-container">
+<div class="stat-bar-segment filled-crimson"></div>
+<div class="stat-bar-segment filled-crimson"></div>
+<div class="stat-bar-segment filled-crimson"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+</div>
+</div>
+<!-- Defense -->
+<div>
+<div class="flex justify-between items-end mb-1">
+<span class="font-body-md text-body-md text-on-surface-variant">Defense <span class="text-xs text-outline">(Grammar)</span></span>
+<span class="font-stat-value text-stat-value text-secondary-container">85%</span>
+</div>
+<div class="stat-bar-container">
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment filled-gold"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+</div>
+</div>
+<!-- Mana -->
+<div>
+<div class="flex justify-between items-end mb-1">
+<span class="font-body-md text-body-md text-on-surface-variant">Mana <span class="text-xs text-outline">(Vocab)</span></span>
+<span class="font-stat-value text-stat-value text-primary-container">450</span>
+</div>
+<div class="stat-bar-container">
+<div class="stat-bar-segment filled-cyan"></div>
+<div class="stat-bar-segment filled-cyan"></div>
+<div class="stat-bar-segment filled-cyan"></div>
+<div class="stat-bar-segment filled-cyan"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+<div class="stat-bar-segment"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- CTA -->
+<button class="system-btn w-full py-4 mt-4 flex justify-center items-center gap-2 rounded bg-surface-dim text-primary-container font-label-caps text-label-caps cursor-pointer">
+<span class="material-symbols-outlined">login</span>
+            ENTER HUNTER HEADQUARTERS
+        </button>
+</div>
+</body></html>

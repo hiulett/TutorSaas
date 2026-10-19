@@ -1,6 +1,6 @@
 # Backlog de la auditoría integral
 
-Este directorio contiene el backlog derivado de `docs/auditoria_producto/AUDITORIA_INTEGRAL.md`, listo para publicarse como issues de GitHub.
+Este directorio contiene el backlog derivado de `docs/archive/auditoria_producto/AUDITORIA_INTEGRAL.md`, listo para publicarse como issues de GitHub.
 
 ## Archivos
 

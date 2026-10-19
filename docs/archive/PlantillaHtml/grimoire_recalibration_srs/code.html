@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SRS Review Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=Inter:wght@400&amp;family=JetBrains+Mono:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#2e3039",
+                        "surface-container-highest": "#32343d",
+                        "primary-fixed-dim": "#00daf3",
+                        "on-surface-variant": "#bac9cc",
+                        "surface-dim": "#11131b",
+                        "surface-container": "#1d1f27",
+                        "surface-bright": "#373942",
+                        "surface": "#11131b",
+                        "inverse-surface": "#e1e2ed",
+                        "on-primary-fixed-variant": "#004f58",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab",
+                        "primary": "#c3f5ff",
+                        "background": "#11131b",
+                        "surface-variant": "#32343d",
+                        "on-surface": "#e1e2ed",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#6a0baa",
+                        "outline": "#849396",
+                        "surface-tint": "#00daf3",
+                        "primary-fixed": "#9cf0ff",
+                        "tertiary-container": "#e6c3ff",
+                        "secondary-fixed-dim": "#f5bf00",
+                        "primary-container": "#00e5ff",
+                        "on-primary": "#00363d",
+                        "tertiary": "#f8e7ff",
+                        "inverse-primary": "#006875",
+                        "on-background": "#e1e2ed",
+                        "on-secondary-fixed": "#251a00",
+                        "on-tertiary": "#4c007d",
+                        "on-primary-fixed": "#001f24",
+                        "on-primary-container": "#00626e",
+                        "surface-container-high": "#272a32",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#e0b6ff",
+                        "secondary": "#ffe9b9",
+                        "on-secondary-fixed-variant": "#594400",
+                        "secondary-fixed": "#ffdf94",
+                        "on-secondary-container": "#6e5400",
+                        "tertiary-fixed": "#f2daff",
+                        "secondary-container": "#ffc703",
+                        "on-tertiary-fixed": "#2e004e",
+                        "on-secondary": "#3e2e00",
+                        "outline-variant": "#3b494c",
+                        "surface-container-low": "#191b23",
+                        "on-tertiary-container": "#7e2cbe",
+                        "surface-container-lowest": "#0b0e16"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "20px",
+                        "unit": "4px",
+                        "window-padding": "24px",
+                        "margin-desktop": "40px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-title": ["Space Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "stat-value": ["JetBrains Mono"],
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-title": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "stat-value": ["20px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .system-border { border: 1px solid #00E5FF; box-shadow: 0 0 8px rgba(0, 229, 255, 0.3); }
+        .system-glow { box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); }
+        .bg-void { background-color: #05070E; }
+        .glass-panel { background: rgba(17, 19, 27, 0.94); backdrop-filter: blur(12px); }
+        .rune-bg {
+            background-image: radial-gradient(circle at center, rgba(0,229,255,0.05) 0%, transparent 70%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-void text-on-surface h-screen w-screen overflow-hidden flex flex-col justify-center items-center">
+<!-- Modal Container -->
+<main class="relative w-full max-w-[600px] h-full sm:h-[751px] flex flex-col justify-between glass-panel system-border sm:rounded-xl p-margin-mobile sm:p-window-padding mx-auto">
+<!-- Background Runes -->
+<div class="absolute inset-0 pointer-events-none rune-bg rounded-xl opacity-50 z-0 text-primary-container/10 flex justify-center items-center overflow-hidden">
+<span class="material-symbols-outlined text-[300px] absolute -top-20 -right-20 transform rotate-45" style="font-variation-settings: 'FILL' 1;">language</span>
+<span class="material-symbols-outlined text-[400px] absolute -bottom-40 -left-20 transform -rotate-12" style="font-variation-settings: 'FILL' 1;">translate</span>
+</div>
+<!-- Header -->
+<header class="relative z-10 flex flex-col gap-unit border-b-2 border-primary-container/30 pb-4 mb-6 shadow-[0_4px_15px_-5px_rgba(0,229,255,0.2)]">
+<div class="flex justify-between items-start">
+<div>
+<h1 class="font-display-title text-headline-md text-primary-container uppercase tracking-wider drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]">
+                        [GRIMOIRE RECALIBRATION: SM-2 ALGORITHM]
+                    </h1>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-80 mt-1">Memory Synapse Analysis</p>
+</div>
+<button class="text-on-surface-variant hover:text-primary-container transition-colors p-2 rounded hover:bg-primary-container/10">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Progress Bar Area -->
+<div class="mt-4 flex items-center gap-4">
+<span class="font-stat-value text-stat-value text-secondary-fixed">CARD 03/15</span>
+<div class="flex-grow h-2 bg-surface-container rounded-full overflow-hidden flex gap-[2px]">
+<div class="w-1/5 bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.8)] h-full"></div>
+<div class="w-1/5 bg-primary-container/40 h-full"></div>
+<div class="w-1/5 bg-primary-container/10 h-full"></div>
+<div class="w-1/5 bg-surface-variant h-full"></div>
+<div class="w-1/5 bg-surface-variant h-full"></div>
+</div>
+</div>
+</header>
+<!-- Center Flashcard -->
+<section class="relative z-10 flex-grow flex items-center justify-center py-8 perspective-1000">
+<div class="relative w-full h-full max-h-[400px] rounded-xl system-border bg-surface-container-highest/80 flex flex-col items-center justify-center p-8 transform transition-transform hover:scale-[1.02] shadow-[0_10px_30px_-10px_rgba(0,229,255,0.3)]">
+<!-- Corner Glyphs -->
+<span class="material-symbols-outlined absolute top-4 left-4 text-primary-container/40 text-sm animate-pulse">memory</span>
+<span class="material-symbols-outlined absolute top-4 right-4 text-primary-container/40 text-sm animate-pulse" style="animation-delay: 1s;">memory</span>
+<span class="material-symbols-outlined absolute bottom-4 left-4 text-primary-container/40 text-sm animate-pulse" style="animation-delay: 0.5s;">memory</span>
+<span class="material-symbols-outlined absolute bottom-4 right-4 text-primary-container/40 text-sm animate-pulse" style="animation-delay: 1.5s;">memory</span>
+<!-- Target Term -->
+<h2 class="font-display-title text-display-title text-on-surface tracking-widest uppercase mb-4 text-center text-[2.5rem] sm:text-[3rem] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    NEGOTIATE
+                </h2>
+<!-- Phonetics -->
+<p class="font-stat-value text-body-lg text-primary-fixed-dim tracking-widest mb-8 opacity-90">
+                    /nɪˈɡoʊ.ʃi.eɪt/
+                </p>
+<!-- Audio Button -->
+<button class="relative group p-4 rounded-full border border-primary-container/50 bg-surface/50 hover:bg-primary-container/20 transition-all duration-300">
+<span class="material-symbols-outlined text-primary-container text-3xl group-hover:drop-shadow-[0_0_8px_rgba(0,229,255,1)]">volume_up</span>
+<div class="absolute inset-0 rounded-full border border-primary-container opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"></div>
+</button>
+<div class="mt-2 font-label-caps text-label-caps text-on-surface-variant opacity-50">PLAY AUDIO RUNE</div>
+<!-- Subtle divider -->
+<div class="absolute bottom-1/4 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-primary-container/30 to-transparent"></div>
+</div>
+</section>
+<!-- Bottom Action Buttons (Rating) -->
+<footer class="relative z-10 mt-6 pt-4 border-t border-primary-container/20">
+<p class="font-label-caps text-label-caps text-center text-on-surface-variant mb-4 opacity-70">SELECT RECALL DIFFICULTY</p>
+<div class="grid grid-cols-4 gap-2 sm:gap-4">
+<!-- Again -->
+<button class="flex flex-col items-center justify-center p-3 rounded border border-error/50 bg-error/5 hover:bg-error/20 hover:border-error transition-all group">
+<span class="font-stat-value text-body-md text-error mb-1 group-hover:drop-shadow-[0_0_5px_rgba(255,180,171,0.8)]">&lt; 1m</span>
+<span class="font-label-caps text-[10px] sm:text-label-caps text-error/80 uppercase">Again</span>
+</button>
+<!-- Hard -->
+<button class="flex flex-col items-center justify-center p-3 rounded border border-secondary/50 bg-secondary/5 hover:bg-secondary/20 hover:border-secondary transition-all group">
+<span class="font-stat-value text-body-md text-secondary mb-1 group-hover:drop-shadow-[0_0_5px_rgba(255,233,185,0.8)]">6m</span>
+<span class="font-label-caps text-[10px] sm:text-label-caps text-secondary/80 uppercase">Hard</span>
+</button>
+<!-- Good -->
+<button class="flex flex-col items-center justify-center p-3 rounded border border-primary-container/50 bg-primary-container/5 hover:bg-primary-container/20 hover:border-primary-container transition-all group shadow-[0_0_10px_rgba(0,229,255,0.1)]">
+<span class="font-stat-value text-body-md text-primary-container mb-1 group-hover:drop-shadow-[0_0_5px_rgba(0,229,255,0.8)]">10m</span>
+<span class="font-label-caps text-[10px] sm:text-label-caps text-primary-container/80 uppercase">Good</span>
+</button>
+<!-- Easy -->
+<button class="flex flex-col items-center justify-center p-3 rounded border border-[#00E676]/50 bg-[#00E676]/5 hover:bg-[#00E676]/20 hover:border-[#00E676] transition-all group">
+<span class="font-stat-value text-body-md text-[#00E676] mb-1 group-hover:drop-shadow-[0_0_5px_rgba(0,230,118,0.8)]">4d</span>
+<span class="font-label-caps text-[10px] sm:text-label-caps text-[#00E676]/80 uppercase text-center leading-tight">Master</span>
+</button>
+</div>
+</footer>
+</main>
+</body></html>
