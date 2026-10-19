@@ -1524,10 +1524,17 @@ ENDING:
             final radar = await _ref.read(skillsRadarProvider.future);
             final skill = LessonGeneratorService.weakestSkill(radar);
             final level = (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? 'A1';
+            // Issue #81: la lección de refuerzo se dirige al objetivo que el
+            // alumno NO cumplió, no a una categoría genérica.
+            final failedGoals = (lesson?.goals ?? const [])
+                .where((g) => state.goalEvaluationResults[g.id] == false)
+                .map((g) => g.text)
+                .take(2)
+                .join('; ');
             final sub = await LessonGeneratorService.ensureLessonForWeakness(
               skillFocus: skill,
               level: level.toUpperCase(),
-              weakness: skill,
+              weakness: failedGoals.isNotEmpty ? failedGoals : skill,
               parentId: scenarioId,
             );
             if (sub != null) {

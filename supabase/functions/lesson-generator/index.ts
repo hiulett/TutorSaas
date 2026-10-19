@@ -233,6 +233,9 @@ Deno.serve(async (req: Request) => {
       parent_id: parentId ?? null,
       is_custom: true,
       is_active: true,
+      // Issue #81: el contenido generado por IA nace como borrador; la
+      // biblioteca compartida no debe dar por bueno algo sin revisar.
+      review_status: 'draft',
     };
 
     const { data: insertedRow, error: insertErr } = await admin
