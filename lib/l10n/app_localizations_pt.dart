@@ -1290,13 +1290,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get profile_edit_gallery => 'GALERIA';
 
   @override
-  String get chart_4weeks => 'H� 4 semanas';
+  String get chart_4weeks => 'Há 4 semanas';
 
   @override
   String get chart_today => 'Hoje';
 
   @override
-  String get chart_latency => 'Lat�ncia (s)';
+  String get chart_latency => 'Latência (s)';
 
   @override
   String get aura_title => 'AURA';
