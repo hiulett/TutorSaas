@@ -87,9 +87,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final minutes = duration.inMinutes;
     final minutesToSave = minutes > 0 ? minutes : 1;
     // Idempotente: endSession solo persiste la primera vez (flag en el notifier).
-    await ref.read(conversationStateProvider.notifier).endSession(
+    final sessionResult =
+        await ref.read(conversationStateProvider.notifier).endSession(
       practiceMinutes: minutesToSave,
     );
+    ref.read(sessionResultProvider.notifier).state = sessionResult;
 
     if (!navigate || !mounted) return;
     if (showSummary) {

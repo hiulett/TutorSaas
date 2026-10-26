@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -174,10 +175,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         _buildLogoutTile(context),
                         const SizedBox(height: 24),
 
-                        const _SectionHeader(title: 'DEVELOPER TOOLS'),
-                        const SizedBox(height: 12),
-                        _buildDevToolsTile(context),
-                        const SizedBox(height: 24),
+                        if (kDebugMode) ...[
+                          const _SectionHeader(title: 'DEVELOPER TOOLS'),
+                          const SizedBox(height: 12),
+                          _buildDevToolsTile(context),
+                          const SizedBox(height: 24),
+                        ],
                         _buildSaveButton(context, currentSettings),
                         const SizedBox(height: 100), // deja espacio bajo la barra flotante
                       ],

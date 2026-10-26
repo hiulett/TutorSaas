@@ -788,6 +788,10 @@
     "mission_status_special": "SPECIAL",
 
   "session_title": "Summary",
+  "@session_title": { "description": "Title of the post-session summary screen" },
+  "summary_reward_gold": "GOLD",
+  "summary_reward_fragments": "FRAGMENTS",
+  "summary_reward_pending": "We couldn't confirm your reward. Your progress is saved; it will refresh on the next load.",
   "session_completed": "SESSION COMPLETED",
   "session_good_job": "Great job!",
   "session_words_spoken": "You spoke {count} words with good pacing.",

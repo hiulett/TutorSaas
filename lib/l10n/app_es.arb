@@ -743,6 +743,9 @@
     "mission_status_special": "ESPECIAL",
 
   "session_title": "Resumen",
+  "summary_reward_gold": "ORO",
+  "summary_reward_fragments": "FRAGMENTOS",
+  "summary_reward_pending": "No pudimos confirmar tu recompensa. Tu progreso está guardado; se actualizará al volver a cargar.",
   "session_completed": "SESIÓN COMPLETADA",
   "session_good_job": "¡Buen trabajo!",
   "session_words_spoken": "Hablaste {count} palabras con buen ritmo.",

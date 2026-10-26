@@ -90,6 +90,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// Idempotencia del cierre de sesión: garantiza que `endSession` se ejecute
   /// una sola vez aunque la salida ocurra por varias vías (pop, back, go, dispose).
   bool _sessionFinalized = false;
+  Map<String, dynamic>? _lastSessionResult;
   bool _oracleEvalCharged = false;
 
   ConversationNotifier(this._repository, this._ref)
@@ -1442,8 +1443,9 @@ ENDING:
   }
 
   /// End the conversation session — persists final data and refreshes dashboard.
-  Future<void> endSession({int practiceMinutes = 1}) async {
-    if (_sessionFinalized) return; // idempotente: una sola persistencia
+  Future<Map<String, dynamic>?> endSession({int practiceMinutes = 1}) async {
+    if (_sessionFinalized) return _lastSessionResult; // idempotente: una sola persistencia
+    Map<String, dynamic>? rewards;
     _sessionFinalized = true;
     if (_userId != null) {
       try {
@@ -1566,7 +1568,7 @@ ENDING:
               '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
           // Issue #3/#4: importes calculados y aplicados en servidor
           // (idempotente por sessionId). El cliente ya no elige cuánto gana.
-          await economyRepo.applySessionRewards(
+          rewards = await economyRepo.applySessionRewards(
             userId: _userId!,
             sessionId: sessionId,
             objectives: completedGoals,
@@ -1642,6 +1644,24 @@ ENDING:
         _ref.read(dashboardRefreshProvider.notifier).state++;
       } catch (_) {}
     }
+
+    final completedGoals =
+        state.goalEvaluationResults.values.where((v) => v).length;
+    final result = <String, dynamic>{
+      'xp': (rewards?['xp'] as num?)?.toInt() ?? 0,
+      'gold': (rewards?['gold'] as num?)?.toInt() ?? 0,
+      'fragments': (rewards?['fragments'] as num?)?.toInt() ?? 0,
+      'duplicated': rewards?['duplicated'] ?? false,
+      'reward_applied': rewards != null,
+      'objectives': completedGoals,
+      'goals_total': state.goalEvaluationResults.length,
+      'minutes': practiceMinutes,
+      'turns': state.messages.where((m) => m.sender == 'user').length,
+      'is_oracle': state.isOracleEvaluation,
+      'scenario_id': state.activeScenarioId,
+    };
+    _lastSessionResult = result;
+    return result;
   }
 
   @override
@@ -1655,6 +1675,9 @@ ENDING:
 // ──────────────────────────────────────────────────────────────────────────────
 // Providers
 // ──────────────────────────────────────────────────────────────────────────────
+
+final sessionResultProvider =
+    StateProvider<Map<String, dynamic>?>((ref) => null);
 
 final conversationStateProvider =
     StateNotifierProvider<ConversationNotifier, ConversationState>((ref) {
