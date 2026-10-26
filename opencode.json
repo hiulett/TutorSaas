@@ -1,24 +1,52 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": ["AGENTS.md"],
-  "permission": {
-    "bash": {
-      "*": "ask",
-      "git status": "allow",
-      "git diff*": "allow",
-      "git log*": "allow",
-      "git show*": "allow",
-      "flutter analyze*": "allow",
-      "flutter test*": "allow"
-    }
-  },
+  "model": "deepseek/deepseek-v4-flash",
+  "instructions": ["AGENTS.md", "docs/CONTEXT_MAP.md"],
+  "formatter": true,
+  "permissions": [
+    { "action": "shell", "resource": "supabase db push*", "effect": "deny" },
+    { "action": "shell", "resource": "git reset*", "effect": "deny" },
+    { "action": "shell", "resource": "git checkout --*", "effect": "deny" },
+    { "action": "shell", "resource": "git restore*", "effect": "deny" },
+    { "action": "shell", "resource": "rm -rf*", "effect": "deny" },
+    { "action": "read", "resource": "secrets/**", "effect": "deny" },
+    { "action": "read", "resource": "**/.env", "effect": "deny" },
+    { "action": "edit", "resource": "secrets/**", "effect": "deny" },
+    { "action": "shell", "resource": "git push*", "effect": "ask" },
+    { "action": "shell", "resource": "git commit*", "effect": "ask" },
+    { "action": "shell", "resource": "flutter build*", "effect": "ask" },
+    { "action": "shell", "resource": "supabase functions deploy*", "effect": "ask" },
+    { "action": "shell", "resource": "git status*", "effect": "allow" },
+    { "action": "shell", "resource": "git diff*", "effect": "allow" },
+    { "action": "shell", "resource": "git log*", "effect": "allow" },
+    { "action": "shell", "resource": "git show*", "effect": "allow" },
+    { "action": "shell", "resource": "git ls-files*", "effect": "allow" },
+    { "action": "shell", "resource": "flutter analyze*", "effect": "allow" },
+    { "action": "shell", "resource": "flutter test*", "effect": "allow" },
+    { "action": "shell", "resource": "flutter gen-l10n*", "effect": "allow" },
+    { "action": "shell", "resource": "dart run build_runner*", "effect": "allow" }
+  ],
   "tool_output": { "max_lines": 150, "max_bytes": 8192 },
-  "compaction": { "auto": true, "tail_turns": 15 },
+  "compaction": {
+    "auto": true,
+    "keep": { "tokens": 12000 },
+    "buffer": 20000
+  },
+  "agents": {
+    "compaction": { "model": "harbor/deepseek-v4.1-flash:free" }
+  },
   "mcp": {
-    "supabase": {
-      "type": "remote",
-      "url": "https://mcp.supabase.com/mcp?read_only=true",
-      "enabled": true
+    "servers": {
+      "supabase": {
+        "type": "remote",
+        "url": "https://mcp.supabase.com/mcp?project_ref=sipiumfdpvnszthykyog&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching",
+        "enabled": true
+      },
+      "play-console": {
+        "type": "local",
+        "command": ["npx", "@blocktopus/mcp-google-play", "--api-key", "C:\\WorkSpace\\TutorSaas\\secrets\\play-service-account.json"],
+        "enabled": true
+      }
     }
   },
   "provider": {
@@ -27,7 +55,7 @@
         "deepseek-v4-flash": {
           "limit": {
             "context": 1000000,
-            "output": 4096
+            "output": 32768
           }
         }
       }

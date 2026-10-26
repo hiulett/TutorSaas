@@ -1,6 +1,6 @@
 # Test
 
-Ejecuta los tests unitarios del proyecto Flutter (5 archivos en `test/`).
+Ejecuta los tests del proyecto Flutter (20 archivos, 159 pruebas en la línea base del 25-oct-2026).
 
 ```sh
 flutter test
