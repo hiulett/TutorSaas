@@ -21,14 +21,33 @@ class DropLoot {
   final String title;
   final String emoji;
   final int xpBonus;
+  final int goldBonus;
   final DropRarity rarity;
 
   const DropLoot({
     required this.title,
     required this.emoji,
     required this.xpBonus,
+    this.goldBonus = 0,
     required this.rarity,
   });
+
+  /// Construye el drop a partir de la respuesta de claim_session_drop.
+  factory DropLoot.fromServer(Map<String, dynamic> data) {
+    final rarity = switch ((data['rarity'] ?? 'comun').toString()) {
+      'legendario' => DropRarity.legendario,
+      'epico' => DropRarity.epico,
+      'raro' => DropRarity.raro,
+      _ => DropRarity.comun,
+    };
+    return DropLoot(
+      title: 'Bolsa de oro',
+      emoji: '\u{1F4B0}',
+      xpBonus: (data['xp'] as num?)?.toInt() ?? 0,
+      goldBonus: (data['gold'] as num?)?.toInt() ?? 0,
+      rarity: rarity,
+    );
+  }
 
   static const int _baseXp = 15;
 

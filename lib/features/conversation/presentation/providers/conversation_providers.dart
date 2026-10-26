@@ -1446,6 +1446,7 @@ ENDING:
   Future<Map<String, dynamic>?> endSession({int practiceMinutes = 1}) async {
     if (_sessionFinalized) return _lastSessionResult; // idempotente: una sola persistencia
     Map<String, dynamic>? rewards;
+    String? rewardSessionId;
     _sessionFinalized = true;
     if (_userId != null) {
       try {
@@ -1566,6 +1567,7 @@ ENDING:
           };
           final sessionId = _conversationId ??
               '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
+          rewardSessionId = sessionId;
           // Issue #3/#4: importes calculados y aplicados en servidor
           // (idempotente por sessionId). El cliente ya no elige cuánto gana.
           rewards = await economyRepo.applySessionRewards(
@@ -1659,6 +1661,7 @@ ENDING:
       'turns': state.messages.where((m) => m.sender == 'user').length,
       'is_oracle': state.isOracleEvaluation,
       'scenario_id': state.activeScenarioId,
+      'session_id': rewardSessionId,
     };
     _lastSessionResult = result;
     return result;
