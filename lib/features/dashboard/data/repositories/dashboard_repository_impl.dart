@@ -16,7 +16,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       final response = await _supabaseClient
           .from('user_language_profiles')
-          .select('xp_points, current_streak, game_rank, equipped_title_code, languages(code, name, flag_emoji), cefr_levels(code, name)')
+          .select('xp_points, current_streak, last_practice_date, game_rank, equipped_title_code, languages(code, name, flag_emoji), cefr_levels(code, name)')
           .eq('user_id', userId)
           .maybeSingle();
 
@@ -24,6 +24,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         return {
           'xp': 0,
           'streak': 0,
+          'last_practice_date': null,
           'level': 'Principiante',
           'level_code': 'A1',
           'game_rank': 'E',
@@ -49,6 +50,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       return {
         'xp': xp,
         'streak': streak,
+        'last_practice_date': response['last_practice_date'],
         'level': cefrName,
         'level_code': cefrCode,
         'game_rank': gameRank,
@@ -553,55 +555,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
             });
       }
 
-      // Also update total minutes, xp_points and streak in user language profile
-      final currentProfile = await _supabaseClient
-          .from('user_language_profiles')
-          .select('total_minutes, current_streak, longest_streak, last_practice_date')
-          .eq('user_id', userId)
-          .eq('language_id', langId)
-          .maybeSingle();
-
-      if (currentProfile != null) {
-        final totalMins = currentProfile['total_minutes'] as int? ?? 0;
-        int currentStreak = currentProfile['current_streak'] as int? ?? 0;
-        int longestStreak = currentProfile['longest_streak'] as int? ?? 0;
-        final lastPracticeStr = currentProfile['last_practice_date'] as String?;
-        
-        final todayStr = DateTime.now().toIso8601String().split('T').first;
-        
-        if (lastPracticeStr == null) {
-          currentStreak = 1;
-        } else {
-          try {
-            final lastPracticeDate = DateTime.parse(lastPracticeStr);
-            final todayDate = DateTime.parse(todayStr);
-            final diffDays = todayDate.difference(lastPracticeDate).inDays;
-            
-            if (diffDays == 1) {
-              currentStreak += 1;
-            } else if (diffDays > 1) {
-              currentStreak = 1;
-            }
-          } catch (_) {
-            currentStreak = 1;
-          }
-        }
-        
-        if (currentStreak > longestStreak) {
-          longestStreak = currentStreak;
-        }
-
-        await _supabaseClient
-            .from('user_language_profiles')
-            .update({
-              'total_minutes': totalMins + minutes,
-              'current_streak': currentStreak,
-              'longest_streak': longestStreak,
-              'last_practice_date': todayStr,
-            })
-            .eq('user_id', userId)
-            .eq('language_id', langId);
-      }
+      // La racha y los minutos los aplica la RPC register_practice (servidor):
+      // el trigger guard_language_profile descarta estas escrituras del cliente.
     } catch (e) {
       // Log or ignore database error
     }

@@ -684,6 +684,46 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> refundFailedTurn({
+    required String turnRef,
+    required String actionCode,
+  }) async {
+    try {
+      final res = await _client.rpc('refund_failed_turn', params: {
+        'p_turn_ref': turnRef,
+        'p_action_code': actionCode,
+      });
+      if (res is Map) return Map<String, dynamic>.from(res);
+      return const <String, dynamic>{};
+    } catch (e) {
+      debugPrint('refundFailedTurn error: $e');
+      return const <String, dynamic>{};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> registerPractice({
+    required String sessionId,
+    required int minutes,
+    required int objectives,
+    int tzOffsetMinutes = 0,
+  }) async {
+    try {
+      final res = await _client.rpc('register_practice', params: {
+        'p_session_id': sessionId,
+        'p_minutes': minutes,
+        'p_objectives': objectives,
+        'p_tz_offset_minutes': tzOffsetMinutes,
+      });
+      if (res is Map) return Map<String, dynamic>.from(res);
+      return const <String, dynamic>{};
+    } catch (e) {
+      debugPrint('registerPractice error: $e');
+      return const <String, dynamic>{};
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>> claimSessionDrop({
     required String sessionId,
     required int completedGoals,

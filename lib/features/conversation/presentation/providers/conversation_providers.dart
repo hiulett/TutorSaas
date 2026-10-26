@@ -93,6 +93,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   bool _sessionFinalized = false;
   Map<String, dynamic>? _lastSessionResult;
   String? _lastUserText;
+  String? _lastActionCode;
+  String? _turnRef;
   bool _oracleEvalCharged = false;
 
   ConversationNotifier(this._repository, this._ref)
@@ -1157,6 +1159,9 @@ ENDING:
       final actionCode = state.isOracleEvaluation
           ? 'oracle_turn'
           : (state.activeScenarioId != null ? 'dungeon_turn' : 'free_chat_turn');
+      _lastActionCode = actionCode;
+      _turnRef =
+          '${_conversationId ?? state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
       try {
         final economyRepo = _ref.read(economyRepositoryProvider);
         final result = await economyRepo.consumeMana(_userId!, actionCode);
@@ -1330,14 +1335,35 @@ ENDING:
               AiErrorKind.unknown,
               'Error al procesar la respuesta. Intenta de nuevo.',
             );
+
+      // P-06: si el turno fallo tras reintentos, se devuelve el mana cobrado.
+      var errorText = err.message;
+      final refundable = chargeMana &&
+          _lastActionCode != null &&
+          _turnRef != null &&
+          _userId != null &&
+          !_userId!.startsWith('guest_') &&
+          (err.kind == AiErrorKind.network ||
+              err.kind == AiErrorKind.timeout ||
+              err.kind == AiErrorKind.provider);
+      if (refundable) {
+        final refund = await _ref
+            .read(economyRepositoryProvider)
+            .refundFailedTurn(turnRef: _turnRef!, actionCode: _lastActionCode!);
+        if (refund['ok'] == true && refund['already_refunded'] != true) {
+          errorText = '$errorText No se descontó maná por este intento.';
+          _ref.invalidate(manaStateProvider);
+        }
+      }
+
       _hasProcessedThisTurn = false;
       state = state.copyWith(
         isProcessing: false,
         messages: msgs,
-        errorMessage: err.message,
+        errorMessage: errorText,
       );
       _ref.read(conversationErrorProvider.notifier).state = ConversationErrorState(
-        message: err.message,
+        message: errorText,
         kind: err.kind,
         canRetry: _lastUserText != null && _lastUserText!.isNotEmpty,
       );
@@ -1348,6 +1374,7 @@ ENDING:
           'endpoint': 'chat',
           'code': err.code,
           'retries': err.retries,
+          'refunded': refundable,
         },
       ));
     }
@@ -1646,7 +1673,21 @@ ENDING:
             _ref.invalidate(auraXpProvider);
           } catch (_) {}
         }
-        await economyRepo.updateStreak(_userId!);
+        // Racha y minutos: una sola fuente de verdad en servidor (issue #88).
+        final streakSessionId = rewardSessionId ??
+            _conversationId ??
+            '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
+        if (streakSessionId.isNotEmpty) {
+          final streakRes = await economyRepo.registerPractice(
+            sessionId: streakSessionId,
+            minutes: practiceMinutes,
+            objectives: completedGoals,
+            tzOffsetMinutes: DateTime.now().timeZoneOffset.inMinutes,
+          );
+          if (streakRes['ok'] == true) {
+            _ref.invalidate(userProgressProvider);
+          }
+        }
       } catch (_) {}
 
       // Sincronizar títulos de habilidad ganados por desempeño conversacional

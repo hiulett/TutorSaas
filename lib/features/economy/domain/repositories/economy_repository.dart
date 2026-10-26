@@ -107,6 +107,20 @@ abstract class EconomyRepository {
   /// Suma XP real al perfil (RPC add_xp). Usado por drops de sesión.
   Future<void> addXp(String userId, int amount);
 
+  /// Racha y minutos en servidor (idempotente por sesión).
+  Future<Map<String, dynamic>> registerPractice({
+    required String sessionId,
+    required int minutes,
+    required int objectives,
+    int tzOffsetMinutes = 0,
+  });
+
+  /// Devuelve el maná de un turno fallido (idempotente por `turnRef`).
+  Future<Map<String, dynamic>> refundFailedTurn({
+    required String turnRef,
+    required String actionCode,
+  });
+
   /// Drop de fin de sesión: idempotente por `sessionId`, importes en servidor.
   Future<Map<String, dynamic>> claimSessionDrop({
     required String sessionId,
