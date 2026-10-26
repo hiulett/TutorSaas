@@ -76,6 +76,16 @@ class DropNotification extends StatelessWidget {
                     color: rarityColor,
                   ),
                 ),
+                if (loot.goldBonus > 0) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '+${loot.xpBonus} XP / +${loot.goldBonus} oro',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -1,10 +1,11 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/retention_analytics.dart';
+import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/repositories/conversation_repository.dart';
 
@@ -104,7 +105,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
     final String currentUserId = _client.auth.currentUser?.id ?? '';
     final url = '${ApiConstants.llmProxyBaseUrl}/chat';
 
-    const maxRetries = 2;
+    const maxRetries = 3;
     int attempt = 0;
 
     while (attempt < maxRetries) {
@@ -161,61 +162,47 @@ class ConversationRepositoryImpl implements ConversationRepository {
         unawaited(RetentionAnalytics.instance.track(currentUserId, 'invoke_llm'));
         return;
       } catch (e) {
-        final isRetryableHttp = e is DioException &&
-            (e.response?.statusCode == 429 ||
-             e.response?.statusCode == 500 ||
-             e.response?.statusCode == 503);
-        final bool willRetry = e is DioException &&
-            attempt < maxRetries &&
-            (e.type == DioExceptionType.connectionTimeout ||
-             e.type == DioExceptionType.sendTimeout ||
-             e.type == DioExceptionType.connectionError ||
-             isRetryableHttp);
-        if (!willRetry) {
-          unawaited(_logEvent(currentUserId, 'invoke_llm_error'));
+        final status = e is DioException ? e.response?.statusCode : null;
+        final dioType = e is DioException ? e.type : null;
+        final isTimeout = dioType == DioExceptionType.connectionTimeout ||
+            dioType == DioExceptionType.receiveTimeout ||
+            dioType == DioExceptionType.sendTimeout;
+        final retryable = e is DioException &&
+            (status == 429 || status == 500 || status == 502 || status == 503 ||
+                isTimeout || dioType == DioExceptionType.connectionError);
+
+        debugPrint('llm-proxy error (attempt $attempt/$maxRetries): $e');
+
+        if (retryable && attempt < maxRetries) {
+          await Future.delayed(Duration(milliseconds: 500 * (1 << (attempt - 1))));
+          continue;
         }
-        debugPrint('=== DEEPSEEK ERROR (attempt $attempt) ===: $e');
-        if (e is DioException) {
-          debugPrint('DeepSeek Status Code: ${e.response?.statusCode}');
-          debugPrint('DeepSeek Response Data: ${e.response?.data}');
-          final resData = e.response?.data;
-          if (resData is ResponseBody) {
-            try {
-              final content = await (resData.stream as Stream).cast<List<int>>().transform(utf8.decoder).join();
-              debugPrint('DeepSeek Streamed Error Data: $content');
-            } catch (err) {
-              debugPrint('Error reading response stream: $err');
-            }
-          } else if (resData is Stream) {
-            try {
-              final content = await (resData as Stream).cast<List<int>>().transform(utf8.decoder).join();
-              debugPrint('DeepSeek Streamed Error Data: $content');
-            } catch (err) {
-              debugPrint('Error reading response stream: $err');
-            }
-          }
-          if (attempt < maxRetries &&
-              (e.type == DioExceptionType.connectionTimeout ||
-               e.type == DioExceptionType.sendTimeout ||
-               e.type == DioExceptionType.connectionError ||
-               isRetryableHttp)) {
-            await Future.delayed(const Duration(seconds: 2));
-            continue;
-          }
-          if (e.type == DioExceptionType.connectionTimeout ||
-              e.type == DioExceptionType.connectionError) {
-            yield 'No pude conectar con el servidor. Verifica tu conexiÃ³n a internet e intenta de nuevo.';
-            return;
-          } else if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-            yield 'Error de autenticaciÃ³n con el servidor. Contacta soporte.';
-            return;
-          } else if (isRetryableHttp) {
-            yield 'El servidor de IA estÃ¡ saturado en este momento. Intenta de nuevo en unos segundos.';
-            return;
-          }
-        }
-        yield 'Tuve problemas para conectar con el tutor. Por favor intenta de nuevo.';
-        return;
+
+        unawaited(_logEvent(currentUserId, 'invoke_llm_error'));
+
+        final kind = status == 429
+            ? AiErrorKind.quota
+            : (status == 401 || status == 403)
+                ? AiErrorKind.auth
+                : isTimeout
+                    ? AiErrorKind.timeout
+                    : dioType == DioExceptionType.connectionError
+                        ? AiErrorKind.network
+                        : AiErrorKind.provider;
+
+        final message = switch (kind) {
+          AiErrorKind.quota =>
+            'El tutor alcanz\u00f3 el l\u00edmite de uso. Espera un momento y reintenta.',
+          AiErrorKind.auth =>
+            'Tu sesi\u00f3n con el tutor expir\u00f3. Vuelve a iniciar sesi\u00f3n.',
+          AiErrorKind.timeout =>
+            'El tutor tard\u00f3 demasiado en responder. Reintenta.',
+          AiErrorKind.network =>
+            'Sin conexi\u00f3n con el servidor. Revisa tu red y reintenta.',
+          _ => 'El tutor no est\u00e1 disponible en este momento. Reintenta en unos segundos.',
+        };
+
+        throw AiStreamException(kind, message, retries: attempt - 1);
       }
     }
   }

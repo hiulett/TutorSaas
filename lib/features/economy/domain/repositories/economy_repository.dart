@@ -107,6 +107,12 @@ abstract class EconomyRepository {
   /// Suma XP real al perfil (RPC add_xp). Usado por drops de sesión.
   Future<void> addXp(String userId, int amount);
 
+  /// Drop de fin de sesión: idempotente por `sessionId`, importes en servidor.
+  Future<Map<String, dynamic>> claimSessionDrop({
+    required String sessionId,
+    required int completedGoals,
+  });
+
   /// Título de prestigio actual: `{tier_code, name}`.
   Future<Map<String, dynamic>> getPrestigeTitle(String userId);
 
