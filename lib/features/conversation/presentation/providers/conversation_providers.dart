@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/conversation_repository_impl.dart';
+import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
@@ -91,6 +92,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// una sola vez aunque la salida ocurra por varias vías (pop, back, go, dispose).
   bool _sessionFinalized = false;
   Map<String, dynamic>? _lastSessionResult;
+  String? _lastUserText;
   bool _oracleEvalCharged = false;
 
   ConversationNotifier(this._repository, this._ref)
@@ -457,6 +459,11 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         isProcessing: false,
         currentTranscribingText: '',
         errorMessage: userMsg,
+      );
+      _ref.read(conversationErrorProvider.notifier).state = ConversationErrorState(
+        message: 'No pudimos transcribir tu audio. Reintenta el audio o escribe tu respuesta.',
+        kind: AiErrorKind.stt,
+        canRetry: false,
       );
     }
   }
@@ -1137,13 +1144,14 @@ ENDING:
 
   // ── Process Transcription / Text → LLM → Supabase → TTS ────────────────────
 
-  Future<void> _processTranscription(String userText) async {
+  Future<void> _processTranscription(String userText, {bool chargeMana = true, bool reuseUserMessage = false}) async {
     if (_hasProcessedThisTurn) return;
     _hasProcessedThisTurn = true;
+    _lastUserText = userText;
 
     // Consumo de Maná (FASE B): TODA acción de IA cuesta maná. El costo se lee
     // de la BD (ai_action_costs) y lo debita el RPC consume_mana (server-side).
-    if (_userId != null && !_userId!.startsWith('guest_')) {
+    if (chargeMana && _userId != null && !_userId!.startsWith('guest_')) {
       // Issue #47: el turno del Oráculo cuesta `oracle_turn` (15). El cierre
       // del examen cobra `oracle_eval` (30) una sola vez en el finalize.
       final actionCode = state.isOracleEvaluation
@@ -1157,6 +1165,11 @@ ENDING:
           state = state.copyWith(
             isProcessing: false,
             errorMessage: 'SIN MANÁ: adquiere una porción o espera la renovación de tu plan para continuar.',
+          );
+          _ref.read(conversationErrorProvider.notifier).state = const ConversationErrorState(
+            message: 'Te quedaste sin maná. Recarga o espera la renovación de tu plan.',
+            kind: AiErrorKind.quota,
+            canRetry: false,
           );
           return;
         }
@@ -1174,34 +1187,41 @@ ENDING:
     }
 
     try {
-      // 1. Build user message
-      final ConversationMessage userMessage;
-      if (userText.toLowerCase().contains('i want')) {
-        userMessage = ConversationMessage(
-          sender: 'user',
-          text: userText,
-          originalText: userText,
-          correctionExplanation:
-              'Para sonar más educado en inglés, es recomendable usar "I would like" en lugar de "I want".',
+      if (!reuseUserMessage) {
+        // 1. Build user message
+        final ConversationMessage userMessage;
+        if (userText.toLowerCase().contains('i want')) {
+          userMessage = ConversationMessage(
+            sender: 'user',
+            text: userText,
+            originalText: userText,
+            correctionExplanation:
+                'Para sonar más educado en inglés, es recomendable usar "I would like" en lugar de "I want".',
+          );
+        } else {
+          userMessage = ConversationMessage(sender: 'user', text: userText);
+        }
+
+        state = state.copyWith(
+          messages: [...state.messages.where((m) => m.text.isNotEmpty), userMessage],
+          currentTranscribingText: '',
         );
+
+        // Issue #5: cada turno del jugador cuenta para las misiones de
+        // `conversation_turns`. Best-effort: no bloquea la conversación.
+        unawaited(_ref
+            .read(missionRepositoryProvider)
+            .advanceMissions('conversation_turns'));
+
+        // Save user message to Supabase (only persisted lessons)
+        if (_conversationId != null) {
+          await _repository.saveMessage(_conversationId!, 'user', userText);
+        }
       } else {
-        userMessage = ConversationMessage(sender: 'user', text: userText);
-      }
-
-      state = state.copyWith(
-        messages: [...state.messages.where((m) => m.text.isNotEmpty), userMessage],
-        currentTranscribingText: '',
-      );
-
-      // Issue #5: cada turno del jugador cuenta para las misiones de
-      // `conversation_turns`. Best-effort: no bloquea la conversación.
-      unawaited(_ref
-          .read(missionRepositoryProvider)
-          .advanceMissions('conversation_turns'));
-
-      // Save user message to Supabase (only persisted lessons)
-      if (_conversationId != null) {
-        await _repository.saveMessage(_conversationId!, 'user', userText);
+        state = state.copyWith(
+          messages: state.messages.where((m) => m.text.isNotEmpty).toList(),
+          currentTranscribingText: '',
+        );
       }
 
       // 2. Build system instructions and history for DeepSeek
@@ -1281,6 +1301,7 @@ ENDING:
 
       state = state.copyWith(isProcessing: false);
       _hasProcessedThisTurn = false;
+      _ref.read(conversationErrorProvider.notifier).state = null;
 
       // 5. Speak response via TTS immediately & simultaneously with text display
       if (fullTutorResponse.isNotEmpty) {
@@ -1297,11 +1318,47 @@ ENDING:
       );
     } catch (e) {
       debugPrint('Conversation error: $e');
+      // Un fallo de IA NUNCA es un mensaje del tutor: se quita el placeholder
+      // vacio, no se narra por TTS y no se persiste en `messages`.
+      final msgs = List<ConversationMessage>.from(state.messages);
+      if (msgs.isNotEmpty && msgs.last.sender == 'tutor' && msgs.last.text.isEmpty) {
+        msgs.removeLast();
+      }
+      final err = e is AiStreamException
+          ? e
+          : const AiStreamException(
+              AiErrorKind.unknown,
+              'Error al procesar la respuesta. Intenta de nuevo.',
+            );
+      _hasProcessedThisTurn = false;
       state = state.copyWith(
         isProcessing: false,
-        errorMessage: 'Error al procesar la respuesta. Intenta de nuevo.',
+        messages: msgs,
+        errorMessage: err.message,
       );
+      _ref.read(conversationErrorProvider.notifier).state = ConversationErrorState(
+        message: err.message,
+        kind: err.kind,
+        canRetry: _lastUserText != null && _lastUserText!.isNotEmpty,
+      );
+      unawaited(RetentionAnalytics.instance.track(
+        _userId ?? 'anon',
+        'ai_error',
+        properties: {
+          'endpoint': 'chat',
+          'code': err.code,
+          'retries': err.retries,
+        },
+      ));
     }
+  }
+
+  /// Reintenta el ultimo turno sin volver a cobrar mana.
+  Future<void> retryLastTurn() async {
+    final text = _lastUserText;
+    if (text == null || text.isEmpty) return;
+    _ref.read(conversationErrorProvider.notifier).state = null;
+    await _processTranscription(text, chargeMana: false, reuseUserMessage: true);
   }
 
   void _asyncSaveAndAnalyzeSession({
@@ -1678,6 +1735,21 @@ ENDING:
 // ──────────────────────────────────────────────────────────────────────────────
 // Providers
 // ──────────────────────────────────────────────────────────────────────────────
+
+class ConversationErrorState {
+  final String message;
+  final AiErrorKind kind;
+  final bool canRetry;
+
+  const ConversationErrorState({
+    required this.message,
+    required this.kind,
+    this.canRetry = false,
+  });
+}
+
+final conversationErrorProvider =
+    StateProvider<ConversationErrorState?>((ref) => null);
 
 final sessionResultProvider =
     StateProvider<Map<String, dynamic>?>((ref) => null);

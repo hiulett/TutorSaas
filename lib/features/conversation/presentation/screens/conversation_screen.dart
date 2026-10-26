@@ -679,6 +679,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final theme = Theme.of(context);
     final conversationState = ref.watch(conversationStateProvider);
     final conversationNotifier = ref.read(conversationStateProvider.notifier);
+    final convError = ref.watch(conversationErrorProvider);
     final isOracle = conversationState.isOracleEvaluation;
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
@@ -1097,6 +1098,42 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   ),
 
                   // â”€â”€ 20 Topics Horizontal Bar (Icon 2: Hashtag) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                  if (convError != null)
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorContainer.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded,
+                              color: AppColors.errorRed, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              convError.message,
+                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                          ),
+                          if (convError.canRetry)
+                            TextButton(
+                              onPressed: () => conversationNotifier.retryLastTurn(),
+                              child: const Text('Reintentar'),
+                            ),
+                          TextButton(
+                            onPressed: () {
+                              ref.read(conversationErrorProvider.notifier).state = null;
+                              setState(() => _showKeyboardDrawer = true);
+                            },
+                            child: const Text('Escribir'),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   if (_showTopicsBar)
                     Container(
                       height: 52,
