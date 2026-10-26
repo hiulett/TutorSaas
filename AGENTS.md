@@ -103,3 +103,43 @@ funciona desde el ancestro.
 El trabajo vive en los issues de GitHub (`hiulett/TutorSaas`). Los documentos de
 `docs/archive/` son históricos: varias de sus conclusiones ya no son ciertas
 (ver `docs/HISTORY.md`).
+
+---
+
+## Herramientas del agente
+
+Antes de explorar el repo, lee `docs/CONTEXT_MAP.md` (índice de punteros, no
+cargues la auditoría completa).
+
+**Comandos**
+
+| Comando | Cuándo |
+|---|---|
+| `/build` | Tras editar código: `flutter analyze` (0 errores) |
+| `/test` | Antes de commit: 159 pruebas |
+| `/review` | Antes de commit: revisión read-only del diff |
+| `/db-check` | Si tocas esquema, RLS o RPC |
+| `/ui-check` | Si tocas pantallas, estilos o textos |
+| `/release` | Antes de compilar el AAB |
+| `/audit` | Para refrescar `docs/product-audit/` |
+
+**Subagentes**
+
+| Agente | Uso |
+|---|---|
+| `explore` | Localizar código sin editar (siempre lo primero) |
+| `reviewer` | Revisar el diff sin editar |
+| `db-auditor` | Deriva repo ↔ producción, RLS, funciones |
+| `design-auditor` | Paleta, tipografía, i18n, overflow |
+| `release-captain` | Checklist de release |
+| `acceptance` | Verificar criterios con evidencia, no con el reporte del implementador |
+| `test-author` | Escribir los tests que faltan sin tocar producción |
+| `doc-auditor` | Actualizar `docs/product-audit/` |
+
+**Reglas de evidencia**
+
+- Afirmar algo sobre el esquema o los datos exige consulta de solo lectura al MCP
+  `supabase`; el repo no reproduce el esquema.
+- No confíes en comentarios ni en `docs/archive/`: verifica contra código.
+- Si no puedes comprobarlo, escribe "no verificable" y qué falta.
+
