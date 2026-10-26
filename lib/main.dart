@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/app.dart';
 import 'core/constants/api_constants.dart';
+import 'core/services/crash_reporter.dart';
 import 'core/utils/error_tracker.dart';
 
 import 'core/widgets/configuration_error_widget.dart';
@@ -19,6 +20,9 @@ void main() async {
   // y, sin red, la excepción queda sin manejar (además de renderizar con la
   // fuente del sistema).
   GoogleFonts.config.allowRuntimeFetching = false;
+
+  // Reporte de fallos: sin SENTRY_DSN queda desactivado (dev/tests).
+  await CrashReporter.init();
 
   // Initialize Error Tracking & Analytics
   await ErrorTracker.init();
