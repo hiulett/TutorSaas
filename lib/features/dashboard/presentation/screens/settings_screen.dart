@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -172,6 +174,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                         _SectionHeader(title: l10n?.settings_account ?? 'ACCOUNT'),
                         const SizedBox(height: 12),
+                        _buildAccountTile(
+                          context,
+                          icon: Icons.download_rounded,
+                          label: l10n?.settings_export_data ?? 'EXPORT MY DATA',
+                          color: AppColors.manaCyan,
+                          onTap: () => _exportData(context),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildAccountTile(
+                          context,
+                          icon: Icons.delete_forever_rounded,
+                          label: l10n?.settings_delete_account ?? 'DELETE MY ACCOUNT',
+                          color: AppColors.errorRed,
+                          onTap: () => _confirmDeleteAccount(context),
+                        ),
+                        const SizedBox(height: 8),
                         _buildLogoutTile(context),
                         const SizedBox(height: 24),
 
@@ -396,6 +414,106 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildAccountTile(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Future<void> Function() onTap,
+  }) {
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.spaceGrotesk(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: color),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportData(BuildContext context) async {
+    try {
+      final client = ref.read(supabaseClientProvider);
+      final data = await client.rpc('export_my_data');
+      final json = const JsonEncoder.withIndent('  ').convert(data);
+      await Clipboard.setData(ClipboardData(text: json));
+      if (!context.mounted) return;
+      SystemSnack.show(
+        context,
+        AppLocalizations.of(context)?.settings_export_copied ??
+            'Your data was copied to the clipboard.',
+        type: SystemSnackType.info,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      SystemSnack.show(context, 'No se pudo exportar: $e',
+          type: SystemSnackType.error);
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surfaceDeep,
+        title: Text(
+          l10n?.settings_delete_confirm_title ?? 'Delete your account?',
+          style: const TextStyle(
+              color: AppColors.onSurface,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          l10n?.settings_delete_confirm_body ??
+              'This permanently deletes your account and progress. This cannot be undone.',
+          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('CANCELAR'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('ELIMINAR',
+                style: TextStyle(color: AppColors.errorRed)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      final client = ref.read(supabaseClientProvider);
+      await client.rpc('delete_my_account');
+      await ref.read(authRepositoryProvider).signOut();
+      if (!context.mounted) return;
+      context.go('/');
+    } catch (e) {
+      if (!context.mounted) return;
+      SystemSnack.show(context, 'No se pudo eliminar la cuenta: $e',
+          type: SystemSnackType.error);
+    }
   }
 
   Future<void> _confirmLogout(BuildContext context) async {

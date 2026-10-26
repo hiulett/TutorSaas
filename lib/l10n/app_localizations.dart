@@ -4822,6 +4822,36 @@ abstract class AppLocalizations {
   /// **'ACCOUNT'**
   String get settings_account;
 
+  /// No description provided for @settings_export_data.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPORT MY DATA'**
+  String get settings_export_data;
+
+  /// No description provided for @settings_export_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data was copied to the clipboard.'**
+  String get settings_export_copied;
+
+  /// No description provided for @settings_delete_account.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE MY ACCOUNT'**
+  String get settings_delete_account;
+
+  /// No description provided for @settings_delete_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get settings_delete_confirm_title;
+
+  /// No description provided for @settings_delete_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your account and progress. This cannot be undone.'**
+  String get settings_delete_confirm_body;
+
   /// No description provided for @settings_aligned.
   ///
   /// In en, this message translates to:

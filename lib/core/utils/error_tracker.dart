@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../services/crash_reporter.dart';
 
 class ErrorTracker {
   static bool _initialized = false;
@@ -39,7 +41,8 @@ class ErrorTracker {
     if (!_initialized) return;
 
     try {
-      // In production: Sentry.captureException(exception, stackTrace: stackTrace);
+      // Reenvia al reportero de fallos (Sentry si hay DSN; no-op si no).
+      unawaited(CrashReporter.capture(exception, stackTrace));
     } catch (_) {
       // Ignore tracker errors
     }

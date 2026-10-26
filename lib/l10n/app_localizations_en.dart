@@ -2594,6 +2594,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_account => 'ACCOUNT';
 
   @override
+  String get settings_export_data => 'EXPORT MY DATA';
+
+  @override
+  String get settings_export_copied => 'Your data was copied to the clipboard.';
+
+  @override
+  String get settings_delete_account => 'DELETE MY ACCOUNT';
+
+  @override
+  String get settings_delete_confirm_title => 'Delete your account?';
+
+  @override
+  String get settings_delete_confirm_body =>
+      'This permanently deletes your account and progress. This cannot be undone.';
+
+  @override
   String get settings_aligned => 'CONFIGURATION ALIGNED SUCCESSFULLY';
 
   @override
