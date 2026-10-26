@@ -10,10 +10,12 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../onboarding/domain/models/cefr_rank.dart';
+import '../../domain/models/streak_rules.dart';
 import '../providers/dashboard_providers.dart';
 import '../screens/dashboard_screen.dart';
 import 'daily_quests_widget.dart';
 import 'league_leaderboard_widget.dart';
+import 'aura_hud.dart';
 import 'charts/skills_radar_chart.dart';
 
 class ProgressTabView extends ConsumerWidget {
@@ -40,11 +42,14 @@ class ProgressTabView extends ConsumerWidget {
     final int xp = progress['xp'] as int? ?? 0;
     final int streak = progress['streak'] as int? ?? 0;
 
-    // LIVE-02: streak at risk — invocations_used del player_daily_state de hoy
-    // (misma convención que HunterHudHeader) indica si ya se practicó hoy.
-    final dailyStateAsync = ref.watch(dailyStateProvider);
-    final int invocationsUsed = (dailyStateAsync.value?['invocations_used'] as num?)?.toInt() ?? 0;
-    final bool streakAtRisk = dailyStateAsync.hasValue && invocationsUsed <= 0;
+    // P-04: el aviso usa la fecha real de la ultima practica, no un contador.
+    final DateTime? lastPractice =
+        DateTime.tryParse((progress['last_practice_date'] ?? '').toString());
+    final bool streakAtRisk = StreakRules.shouldRemind(
+      streak: streak,
+      lastPractice: lastPractice,
+      now: DateTime.now(),
+    );
 
     // Refresca el estado diario al volver de una sesión de práctica (endSession
     // incrementa dashboardRefreshProvider) para que el banner desaparezca.

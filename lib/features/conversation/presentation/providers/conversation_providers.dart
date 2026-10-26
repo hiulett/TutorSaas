@@ -1646,7 +1646,21 @@ ENDING:
             _ref.invalidate(auraXpProvider);
           } catch (_) {}
         }
-        await economyRepo.updateStreak(_userId!);
+        // Racha y minutos: una sola fuente de verdad en servidor (issue #88).
+        final streakSessionId = rewardSessionId ??
+            _conversationId ??
+            '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
+        if (streakSessionId.isNotEmpty) {
+          final streakRes = await economyRepo.registerPractice(
+            sessionId: streakSessionId,
+            minutes: practiceMinutes,
+            objectives: completedGoals,
+            tzOffsetMinutes: DateTime.now().timeZoneOffset.inMinutes,
+          );
+          if (streakRes['ok'] == true) {
+            _ref.invalidate(userProgressProvider);
+          }
+        }
       } catch (_) {}
 
       // Sincronizar títulos de habilidad ganados por desempeño conversacional
