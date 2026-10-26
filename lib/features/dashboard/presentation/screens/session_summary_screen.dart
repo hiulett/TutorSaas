@@ -27,6 +27,7 @@ class SessionSummaryScreen extends ConsumerWidget {
 
     // ── Métricas dinámicas desde el estado de la conversación ────────────────
     final convState = ref.watch(conversationStateProvider);
+    final sessionResult = ref.watch(sessionResultProvider);
     final messages = convState.messages;
     final userMsgs = messages.where((m) => m.sender == 'user').toList();
     final wordCount = userMsgs.fold(0, (sum, m) =>
@@ -46,15 +47,17 @@ class SessionSummaryScreen extends ConsumerWidget {
         .where((m) => m.originalText != null && m.originalText!.isNotEmpty)
         .toList();
 
-    final int sessionSeconds =
-        userMsgs.isEmpty ? 0 : math.max(60, userMsgs.length * 45);
-    final int sessionMin = sessionSeconds ~/ 60;
-    final int sessionSec = sessionSeconds % 60;
-    final String durationLabel = sessionMin > 0
-        ? '${sessionMin}m ${sessionSec.toString().padLeft(2, '0')}s'
-        : '${sessionSec}s';
+    final int? resultMinutes = (sessionResult?['minutes'] as num?)?.toInt();
+    final String durationLabel =
+        (resultMinutes == null || resultMinutes <= 0) ? '—' : '${resultMinutes}m';
 
     final bool hasData = userMsgs.isNotEmpty;
+
+    final int xpEarned = (sessionResult?['xp'] as num?)?.toInt() ?? 0;
+    final int goldEarned = (sessionResult?['gold'] as num?)?.toInt() ?? 0;
+    final int fragmentsEarned =
+        (sessionResult?['fragments'] as num?)?.toInt() ?? 0;
+    final bool rewardApplied = sessionResult?['reward_applied'] == true;
 
     void goHome() {
       ref.read(dashboardRefreshProvider.notifier).state++;
@@ -213,11 +216,11 @@ class SessionSummaryScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: _MetricCell(
                           icon: Icons.bolt_rounded,
                           color: AppColors.royalGold,
-                          value: '+80',
+                          value: rewardApplied ? '+$xpEarned' : '—',
                           label: 'XP',
                         ),
                       ),
@@ -303,28 +306,39 @@ class SessionSummaryScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        Wrap(
+                          alignment: WrapAlignment.spaceAround,
+                          spacing: 16,
+                          runSpacing: 10,
                           children: [
                             _RewardChip(
                               icon: Icons.star_rounded,
                               color: AppColors.runeViolet,
-                              value: '+80 XP',
-                              label: l10n.session_bonus,
-                            ),
-                            Container(
-                              width: 1,
-                              height: 28,
-                              color: AppColors.onSurface.withValues(alpha: 0.10),
+                              value: rewardApplied ? '+$xpEarned XP' : '—',
+                              label: 'XP',
                             ),
                             _RewardChip(
-                              icon: Icons.local_fire_department_rounded,
-                              color: AppColors.guildAmber,
-                              value: '+1 Racha',
-                              label: l10n.session_maintained,
+                              icon: Icons.monetization_on_rounded,
+                              color: AppColors.royalGold,
+                              value: rewardApplied ? '+$goldEarned' : '—',
+                              label: l10n.summary_reward_gold,
+                            ),
+                            _RewardChip(
+                              icon: Icons.auto_awesome_rounded,
+                              color: AppColors.emeraldGreen,
+                              value: rewardApplied ? '+$fragmentsEarned' : '—',
+                              label: l10n.summary_reward_fragments,
                             ),
                           ],
                         ),
+                        if (!rewardApplied) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            l10n.summary_reward_pending,
+                            textAlign: TextAlign.center,
+                            style: AppTypography.bodyMuted(context),
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         Divider(
                           color: AppColors.onSurface.withValues(alpha: 0.08),
@@ -732,7 +746,7 @@ class _SkillBarRow extends StatelessWidget {
         SizedBox(
           width: 38,
           child: Text(
-            '$percent%',
+            '~$percent%',
             textAlign: TextAlign.right,
             style: AppTypography.stat(context).copyWith(
               color: color,

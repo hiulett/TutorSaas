@@ -2207,6 +2207,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get session_title => 'Resumo';
 
   @override
+  String get summary_reward_gold => 'OURO';
+
+  @override
+  String get summary_reward_fragments => 'FRAGMENTOS';
+
+  @override
+  String get summary_reward_pending =>
+      'Não foi possível confirmar sua recompensa. Seu progresso está salvo; ele será atualizado ao recarregar.';
+
+  @override
   String get session_completed => 'SESSÃO CONCLUÍDA';
 
   @override

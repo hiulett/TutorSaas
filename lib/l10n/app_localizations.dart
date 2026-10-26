@@ -4108,11 +4108,29 @@ abstract class AppLocalizations {
   /// **'SPECIAL'**
   String get mission_status_special;
 
-  /// No description provided for @session_title.
+  /// Title of the post-session summary screen
   ///
   /// In en, this message translates to:
   /// **'Summary'**
   String get session_title;
+
+  /// No description provided for @summary_reward_gold.
+  ///
+  /// In en, this message translates to:
+  /// **'GOLD'**
+  String get summary_reward_gold;
+
+  /// No description provided for @summary_reward_fragments.
+  ///
+  /// In en, this message translates to:
+  /// **'FRAGMENTS'**
+  String get summary_reward_fragments;
+
+  /// No description provided for @summary_reward_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t confirm your reward. Your progress is saved; it will refresh on the next load.'**
+  String get summary_reward_pending;
 
   /// No description provided for @session_completed.
   ///

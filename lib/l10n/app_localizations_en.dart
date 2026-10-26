@@ -2202,6 +2202,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get session_title => 'Summary';
 
   @override
+  String get summary_reward_gold => 'GOLD';
+
+  @override
+  String get summary_reward_fragments => 'FRAGMENTS';
+
+  @override
+  String get summary_reward_pending =>
+      'We couldn\'t confirm your reward. Your progress is saved; it will refresh on the next load.';
+
+  @override
   String get session_completed => 'SESSION COMPLETED';
 
   @override
