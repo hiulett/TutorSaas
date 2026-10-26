@@ -115,6 +115,12 @@ abstract class EconomyRepository {
     int tzOffsetMinutes = 0,
   });
 
+  /// Devuelve el maná de un turno fallido (idempotente por `turnRef`).
+  Future<Map<String, dynamic>> refundFailedTurn({
+    required String turnRef,
+    required String actionCode,
+  });
+
   /// Drop de fin de sesión: idempotente por `sessionId`, importes en servidor.
   Future<Map<String, dynamic>> claimSessionDrop({
     required String sessionId,
