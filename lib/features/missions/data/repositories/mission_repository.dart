@@ -229,46 +229,13 @@ class MissionRepositoryImpl implements MissionRepository {
 
   Future<bool> claimReward(String instanceId, String userId) async {
     try {
-      final instance = await _client
-          .from('mission_instances')
-          .select()
-          .eq('id', instanceId)
-          .maybeSingle();
-      if (instance == null) return false;
-
-      final baseXp = (instance['xp_reward'] as num?)?.toInt() ?? 0;
-      final baseGems = (instance['gem_reward'] as num?)?.toInt() ?? 0;
-      final multiplier = (instance['reward_multiplier'] as num?)?.toInt() ?? 1;
-      final xp = baseXp * multiplier;
-      final gems = baseGems * multiplier;
-
-      // Mark as claimed
-      await _client.from('mission_instances').update({
-        'is_reward_claimed': true,
-        'reward_multiplier': multiplier,
-      }).eq('id', instanceId);
-
-      // Add XP
-      if (xp > 0) {
-        await _client.rpc('add_xp', params: {'p_user_id': userId, 'p_amount': xp});
-      }
-
-      // Add gems
-      if (gems > 0) {
-        await _client.rpc('add_gems', params: {'p_user_id': userId, 'p_amount': gems});
-      }
-
-      // Record history
-      await _client.from('reward_history').insert({
-        'user_id': userId,
-        'source_type': 'mission',
-        'source_id': instanceId,
-        'xp_earned': xp,
-        'gems_earned': gems,
-        'item_code': instance['item_reward'],
+      // Issue #93: importes y estado se validan en servidor; el cliente ya no
+      // elige cantidades ni escribe reward_history.
+      final res = await _client.rpc('claim_mission_reward', params: {
+        'p_instance_id': instanceId,
       });
-
-      return true;
+      if (res is Map) return res['ok'] == true;
+      return false;
     } catch (_) {
       return false;
     }

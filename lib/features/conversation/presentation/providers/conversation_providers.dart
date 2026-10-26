@@ -18,7 +18,6 @@ import '../../../dashboard/data/models/hunter_skill_titles.dart';
 import '../../../dashboard/domain/services/lesson_generator_service.dart';
 import '../../../dashboard/domain/models/lesson_unlock_service.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../missions/presentation/providers/mission_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../../core/ai/placement_ai.dart';
 import '../../../../core/i18n/language_settings.dart';
@@ -1214,9 +1213,7 @@ ENDING:
 
         // Issue #5: cada turno del jugador cuenta para las misiones de
         // `conversation_turns`. Best-effort: no bloquea la conversación.
-        unawaited(_ref
-            .read(missionRepositoryProvider)
-            .advanceMissions('conversation_turns'));
+        // El trigger de `messages` avanza `conversation_turns` en servidor.
 
         // Save user message to Supabase (only persisted lessons)
         if (_conversationId != null) {
@@ -1528,7 +1525,9 @@ ENDING:
 
   /// End the conversation session — persists final data and refreshes dashboard.
   Future<Map<String, dynamic>?> endSession({int practiceMinutes = 1}) async {
-    if (_sessionFinalized) return _lastSessionResult; // idempotente: una sola persistencia
+    if (_sessionFinalized) {
+      return _lastSessionResult; // idempotente: una sola persistencia
+    }
     Map<String, dynamic>? rewards;
     String? rewardSessionId;
     _sessionFinalized = true;
@@ -1541,18 +1540,8 @@ ENDING:
       // Issue #5: cerrar sesión avanza las misiones de sesión y de minutos
       // hablados. Antes de este cambio, `advance_missions_for_user` no tenía
       // ningún llamador: las 533 instancias se quedaban en `active` para siempre.
-      try {
-        final missionRepo = _ref.read(missionRepositoryProvider);
-        unawaited(missionRepo.advanceMissions('sessions'));
-        unawaited(missionRepo.advanceMissions('practice_session'));
-        unawaited(missionRepo.advanceMissions('conversations'));
-        if (practiceMinutes > 0) {
-          unawaited(missionRepo.advanceMissions('speak_minutes',
-              delta: practiceMinutes));
-        }
-      } catch (e) {
-        debugPrint('Mission advance on endSession failed: $e');
-      }
+      // Las misiones las avanza el servidor (triggers de mensajes, ledger de
+      // sesión y vocabulario). No se duplica desde el cliente (issue #93).
 
       // Registro de superación de la lección (lesson_progress):
       //  - passed si cumple ≥80% de metas (LessonUnlockService.passThreshold).
