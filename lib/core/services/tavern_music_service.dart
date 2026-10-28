@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 
 /// Música ambiente de la taberna (toggle manual).
 ///
@@ -40,14 +41,18 @@ class TavernMusicService {
     if (!_playing) return;
     try {
       await _player?.pause();
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/core/services/tavern_music_service.dart:43', e, stackTrace: st);
+    }
     _playing = false;
   }
 
   Future<void> stop() async {
     try {
       await _player?.stop();
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/core/services/tavern_music_service.dart:50', e, stackTrace: st);
+    }
     _playing = false;
   }
 

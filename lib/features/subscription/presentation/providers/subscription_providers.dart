@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -60,7 +61,9 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
       if (mounted) {
         state = isPrem;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/subscription/presentation/providers/subscription_providers.dart:63', e, stackTrace: st);
+    }
   }
 
   void setPremium(bool val) {

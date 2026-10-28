@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 
 /// Cache de datos por-usuario con TTL + stale-while-revalidate (SWR) y
 /// persistencia opcional en disco (cold start sin queries).
@@ -65,7 +66,9 @@ class CachedFutureController<T> extends StateNotifier<AsyncValue<T>> {
         if (disk != null) {
           state = AsyncValue.data(disk);
         }
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/core/cache/cached_future_controller.dart:68', e, stackTrace: st);
+      }
     }
 
     final isFresh = _isFresh();

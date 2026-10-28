@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../features/onboarding/domain/models/cefr_rank.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/models/title_evaluator.dart';
@@ -114,7 +115,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
         for (final sc in scenarios) {
           LessonCatalog.updateCatalogFromMap(sc);
         }
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:117', e, stackTrace: st);
+      }
 
       // Filter and prioritize scenarios matching user's onboarding interests & daily goal
       if (scenarios.isNotEmpty) {
@@ -334,7 +337,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
               'user_id': userId,
               'achievement_id': id,
             }, onConflict: 'user_id, achievement_id');
-          } catch (_) {}
+          } catch (e, st) {
+            ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:337', e, stackTrace: st);
+          }
         }
 
         results.add({
@@ -878,7 +883,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
               .from('user_language_profiles')
               .update({'carisma_score': carisma})
               .eq('user_id', userId);
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:881', e, stackTrace: st);
+        }
       }
 
       final codes = TitleEvaluator.earnedCodes(
@@ -909,9 +916,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
             'tier': title.tier,
           });
           newlyEarned.add(code);
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:912', e, stackTrace: st);
+        }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:914', e, stackTrace: st);
+    }
     return newlyEarned;
   }
 

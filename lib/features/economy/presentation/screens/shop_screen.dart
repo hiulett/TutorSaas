@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -86,7 +87,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
           );
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/economy/presentation/screens/shop_screen.dart:89', e, stackTrace: st);
+    }
     if (mounted) setState(() => _isBuying = false);
   }
 

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -59,7 +60,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
           // Entrada a la mesa en estado "de pie" (escucha + chat, sin audio).
           await ref.read(chatRoomsRepositoryProvider).joinTable(widget.roomId);
           _startHeartbeat();
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:62', e, stackTrace: st);
+        }
       }
       await _connectLiveKit();
       _startSpeakingPoll();
@@ -151,7 +154,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     try {
       await lp.setMicrophoneEnabled(next);
       setState(() => _micOn = next);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:154', e, stackTrace: st);
+    }
   }
 
   Future<void> _disconnectLiveKit() async {
@@ -161,7 +166,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     if (r != null) {
       try {
         await r.disconnect();
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:164', e, stackTrace: st);
+      }
     }
     if (mounted) setState(() => _micOn = false);
   }
@@ -280,7 +287,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
         type: ok ? SystemSnackType.success : SystemSnackType.error,
       );
       if (ok) ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:283', e, stackTrace: st);
+    }
   }
 
   int? _detectMySeat() {
