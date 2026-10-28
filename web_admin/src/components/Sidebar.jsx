@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   CreditCard,
   Coins,
+  Activity,
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -22,6 +23,7 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
     { id: 'plans', label: 'Planes y Membresías', icon: CreditCard },
     { id: 'economy', label: 'Economía y Config', icon: Coins },
     { id: 'ai-settings', label: 'Ajustes de IA', icon: Sliders },
+    { id: 'retention', label: 'Retención y Embudo', icon: Activity },
   ];
 
   const handleLogout = async () => {

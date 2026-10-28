@@ -443,6 +443,26 @@ export const adminService = {
     };
   },
 
+  async getRetentionMetrics() {
+    try {
+      const [funnel, activation, retention, sessions] = await Promise.all([
+        supabase.from('analytics_onboarding_funnel').select('*').order('ord', { ascending: true }),
+        supabase.from('analytics_activation').select('*').limit(8),
+        supabase.from('analytics_retention').select('*').limit(60),
+        supabase.from('analytics_sessions_per_week').select('*').limit(8),
+      ]);
+      return {
+        funnel: funnel.data ?? [],
+        activation: activation.data ?? [],
+        retention: retention.data ?? [],
+        sessions: sessions.data ?? [],
+      };
+    } catch (err) {
+      console.error('Error loading retention metrics:', err);
+      return { funnel: [], activation: [], retention: [], sessions: [] };
+    }
+  },
+
   async updateAiSettings(settings) {
     try {
       await supabase.from('system_ai_settings').upsert({
