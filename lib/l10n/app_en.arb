@@ -46,6 +46,13 @@
   "sync_progress": "SYNC CEFR LANGUAGE...",
 
   "dashboard_title": "SYSTEM STATUS",
+"dashboard_offline": "No connection. Showing your last saved progress.",
+"dashboard_offline_age": "No connection. Last progress {minutes} min ago.",
+"@dashboard_offline_age": {
+  "placeholders": {
+    "minutes": { "type": "int" }
+  }
+},
   "dungeons": "DUNGEONS",
   "guild": "GUILD",
   "status": "STATUS",

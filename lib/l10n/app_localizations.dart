@@ -358,6 +358,18 @@ abstract class AppLocalizations {
   /// **'SYSTEM STATUS'**
   String get dashboard_title;
 
+  /// No description provided for @dashboard_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Showing your last saved progress.'**
+  String get dashboard_offline;
+
+  /// No description provided for @dashboard_offline_age.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Last progress {minutes} min ago.'**
+  String dashboard_offline_age(int minutes);
+
   /// No description provided for @dungeons.
   ///
   /// In en, this message translates to:

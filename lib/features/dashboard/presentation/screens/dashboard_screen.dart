@@ -153,6 +153,8 @@ class DashboardScreen extends ConsumerWidget {
     final dailyStateAsync = ref.watch(dailyStateProvider);
     final dailyClaimed = (dailyStateAsync.value?['daily_reward_claimed'] as bool?) ?? false;
     final progressAsync = ref.watch(userProgressProvider);
+    final offlineProgress = ref.watch(progressOfflineProvider);
+    final progressCachedAt = ref.watch(progressCachedAtProvider);
     final currentTab = ref.watch(dashboardTabProvider);
     // Issue #32: mientras carga no se inventan cifras (antes: 2450 XP, racha 7).
     final progress = progressAsync.value ?? {
@@ -172,6 +174,41 @@ class DashboardScreen extends ConsumerWidget {
 
     final completedLessonsAsync = ref.watch(completedLessonsProvider);
     final completedLessons = completedLessonsAsync.value ?? [];
+
+    // P-19: sin cache y sin red no se pinta un dashboard con ceros.
+    if (progressAsync.hasError && !progressAsync.hasValue) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_off_rounded, color: AppColors.onSurfaceVariant, size: 48),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n?.dashboard_offline ??
+                        'Sin conexion. Mostrando el ultimo progreso guardado.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => ref.invalidate(userProgressProvider),
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: Text(l10n?.retry ?? 'REINTENTAR'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       body: CyberManhwaBackground(
@@ -208,6 +245,28 @@ class DashboardScreen extends ConsumerWidget {
           SafeArea(
             child: Column(
               children: [
+                if (offlineProgress)
+                  Container(
+                    width: double.infinity,
+                    color: AppColors.royalGold.withValues(alpha: 0.14),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.cloud_off_rounded, color: AppColors.royalGold, size: 14),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _offlineProgressLabel(l10n, progressCachedAt),
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.royalGold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 // Top App Bar — identidad del cazador (avatar + nombre + nivel)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -578,4 +637,15 @@ class DashboardScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// P-19: texto del banner de sin conexion, con la antiguedad de la cache.
+String _offlineProgressLabel(AppLocalizations? l10n, DateTime? cachedAt) {
+  final fallback = l10n?.dashboard_offline ??
+      'Sin conexion. Mostrando el ultimo progreso guardado.';
+  if (cachedAt == null) return fallback;
+  final minutes = DateTime.now().difference(cachedAt).inMinutes;
+  if (minutes < 1) return fallback;
+  return l10n?.dashboard_offline_age(minutes) ??
+      'Sin conexion. Ultimo progreso hace $minutes min.';
 }

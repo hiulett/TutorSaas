@@ -148,6 +148,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dashboard_title => 'ESTADO DEL SISTEMA';
 
   @override
+  String get dashboard_offline =>
+      'Sin conexión. Mostrando el último progreso guardado.';
+
+  @override
+  String dashboard_offline_age(int minutes) {
+    return 'Sin conexión. Último progreso hace $minutes min.';
+  }
+
+  @override
   String get dungeons => 'MAZMORRAS';
 
   @override
