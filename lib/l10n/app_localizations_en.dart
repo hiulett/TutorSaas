@@ -266,6 +266,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save_settings => 'Save Settings';
 
   @override
+  String get settings_save_error => 'Could not save settings.';
+
+  @override
+  String get settings_delete_error => 'Could not delete the account.';
+
+  @override
+  String get settings_app_language => 'APP LANGUAGE';
+
+  @override
   String get saved => 'Settings and Onboarding saved successfully';
 
   @override

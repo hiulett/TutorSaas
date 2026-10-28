@@ -268,6 +268,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get save_settings => 'Guardar Configuración';
 
   @override
+  String get settings_save_error => 'No se pudo guardar la configuración.';
+
+  @override
+  String get settings_delete_error => 'No se pudo eliminar la cuenta.';
+
+  @override
+  String get settings_app_language => 'IDIOMA DE LA APLICACIÓN';
+
+  @override
   String get saved => 'Configuración guardada exitosamente';
 
   @override

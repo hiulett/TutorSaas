@@ -261,7 +261,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     debugPrint('Error saving settings: $e');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error guardando configuración: $e'), backgroundColor: AppColors.errorRed),
+                        SnackBar(content: Text(AppLocalizations.of(context)?.settings_save_error ?? 'Could not save settings.'), backgroundColor: AppColors.errorRed),
                       );
                     }
                   } finally {
@@ -488,12 +488,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('CANCELAR'),
+            child: Text(l10n?.cancel ?? 'CANCEL'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('ELIMINAR',
-                style: TextStyle(color: AppColors.errorRed)),
+            child: Text(l10n?.delete ?? 'DELETE',
+                style: const TextStyle(color: AppColors.errorRed)),
           ),
         ],
       ),
@@ -508,36 +508,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context.go('/');
     } catch (e) {
       if (!context.mounted) return;
-      SystemSnack.show(context, 'No se pudo eliminar la cuenta: $e',
+      SystemSnack.show(
+          context,
+          '${l10n?.settings_delete_error ?? 'Could not delete the account.'}: $e',
           type: SystemSnackType.error);
     }
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surfaceDeep,
-        title: const Text(
-          '¿CERRAR SESIÓN?',
+        title: Text(
+          l10n?.logout_confirm_title ?? 'LOG OUT?',
           style: TextStyle(color: AppColors.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        content: const Text(
-          'Tu progreso queda guardado. Necesitarás volver a iniciar sesión para continuar.',
+        content: Text(
+          l10n?.logout_confirm_desc ?? 'Your progress is saved. You will need to sign in again to continue.',
           style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(
-              'CANCELAR',
+            child: Text(
+              l10n?.cancel ?? 'CANCEL',
               style: TextStyle(color: AppColors.onSurfaceVariant),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
-              'CERRAR SESIÓN',
+            child: Text(
+              (l10n?.logout ?? 'LOG OUT').toUpperCase(),
               style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold),
             ),
           ),
@@ -1241,7 +1244,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'IDIOMA DE LA APLICACIÓN',
+                    AppLocalizations.of(context)?.settings_app_language ?? 'APP LANGUAGE',
                     style: GoogleFonts.spaceGrotesk(
                       color: AppColors.onSurface,
                       fontSize: 13,
@@ -1290,7 +1293,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'IDIOMA DE LA APLICACIÓN',
+                  AppLocalizations.of(sheetContext)?.settings_app_language ?? 'APP LANGUAGE',
                   style: GoogleFonts.spaceGrotesk(
                     color: AppColors.onSurface,
                     fontSize: 16,

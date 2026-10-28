@@ -30,12 +30,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   bool _isSaving = false;
 
   // Profile field state (sin stat points: STR/INT/DEX/LUK ya no se usan).
-  final List<Map<String, String>> _hunterClasses = [
-    {'id': 'warrior', 'name': 'WARRIOR', 'desc': 'Physical strength & high defense'},
-    {'id': 'mage', 'name': 'MAGE', 'desc': 'Spell casting & mana manipulation'},
-    {'id': 'assassin', 'name': 'ASSASSIN', 'desc': 'Stealth, speed & critical strikes'},
-    {'id': 'necromancer', 'name': 'NECROMANCER', 'desc': 'Summoning the dead & dark magic'},
-    {'id': 'priest', 'name': 'PRIEST', 'desc': 'Healing, buffing & holy light'},
+  // P-11g: solo el id; el nombre visible sale de l10n (`_className`).
+  final List<String> _hunterClasses = [
+    'warrior',
+    'mage',
+    'assassin',
+    'necromancer',
+    'priest',
   ];
 
   String _className(String id) {
@@ -405,11 +406,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           spacing: 8,
                           runSpacing: 8,
                           children: _hunterClasses.map((hc) {
-                            final isSelected = _currentAvatarUrl == hc['id'];
+                            final isSelected = _currentAvatarUrl == hc;
                             return GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  _currentAvatarUrl = hc['id']!;
+                                  _currentAvatarUrl = hc;
                                 });
                               },
                               child: Container(
@@ -425,7 +426,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  _className(hc['id']!),
+                                  _className(hc),
                                   style: GoogleFonts.jetBrainsMono(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
