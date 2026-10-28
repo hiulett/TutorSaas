@@ -286,9 +286,23 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               const SizedBox(height: 12),
               Text(
                 l10n?.gold_shop_unavailable ??
-                    'La Tienda de Oro aún no está disponible.\nAplica la migración price_gold en el SQL Editor.',
+                    'La Tienda de Oro aún no está disponible.\nVuelve a intentarlo en un momento.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.jetBrainsMono(fontSize: 11, color: AppColors.onSurfaceVariant),
+              ),
+              const SizedBox(height: 12),
+              TextButton.icon(
+                // P-11f: reintento real en vez de un mensaje tecnico.
+                onPressed: () => ref.invalidate(goldCosmeticsProvider),
+                icon: const Icon(Icons.refresh_rounded, color: AppColors.emeraldGreen, size: 16),
+                label: Text(
+                  l10n?.retry ?? 'REINTENTAR',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.emeraldGreen,
+                  ),
+                ),
               ),
             ],
           ),

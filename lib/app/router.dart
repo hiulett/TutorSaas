@@ -35,7 +35,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         '/splash',
         '/onboarding',
         '/oracle-test',
-        '/disruption',
       };
       if (internalRoutes.contains(path)) return null;
 

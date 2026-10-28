@@ -17,7 +17,6 @@ import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/live_goals_tracker_bar.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
-import '../../../../core/widgets/mana_meter_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
@@ -58,7 +57,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   bool _showKeyboardDrawer = false;
   bool _isBlindListening = false;
   bool _isTypingMode = false;
-  int _usedMana = 15;
   final TextEditingController _textController = TextEditingController();
   // Auto-scroll de la conversaciÃ³n: baja hasta el Ãºltimo mensaje al avanzar.
   final ScrollController _chatScrollController = ScrollController();
@@ -888,10 +886,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   width: 120,
                                   child: OracleManaBar(showLabel: true, compact: true),
                                 ),
-                              ),
-                              ManaMeterWidget(
-                                currentMana: (450 - _usedMana).clamp(0, 500),
-                                usedInSession: _usedMana,
                               ),
                               const SizedBox(width: 8),
                               InkWell(

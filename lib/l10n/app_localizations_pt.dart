@@ -1631,7 +1631,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gold_shop_unavailable =>
-      'A Loja de Ouro ainda não está disponível.\nAplique a migração price_gold no SQL Editor.';
+      'A Loja de Ouro ainda não está disponível.\nTente novamente em instantes.';
 
   @override
   String get owned => 'ADQUIRIDO';
