@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/theme/app_colors.dart';
 import '../core/widgets/segmented_bar.dart';
 import '../l10n/app_localizations.dart';
+import '../core/telemetry/startup_probe.dart';
 
 /// Splash moderno — Sistema HUD (Isekai/Webtoon).
 /// Emblema rúnico pulsante, rejilla de energía, orbes de maná y una barra
@@ -24,13 +25,18 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _pulse;
   late final Animation<double> _progress;
 
+  /// P-19: la marca se ve un minimo, pero no se espera un tiempo fijo: se
+  /// navega cuando el warm-up real termina (con tope de 3 s).
+  static const Duration _minSplash = Duration(milliseconds: 500);
+  static const Duration _warmupTimeout = Duration(seconds: 3);
+
   @override
   void initState() {
     super.initState();
     debugPrint('[Splash] Splash iniciado');
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: _minSplash,
     )..forward();
     _pulse = Tween<double>(begin: 0.94, end: 1.06).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
@@ -41,8 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
     // Calienta la conexión/BD de Supabase durante la animación: en free tier el
     // primer query tras inactividad (p. ej. el perfil del redirect post-login)
     // es lento por el cold start de Postgres. Un query barato aquí lo evita.
-    unawaited(_warmUpBackend());
-    _navigateAfterDelay();
+    unawaited(_bootstrap());
   }
 
   /// Query mínimo para despertar el pool/instancia de Supabase. Nunca lanza.
@@ -62,8 +67,21 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  Future<void> _navigateAfterDelay() async {
-    await Future.delayed(const Duration(milliseconds: 800));
+  Future<void> _bootstrap() async {
+    final warmupWatch = Stopwatch()..start();
+    var timedOut = false;
+    final warmUp = _warmUpBackend();
+    await Future.wait<void>([
+      Future<void>.delayed(_minSplash),
+      warmUp.timeout(_warmupTimeout, onTimeout: () {
+        timedOut = true;
+      }),
+    ]);
+    warmupWatch.stop();
+    StartupProbe.markReady(
+      warmupMs: warmupWatch.elapsedMilliseconds,
+      timedOut: timedOut,
+    );
     if (mounted) {
       context.go('/');
     }

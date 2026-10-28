@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../analytics/analytics_taxonomy.dart';
+import '../telemetry/startup_probe.dart';
 
 /// Best-effort fire-and-forget analytics of retention events (OBS-02).
 ///
@@ -48,7 +49,11 @@ class RetentionAnalytics {
   Future<void> trackAppOpenOnce(String userId) async {
     if (_appOpenTracked) return;
     _appOpenTracked = true;
-    await track(userId, AnalyticsEvent.appOpen);
+    await track(
+      userId,
+      AnalyticsEvent.appOpen,
+      properties: StartupProbe.appOpenProperties(),
+    );
   }
 }
 
