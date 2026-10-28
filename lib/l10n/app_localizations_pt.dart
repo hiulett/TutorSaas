@@ -2377,343 +2377,344 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get recommended_title => 'Smart Discovery Hub';
+  String get recommended_title => 'Central de descobertas';
 
   @override
   String get recommended_desc =>
-      'Personalized lessons based on your level, interests and onboarding goals';
+      'Lições personalizadas conforme seu nível, interesses e metas do onboarding';
 
   @override
-  String get recommended_search_hint => 'Search lesson, role or topic...';
+  String get recommended_search_hint => 'Busque lição, papel ou tema...';
 
   @override
-  String get recommended_cat_all => 'All';
+  String get recommended_cat_all => 'Tudo';
 
   @override
-  String get recommended_cat_tech => 'Technology';
+  String get recommended_cat_tech => 'Tecnologia';
 
   @override
-  String get recommended_cat_business => 'Business';
+  String get recommended_cat_business => 'Negócios';
 
   @override
-  String get recommended_cat_travel => 'Travel';
+  String get recommended_cat_travel => 'Viagens';
 
   @override
   String get recommended_cat_social => 'Social';
 
   @override
-  String get recommended_cat_food => 'Food';
+  String get recommended_cat_food => 'Comida';
 
   @override
-  String get recommended_all_levels => 'All Levels';
+  String get recommended_all_levels => 'Todos os níveis';
 
   @override
   String recommended_level(String lvl) {
-    return 'Level $lvl';
+    return 'Nível $lvl';
   }
 
   @override
   String recommended_catalog(int count) {
-    return 'Personalized Catalog ($count)';
+    return 'Catálogo personalizado ($count)';
   }
 
   @override
   String recommended_suggested_level(String cefr) {
-    return 'Suggested level: $cefr';
+    return 'Nível sugerido: $cefr';
   }
 
   @override
   String get recommended_hero_match =>
-      '100% match with your Career goal and interest in Technology';
+      '100% de combinação com sua meta profissional e interesse em Tecnologia';
 
   @override
   String recommended_filter(String cefr) {
-    return 'Filter: $cefr';
+    return 'Filtro: $cefr';
   }
 
   @override
-  String get recommended_empty => 'No lessons found with the selected filters.';
+  String get recommended_empty => 'Nenhuma lição com os filtros selecionados.';
 
   @override
   String recommended_lesson_level(String level) {
-    return 'LEVEL $level';
+    return 'NÍVEL $level';
   }
 
   @override
   String get recommended_locked_hint =>
-      'Complete the previous lesson in your path to unlock.';
+      'Conclua a lição anterior do seu caminho para desbloquear.';
 
   @override
-  String get recommended_blocked => 'Locked';
+  String get recommended_blocked => 'Bloqueada';
 
   @override
-  String get recommended_review => 'Review';
+  String get recommended_review => 'Revisar';
 
   @override
-  String get recommended_speak => 'Speak';
+  String get recommended_speak => 'Falar';
 
   @override
   String get path_roadmap_title => 'MAPA DE MASMORRAS';
 
   @override
-  String get path_stage_empty => 'No lessons recorded for this stage yet.';
+  String get path_stage_empty => 'Ainda não há lições registradas nesta etapa.';
 
   @override
-  String get profile_edit_photo_ok => 'PHOTO UPLOADED SUCCESSFULLY';
+  String get profile_edit_photo_ok => 'FOTO ENVIADA COM SUCESSO';
 
   @override
-  String get profile_edit_choose_photo => 'CHOOSE CUSTOM PHOTO PATH';
+  String get profile_edit_choose_photo => 'ESCOLHER FOTO PERSONALIZADA';
 
   @override
-  String get profile_edit_license_registry => 'HUNTER LICENSE REGISTRY';
+  String get profile_edit_license_registry => 'REGISTRO DE LICENÇA DE CAÇADOR';
 
   @override
-  String get profile_edit_hunter_name => 'HUNTER NAME';
+  String get profile_edit_hunter_name => 'NOME DE CAÇADOR';
 
   @override
   String profile_edit_class_path(String path) {
-    return 'CLASS PATH: $path';
+    return 'CAMINHO DE CLASSE: $path';
   }
 
   @override
-  String get profile_edit_select_class => 'SELECT CLASS PATH';
+  String get profile_edit_select_class => 'SELECIONAR CAMINHO DE CLASSE';
 
   @override
-  String get profile_edit_stat_allocation => 'STAT POINTS ALLOCATION';
+  String get profile_edit_stat_allocation =>
+      'DISTRIBUIÇÃO DE PONTOS DE ATRIBUTO';
 
   @override
   String profile_edit_stat_pool(int points) {
-    return 'POOL: $points PT';
+    return 'RESERVA: $points PT';
   }
 
   @override
-  String get profile_edit_full_name => 'HUNTER FULL NAME';
+  String get profile_edit_full_name => 'NOME COMPLETO DO CAÇADOR';
 
   @override
-  String get profile_edit_name_empty => 'NAME CANNOT BE EMPTY';
+  String get profile_edit_name_empty => 'O NOME NÃO PODE FICAR VAZIO';
 
   @override
-  String get profile_edit_memoir => 'MEMOIR / OBJECTIVES';
+  String get profile_edit_memoir => 'MEMÓRIAS / OBJETIVOS';
 
   @override
-  String get profile_edit_license_updated =>
-      'LICENSE REGISTRY UPDATED SUCCESSFULLY';
+  String get profile_edit_license_updated => 'REGISTRO DE LICENÇA ATUALIZADO';
 
   @override
-  String get profile_edit_save => 'SAVE LICENSE REGISTRY';
+  String get profile_edit_save => 'SALVAR REGISTRO DE LICENÇA';
 
   @override
-  String get profile_edit_class_warrior => 'WARRIOR';
+  String get profile_edit_class_warrior => 'GUERREIRO';
 
   @override
-  String get profile_edit_class_warrior_desc =>
-      'Physical strength & high defense';
+  String get profile_edit_class_warrior_desc => 'Força física e defesa alta';
 
   @override
-  String get profile_edit_class_mage => 'MAGE';
+  String get profile_edit_class_mage => 'MAGO';
 
   @override
   String get profile_edit_class_mage_desc =>
-      'Spell casting & mana manipulation';
+      'Lançamento de feitiços e manipulação de mana';
 
   @override
-  String get profile_edit_class_assassin => 'ASSASSIN';
+  String get profile_edit_class_assassin => 'ASSASSINO';
 
   @override
   String get profile_edit_class_assassin_desc =>
-      'Stealth, speed & critical strikes';
+      'Furtividade, velocidade e golpes críticos';
 
   @override
-  String get profile_edit_class_necromancer => 'NECROMANCER';
+  String get profile_edit_class_necromancer => 'NECROMANTE';
 
   @override
   String get profile_edit_class_necromancer_desc =>
-      'Summoning the dead & dark magic';
+      'Invocação dos mortos e magia sombria';
 
   @override
-  String get profile_edit_class_priest => 'PRIEST';
+  String get profile_edit_class_priest => 'SACERDOTE';
 
   @override
-  String get profile_edit_class_priest_desc => 'Healing, buffing & holy light';
+  String get profile_edit_class_priest_desc => 'Cura, buffs e luz sagrada';
 
   @override
-  String get profile_edit_stat_str_desc => 'Strength & muscle power';
+  String get profile_edit_stat_str_desc => 'Força e potência muscular';
 
   @override
-  String get profile_edit_stat_int_desc => 'Spellcasting & parsing speed';
+  String get profile_edit_stat_int_desc =>
+      'Lançamento de feitiços e velocidade de análise';
 
   @override
-  String get profile_edit_stat_dex_desc => 'Agility & response rhythm';
+  String get profile_edit_stat_dex_desc => 'Agilidade e ritmo de resposta';
 
   @override
-  String get profile_edit_stat_luk_desc => 'Critical correction avoidance';
+  String get profile_edit_stat_luk_desc => 'Evitação de correções críticas';
 
   @override
-  String get convo_mission_guide => 'Mission Guide and Context';
+  String get convo_mission_guide => 'Guia e contexto da missão';
 
   @override
-  String get convo_practice_title => 'Conversation Practice';
+  String get convo_practice_title => 'Prática de conversação';
 
   @override
   String convo_objective(String objective) {
-    return 'Objective: $objective';
+    return 'Objetivo: $objective';
   }
 
   @override
-  String get convo_select_goals => 'Select a lesson to see specific goals.';
+  String get convo_select_goals => 'Selecione uma lição para ver os objetivos.';
 
   @override
   String get convo_select_phrases =>
-      'Select a lesson to see suggested key phrases.';
+      'Selecione uma lição para ver as frases-chave sugeridas.';
 
   @override
-  String get convo_voice_print => 'Voice Print & Pronunciation';
+  String get convo_voice_print => 'Impressão vocal e pronúncia';
 
   @override
-  String get convo_phonetic_clarity => 'Phonetic Clarity';
+  String get convo_phonetic_clarity => 'Clareza fonética';
 
   @override
-  String get convo_speech_speed => 'Speech Speed';
+  String get convo_speech_speed => 'Velocidade da fala';
 
   @override
-  String get convo_words_spoken => 'Words Spoken';
+  String get convo_words_spoken => 'Palavras ditas';
 
   @override
-  String get convo_cefr_level => 'CEFR Level';
+  String get convo_cefr_level => 'Nível CEFR';
 
   @override
-  String get convo_hidden_chat => 'Hidden Chat (4th/5th Star)';
+  String get convo_hidden_chat => 'Chat oculto (4.ª/5.ª estrela)';
 
   @override
-  String get convo_visible_chat => 'Visible Chat';
+  String get convo_visible_chat => 'Chat visível';
 
   @override
-  String get convo_write_mode => 'Write Mode';
+  String get convo_write_mode => 'Modo escrita';
 
   @override
-  String get convo_voice_mode => 'Voice Mode';
+  String get convo_voice_mode => 'Modo voz';
 
   @override
-  String get convo_input_hint => 'Write your message in English...';
+  String get convo_input_hint => 'Escreva sua mensagem em inglês...';
 
   @override
-  String get convo_continue => 'CONTINUE';
+  String get convo_continue => 'CONTINUAR';
 
   @override
   String get convo_oracle_evaluating =>
-      'THE ORACLE IS EVALUATING YOUR CONVERSATION...';
+      'O ORÁCULO ESTÁ AVALIANDO SUA CONVERSA...';
 
   @override
-  String get convo_analyzing_level => 'Analyzing your communication level...';
+  String get convo_analyzing_level => 'Analisando seu nível de comunicação...';
 
   @override
-  String get settings_system_config => 'SYSTEM CONFIG';
+  String get settings_system_config => 'CONFIGURAÇÃO DO SISTEMA';
 
   @override
-  String get settings_target_cefr => 'TARGET LANGUAGE & CEFR LEVEL';
+  String get settings_target_cefr => 'IDIOMA ALVO E NÍVEL CEFR';
 
   @override
-  String get settings_language => 'LANGUAGE';
+  String get settings_language => 'IDIOMA';
 
   @override
-  String get settings_ai_parameters => 'AI TUTOR PARAMETERS';
+  String get settings_ai_parameters => 'PARÂMETROS DO TUTOR DE IA';
 
   @override
-  String get settings_audio_comms => 'AUDIO & COMMUNICATIONS';
+  String get settings_audio_comms => 'ÁUDIO E COMUNICAÇÕES';
 
   @override
-  String get settings_account => 'ACCOUNT';
+  String get settings_account => 'CONTA';
 
   @override
-  String get settings_export_data => 'EXPORT MY DATA';
+  String get settings_export_data => 'EXPORTAR MEUS DADOS';
 
   @override
-  String get settings_export_copied => 'Your data was copied to the clipboard.';
+  String get settings_export_copied =>
+      'Seus dados foram copiados para a área de transferência.';
 
   @override
-  String get settings_delete_account => 'DELETE MY ACCOUNT';
+  String get settings_delete_account => 'EXCLUIR MINHA CONTA';
 
   @override
-  String get settings_delete_confirm_title => 'Delete your account?';
+  String get settings_delete_confirm_title => 'Excluir sua conta?';
 
   @override
   String get settings_delete_confirm_body =>
-      'This permanently deletes your account and progress. This cannot be undone.';
+      'Isso apaga sua conta e seu progresso permanentemente. Não pode ser desfeito.';
 
   @override
-  String get settings_aligned => 'CONFIGURATION ALIGNED SUCCESSFULLY';
+  String get settings_aligned => 'CONFIGURAÇÃO ALINHADA';
 
   @override
-  String get settings_save => 'SAVE CONFIGURATION';
+  String get settings_save => 'SALVAR CONFIGURAÇÃO';
 
   @override
-  String get settings_target_language => 'TARGET LANGUAGE';
+  String get settings_target_language => 'IDIOMA ALVO';
 
   @override
-  String get settings_cefr_practice => 'CEFR PRACTICE LEVEL';
+  String get settings_cefr_practice => 'NÍVEL DE PRÁTICA CEFR';
 
   @override
-  String get settings_logout_dungeon => 'LOG OUT OF DUNGEON';
+  String get settings_logout_dungeon => 'SAIR DA MASMORRA';
 
   @override
-  String get settings_select_path => 'SELECT TARGET PATH';
+  String get settings_select_path => 'SELECIONAR CAMINHO ALVO';
 
   @override
-  String get settings_select_cefr => 'SELECT CEFR LEVEL PATH';
+  String get settings_select_cefr => 'SELECIONAR CAMINHO DE NÍVEL CEFR';
 
   @override
-  String get settings_correction_scope => 'AI CORRECTION SCOPE';
+  String get settings_correction_scope => 'ESCOPO DA CORREÇÃO IA';
 
   @override
-  String get settings_tutor_personality => 'TUTOR PERSONALITY';
+  String get settings_tutor_personality => 'PERSONALIDADE DO TUTOR';
 
   @override
-  String get settings_correction_cadence => 'CORRECTION CADENCE';
+  String get settings_correction_cadence => 'CADÊNCIA DE CORREÇÃO';
 
   @override
-  String get settings_quest_focus => 'DAILY QUEST FOCUS';
+  String get settings_quest_focus => 'FOCO DA MISSÃO DIÁRIA';
 
   @override
-  String get settings_sfx_channels => 'AUDIO SFX CHANNELS';
+  String get settings_sfx_channels => 'CANAIS DE EFEITOS DE ÁUDIO';
 
   @override
-  String get settings_alerts => 'DAILY ALERT EMISSIONS';
+  String get settings_alerts => 'AVISOS DIÁRIOS';
 
   @override
-  String get settings_alert_time => 'ALERTS DISPATCH TIME';
+  String get settings_alert_time => 'HORÁRIO DOS AVISOS';
 
   @override
-  String get settings_select_correction => 'SELECT CORRECTION LEVEL';
+  String get settings_select_correction => 'SELECIONAR NÍVEL DE CORREÇÃO';
 
   @override
-  String get settings_select_personality => 'SELECT TUTOR PERSONALITY';
+  String get settings_select_personality => 'SELECIONAR PERSONALIDADE DO TUTOR';
 
   @override
-  String get settings_select_cadence => 'SELECT CORRECTION CADENCE';
+  String get settings_select_cadence => 'SELECIONAR CADÊNCIA DE CORREÇÃO';
 
   @override
-  String get settings_select_quest => 'SELECT DAILY QUEST FOCUS';
+  String get settings_select_quest => 'SELECIONAR FOCO DA MISSÃO DIÁRIA';
 
   @override
-  String get settings_follow_device => 'USE DEVICE LANGUAGE';
+  String get settings_follow_device => 'USAR IDIOMA DO DISPOSITIVO';
 
   @override
-  String get settings_force_onboarding => 'Force Continuous Onboarding';
+  String get settings_force_onboarding => 'Forçar onboarding contínuo';
 
   @override
   String get settings_dev_desc =>
-      'Developer mode. It does not block the app: it only affects onboarding when there is no profile yet. Use \"Reset history\" to test it again.';
+      'Modo desenvolvedor. Não bloqueia o app: só afeta o onboarding quando ainda não há perfil. Use \"Redefinir histórico\" para testar de novo.';
 
   @override
   String get settings_profile_deleted =>
-      'Hunter profile deleted. Restarting...';
+      'Perfil de caçador excluído. Reiniciando...';
 
   @override
-  String get settings_reset_onboarding => 'RESET ONBOARDING HISTORY';
+  String get settings_reset_onboarding => 'REDEFINIR HISTÓRICO DO ONBOARDING';
 
   @override
   String onboarding_device_lang(String lang) {
-    return 'We detected that your device uses $lang. The app will be shown in that language.';
+    return 'Detectamos que seu dispositivo usa $lang. O app será exibido nesse idioma.';
   }
 
   @override
@@ -2730,17 +2731,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get onboarding_privacy_link => 'PRIVACIDADE';
 
   @override
-  String get onboarding_beginner => 'I AM AN ABSOLUTE BEGINNER (PRE-A1)';
+  String get onboarding_beginner => 'SOU INICIANTE ABSOLUTO (PRE-A1)';
 
   @override
   String get onboarding_beginner_desc =>
-      'I cannot form sentences yet: only loose words and minimal vocabulary. You will start in Fundamentals without an exam.';
+      'Ainda não formo frases: apenas palavras soltas e vocabulário mínimo. Você começará em Fundamentos sem exame.';
 
   @override
-  String get hunter_equip_title => 'EQUIP TITLE';
+  String get hunter_equip_title => 'EQUIPAR TÍTULO';
 
   @override
-  String get hunter_skill_titles => 'SKILL TITLES';
+  String get hunter_skill_titles => 'TÍTULOS DE HABILIDADE';
 
   @override
   String hunter_cefr_xp(String code, int xp) {
@@ -2748,200 +2749,200 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get hunter_equipped_title => 'EQUIPPED TITLE';
+  String get hunter_equipped_title => 'TÍTULO EQUIPADO';
 
   @override
-  String get hunter_equip => 'EQUIP';
+  String get hunter_equip => 'EQUIPAR';
 
   @override
-  String get hunter_fluency_analysis => 'FLUENCY ANALYSIS';
+  String get hunter_fluency_analysis => 'ANÁLISE DE FLUÊNCIA';
 
   @override
-  String get hunter_holographic_radar => 'HOLOGRAPHIC RADAR';
+  String get hunter_holographic_radar => 'RADAR HOLOGRÁFICO';
 
   @override
-  String get hunter_practice_consistency => 'PRACTICE CONSISTENCY';
+  String get hunter_practice_consistency => 'CONSISTÊNCIA DE PRÁTICA';
 
   @override
   String hunter_points_pool(int points) {
-    return 'AVAILABLE POINTS: $points';
+    return 'PONTOS DISPONÍVEIS: $points';
   }
 
   @override
-  String get hunter_str => 'STR (STRENGTH)';
+  String get hunter_str => 'FOR (FORÇA)';
 
   @override
-  String get hunter_luk => 'LUK (LUCK)';
+  String get hunter_luk => 'SOR (SORTE)';
 
   @override
-  String get hunter_distribute_points => 'DISTRIBUTE POINTS';
+  String get hunter_distribute_points => 'DISTRIBUIR PONTOS';
 
   @override
-  String get hunter_no_title => 'NO TITLE';
+  String get hunter_no_title => 'SEM TÍTULO';
 
   @override
-  String get hunter_max_level => 'MAX LEVEL REACHED';
+  String get hunter_max_level => 'NÍVEL MÁXIMO ALCANÇADO';
 
   @override
-  String get dungeon_choose_portal => 'CHOOSE A PORTAL ACCORDING TO YOUR RANK';
+  String get dungeon_choose_portal =>
+      'ESCOLHA UM PORTAL DE ACORDO COM SEU RANK';
 
   @override
   String dungeon_current_portal(String level) {
-    return 'CURRENT PORTAL — LEVEL $level';
+    return 'PORTAL ATUAL · NÍVEL $level';
   }
 
   @override
   String dungeon_level(Object level) {
-    return 'LEVEL $level';
+    return 'NÍVEL $level';
   }
 
   @override
-  String get progress_edit_profile => 'Edit Profile';
+  String get progress_edit_profile => 'Editar perfil';
 
   @override
-  String get progress_hunter_status => 'Hunter Status';
+  String get progress_hunter_status => 'Status do caçador';
 
   @override
   String progress_streak_hint(int streak, String days) {
-    return 'Practice today to keep your $streak day streak $days';
+    return 'Pratique hoje para manter sua sequência de $streak dias $days';
   }
 
   @override
-  String get progress_practice => 'PRACTICE';
+  String get progress_practice => 'PRATICAR';
 
   @override
-  String get progress_streak_at_risk => 'STREAK AT RISK!';
+  String get progress_streak_at_risk => 'SEQUÊNCIA EM RISCO!';
 
   @override
   String get progress_hunter_desc =>
-      'View the 11-attribute matrix, equipped titles and power radar';
+      'Veja a matriz de 11 atributos, os títulos equipados e o radar de poder';
 
   @override
-  String get progress_weekly_voice => 'Weekly Practice (Voice Minutes)';
+  String get progress_weekly_voice => 'Prática semanal (minutos de voz)';
 
   @override
   String progress_vocab_learned(int count) {
-    return 'Vocabulary Learned ($count)';
+    return 'Vocabulário aprendido ($count)';
   }
 
   @override
   String get progress_vocab_empty =>
-      'You haven\'t accumulated vocabulary in voice calls yet.';
+      'Você ainda não acumulou vocabulário em chamadas de voz.';
 
   @override
-  String get progress_vocab_section => 'Vocabulary';
+  String get progress_vocab_section => 'Vocabulário';
 
   @override
-  String get progress_hunter_attributes => 'HUNTER ATTRIBUTES';
+  String get progress_hunter_attributes => 'ATRIBUTOS DO CAÇADOR';
 
   @override
-  String get progress_xp_rank => 'XP Rank';
+  String get progress_xp_rank => 'Rank de XP';
 
   @override
   String get settings_opt_sfx_desc =>
-      'Combat, mana charges, and level calibration sfx';
+      'Efeitos de combate, cargas de mana e calibração de nível';
 
   @override
-  String get settings_opt_strict_title => 'STRICT ACTION';
+  String get settings_opt_strict_title => 'AÇÃO ESTRITA';
 
   @override
   String get settings_opt_strict_desc =>
-      'AI will only correct critical structural breaks.';
+      'A IA só corrige quebras estruturais críticas.';
 
   @override
-  String get settings_opt_compact_title => 'COMPACT FEEDBACK';
+  String get settings_opt_compact_title => 'FEEDBACK COMPACTO';
 
   @override
   String get settings_opt_compact_desc =>
-      'Quick corrections with single line annotations.';
+      'Correções rápidas com anotações de uma linha.';
 
   @override
-  String get settings_opt_moderate_title => 'MODERATE EXPLANATION';
+  String get settings_opt_moderate_title => 'EXPLICAÇÃO MODERADA';
 
   @override
   String get settings_opt_moderate_desc =>
-      'Balanced corrections with 1 to 3 detail sentences.';
+      'Correções equilibradas com 1 a 3 frases de detalhe.';
 
   @override
-  String get settings_opt_detailed_title => 'DETAILED BREAKDOWN';
+  String get settings_opt_detailed_title => 'DETALHAMENTO';
 
   @override
   String get settings_opt_detailed_desc =>
-      'In-depth grammar blueprints with contextual examples.';
+      'Explicações gramaticais detalhadas com exemplos contextuais.';
 
   @override
-  String get settings_opt_oracle_title => 'ORACLE MASTER MODE';
+  String get settings_opt_oracle_title => 'MODO MESTRE DO ORÁCULO';
 
   @override
-  String get settings_opt_oracle_desc =>
-      'Complete analysis of error blueprints.';
+  String get settings_opt_oracle_desc => 'Análise completa dos erros.';
 
   @override
-  String get settings_opt_companion_title => 'COMPANION RATE';
+  String get settings_opt_companion_title => 'RITMO COMPANHEIRO';
 
   @override
   String get settings_opt_companion_desc =>
-      'Patient, warm, and highly supportive responses.';
+      'Respostas pacientes, calorosas e de apoio.';
 
   @override
-  String get settings_opt_commander_title => 'COMMANDER BRIEF';
+  String get settings_opt_commander_title => 'RELATÓRIO DO COMANDANTE';
 
   @override
   String get settings_opt_commander_desc =>
-      'Formal, highly structured, and structured corrections.';
+      'Formal, muito estruturado e com correções organizadas.';
 
   @override
-  String get settings_opt_boss_title => 'BOSS CALIBER CHALLENGE';
+  String get settings_opt_boss_title => 'DESAFIO CALIBRE CHEFE';
 
   @override
   String get settings_opt_boss_desc =>
-      'High-level vocabulary demands and strict responses.';
+      'Vocabulário avançado e respostas rígidas.';
 
   @override
-  String get settings_opt_strict_style_title => 'STRICT ACTION';
+  String get settings_opt_strict_style_title => 'AÇÃO ESTRITA';
 
   @override
   String get settings_opt_strict_style_desc =>
-      'Interrupts and repairs errors instantly.';
+      'Interrompe e corrige erros na hora.';
 
   @override
-  String get settings_opt_balanced_title => 'BALANCED COMPASS';
+  String get settings_opt_balanced_title => 'BÚSSOLA EQUILIBRADA';
 
   @override
   String get settings_opt_balanced_desc =>
-      'Maintains dialogue speed with structured correction feedback.';
+      'Mantém o ritmo do diálogo com correções estruturadas.';
 
   @override
-  String get settings_opt_immersive_title => 'IMMERSIVE RAIDS';
+  String get settings_opt_immersive_title => 'INCURSÕES IMERSIVAS';
 
   @override
   String get settings_opt_immersive_desc =>
-      'Keeps speaking flow; repairs only terminal breaks.';
+      'Mantém o fluxo da fala; corrige apenas quebras graves.';
 
   @override
-  String get settings_opt_casual_title => 'CASUAL RUN (10 MIN)';
+  String get settings_opt_casual_title => 'INCURSÃO CASUAL (10 MIN)';
 
   @override
-  String get settings_opt_casual_desc => 'Quick entry practice daily.';
+  String get settings_opt_casual_desc => 'Prática diária de entrada rápida.';
 
   @override
-  String get settings_opt_regular_title => 'REGULAR RAID (15 MIN)';
+  String get settings_opt_regular_title => 'INCURSÃO REGULAR (15 MIN)';
 
   @override
-  String get settings_opt_regular_desc => 'Solid learning rate path.';
+  String get settings_opt_regular_desc => 'Ritmo de aprendizado sólido.';
 
   @override
-  String get settings_opt_serious_title => 'SERIOUS CAMPAIGN (30 MIN)';
+  String get settings_opt_serious_title => 'CAMPANHA SÉRIA (30 MIN)';
 
   @override
   String get settings_opt_serious_desc =>
-      'Acquire fluent skill markers rapidly.';
+      'Adquira marcadores de fluência rapidamente.';
 
   @override
-  String get settings_opt_overload_title => 'OVERLOAD OVERCLOCK (60 MIN)';
+  String get settings_opt_overload_title => 'SOBRECARGA (60 MIN)';
 
   @override
-  String get settings_opt_overload_desc => 'Complete immersion overdrive.';
+  String get settings_opt_overload_desc => 'Imersão total no máximo.';
 
   @override
   String get hunter_title_orco_caverna_f => 'Escrita de Orc da Caverna';
