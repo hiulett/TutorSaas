@@ -439,21 +439,12 @@ No markdown, no explanation, no code blocks.
   Future<void> saveMessage(String conversationId, String senderRole, String text) async {
     if (conversationId.startsWith('local_') || text.trim().isEmpty) return;
     try {
-      // Get next sequence number for this conversation
-      final lastMsg = await _client
-          .from('messages')
-          .select('sequence_number')
-          .eq('conversation_id', conversationId)
-          .order('sequence_number', ascending: false)
-          .limit(1)
-          .maybeSingle();
-      final nextSeq = (lastMsg?['sequence_number'] as int? ?? 0) + 1;
-
+      // P-19: el trigger `trg_message_sequence` asigna el numero en el
+      // servidor; el cliente ya no hace MAX+1 (carrera entre dos inserts).
       await _client.from('messages').insert({
         'conversation_id': conversationId,
         'sender_role': senderRole == 'user' ? 'user' : 'assistant',
         'text': text,
-        'sequence_number': nextSeq,
         'created_at': DateTime.now().toIso8601String(),
       });
     } catch (e) {
