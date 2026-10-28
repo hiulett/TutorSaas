@@ -117,6 +117,9 @@ obtener premium ni maná.
 | `session_rewards(...)` | Cierra sesión y acredita XP/maná |
 | `check_ai_audio_quota` / `track_ai_audio_time` | Cuota de audio |
 | `purge_stale_participants(seconds)` | Limpia presencia |
+| `get_dashboard_state(user)` | Progreso + logros del dashboard en una llamada (P-19b) |
+| `refund_mana(user, action)` | Devuelve plan y `daily_used` tras un turno fallido (solo service role) |
+| `refund_failed_turn(turn_ref, action)` | Reembolso idempotente desde el cliente (P-06) |
 
 ---
 
@@ -124,18 +127,33 @@ obtener premium ni maná.
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | 116 |
-| Con prefijo válido de 14 dígitos | 41 |
+| Archivos `.sql` en `supabase/migrations/` (raíz) | 134 |
+| Con prefijo válido de 14 dígitos | 59 |
 | Sin prefijo (el CLI los ignora) | 75 |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas | 48 |
-| Aplicadas **sin archivo** en el repo | **33** |
+| Migraciones aplicadas | **67** |
 
 El repo **no reproduce** el esquema: 33 migraciones se aplicaron desde el SQL
 Editor y solo existen en el historial de Supabase.
 
 ⚠️ **No ejecutar `supabase db push` contra producción**: intentaría aplicar 26
 archivos con prefijo no registrado.
+
+La foto verificada del esquema (recuentos y consulta para regenerarla) está en
+[runbooks/SCHEMA_BASELINE.md](runbooks/SCHEMA_BASELINE.md).
+
+---
+
+## 5. Objetos añadidos en octubre de 2026
+
+| Objeto | Para qué | Historia |
+|---|---|---|
+| `ai_usage_logs` (+ `action_code`, `audio_seconds`, `status`, `cost_estimate_usd`) | Uso y coste de IA | P-14 #99 |
+| Vistas `ai_usage_daily`, `ai_usage_by_session` | Coste por usuario/día/sesión | P-14 #99 |
+| `analytics_events` política `analytics_events_select_admin` + vistas `analytics_onboarding_funnel`, `analytics_activation`, `analytics_retention`, `analytics_sessions_per_week` | Embudo, activación y retención | P-15 #100 |
+| `get_dashboard_state(uuid)` | Progreso + logros en una RPC | P-19b #163 |
+| Trigger `trg_message_sequence` | `sequence_number` sin carrera | P-19 #104 |
+| `refund_mana` actualizado | Restaura también `daily_used` | P-07 #92 |
 
 Procedimiento de baseline (requiere Docker + contraseña de BD) y detalle
 completo en [runbooks/MIGRATION_STATUS.md](runbooks/MIGRATION_STATUS.md).
