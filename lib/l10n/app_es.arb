@@ -563,7 +563,7 @@
   "mana_potions_title": "PORCIONES DE MANÁ",
   "mana_potions_desc": "El maná es la energía de toda acción IA. Se adquiere con dinero real: tu estamento incluye una asignación mensual y las porciones la amplían.",
   "mana_gems_packs_title": "PACKS DE GEMAS DE MANÁ",
-  "gold_shop_unavailable": "La Tienda de Oro aún no está disponible.\nAplica la migración price_gold en el SQL Editor.",
+  "gold_shop_unavailable": "La Tienda de Oro aún no está disponible.\nVuelve a intentarlo en un momento.",
   "owned": "ADQUIRIDO",
   "price_gold": "{price} ORO",
 

@@ -562,7 +562,7 @@
   "mana_potions_title": "POÇÕES DE MANA",
   "mana_potions_desc": "O mana é a energia de toda ação de IA. Adquire-se com dinheiro real: seu nível inclui uma cota mensal e as poções a ampliam.",
   "mana_gems_packs_title": "PACOTES DE GEMAS DE MANA",
-  "gold_shop_unavailable": "A Loja de Ouro ainda não está disponível.\nAplique a migração price_gold no SQL Editor.",
+  "gold_shop_unavailable": "A Loja de Ouro ainda não está disponível.\nTente novamente em instantes.",
   "owned": "ADQUIRIDO",
   "price_gold": "{price} OURO",
 

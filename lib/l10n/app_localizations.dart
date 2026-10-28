@@ -3103,7 +3103,7 @@ abstract class AppLocalizations {
   /// No description provided for @gold_shop_unavailable.
   ///
   /// In en, this message translates to:
-  /// **'The Gold Shop is not available yet.\nApply the price_gold migration in the SQL Editor.'**
+  /// **'The Gold Shop is not available yet.\nPlease try again in a moment.'**
   String get gold_shop_unavailable;
 
   /// No description provided for @owned.

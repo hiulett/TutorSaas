@@ -351,38 +351,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       blur: 20,
       opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: InkWell(
-        onTap: () => _showCefrBottomSheet(context),
-        child: Row(
-          children: [
-            const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CEFR PRACTICE LEVEL',
-                    style: GoogleFonts.spaceGrotesk(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
+      child: Row(
+        children: [
+          const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CEFR PRACTICE LEVEL',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: AppColors.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'LEVEL $_selectedCefrLevel',
-                    style: GoogleFonts.jetBrainsMono(
-                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
-                      fontSize: 12,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'LEVEL $_selectedCefrLevel',
+                  style: GoogleFonts.jetBrainsMono(
+                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
+                    fontSize: 12,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
-          ],
-        ),
+          ),
+          // P-11a: el nivel lo fija el examen del Oraculo; aqui no se edita.
+          const Icon(Icons.lock_outline_rounded, color: AppColors.onSurfaceVariant, size: 18),
+        ],
       ),
     );
   }
@@ -596,58 +594,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     fontSize: 11,
                     color: AppColors.onSurfaceVariant,
                   ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCefrBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.sheetBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(4.0),
-          topRight: Radius.circular(4.0),
-        ),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'SELECT CEFR LEVEL PATH',
-                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.onSurface),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((lvl) {
-                    final isSel = _selectedCefrLevel == lvl;
-                    return ChoiceChip(
-                      selected: isSel,
-                      onSelected: (_) {
-                        setState(() => _selectedCefrLevel = lvl);
-                        Navigator.pop(context);
-                      },
-                      label: Text(lvl),
-                      labelStyle: GoogleFonts.jetBrainsMono(
-                        color: isSel ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      selectedColor: AppColors.runeViolet,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                      ),
-                    );
-                  }).toList(),
                 ),
               ],
             ),

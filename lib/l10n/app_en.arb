@@ -579,7 +579,7 @@
   "mana_potions_title": "MANA POTIONS",
   "mana_potions_desc": "Mana is the energy of every AI action. It is acquired with real money: your rank includes a monthly allowance and potions extend it.",
   "mana_gems_packs_title": "MANA GEM PACKS",
-  "gold_shop_unavailable": "The Gold Shop is not available yet.\nApply the price_gold migration in the SQL Editor.",
+  "gold_shop_unavailable": "The Gold Shop is not available yet.\nPlease try again in a moment.",
   "owned": "OWNED",
   "price_gold": "{price} GOLD",
   "@price_gold": {"placeholders": {"price": {"type": "String"}}},
