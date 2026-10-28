@@ -483,7 +483,7 @@ class MissionRepositoryImpl implements MissionRepository {
       }
       final ordered = query.order('game_rank').order('quest_type');
       final data = limit != null
-          ? await ordered.limit(limit!)
+          ? await ordered.limit(limit)
           : await ordered;
       return (data as List).map((m) => GuildQuest.fromMap(m)).toList();
     } catch (_) {

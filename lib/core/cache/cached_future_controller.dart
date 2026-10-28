@@ -62,7 +62,7 @@ class CachedFutureController<T> extends StateNotifier<AsyncValue<T>> {
     // Sin dato en memoria → intenta la cache persistida (lectura instantánea).
     if (!state.hasValue && _diskLoader != null) {
       try {
-        final disk = await _diskLoader!();
+        final disk = await _diskLoader();
         if (disk != null) {
           state = AsyncValue.data(disk);
         }
@@ -106,7 +106,7 @@ class CachedFutureController<T> extends StateNotifier<AsyncValue<T>> {
         state = AsyncValue.data(data);
       }
       if (_diskWriter != null) {
-        unawaited(_diskWriter!(data));
+        unawaited(_diskWriter(data));
       }
     } catch (e, st) {
       // Si ya hay dato (memoria/disco) se conserva: un refresh fallido no debe

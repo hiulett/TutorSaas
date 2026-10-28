@@ -34,7 +34,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final remoteSettings = ref.watch(userSettingsProvider);
 
     // Initialize local copy from remote settings once they are ready

@@ -1,6 +1,6 @@
 # Release y publicación
 
-_Actualizado: 18-oct-2026._
+_Actualizado: 28-oct-2026._
 
 ---
 
@@ -8,8 +8,8 @@ _Actualizado: 18-oct-2026._
 
 ```
 versionName 1.0.21 · versionCode 22   (pubspec.yaml: version: 1.0.21+22)
-AAB   104,0 MB
-APK   131,9 MB
+AAB   104,2 MB (medido en local, master)
+APK   (medir con `flutter build apk --release`)
 ```
 
 Artefactos en `build/app/outputs/`:
@@ -24,7 +24,8 @@ flutter-apk/app-release.apk
 ## 2. Compilar
 
 ```sh
-flutter analyze && flutter test          # 0 errores · 155 tests
+flutter analyze                           # 0 errores · 0 warnings
+flutter test                              # 167 pruebas
 flutter gen-l10n                          # si tocaste algún .arb
 
 flutter build appbundle --release         # Play
@@ -38,6 +39,24 @@ Google Sign-In:
 ```
 14:13:F7:29:2E:C0:EA:F4:7B:A0:8F:B4:0A:2A:DB:C0:29:C1:1F:4C
 ```
+
+## 2.1 CI/CD
+
+| Workflow | Cuándo | Qué hace |
+|---|---|---|
+| `.github/workflows/ci.yml` | push/PR a `master` | `pub get` + `gen-l10n` + `analyze --no-fatal-infos` (0 warnings) + `test`; `web_admin`: `npm ci`, lint, test y build |
+| `.github/workflows/release.yml` | tag `v*` o manual | AAB firmado, comprobación de presupuesto y artifact; subida a pista interna si hay credenciales |
+
+Secretos de `release.yml` (todos opcionales salvo que quieras firmar/subir):
+
+| Secreto | Uso |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | keystore de subida en base64 |
+| `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_STORE_PASSWORD` | credenciales del keystore |
+| `PLAY_SERVICE_ACCOUNT_JSON` | cuenta de servicio de Play para la pista interna |
+
+Sin `ANDROID_KEYSTORE_BASE64` el AAB se firma con debug (solo pruebas locales).
+Presupuesto de tamaño: **150 MB** de AAB; el job falla si se supera.
 
 ---
 

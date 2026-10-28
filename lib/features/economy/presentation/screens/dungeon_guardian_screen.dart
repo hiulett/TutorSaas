@@ -390,7 +390,7 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l10n.mana_label ?? 'MANÁ',
+                  l10n.mana_label,
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -422,7 +422,7 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
               Text(
                 exhausted
                     ? (l10n.guardian_sealed.toUpperCase())
-                    : '${l10n.mana_daily_available ?? 'maná disponible hoy'}',
+                    : '${l10n.mana_daily_available}',
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 10,
                   letterSpacing: 1,

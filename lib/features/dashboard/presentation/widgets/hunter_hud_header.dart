@@ -135,7 +135,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
     final String cefrCode = progress['level_code'] as String? ?? 'A1';
     // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
     final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
-        ? (progress['game_rank'] as String)!
+        ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
     final int xp = progress['xp'] as int? ?? 0;
     final String languageEmoji = progress['language_emoji'] as String? ?? '🇺🇸';

@@ -45,7 +45,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final cefrName = cefr?['name'] as String? ?? 'Principiante';
       final cefrCode = cefr?['code'] as String? ?? 'A1';
       final gameRank = (response['game_rank'] as String?)?.isNotEmpty == true
-          ? (response['game_rank'] as String)!
+          ? (response['game_rank'] as String)
           : CefrRank.gameRankFromCefr(cefrCode);
 
       return {

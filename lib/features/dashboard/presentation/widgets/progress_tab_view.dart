@@ -15,7 +15,6 @@ import '../providers/dashboard_providers.dart';
 import '../screens/dashboard_screen.dart';
 import 'daily_quests_widget.dart';
 import 'league_leaderboard_widget.dart';
-import 'aura_hud.dart';
 import 'charts/skills_radar_chart.dart';
 
 class ProgressTabView extends ConsumerWidget {
@@ -35,7 +34,7 @@ class ProgressTabView extends ConsumerWidget {
     final String cefrCode = progress['level_code'] as String? ?? 'B1';
     // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
     final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
-        ? (progress['game_rank'] as String)!
+        ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
     final String langEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
     final String langName = progress['language'] as String? ?? 'Inglés';

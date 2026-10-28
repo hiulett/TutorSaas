@@ -36,7 +36,7 @@ class ManaItemInventory extends ConsumerWidget {
               const Icon(Icons.local_drink_rounded, color: AppColors.manaCyan, size: 20),
               const SizedBox(width: 8),
               Text(
-                l10n.mana_inventory_title ?? 'INVENTARIO DE MANÁ',
+                l10n.mana_inventory_title,
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -68,7 +68,7 @@ class ManaItemInventory extends ConsumerWidget {
             error: (_, __) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                l10n.mana_inventory_empty ?? 'No pudimos cargar tu inventario.',
+                l10n.mana_inventory_empty,
                 style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
               ),
             ),
@@ -76,7 +76,7 @@ class ManaItemInventory extends ConsumerWidget {
               final inBag = items.where((i) => i['status'] == 'inventory').toList();
               if (inBag.isEmpty) {
                 return Text(
-                  l10n.mana_inventory_empty ?? 'No tienes elixires ni gemas en la bolsa.',
+                  l10n.mana_inventory_empty,
                   style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
                 );
               }
@@ -121,7 +121,7 @@ class ManaItemInventory extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${isGema ? l10n.mana_gem_label ?? 'GEMA' : l10n.mana_elixir_label ?? 'ELIXIR'} · $mana ⚡',
+                  '${isGema ? l10n.mana_gem_label : l10n.mana_elixir_label} · $mana ⚡',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface,
                   ),
@@ -161,7 +161,7 @@ class ManaItemInventory extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '${isGema ? l10n.mana_gem_label ?? 'GEMA' : l10n.mana_elixir_label ?? 'ELIXIR'} · $mana ⚡',
+              '${isGema ? l10n.mana_gem_label : l10n.mana_elixir_label} · $mana ⚡',
               style: GoogleFonts.spaceGrotesk(fontSize: 12, color: AppColors.onSurface),
             ),
           ),
@@ -174,14 +174,14 @@ class ManaItemInventory extends ConsumerWidget {
                 if (context.mounted) {
                   SystemSnack.show(
                     context,
-                    l10n.mana_item_equipped ?? 'Maná equipado',
+                    l10n.mana_item_equipped,
                     type: SystemSnackType.success,
                   );
                 }
               }
             },
             child: Text(
-              l10n.mana_equip ?? 'EQUIPAR',
+              l10n.mana_equip,
               style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
             ),
           ),

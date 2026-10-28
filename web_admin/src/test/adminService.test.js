@@ -14,6 +14,7 @@ const chain = (table) => ({
   order: () => chain(table),
   eq: () => chain(table),
   gt: () => chain(table),
+  limit: () => chain(table),
   maybeSingle: () => {
     const r = resultsByTable[table]?.data;
     return Promise.resolve(Array.isArray(r) ? (r[0] ?? null) : (r ?? null));
@@ -95,5 +96,18 @@ describe('adminService', () => {
       { code: 'A1', name: 'Principiante', color: '#fff', count: 2, pct: 67 },
       { code: 'A2', name: 'Elemental', color: '#eee', count: 1, pct: 33 },
     ]);
+  });
+
+  it('getRetentionMetrics devuelve las cuatro listas', async () => {
+    setData('analytics_onboarding_funnel', [{ ord: 0, stage: 'started', users: 10 }]);
+    setData('analytics_sessions_per_week', [
+      { week: '2026-10-26', sessions: 3, users: 2, sessions_per_user: 1.5 },
+    ]);
+
+    const m = await adminService.getRetentionMetrics();
+    expect(m.funnel).toHaveLength(1);
+    expect(m.sessions[0].sessions).toBe(3);
+    expect(m.activation).toEqual([]);
+    expect(m.retention).toEqual([]);
   });
 });
