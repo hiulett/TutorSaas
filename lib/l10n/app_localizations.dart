@@ -5038,6 +5038,30 @@ abstract class AppLocalizations {
   /// **'We detected that your device uses {lang}. The app will be shown in that language.'**
   String onboarding_device_lang(String lang);
 
+  /// No description provided for @privacy_title.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get privacy_title;
+
+  /// No description provided for @privacy_body.
+  ///
+  /// In en, this message translates to:
+  /// **'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings.'**
+  String get privacy_body;
+
+  /// No description provided for @privacy_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'GOT IT'**
+  String get privacy_accept;
+
+  /// No description provided for @onboarding_privacy_link.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get onboarding_privacy_link;
+
   /// No description provided for @onboarding_beginner.
   ///
   /// In en, this message translates to:

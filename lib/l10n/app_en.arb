@@ -972,6 +972,10 @@
   "onboarding_device_lang": "We detected that your device uses {lang}. The app will be shown in that language.",
   "@onboarding_device_lang": {"placeholders": {"lang": {"type": "String"}}},
   "onboarding_start_eval": "START EVALUATION",
+  "privacy_title": "PRIVACY",
+  "privacy_body": "To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings.",
+  "privacy_accept": "GOT IT",
+  "onboarding_privacy_link": "PRIVACY",
   "onboarding_beginner": "I AM AN ABSOLUTE BEGINNER (PRE-A1)",
   "onboarding_beginner_desc": "I cannot form sentences yet: only loose words and minimal vocabulary. You will start in Fundamentals without an exam.",
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
@@ -138,6 +139,44 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
     RetentionAnalytics.instance.track(user.id, event, properties: properties);
+  }
+
+  /// P-20: explica que se envia a la IA y que no se envia.
+  void _showPrivacyDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surfaceDeep,
+        title: Text(
+          l10n?.privacy_title ?? 'PRIVACY',
+          style: GoogleFonts.spaceGrotesk(
+            color: AppColors.onSurface,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            l10n?.privacy_body ?? '',
+            style: GoogleFonts.inter(
+              color: AppColors.onSurfaceVariant,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              l10n?.privacy_accept ?? 'GOT IT',
+              style: const TextStyle(color: AppColors.manaCyan),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _prevPage() {
@@ -449,7 +488,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               ),
                             ),
                     ),
-                  if (_currentPage != 3) const SizedBox(height: 12),
+                  if (_currentPage != 3) const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () => _showPrivacyDialog(context),
+                    icon: const Icon(
+                      Icons.privacy_tip_outlined,
+                      size: 14,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                    label: Text(
+                      l10n.onboarding_privacy_link,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
