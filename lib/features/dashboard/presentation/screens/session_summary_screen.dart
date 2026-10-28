@@ -351,11 +351,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                               child: OutlinedButton.icon(
                                 icon: const Icon(Icons.menu_book_rounded, size: 16),
                                 label: Text(l10n.summary_view_vocab),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(l10n.summary_vocab_saved)),
-                                  );
-                                },
+                                onPressed: () => _openVocabularySheet(context),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.runeViolet,
                                   side: BorderSide(
@@ -885,4 +881,106 @@ class NeonProgressPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+
+/// P-11d: el boton "Ver vocabulario" abre las palabras guardadas (las mas
+/// recientes primero, que son las de esta sesion) en vez de un snackbar.
+void _openVocabularySheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: AppColors.sheetBackground,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sm)),
+    ),
+    builder: (_) => const _SessionVocabularySheet(),
+  );
+}
+
+class _SessionVocabularySheet extends ConsumerWidget {
+  const _SessionVocabularySheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final vocabAsync = ref.watch(learnedVocabularyProvider);
+    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: AppColors.onSurface,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        );
+    final mutedStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: AppColors.onSurfaceVariant,
+        );
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(l10n.summary_vocab_title, style: titleStyle),
+            const SizedBox(height: 12),
+            Flexible(
+              child: vocabAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(color: AppColors.runeViolet),
+                ),
+                error: (e, st) => Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(l10n.summary_vocab_empty, style: mutedStyle, textAlign: TextAlign.center),
+                ),
+                data: (items) {
+                  final recent = items.take(12).toList();
+                  if (recent.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(l10n.summary_vocab_empty, style: mutedStyle, textAlign: TextAlign.center),
+                    );
+                  }
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: recent.length,
+                    separatorBuilder: (_, __) => Divider(
+                      color: AppColors.onSurface.withValues(alpha: 0.08),
+                      height: 1,
+                    ),
+                    itemBuilder: (_, i) {
+                      final item = recent[i];
+                      return ListTile(
+                        dense: true,
+                        title: Text(
+                          item['word'] as String? ?? '',
+                          style: titleStyle?.copyWith(fontSize: 14),
+                        ),
+                        subtitle: Text(
+                          item['translation'] as String? ?? '',
+                          style: mutedStyle,
+                        ),
+                        trailing: Text(
+                          item['category'] as String? ?? '',
+                          style: mutedStyle?.copyWith(fontSize: 10),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -2470,6 +2470,18 @@ abstract class AppLocalizations {
   /// **'VIEW VOCABULARY'**
   String get summary_view_vocab;
 
+  /// No description provided for @summary_vocab_title.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION VOCABULARY'**
+  String get summary_vocab_title;
+
+  /// No description provided for @summary_vocab_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No words saved from this session yet.'**
+  String get summary_vocab_empty;
+
   /// No description provided for @summary_vocab_saved.
   ///
   /// In en, this message translates to:

@@ -448,6 +448,8 @@
   "hero_class_label": "Classe",
   "hero_member_since": "Membro desde",
   "summary_view_vocab": "VER VOCABULÁRIO",
+"summary_vocab_title": "VOCABULÁRIO DA SESSÃO",
+"summary_vocab_empty": "Ainda não há palavras guardadas desta sessão.",
   "summary_vocab_saved": "Vocabulário salvo no seu perfil.",
   "summary_done": "PRONTO",
   "collections_load_error": "Não foi possível carregar as coleções",

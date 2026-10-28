@@ -1275,6 +1275,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get summary_view_vocab => 'VER VOCABULÁRIO';
 
   @override
+  String get summary_vocab_title => 'VOCABULÁRIO DA SESSÃO';
+
+  @override
+  String get summary_vocab_empty =>
+      'Ainda não há palavras guardadas desta sessão.';
+
+  @override
   String get summary_vocab_saved => 'Vocabulário salvo no seu perfil.';
 
   @override
