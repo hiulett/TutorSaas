@@ -146,7 +146,10 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
     try {
       final repo = ref.read(conversationRepositoryProvider);
       final buffer = StringBuffer();
-      await for (final chunk in repo.getTutorResponseStream(history)) {
+      await for (final chunk in repo.getTutorResponseStream(
+        history,
+        actionCode: 'guild_chat',
+      )) {
         buffer.write(chunk);
         setState(() {
           applyGuildMasterChunk(_chatHistory, buffer.toString());

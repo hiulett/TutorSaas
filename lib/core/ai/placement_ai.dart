@@ -60,6 +60,7 @@ class PlacementAiEvaluator {
           'stream': false,
           'temperature': 0.3,
           'max_tokens': 600,
+          'action_code': 'oracle_eval',
         },
         options: Options(
           headers: {

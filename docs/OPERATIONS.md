@@ -52,10 +52,44 @@ supabase secrets set NOMBRE=valor --project-ref ...
 | `REVENUECAT_AUTH_TOKEN` | `revenuecat-webhook` (Bearer que envía RevenueCat) |
 | `REVENUECAT_SECRET_KEY` | `sync-entitlement` (API v1, `sk_…`) |
 | `CRON_SECRET` | `missions-cron` |
+| `AI_PRICE_INPUT_PER_1M`, `AI_PRICE_OUTPUT_PER_1M`, `AI_PRICE_STT_PER_MINUTE` | `llm-proxy` (estimación de coste; opcionales) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Todas |
 
 ⚠️ `config.json` y `web_admin/.env` no se commitean. Las claves de IA nunca van
 en el cliente.
+
+### 3.1 Coste de IA (P-14)
+
+`llm-proxy` inserta una fila por llamada en `ai_usage_logs` (sin texto de
+conversación): `action_code`, `model`, `input_tokens`, `output_tokens`,
+`audio_seconds`, `latency_ms`, `status` y `cost_estimate_usd`.
+
+Tarifas por defecto (sobrescribibles con los secretos de la tabla):
+
+| Secreto | Defecto | Concepto |
+|---|---|---|
+| `AI_PRICE_INPUT_PER_1M` | `0.27` | USD por 1M tokens de entrada |
+| `AI_PRICE_OUTPUT_PER_1M` | `1.10` | USD por 1M tokens de salida |
+| `AI_PRICE_STT_PER_MINUTE` | `0.000667` | USD por minuto de audio (Groq Whisper) |
+
+`cost_estimate_usd` es una **estimación**, no una factura: ajústala si cambia
+el contrato del proveedor.
+
+```sql
+-- Coste por usuario y día
+select user_id, day, action_code, calls, tokens_in, tokens_out,
+       audio_seconds, cost_estimate_usd
+from public.ai_usage_daily
+order by day desc, cost_estimate_usd desc;
+
+-- Coste por sesión (conversación)
+select * from public.ai_usage_by_session
+order by cost_estimate_usd desc limit 20;
+
+-- Coste diario agregado (service role)
+select day, sum(calls) as calls, round(sum(cost_estimate_usd), 4) as usd
+from public.ai_usage_daily group by day order by day desc;
+```
 
 ---
 

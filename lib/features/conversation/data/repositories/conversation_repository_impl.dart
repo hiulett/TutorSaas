@@ -101,7 +101,11 @@ class ConversationRepositoryImpl implements ConversationRepository {
   /// Streams the AI tutor's response via the `llm-proxy` Edge Function
   /// (DeepSeek SSE reenvÃ­ado), autenticado con el JWT de sesiÃ³n.
   @override
-  Stream<String> getTutorResponseStream(List<Map<String, String>> history) async* {
+  Stream<String> getTutorResponseStream(
+    List<Map<String, String>> history, {
+    String actionCode = 'free_chat_turn',
+    String? conversationId,
+  }) async* {
     final String currentUserId = _client.auth.currentUser?.id ?? '';
     final url = '${ApiConstants.llmProxyBaseUrl}/chat';
 
@@ -119,6 +123,10 @@ class ConversationRepositoryImpl implements ConversationRepository {
             'messages': history,
             'stream': true,
             'max_tokens': 200,
+            // P-14: metadatos para ai_usage_logs (no contienen texto).
+            'action_code': actionCode,
+            if (conversationId != null && conversationId.isNotEmpty)
+              'conversation_id': conversationId,
           },
           options: Options(
             headers: await _proxyHeaders(await _authToken()),
@@ -149,9 +157,9 @@ class ConversationRepositoryImpl implements ConversationRepository {
                 if (content.isNotEmpty) {
                   yield content;
                 }
-                if (choice?['finish_reason'] != null) {
-                  break;
-                }
+                // No cortamos en `finish_reason`: el chunk con `usage` llega
+                // después y el proxy lo necesita para registrar el coste (P-14).
+                // El bucle termina con `data: [DONE]`.
               }
             } catch (_) {}
           } else if (line.contains('[DONE]')) {
@@ -254,6 +262,7 @@ No markdown, no explanation, no code blocks.
           'stream': false,
           'temperature': 0.3,
           'max_tokens': 400,
+          'action_code': 'goal_eval',
         },
         options: Options(
           headers: await _proxyHeaders(await _authToken()),
@@ -312,6 +321,7 @@ No markdown, no explanation, no code blocks.
           'stream': false,
           'temperature': 0.3,
           'max_tokens': 200,
+          'action_code': 'carisma_eval',
         },
         options: Options(
           headers: await _proxyHeaders(await _authToken()),

@@ -6,15 +6,25 @@
 // APK no contiene ninguna clave de IA.
 //
 // Endpoints:
-//   POST /chat        { messages, stream } -> DeepSeek chat completions (SSE)
+//   POST /chat        { messages, stream, action_code?, conversation_id? }
+//                     -> DeepSeek chat completions (SSE)
 //   POST /transcribe  multipart (file)     -> Groq Whisper transcription
 //   GET  /health                           -> estado de la función
 //
 // Issue #9: cuota por usuario (30 peticiones/minuto) y allow-list de modelo.
-// Antes cualquier usuario autenticado podía consumir la clave sin límite y
-// elegir el modelo que quisiera.
+// P-14 (#99): cada llamada se registra en `ai_usage_logs` (tokens, audio,
+// latencia, estado y coste estimado). No se guarda texto de conversaciones.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import {
+  estimateChatCostUsd,
+  estimateTranscribeCostUsd,
+  extractUsageFromChatResponse,
+  extractUsageFromSse,
+  normalizeActionCode,
+  normalizeUuid,
+  type ChatUsage,
+} from './usage.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -41,6 +51,10 @@ const QUOTA_LIMIT_PER_MINUTE = 30;
 
 // Issue #9: límite de audio por transcripción (10 MB).
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+
+// P-14: tope del buffer que se conserva para leer el `usage` del SSE. El
+// chunk final de DeepSeek es pequeño; 32 KB cubren de sobra un final partido.
+const SSE_USAGE_BUFFER_LIMIT = 32 * 1024;
 
 const groqApiKey = Deno.env.get('GROQ_API_KEY') ?? '';
 const groqSttUrl = Deno.env.get('GROQ_STT_URL') ?? 'https://api.groq.com/openai/v1/audio/transcriptions';
@@ -98,6 +112,95 @@ async function withinQuota(userId: string): Promise<boolean> {
   }
 }
 
+// ── Registro de uso de IA (P-14 / #99) ───────────────────────────────────────
+
+type UsageStatus = 'ok' | 'error' | 'timeout' | 'rate_limited' | 'no_mana' | 'blocked';
+
+interface UsageLogInput {
+  userId: string;
+  actionCode: string;
+  model: string | null;
+  conversationId?: string | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  audioSeconds?: number | null;
+  latencyMs: number;
+  status: UsageStatus;
+  costEstimateUsd?: number | null;
+}
+
+/// Best-effort: un fallo al registrar nunca debe tumbar la conversación.
+async function logAiUsage(entry: UsageLogInput): Promise<void> {
+  try {
+    const { error } = await admin.from('ai_usage_logs').insert({
+      user_id: entry.userId,
+      conversation_id: entry.conversationId ?? null,
+      action_code: entry.actionCode,
+      model: entry.model,
+      input_tokens: entry.inputTokens ?? null,
+      output_tokens: entry.outputTokens ?? null,
+      audio_seconds: entry.audioSeconds ?? null,
+      cost_estimate_usd: entry.costEstimateUsd ?? null,
+      latency_ms: entry.latencyMs,
+      status: entry.status,
+    });
+    if (error) console.error('ai_usage_logs insert failed:', error.message);
+  } catch (e) {
+    console.error('ai_usage_logs insert error:', e);
+  }
+}
+
+/// Reenvía el SSE tal cual y, de paso, registra el `usage` del chunk final.
+/// El cliente debe leer hasta `[DONE]`: si corta antes, el usage no llega.
+function streamWithUsageLogging(
+  upstream: ReadableStream<Uint8Array>,
+  ctx: {
+    userId: string;
+    actionCode: string;
+    model: string;
+    conversationId: string | null;
+    startedAt: number;
+  },
+): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let logged = false;
+
+  const flushLog = (usage: ChatUsage | null) => {
+    if (logged) return;
+    logged = true;
+    void logAiUsage({
+      userId: ctx.userId,
+      actionCode: ctx.actionCode,
+      model: ctx.model,
+      conversationId: ctx.conversationId,
+      inputTokens: usage?.inputTokens ?? null,
+      outputTokens: usage?.outputTokens ?? null,
+      latencyMs: Math.round(performance.now() - ctx.startedAt),
+      status: 'ok',
+      costEstimateUsd: usage ? estimateChatCostUsd(usage) : null,
+    });
+  };
+
+  return upstream.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+        buffer += decoder.decode(chunk, { stream: true });
+        if (buffer.length > SSE_USAGE_BUFFER_LIMIT) {
+          buffer = buffer.slice(-SSE_USAGE_BUFFER_LIMIT);
+        }
+        const usage = extractUsageFromSse(buffer);
+        if (usage) flushLog(usage);
+      },
+      flush() {
+        buffer += decoder.decode();
+        flushLog(extractUsageFromSse(buffer));
+      },
+    }),
+  );
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -139,9 +242,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     if (path === '/chat') {
-      return await handleChat(req);
+      return await handleChat(req, user.id);
     }
-    return await handleTranscribe(req);
+    return await handleTranscribe(req, user.id);
   } catch (e) {
     console.error('llm-proxy error:', e);
     return json({ error: String(e) }, 500);
@@ -150,15 +253,21 @@ Deno.serve(async (req: Request) => {
 
 // ── POST /chat → DeepSeek (soporta streaming SSE) ─────────────────────────────
 
-async function handleChat(req: Request): Promise<Response> {
+async function handleChat(req: Request, userId: string): Promise<Response> {
   if (!deepseekApiKey) return json({ error: 'DeepSeek not configured' }, 500);
 
+  const startedAt = performance.now();
   const body = await req.json();
   const messages = body?.messages;
   if (!Array.isArray(messages)) {
     return json({ error: 'messages array is required' }, 400);
   }
   const stream = body?.stream ?? true;
+
+  // P-14: metadatos del registro. El action_code lo enviará el cliente; si no
+  // llega o no es válido, se registra como `unknown` (P-07 lo exigirá).
+  const actionCode = normalizeActionCode(body?.action_code, 'free_chat_turn');
+  const conversationId = normalizeUuid(body?.conversation_id);
 
   // Issue #9: el modelo lo decide el servidor. Si el cliente pide otro, se
   // degrada al permitido en lugar de reenviarlo.
@@ -181,44 +290,101 @@ async function handleChat(req: Request): Promise<Response> {
     max_tokens: maxTokens,
   };
   if (typeof temperature === 'number') payload.temperature = temperature;
+  // P-14: pide a DeepSeek el bloque `usage` también en streaming.
+  if (stream) payload.stream_options = { include_usage: true };
 
   // Retry con backoff ante errores transitorios del proveedor (429/5xx).
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const upstream = await fetch(`${deepseekBaseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    let upstream: Response;
+    try {
+      upstream = await fetch(`${deepseekBaseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${deepseekApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      // Fallo de red: no es reintentable aquí si el fetch lanzó por DNS/TLS.
+      void logAiUsage({
+        userId,
+        actionCode,
+        model,
+        conversationId,
+        latencyMs: Math.round(performance.now() - startedAt),
+        status: 'error',
+      });
+      throw e;
+    }
 
     if (upstream.ok) {
       if (stream) {
         // Reenvío SSE transparente al cliente (burbuja de streaming en la app).
-        return new Response(upstream.body, {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
+        return new Response(
+          upstream.body
+            ? streamWithUsageLogging(upstream.body, {
+              userId,
+              actionCode,
+              model,
+              conversationId,
+              startedAt,
+            })
+            : null,
+          {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+            },
           },
-        });
+        );
       }
       const data = await upstream.json();
+      const usage = extractUsageFromChatResponse(data);
+      void logAiUsage({
+        userId,
+        actionCode,
+        model,
+        conversationId,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        latencyMs: Math.round(performance.now() - startedAt),
+        status: 'ok',
+        costEstimateUsd: estimateChatCostUsd(usage),
+      });
       return json(data);
     }
 
     const errText = await upstream.text();
     console.error(`DeepSeek upstream error (attempt ${attempt}/${maxAttempts}):`, upstream.status, errText);
+
+    // Defensa: si el proveedor no soporta `stream_options`, se reintenta sin
+    // él. Se pierde el desglose de tokens, pero la conversación no se rompe.
+    if (upstream.status === 400 && payload.stream_options) {
+      console.warn('stream_options rejected by provider, retrying without usage chunk');
+      delete payload.stream_options;
+      continue;
+    }
+
     const retryable = upstream.status === 429 || upstream.status === 500 || upstream.status === 503;
     if (attempt < maxAttempts && retryable) {
       // Backoff exponencial: 500ms, 1s, 2s.
       await new Promise((r) => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
       continue;
     }
+
+    void logAiUsage({
+      userId,
+      actionCode,
+      model,
+      conversationId,
+      latencyMs: Math.round(performance.now() - startedAt),
+      status: 'error',
+    });
     return json({ error: `DeepSeek error ${upstream.status}` }, upstream.status);
   }
 
@@ -227,9 +393,10 @@ async function handleChat(req: Request): Promise<Response> {
 
 // ── POST /transcribe → Groq Whisper ───────────────────────────────────────────
 
-async function handleTranscribe(req: Request): Promise<Response> {
+async function handleTranscribe(req: Request, userId: string): Promise<Response> {
   if (!groqApiKey) return json({ error: 'Groq not configured' }, 500);
 
+  const startedAt = performance.now();
   const form = await req.formData();
   const file = form.get('file');
   if (!(file instanceof File)) {
@@ -244,12 +411,18 @@ async function handleTranscribe(req: Request): Promise<Response> {
   const model = (form.get('model') as string) ?? 'whisper-large-v3-turbo';
   const language = (form.get('language') as string) ?? 'en';
   const responseFormat = (form.get('response_format') as string) ?? 'json';
+  const actionCode = normalizeActionCode(form.get('action_code'), 'stt_transcribe');
+
+  // P-14: se pide `verbose_json` internamente para obtener `duration` (segundos
+  // de audio). Al cliente se le devuelve la misma forma que pidió.
+  const wantsVerbose = responseFormat === 'verbose_json';
+  const canMeasureDuration = responseFormat === 'json' || wantsVerbose;
 
   const upstreamForm = new FormData();
   upstreamForm.append('file', file, file.name || 'recording.m4a');
   upstreamForm.append('model', model);
   upstreamForm.append('language', language);
-  upstreamForm.append('response_format', responseFormat);
+  upstreamForm.append('response_format', canMeasureDuration ? 'verbose_json' : responseFormat);
 
   const upstream = await fetch(groqSttUrl, {
     method: 'POST',
@@ -260,9 +433,34 @@ async function handleTranscribe(req: Request): Promise<Response> {
   if (!upstream.ok) {
     const errText = await upstream.text();
     console.error('Groq upstream error:', upstream.status, errText);
+    void logAiUsage({
+      userId,
+      actionCode,
+      model,
+      latencyMs: Math.round(performance.now() - startedAt),
+      status: 'error',
+    });
     return json({ error: `Groq error ${upstream.status}` }, upstream.status);
   }
 
   const data = await upstream.json();
+  const audioSeconds = typeof data?.duration === 'number' && Number.isFinite(data.duration)
+    ? data.duration
+    : null;
+
+  void logAiUsage({
+    userId,
+    actionCode,
+    model,
+    audioSeconds,
+    latencyMs: Math.round(performance.now() - startedAt),
+    status: 'ok',
+    costEstimateUsd: estimateTranscribeCostUsd(audioSeconds),
+  });
+
+  if (canMeasureDuration && !wantsVerbose) {
+    // Contrato histórico del cliente: solo `{ text }`.
+    return json({ text: typeof data?.text === 'string' ? data.text : '' });
+  }
   return json(data);
 }
