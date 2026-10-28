@@ -127,6 +127,8 @@ class ConversationRepositoryImpl implements ConversationRepository {
             'action_code': actionCode,
             if (conversationId != null && conversationId.isNotEmpty)
               'conversation_id': conversationId,
+            // P-07: el cliente declara que el servidor cobra el maná.
+            'client_capabilities': const ['server_mana'],
           },
           options: Options(
             headers: await _proxyHeaders(await _authToken()),
@@ -188,17 +190,23 @@ class ConversationRepositoryImpl implements ConversationRepository {
 
         unawaited(_logEvent(currentUserId, 'invoke_llm_error'));
 
-        final kind = status == 429
+        // P-07: 402 = sin maná. No se reintenta y se explica qué hacer.
+        final noMana = status == 402;
+        final kind = noMana
             ? AiErrorKind.quota
-            : (status == 401 || status == 403)
-                ? AiErrorKind.auth
-                : isTimeout
-                    ? AiErrorKind.timeout
-                    : dioType == DioExceptionType.connectionError
-                        ? AiErrorKind.network
-                        : AiErrorKind.provider;
+            : status == 429
+                ? AiErrorKind.quota
+                : (status == 401 || status == 403)
+                    ? AiErrorKind.auth
+                    : isTimeout
+                        ? AiErrorKind.timeout
+                        : dioType == DioExceptionType.connectionError
+                            ? AiErrorKind.network
+                            : AiErrorKind.provider;
 
-        final message = switch (kind) {
+        final message = noMana
+            ? 'Te quedaste sin maná. Recarga o espera la renovación de tu plan.'
+            : switch (kind) {
           AiErrorKind.quota =>
             'El tutor alcanz\u00f3 el l\u00edmite de uso. Espera un momento y reintenta.',
           AiErrorKind.auth =>
@@ -263,6 +271,7 @@ No markdown, no explanation, no code blocks.
           'temperature': 0.3,
           'max_tokens': 400,
           'action_code': 'goal_eval',
+          'client_capabilities': const ['server_mana'],
         },
         options: Options(
           headers: await _proxyHeaders(await _authToken()),
@@ -322,6 +331,7 @@ No markdown, no explanation, no code blocks.
           'temperature': 0.3,
           'max_tokens': 200,
           'action_code': 'carisma_eval',
+          'client_capabilities': const ['server_mana'],
         },
         options: Options(
           headers: await _proxyHeaders(await _authToken()),

@@ -53,6 +53,7 @@ supabase secrets set NOMBRE=valor --project-ref ...
 | `REVENUECAT_SECRET_KEY` | `sync-entitlement` (API v1, `sk_…`) |
 | `CRON_SECRET` | `missions-cron` |
 | `AI_PRICE_INPUT_PER_1M`, `AI_PRICE_OUTPUT_PER_1M`, `AI_PRICE_STT_PER_MINUTE` | `llm-proxy` (estimación de coste; opcionales) |
+| `MANA_CHARGE_MODE` | `llm-proxy` (cobro de maná: `all` por defecto, `capability`, `off`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Todas |
 
 ⚠️ `config.json` y `web_admin/.env` no se commitean. Las claves de IA nunca van
@@ -74,6 +75,35 @@ Tarifas por defecto (sobrescribibles con los secretos de la tabla):
 
 `cost_estimate_usd` es una **estimación**, no una factura: ajústala si cambia
 el contrato del proveedor.
+
+### 3.2 Cobro de maná en el proxy (P-07)
+
+Desde P-07 el maná se cobra en `llm-proxy`, **antes** de llamar al modelo, con
+`consume_mana` y el `action_code` validado contra `ai_action_costs`. El cliente
+ya no cobra.
+
+| Situación | Respuesta |
+|---|---|
+| Saldo insuficiente (plan o límite diario) | `402` `{"error":"no_mana","reason":"insufficient_mana"}` |
+| `action_code` desconocido o inactivo | `400` `{"error":"invalid_action"}` |
+| `consume_mana` falla por BD | `503` `{"error":"mana_unavailable"}` (fail-closed) |
+| `check_llm_quota` falla | `503` `{"error":"quota_unavailable"}` (fail-closed) |
+| Prompt demasiado grande (>40 mensajes, >4.000 car/mensaje, >24.000 total) | `413` `{"error":"payload_too_large"}` |
+
+Si el proveedor falla después de cobrar, el proxy llama a `refund_mana`
+(solo cobros `source='plan'`; los ítems equipados quedan fuera, como en P-06).
+
+`MANA_CHARGE_MODE`:
+
+- `capability` (defecto de transición): cobra solo si el cliente envía
+  `client_capabilities: ["server_mana"]`. Las builds antiguas siguen cobrando en
+  cliente y no se les cobra dos veces.
+- `all` (estado final): cobra siempre. Pásalo a `all` cuando la app que ya no
+  cobra en cliente esté publicada; cierra el hueco de los clientes modificados.
+- `off`: no cobra (rollback de emergencia; la IA queda gratis).
+
+Acciones gratuitas (no están en `ai_action_costs`): `goal_eval`, `carisma_eval`,
+`guild_chat`, `stt_transcribe`.
 
 ```sql
 -- Coste por usuario y día
