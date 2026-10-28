@@ -894,7 +894,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.onboarding_english_only ?? 'Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes.',
+            l10n.onboarding_english_only,
             style: AppTypography.bodyMuted(context),
           ),
           const SizedBox(height: 24),

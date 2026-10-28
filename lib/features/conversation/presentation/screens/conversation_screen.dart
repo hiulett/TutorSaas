@@ -482,7 +482,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final progressAsync = ref.read(userProgressProvider);
     final cefrCode = progressAsync.value?['level_code'] as String? ?? 'A1';
     final gameRank = (progressAsync.value?['game_rank'] as String?)?.isNotEmpty == true
-        ? (progressAsync.value?['game_rank'] as String)!
+        ? (progressAsync.value?['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
     final cefrLevel = progressAsync.value?['level'] as String? ?? 'Principiante';
     final cefrText = '$gameRank ($cefrLevel)';
@@ -1534,7 +1534,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 class _AnimatedMessage extends StatefulWidget {
   final Widget child;
   final int delay;
-  const _AnimatedMessage({required this.child, this.delay = 0});
+  const _AnimatedMessage({required this.child}) : delay = 0;
 
   @override
   State<_AnimatedMessage> createState() => _AnimatedMessageState();

@@ -425,7 +425,7 @@ class SessionSummaryScreen extends ConsumerWidget {
       child: ElevatedButton.icon(
         icon: const Icon(Icons.arrow_forward_rounded, size: 18),
         label: Text(
-          '${l10n.summary_next_lesson ?? 'SIGUIENTE LECCIÓN'}: ${next.title}',
+          '${l10n.summary_next_lesson}: ${next.title}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

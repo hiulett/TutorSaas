@@ -193,7 +193,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
     final progress = ref.watch(userProgressProvider).value ?? {};
     final cefr = progress['level_code'] as String? ?? 'A1';
     final gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
-        ? (progress['game_rank'] as String)!
+        ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefr);
     final screenSize = MediaQuery.of(context).size;
 

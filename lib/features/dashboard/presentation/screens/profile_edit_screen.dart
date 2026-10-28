@@ -28,7 +28,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   String _selectedLanguage = 'es';
   String _currentAvatarUrl = 'warrior';
   bool _isSaving = false;
-  bool _isUploading = false;
 
   // Profile field state (sin stat points: STR/INT/DEX/LUK ya no se usan).
   final List<Map<String, String>> _hunterClasses = [
@@ -103,7 +102,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       if (image == null) return;
 
       setState(() {
-        _isUploading = true;
       });
 
       final user = ref.read(currentUserProvider);
@@ -127,7 +125,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
       setState(() {
         _currentAvatarUrl = publicUrl;
-        _isUploading = false;
       });
 
       if (mounted && context.mounted) {
@@ -146,7 +143,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isUploading = false;
         });
       }
       if (mounted && context.mounted) {
