@@ -528,7 +528,11 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       );
 
       // 4. Stream DeepSeek response.
-      final stream = _repository.getTutorResponseStream(historyList);
+      final stream = _repository.getTutorResponseStream(
+        historyList,
+        actionCode: 'oracle_turn',
+        conversationId: _conversationId,
+      );
       String fullOracleResponse = '';
 
       await for (final chunk in stream) {
@@ -1288,7 +1292,11 @@ ENDING:
       state = state.copyWith(messages: [...state.messages, tutorPlaceholder]);
 
       // 4. Stream DeepSeek response
-      final stream = _repository.getTutorResponseStream(historyList);
+      final stream = _repository.getTutorResponseStream(
+        historyList,
+        actionCode: _lastActionCode ?? 'free_chat_turn',
+        conversationId: _conversationId,
+      );
       String fullTutorResponse = '';
 
       await for (final chunk in stream) {
