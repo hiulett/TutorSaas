@@ -1,0 +1,135 @@
+-- P-19b (#163): estado inicial del dashboard en una sola RPC.
+--
+-- Devuelve {progress, achievements}. Antes el cliente hacia 1 consulta para
+-- el progreso y 5-6 para los logros (incluidos upserts en bucle).
+--
+-- Security definer + validacion de auth.uid(): el cliente puede pedir su
+-- propio estado; service_role puede pedir cualquiera.
+
+create or replace function public.get_dashboard_state(p_user_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_progress jsonb;
+  v_achievements jsonb;
+  v_streak integer;
+  v_languages integer;
+  v_conversations integer;
+  v_messages integer;
+  v_vocabulary integer;
+begin
+  if coalesce(auth.role(), '') <> 'service_role'
+     and (auth.uid() is null or auth.uid() <> p_user_id) then
+    raise exception 'No autorizado';
+  end if;
+
+  select coalesce(max(current_streak), 0), count(distinct language_id)
+    into v_streak, v_languages
+    from public.user_language_profiles
+   where user_id = p_user_id;
+
+  select count(*) into v_conversations
+    from public.conversations where user_id = p_user_id;
+
+  select count(*) into v_messages
+    from public.messages m
+    join public.conversations c on c.id = m.conversation_id
+   where c.user_id = p_user_id and coalesce(m.role, m.sender_role) = 'user';
+
+  select count(*) into v_vocabulary
+    from public.user_vocabulary where user_id = p_user_id;
+
+  select jsonb_build_object(
+    'xp', coalesce(p.xp_points, 0),
+    'streak', coalesce(p.current_streak, 0),
+    'last_practice_date', p.last_practice_date,
+    'level', coalesce(l.name, 'Principiante'),
+    'level_code', coalesce(l.code, 'A1'),
+    'game_rank', case
+      when p.game_rank is not null and p.game_rank <> '' then p.game_rank
+      else case coalesce(l.code, 'A1')
+        when 'PRE-A1' then 'F'
+        when 'A1' then 'E'
+        when 'A2' then 'D'
+        when 'B1' then 'C'
+        when 'B2' then 'B'
+        when 'C1' then 'A'
+        when 'C2' then 'S'
+        else 'E'
+      end
+    end,
+    'language', coalesce(lang.name, 'Ingl' || chr(233) || 's'),
+    'language_emoji', coalesce(lang.flag_emoji, chr(127482) || chr(127480)),
+    'equipped_title_code', coalesce(p.equipped_title_code, 'oido_halcon_abismo_c')
+  )
+  into v_progress
+  from public.user_language_profiles p
+  left join public.cefr_levels l on l.id = p.cefr_level_id
+  left join public.languages lang on lang.id = p.language_id
+  where p.user_id = p_user_id
+  limit 1;
+
+  if v_progress is null then
+    v_progress := jsonb_build_object(
+      'xp', 0,
+      'streak', 0,
+      'last_practice_date', null,
+      'level', 'Principiante',
+      'level_code', 'A1',
+      'game_rank', 'E',
+      'language', 'Ingl' || chr(233) || 's',
+      'language_emoji', chr(127482) || chr(127480),
+      'equipped_title_code', 'oido_halcon_abismo_c'
+    );
+  end if;
+
+  insert into public.user_achievements (user_id, achievement_id)
+  select p_user_id, a.id
+    from public.achievements a
+   where (case a.condition_type
+            when 'streak' then v_streak
+            when 'conversations' then v_conversations
+            when 'messages' then v_messages
+            when 'languages' then v_languages
+            when 'vocabulary' then v_vocabulary
+            else 0
+          end) >= coalesce(a.condition_value, 1)
+  on conflict (user_id, achievement_id) do nothing;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id', s.id,
+      'code', s.code,
+      'title', s.title,
+      'description', coalesce(s.description, ''),
+      'tier', coalesce(s.icon_url, 'bronze'),
+      'xp_reward', coalesce(s.xp_reward, 0),
+      'current_value', s.current_value,
+      'target_value', coalesce(s.condition_value, 1),
+      'is_unlocked', s.unlocked,
+      'progress', s.current_value::numeric / greatest(coalesce(s.condition_value, 1), 1)
+    ) order by s.unlocked desc, s.id), '[]'::jsonb)
+  into v_achievements
+  from (
+    select a.*, (ua.achievement_id is not null) as unlocked,
+      case a.condition_type
+        when 'streak' then v_streak
+        when 'conversations' then v_conversations
+        when 'messages' then v_messages
+        when 'languages' then v_languages
+        when 'vocabulary' then v_vocabulary
+        else 0
+      end as current_value
+    from public.achievements a
+    left join public.user_achievements ua
+      on ua.achievement_id = a.id and ua.user_id = p_user_id
+  ) s;
+
+  return jsonb_build_object('progress', v_progress, 'achievements', v_achievements);
+end;
+$$;
+
+revoke all on function public.get_dashboard_state(uuid) from public, anon;
+grant execute on function public.get_dashboard_state(uuid) to authenticated;
