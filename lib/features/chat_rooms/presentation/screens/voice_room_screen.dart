@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -924,9 +925,13 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                   final speakerName = isSelf
                                       ? (AppLocalizations.of(context)?.voice_you ?? 'YOU')
                                       : (otherName.isNotEmpty ? otherName : (AppLocalizations.of(context)?.voice_hunter_slot('$slotNum') ?? 'HUNTER $slotNum'));
+                                  final selfProfile = ref.read(userProfileProvider).value;
                                   final speakerAvatar = isSelf
-                                      ? (ref.read(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior')
-                                      : (speakerProfile?['avatar_url'] as String? ?? 'warrior');
+                                      ? playerAvatarUrlOf(selfProfile)
+                                      : playerAvatarUrlOf(speakerProfile);
+                                  final speakerClass = isSelf
+                                      ? playerClassOf(selfProfile)
+                                      : playerClassOf(speakerProfile);
                                   final isSpeaking = _speakingIds.contains(speakerUserId);
 
                                   return GestureDetector(
@@ -947,11 +952,11 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                             children: [
                                               RpgAvatar(
                                                 avatarUrl: speakerAvatar,
+                                                hunterClass: speakerClass,
                                                 initials: speakerName.isNotEmpty
                                                     ? speakerName.substring(0, 1).toUpperCase()
                                                     : 'H$slotNum',
                                                 size: 36,
-                                                hunterClass: speakerAvatar,
                                               ),
                                               if (isSpeaking)
                                                 const Positioned(
@@ -1034,10 +1039,10 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                                         clipBehavior: Clip.none,
                                                         children: [
                                                           RpgAvatar(
-                                                            avatarUrl: audProfile?['avatar_url'] as String? ?? 'warrior',
+                                                            avatarUrl: playerAvatarUrlOf(audProfile),
                                                             initials: audInitials,
                                                             size: 30,
-                                                            hunterClass: audProfile?['avatar_url'] as String? ?? 'warrior',
+                                                            hunterClass: playerClassOf(audProfile),
                                                           ),
                                                           if (isSelfStanding)
                                                             const Positioned(

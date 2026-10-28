@@ -181,7 +181,17 @@ final userProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>>((re
   try {
     final supabase = ref.read(supabaseClientProvider);
     final data = await supabase.from('users').select().eq('id', user.id).maybeSingle();
-    return data ?? {};
+    // P-11i: la clase vive en user_language_profiles; avatar_url es solo foto.
+    final lang = await supabase
+        .from('user_language_profiles')
+        .select('character_class')
+        .eq('user_id', user.id)
+        .maybeSingle();
+    return {
+      ...?data,
+      if (lang?['character_class'] != null)
+        'character_class': lang!['character_class'],
+    };
   } catch (_) {
     return {};
   }
