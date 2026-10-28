@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -544,8 +545,8 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                     Padding(
                                       padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
                                       child: RpgAvatar(
-                                        avatarUrl: online[i]['avatar_url'] as String? ?? 'warrior',
-                                        hunterClass: online[i]['avatar_url'] as String? ?? 'warrior',
+                                        avatarUrl: playerAvatarUrlOf(online[i]),
+                                        hunterClass: playerClassOf(online[i]),
                                         initials: _safeInitials(online[i]['display_name'] as String?),
                                         size: 26,
                                         borderColor: AppColors.manaCyan,

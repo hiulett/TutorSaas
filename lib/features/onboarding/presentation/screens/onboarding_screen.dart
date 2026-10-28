@@ -258,7 +258,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         await ref.read(dashboardRepositoryProvider).updateUserProfile(
           targetUserId,
           displayName: _characterName.isNotEmpty ? _characterName : accountName,
-          avatarUrl: _characterClass,
           nativeLanguage: _selectedNativeLanguageCode,
           bio: '¡Hola! Soy un cazador aventurero.',
         );

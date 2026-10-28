@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1071,8 +1072,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           );
                           // El aventurero muestra su avatar (clase del jugador)
                           // junto a cada mensaje, espejo del avatar del tutor.
-                          final heroClass =
-                              ref.watch(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior';
+                          final heroProfile = ref.watch(userProfileProvider).value;
+                          final heroClass = playerClassOf(heroProfile);
                           bubble = Padding(
                             padding: const EdgeInsets.only(bottom: 24.0),
                             child: Align(
@@ -1084,7 +1085,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   Flexible(child: bubbleContent),
                                   const SizedBox(width: 10),
                                   RpgAvatar(
-                                    avatarUrl: heroClass,
+                                    avatarUrl: playerAvatarUrlOf(heroProfile),
                                     hunterClass: heroClass,
                                     initials: 'HÃ‰ROE',
                                     size: 42,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -280,8 +281,8 @@ class DashboardScreen extends ConsumerWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                             RpgAvatar(
-                              avatarUrl: profile['avatar_url'] as String? ?? 'warrior',
-                              hunterClass: profile['avatar_url'] as String? ?? 'warrior',
+                              avatarUrl: playerAvatarUrlOf(profile),
+                              hunterClass: playerClassOf(profile),
                               initials: _displayInitials(profile),
                               size: 32,
                               borderColor: cosmetics.frameCode != null
