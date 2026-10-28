@@ -586,6 +586,24 @@ abstract class AppLocalizations {
   /// **'Save Settings'**
   String get save_settings;
 
+  /// No description provided for @settings_save_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save settings.'**
+  String get settings_save_error;
+
+  /// No description provided for @settings_delete_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the account.'**
+  String get settings_delete_error;
+
+  /// No description provided for @settings_app_language.
+  ///
+  /// In en, this message translates to:
+  /// **'APP LANGUAGE'**
+  String get settings_app_language;
+
   /// No description provided for @saved.
   ///
   /// In en, this message translates to:
