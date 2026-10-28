@@ -2720,6 +2720,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get privacy_title => 'PRIVACIDAD';
+
+  @override
+  String get privacy_body =>
+      'Para corregir tu conversación, la app envía a la IA el audio transcrito, tu nivel CEFR y tu idioma nativo. No se envían tu email, tu nombre ni tu foto. Puedes exportar o borrar tus datos desde Ajustes.';
+
+  @override
+  String get privacy_accept => 'ENTENDIDO';
+
+  @override
+  String get onboarding_privacy_link => 'PRIVACIDAD';
+
+  @override
   String get onboarding_beginner => 'I AM AN ABSOLUTE BEGINNER (PRE-A1)';
 
   @override

@@ -155,6 +155,10 @@
 
   "btn_continue": "Continuar",
   "onboarding_start_eval": "INICIAR EVALUACIÓN",
+"privacy_title": "PRIVACIDAD",
+"privacy_body": "Para corregir tu conversación, la app envía a la IA el audio transcrito, tu nivel CEFR y tu idioma nativo. No se envían tu email, tu nombre ni tu foto. Puedes exportar o borrar tus datos desde Ajustes.",
+"privacy_accept": "ENTENDIDO",
+"onboarding_privacy_link": "PRIVACIDAD",
   "register_confirm_email": "Revisa tu correo y confirma la cuenta para continuar.",
   "resend_confirmation": "REENVIAR",
   "login_email_not_confirmed": "Tu correo aún no está confirmado. Revisa tu bandeja o pide un nuevo envío.",

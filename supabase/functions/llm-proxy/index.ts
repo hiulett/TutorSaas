@@ -84,10 +84,15 @@ const FALLBACK_PAID_ACTIONS = new Set([
 const groqApiKey = Deno.env.get('GROQ_API_KEY') ?? '';
 const groqSttUrl = Deno.env.get('GROQ_STT_URL') ?? 'https://api.groq.com/openai/v1/audio/transcriptions';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+// P-20: CORS solo para el origen configurado. La app movil no envia Origin,
+// asi que no necesita la cabecera; el web admin no llama al proxy.
+const corsAllowedOrigin = Deno.env.get('CORS_ALLOWED_ORIGIN') ?? '';
+const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  ...(corsAllowedOrigin.isNotEmpty
+    ? { 'Access-Control-Allow-Origin': corsAllowedOrigin, 'Vary': 'Origin' }
+    : {}),
 };
 
 const json = (body: unknown, status = 200) =>
@@ -337,13 +342,8 @@ Deno.serve(async (req: Request) => {
   const path = segments.length > 0 ? `/${segments[segments.length - 1]}` : '/';
 
   if (path === '/health' && req.method === 'GET') {
-    return json({
-      ok: true,
-      hasDeepSeek: !!deepseekApiKey,
-      hasGroq: !!groqApiKey,
-      manaMode: MANA_CHARGE_MODE,
-      ts: new Date().toISOString(),
-    });
+    // P-20: no se revela que claves estan configuradas ni el modo de cobro.
+    return json({ ok: true, ts: new Date().toISOString() });
   }
 
   if (path !== '/chat' && path !== '/transcribe' && path !== '/health') {
