@@ -93,8 +93,6 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   Map<String, dynamic>? _lastSessionResult;
   String? _lastUserText;
   String? _lastActionCode;
-  String? _turnRef;
-  bool _oracleEvalCharged = false;
 
   ConversationNotifier(this._repository, this._ref)
       : super(ConversationState.initial()) {
@@ -547,6 +545,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
       state = state.copyWith(isProcessing: false);
       _hasProcessedThisTurn = false;
+      _ref.invalidate(manaStateProvider);
 
       // 4b. Registrar el turno sin bloquear la narración (best-effort DB).
       if (userText.isNotEmpty) {
@@ -822,21 +821,7 @@ ENDING:
     try {
       state = state.copyWith(isProcessing: true, oracleEvaluating: true);
 
-      // Issue #47: el cierre del examen se cobra una sola vez (oracle_eval=30).
-      // Los turnos intermedios ya se cobraron como oracle_turn (15).
-      if (!_oracleEvalCharged &&
-          _userId != null &&
-          !_userId!.startsWith('guest_')) {
-        _oracleEvalCharged = true;
-        try {
-          final economyRepo = _ref.read(economyRepositoryProvider);
-          final charge = await economyRepo.consumeMana(_userId!, 'oracle_eval');
-          if (charge['success'] == true) {
-            _applyOptimisticManaDeduction('oracle_eval', charge);
-            _ref.invalidate(manaStateProvider);
-          }
-        } catch (_) {}
-      }
+      // P-07: `oracle_eval` lo cobra el proxy al recibir la evaluacion.
 
       final answers = state.messages
           .where((m) => m.sender == 'user')
@@ -850,6 +835,7 @@ ENDING:
         final dio = _ref.read(conversationDioProvider);
         ai = await PlacementAiEvaluator.evaluatePlacement(answers, dio: dio);
       } catch (_) {}
+      _ref.invalidate(manaStateProvider);
 
       // Issue #25: persistir las 6 dimensiones que lee el radar de habilidades.
       // Hasta ahora solo se guardaba `partial_score`, así que el radar mostraba
@@ -1101,92 +1087,18 @@ ENDING:
     return const [];
   }
 
-  /// Descuento optimista del maná en la barra: aplica el costo sobre el valor
-  /// cacheado de `manaStateProvider` para que la barra baje al instante, sin
-  /// esperar el refresh en segundo plano del CachedFutureController.
-  void _applyOptimisticManaDeduction(String actionCode, Map<String, dynamic> result) {
-    try {
-      final controller = _ref.read(manaStateProvider.notifier);
-      final current = controller.state.value;
-      if (current == null) return;
-
-      // Costo real devuelto por el RPC (fallback: según action code).
-      final cost = (result['cost'] as num?)?.toInt() ?? _actionCost(actionCode);
-
-      // Para free: descontar del límite diario (la barra muestra el maná de hoy).
-      // Para pago: descontar del saldo mensual.
-      final isFree = current['is_free'] as bool? ?? true;
-      final Map<String, dynamic> updated = Map<String, dynamic>.from(current);
-      if (isFree) {
-        final dailyRemaining = (current['daily_remaining'] as num?)?.toInt() ?? 0;
-        final dailyUsed = (current['daily_used'] as num?)?.toInt() ?? 0;
-        updated['daily_remaining'] = (dailyRemaining - cost).clamp(0, 1 << 31);
-        updated['daily_used'] = dailyUsed + cost;
-      } else {
-        final remaining = (current['remaining'] as num?)?.toInt() ?? 0;
-        final used = (current['used'] as num?)?.toInt() ?? 0;
-        updated['remaining'] = (remaining - cost).clamp(0, 1 << 31);
-        updated['used'] = used + cost;
-      }
-      controller.state = AsyncValue.data(updated);
-    } catch (_) {}
-  }
-
-  /// Costo por defecto de una acción si el RPC no lo devolvió.
-  int _actionCost(String actionCode) {
-    switch (actionCode) {
-      case 'oracle_turn':
-        return 15;
-      case 'oracle_eval':
-        return 30;
-      case 'dungeon_turn':
-        return 12;
-      case 'free_chat_turn':
-      default:
-        return 8;
-    }
-  }
-
   // ── Process Transcription / Text → LLM → Supabase → TTS ────────────────────
 
-  Future<void> _processTranscription(String userText, {bool chargeMana = true, bool reuseUserMessage = false}) async {
+  Future<void> _processTranscription(String userText, {bool reuseUserMessage = false}) async {
     if (_hasProcessedThisTurn) return;
     _hasProcessedThisTurn = true;
     _lastUserText = userText;
 
-    // Consumo de Maná (FASE B): TODA acción de IA cuesta maná. El costo se lee
-    // de la BD (ai_action_costs) y lo debita el RPC consume_mana (server-side).
-    if (chargeMana && _userId != null && !_userId!.startsWith('guest_')) {
-      // Issue #47: el turno del Oráculo cuesta `oracle_turn` (15). El cierre
-      // del examen cobra `oracle_eval` (30) una sola vez en el finalize.
-      final actionCode = state.isOracleEvaluation
-          ? 'oracle_turn'
-          : (state.activeScenarioId != null ? 'dungeon_turn' : 'free_chat_turn');
-      _lastActionCode = actionCode;
-      _turnRef =
-          '${_conversationId ?? state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
-      try {
-        final economyRepo = _ref.read(economyRepositoryProvider);
-        final result = await economyRepo.consumeMana(_userId!, actionCode);
-        final ok = result['success'] as bool? ?? false;
-        if (!ok) {
-          state = state.copyWith(
-            isProcessing: false,
-            errorMessage: 'SIN MANÁ: adquiere una porción o espera la renovación de tu plan para continuar.',
-          );
-          _ref.read(conversationErrorProvider.notifier).state = const ConversationErrorState(
-            message: 'Te quedaste sin maná. Recarga o espera la renovación de tu plan.',
-            kind: AiErrorKind.quota,
-            canRetry: false,
-          );
-          return;
-        }
-        // Consumo optimista: descuenta el costo localmente para feedback
-        // inmediato en la barra, además del refresh en segundo plano.
-        _applyOptimisticManaDeduction(actionCode, result);
-        _ref.invalidate(manaStateProvider);
-      } catch (_) {}
-    }
+    // P-07 (#92): el cobro de maná vive en el servidor (llm-proxy). Aquí solo
+    // se calcula el código de acción para el registro de uso y el cobro remoto.
+    _lastActionCode = state.isOracleEvaluation
+        ? 'oracle_turn'
+        : (state.activeScenarioId != null ? 'dungeon_turn' : 'free_chat_turn');
 
     // Modo Oráculo: la evaluación conversacional solo conduce la entrevista.
     if (state.isOracleEvaluation) {
@@ -1312,6 +1224,7 @@ ENDING:
       state = state.copyWith(isProcessing: false);
       _hasProcessedThisTurn = false;
       _ref.read(conversationErrorProvider.notifier).state = null;
+      _ref.invalidate(manaStateProvider);
 
       // 5. Speak response via TTS immediately & simultaneously with text display
       if (fullTutorResponse.isNotEmpty) {
@@ -1341,25 +1254,8 @@ ENDING:
               'Error al procesar la respuesta. Intenta de nuevo.',
             );
 
-      // P-06: si el turno fallo tras reintentos, se devuelve el mana cobrado.
-      var errorText = err.message;
-      final refundable = chargeMana &&
-          _lastActionCode != null &&
-          _turnRef != null &&
-          _userId != null &&
-          !_userId!.startsWith('guest_') &&
-          (err.kind == AiErrorKind.network ||
-              err.kind == AiErrorKind.timeout ||
-              err.kind == AiErrorKind.provider);
-      if (refundable) {
-        final refund = await _ref
-            .read(economyRepositoryProvider)
-            .refundFailedTurn(turnRef: _turnRef!, actionCode: _lastActionCode!);
-        if (refund['ok'] == true && refund['already_refunded'] != true) {
-          errorText = '$errorText No se descontó maná por este intento.';
-          _ref.invalidate(manaStateProvider);
-        }
-      }
+      // P-07: el reembolso de un turno fallido lo hace el proxy (service role).
+      final errorText = err.message;
 
       _hasProcessedThisTurn = false;
       state = state.copyWith(
@@ -1379,18 +1275,19 @@ ENDING:
           'endpoint': 'chat',
           'code': err.code,
           'retries': err.retries,
-          'refunded': refundable,
+          // P-07: el reembolso lo decide el proxy; el cliente no lo sabe.
+          'refunded': false,
         },
       ));
     }
   }
 
-  /// Reintenta el ultimo turno sin volver a cobrar mana.
+  /// Reintenta el ultimo turno. El proxy vuelve a cobrar y reembolsa si falla.
   Future<void> retryLastTurn() async {
     final text = _lastUserText;
     if (text == null || text.isEmpty) return;
     _ref.read(conversationErrorProvider.notifier).state = null;
-    await _processTranscription(text, chargeMana: false, reuseUserMessage: true);
+    await _processTranscription(text, reuseUserMessage: true);
   }
 
   void _asyncSaveAndAnalyzeSession({
