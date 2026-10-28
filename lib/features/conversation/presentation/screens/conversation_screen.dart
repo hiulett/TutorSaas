@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../domain/models/conversation_message.dart';
@@ -98,7 +99,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       final router = GoRouter.of(context);
       try {
         router.push('/summary');
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/screens/conversation_screen.dart:101', e, stackTrace: st);
+      }
     }
   }
 
@@ -148,7 +151,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             await ref.read(manaStateProvider.notifier).load().timeout(const Duration(seconds: 6));
             manaState = ref.read(manaStateProvider).value;
           }
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/conversation/presentation/screens/conversation_screen.dart:151', e, stackTrace: st);
+        }
         if (manaState != null) {
           final isFree = manaState['is_free'] as bool? ?? true;
           final dailyRemaining = (manaState['daily_remaining'] as num?)?.toInt() ?? 0;
@@ -181,7 +186,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // salida dispare una nueva narraciÃ³n.
     try {
       ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/conversation/presentation/screens/conversation_screen.dart:184', e, stackTrace: st);
+    }
     // Red de seguridad: si la sesiÃ³n NO se cerrÃ³ por ninguna vÃ­a previa
     // (app muerta, kill de widget, salida por go), persiste el progreso aquÃ­.
     // Idempotente: endSession solo guarda la primera vez (flag en el notifier).
@@ -191,7 +198,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       if (!isOracleEval) {
         unawaited(ref.read(conversationStateProvider.notifier).endSession());
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/conversation/presentation/screens/conversation_screen.dart:194', e, stackTrace: st);
+    }
     _textController.dispose();
     _chatScrollController.dispose();
     try {
@@ -202,7 +211,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       ref.invalidate(fluencyTrendsProvider);
       ref.invalidate(weeklyPracticeProvider);
       ref.invalidate(learnedVocabularyProvider);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/conversation/presentation/screens/conversation_screen.dart:205', e, stackTrace: st);
+    }
     super.dispose();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 
 // ── Repository interface ─────────────────────────────────────────────────────
 
@@ -39,7 +40,9 @@ class PlacementRepositoryImpl implements PlacementRepository {
       if (cefrResponse != null) {
         cefrId = cefrResponse['id'] as int;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/onboarding/presentation/providers/placement_providers.dart:42', e, stackTrace: st);
+    }
 
     // 2. Update user_language_profiles with the computed level ID
     try {
@@ -48,7 +51,9 @@ class PlacementRepositoryImpl implements PlacementRepository {
         'language_id': 1, // Default English language id
         'cefr_level_id': cefrId,
       }, onConflict: 'user_id, language_id');
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/onboarding/presentation/providers/placement_providers.dart:51', e, stackTrace: st);
+    }
 
     // 3. Update public.users table with goals / difficulties inside bio
     try {
@@ -56,7 +61,9 @@ class PlacementRepositoryImpl implements PlacementRepository {
         'bio': '[Stats|STR:5|INT:5|DEX:5|LUK:5] Goal: $learningGoal | Obstacle: $mainDifficulty | Quiz: $quizScore',
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userId);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/onboarding/presentation/providers/placement_providers.dart:59', e, stackTrace: st);
+    }
   }
 }
 

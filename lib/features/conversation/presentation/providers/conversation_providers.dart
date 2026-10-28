@@ -7,6 +7,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../data/repositories/conversation_repository_impl.dart';
 import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_message.dart';
@@ -133,7 +134,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           final uiLang = _ref.read(userLanguageProvider).uiLanguage;
           LessonCatalog.updateCatalogFromMap(res, locale: uiLang);
         }
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:136', e, stackTrace: st);
+      }
     }
 
     final lesson = LessonCatalog.getLessonById(
@@ -291,7 +294,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       );
       _conversationId = conv['id'] as String?;
       _ref.read(activeConversationIdProvider.notifier).state = _conversationId;
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:294', e, stackTrace: st);
+    }
 
     // El Oráculo inicia la conversación automáticamente.
     await _runOracleTurn(userText: '');
@@ -349,7 +354,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
             );
             return;
           }
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:352', e, stackTrace: st);
+        }
       }
 
       final tempDir = await getTemporaryDirectory();
@@ -402,7 +409,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           try {
             // No bloquea el turno: el tracking de audio es best-effort.
             unawaited(_repository.trackAiAudioTime(_userId!, durationSec));
-          } catch (_) {}
+          } catch (e, st) {
+            ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:405', e, stackTrace: st);
+          }
         }
       }
 
@@ -834,7 +843,9 @@ ENDING:
         // Reutiliza el mismo Dio del chat (misma autenticación DeepSeek).
         final dio = _ref.read(conversationDioProvider);
         ai = await PlacementAiEvaluator.evaluatePlacement(answers, dio: dio);
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:837', e, stackTrace: st);
+      }
       _ref.invalidate(manaStateProvider);
 
       // Issue #25: persistir las 6 dimensiones que lee el radar de habilidades.
@@ -928,7 +939,9 @@ ENDING:
       if (_conversationId != null) {
         try {
           await _repository.saveMessage(_conversationId!, 'assistant', closing);
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:931', e, stackTrace: st);
+        }
       }
 
       state = state.copyWith(
@@ -981,7 +994,9 @@ ENDING:
             .eq('code', cefrLevel)
             .maybeSingle();
         if (row != null) cefrId = row['id'] as int;
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:984', e, stackTrace: st);
+      }
 
       await client.from('user_language_profiles').upsert({
         'user_id': userId,
@@ -996,7 +1011,9 @@ ENDING:
           'placement_recommended_focus': recommendedFocus,
         'placement_assessed_at': DateTime.now().toIso8601String(),
       }, onConflict: 'user_id, language_id');
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:999', e, stackTrace: st);
+    }
 
     try {
       final client = Supabase.instance.client;
@@ -1042,7 +1059,9 @@ ENDING:
           ...payload,
         });
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1045', e, stackTrace: st);
+    }
   }
 
   int get _assessmentDurationSeconds {
@@ -1440,7 +1459,9 @@ ENDING:
       try {
         final repo = _ref.read(dashboardRepositoryProvider);
         await repo.logPracticeSession(_userId!, practiceMinutes);
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1443', e, stackTrace: st);
+      }
 
       // Issue #5: cerrar sesión avanza las misiones de sesión y de minutos
       // hablados. Antes de este cambio, `advance_missions_for_user` no tenía
@@ -1486,7 +1507,9 @@ ENDING:
               },
             ).then((_) => _ref.invalidate(scenarioProgressProvider)));
           }
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1489', e, stackTrace: st);
+        }
       }
 
       // Router pedagógico: si la lección NO se superó (<80% de metas), se
@@ -1524,7 +1547,9 @@ ENDING:
               _ref.invalidate(recommendedLessonsProvider);
             }
           }
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1527', e, stackTrace: st);
+        }
       }
 
       // Loot/drops (FASE B): las sesiones otorgan ITEMS (fragmentos, oro) y
@@ -1565,7 +1590,9 @@ ENDING:
             await economyRepo.addAuraXp(
                 _userId!, sessionId, radar, completedGoals, levelBonus);
             _ref.invalidate(auraXpProvider);
-          } catch (_) {}
+          } catch (e, st) {
+            ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1568', e, stackTrace: st);
+          }
         }
         // Racha y minutos: una sola fuente de verdad en servidor (issue #88).
         final streakSessionId = rewardSessionId ??
@@ -1582,7 +1609,9 @@ ENDING:
             _ref.invalidate(userProgressProvider);
           }
         }
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1585', e, stackTrace: st);
+      }
 
       // Sincronizar títulos de habilidad ganados por desempeño conversacional
       // (incluye el score de carisma evaluado por IA de esta sesión).
@@ -1609,7 +1638,9 @@ ENDING:
           _ref.read(newEarnedTitlesProvider.notifier).state = titles;
         }
         _ref.invalidate(earnedTitlesProvider);
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1612', e, stackTrace: st);
+      }
 
       try {
         // Issue #35: cierre de sesión con volumen real de actividad.
@@ -1626,7 +1657,9 @@ ENDING:
             'oracle': state.isOracleEvaluation,
           },
         ));
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1629', e, stackTrace: st);
+      }
       try {
         _ref.invalidate(userProgressProvider);
         _ref.invalidate(userAchievementsProvider);
@@ -1636,7 +1669,9 @@ ENDING:
         _ref.invalidate(manaStateProvider);
         // Also increment the refresh trigger for non-autoDispose safety
         _ref.read(dashboardRefreshProvider.notifier).state++;
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1639', e, stackTrace: st);
+      }
     }
 
     final completedGoals =

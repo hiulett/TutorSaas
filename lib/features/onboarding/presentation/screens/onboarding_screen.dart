@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -246,7 +247,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             'character_class': _characterClass.isNotEmpty ? _characterClass : 'warrior',
             'avatar_index': _selectedAvatarIndex,
           }).eq('user_id', targetUserId);
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/onboarding/presentation/screens/onboarding_screen.dart:249', e, stackTrace: st);
+        }
       }
 
       try {
@@ -260,14 +263,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           bio: '¡Hola! Soy un cazador aventurero.',
         );
         ref.invalidate(userProfileProvider);
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/onboarding/presentation/screens/onboarding_screen.dart:263', e, stackTrace: st);
+      }
 
       // UX-02: el paywall se mueve post-sesión. El onboarding siempre arranca en plan free.
       ref.read(isPremiumProvider.notifier).setPremium(false);
 
       try {
         await ref.read(userLanguageProvider.notifier).setLearningLanguage(_selectedLanguageCode);
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/onboarding/presentation/screens/onboarding_screen.dart:270', e, stackTrace: st);
+      }
 
       if (mounted) {
         setState(() {

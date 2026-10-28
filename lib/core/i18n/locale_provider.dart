@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 
 /// Legacy locale provider — maintains backward compatibility with existing code
 class LocaleNotifier extends StateNotifier<String> {
@@ -26,7 +27,9 @@ class LocaleNotifier extends StateNotifier<String> {
     // Sync with UserLanguageSettings
     try {
 
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/core/i18n/locale_provider.dart:29', e, stackTrace: st);
+    }
   }
 }
 

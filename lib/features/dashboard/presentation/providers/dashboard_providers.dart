@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/cache/cached_future_controller.dart';
 import '../../../../core/cache/json_disk_cache.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -91,7 +92,9 @@ class UserSettingsNotifier extends StateNotifier<UserSettings> {
       if (data.isNotEmpty) {
         state = UserSettings.fromJson(data);
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/dashboard/presentation/providers/dashboard_providers.dart:94', e, stackTrace: st);
+    }
   }
 
   Future<void> updateSetting(String key, dynamic value) async {
@@ -166,7 +169,9 @@ final userFluencyStatsProvider = FutureProvider.autoDispose<Map<String, dynamic>
     if (data != null) {
       return Map<String, dynamic>.from(data);
     }
-  } catch (_) {}
+  } catch (e, st) {
+    ErrorTracker.logSilent('lib/features/dashboard/presentation/providers/dashboard_providers.dart:169', e, stackTrace: st);
+  }
 
   return {
     'avg_response_latency_seconds': 1.8,
@@ -255,7 +260,9 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((ref
             .limit(1)
             .maybeSingle();
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/dashboard/presentation/providers/dashboard_providers.dart:258', e, stackTrace: st);
+    }
 
     // 1. Goals score (completed / total)
     final goalsRes = (results[0] as List).cast<Map<String, dynamic>>();

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../domain/repositories/onboarding_repository.dart';
 
 class OnboardingRepositoryImpl implements OnboardingRepository {
@@ -115,7 +116,9 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
           'xp_points': 0,
           'current_streak': 0,
         });
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:118', e, stackTrace: st);
+      }
     }
 
     // 4. Upsert user settings

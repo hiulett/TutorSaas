@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../domain/models/ai_stream_exception.dart';
@@ -163,7 +164,9 @@ class ConversationRepositoryImpl implements ConversationRepository {
                 // después y el proxy lo necesita para registrar el coste (P-14).
                 // El bucle termina con `data: [DONE]`.
               }
-            } catch (_) {}
+            } catch (e, st) {
+              ErrorTracker.logSilent('lib/features/conversation/data/repositories/conversation_repository_impl.dart:166', e, stackTrace: st);
+            }
           } else if (line.contains('[DONE]')) {
             break;
           }

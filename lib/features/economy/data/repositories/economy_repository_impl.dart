@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../subscription/domain/premium_status.dart';
 import '../../domain/repositories/economy_repository.dart';
@@ -349,7 +350,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
         'p_item_id': itemCode,
         'p_equip': item['is_equipped'] != true,
       });
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:352', e, stackTrace: st);
+    }
   }
 
   @override
@@ -359,7 +362,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
         'p_user_id': userId,
         'p_amount': amount,
       });
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:362', e, stackTrace: st);
+    }
   }
 
   @override
@@ -474,7 +479,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
           'is_used': false,
         });
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:477', e, stackTrace: st);
+    }
   }
 
   // ── Battle Pass ──────────────────────────────────────────────────────────
@@ -565,7 +572,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
         'p_user_id': userId,
         'p_amount': amount,
       });
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:568', e, stackTrace: st);
+    }
   }
 
   /// Maná del Oráculo extra según el plan contratado.

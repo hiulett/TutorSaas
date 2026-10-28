@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../domain/repositories/chat_rooms_repository.dart';
 class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
   final SupabaseClient _supabaseClient;
@@ -652,7 +653,9 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
           'avatar_url': u['avatar_url'] as String? ?? 'warrior',
         };
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/chat_rooms/data/repositories/chat_rooms_repository_impl.dart:655', e, stackTrace: st);
+    }
     return map;
   }
 
