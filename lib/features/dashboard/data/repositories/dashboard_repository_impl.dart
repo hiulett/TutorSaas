@@ -59,16 +59,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
         'language_emoji': languageEmoji,
         'equipped_title_code': response['equipped_title_code'] as String? ?? 'oido_halcon_abismo_c',
       };
-    } catch (_) {
-      return {
-        'xp': 0,
-        'streak': 0,
-        'level': 'Principiante',
-        'level_code': 'A1',
-        'game_rank': 'E',
-        'language': 'Inglés',
-        'language_emoji': '🇺🇸',
-      };
+    } catch (e, st) {
+      // P-19: no se inventan ceros; el provider decide con la cache.
+      ErrorTracker.logSilent('dashboard.getUserProgress', e, stackTrace: st);
+      rethrow;
     }
   }
 

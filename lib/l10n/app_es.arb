@@ -46,6 +46,13 @@
   "sync_progress": "SINCRONIZANDO NIVEL CEFR...",
 
   "dashboard_title": "ESTADO DEL SISTEMA",
+"dashboard_offline": "Sin conexión. Mostrando el último progreso guardado.",
+"dashboard_offline_age": "Sin conexión. Último progreso hace {minutes} min.",
+"@dashboard_offline_age": {
+  "placeholders": {
+    "minutes": { "type": "int" }
+  }
+},
   "dungeons": "MAZMORRAS",
   "guild": "GREMIO",
   "status": "ESTADO",

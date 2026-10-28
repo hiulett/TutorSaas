@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
+import 'package:tutorsaas/core/utils/retry.dart';
 import '../../../../core/cache/cached_future_controller.dart';
 import '../../../../core/cache/json_disk_cache.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -41,6 +44,13 @@ final learningEvidenceProvider =
   }
 });
 
+/// P-19: si la ultima consulta de progreso fallo, la UI muestra un banner y
+/// el ultimo progreso bueno (memoria + disco) en vez de ceros.
+final progressOfflineProvider = StateProvider<bool>((ref) => false);
+final progressCachedAtProvider = StateProvider<DateTime?>((ref) => null);
+
+String _progressCacheKey(String userId) => 'dashboard_progress_$userId';
+
 final userProgressProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   ref.keepAlive();
   final user = ref.watch(currentUserProvider);
@@ -54,7 +64,37 @@ final userProgressProvider = FutureProvider.autoDispose<Map<String, dynamic>>((r
       'language_emoji': '🇺🇸',
     };
   }
-  return ref.read(dashboardRepositoryProvider).getUserProgress(user.id);
+
+  final repo = ref.read(dashboardRepositoryProvider);
+  try {
+    final fresh = await retryWithBackoff(() => repo.getUserProgress(user.id));
+    final now = DateTime.now();
+    await JsonDiskCache.writeString(
+      _progressCacheKey(user.id),
+      jsonEncode({...fresh, '_cached_at': now.toIso8601String()}),
+    );
+    ref.read(progressOfflineProvider.notifier).state = false;
+    ref.read(progressCachedAtProvider.notifier).state = now;
+    return fresh;
+  } catch (e, st) {
+    ErrorTracker.logSilent('dashboard.userProgress', e, stackTrace: st);
+    ref.read(progressOfflineProvider.notifier).state = true;
+    final raw = await JsonDiskCache.readString(_progressCacheKey(user.id));
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          final cached = Map<String, dynamic>.from(decoded);
+          final at = DateTime.tryParse(cached.remove('_cached_at') as String? ?? '');
+          ref.read(progressCachedAtProvider.notifier).state = at;
+          return cached;
+        }
+      } catch (parseError, parseStack) {
+        ErrorTracker.logSilent('dashboard.progressCache', parseError, stackTrace: parseStack);
+      }
+    }
+    rethrow;
+  }
 });
 
 final recommendedLessonsProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
