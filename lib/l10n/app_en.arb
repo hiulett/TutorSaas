@@ -449,6 +449,8 @@
   "hero_class_label": "Class",
   "hero_member_since": "Member since",
   "summary_view_vocab": "VIEW VOCABULARY",
+"summary_vocab_title": "SESSION VOCABULARY",
+"summary_vocab_empty": "No words saved from this session yet.",
   "summary_vocab_saved": "Vocabulary saved to your profile.",
   "summary_done": "DONE",
   "collections_load_error": "Could not load collections",
