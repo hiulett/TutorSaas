@@ -8,6 +8,7 @@ import UserBiometricsManager from './pages/UserBiometricsManager';
 import SubscriptionPlansManager from './pages/SubscriptionPlansManager';
 import EconomyConfig from './pages/EconomyConfig';
 import AiSettings from './pages/AiSettings';
+import RetentionDashboard from './pages/RetentionDashboard';
 import Login from './pages/Login';
 import { supabase } from './lib/supabaseClient';
 import { adminService } from './services/adminService';
@@ -24,6 +25,7 @@ export default function App() {
   const [overviewMetrics, setOverviewMetrics] = useState(null);
   const [cefrDistribution, setCefrDistribution] = useState([]);
   const [aiSettings, setAiSettings] = useState(null);
+  const [retentionMetrics, setRetentionMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const isAdmin = (s) => s?.user?.app_metadata?.role === 'admin';
@@ -54,7 +56,7 @@ export default function App() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [fetchedMetrics, fetchedLessons, fetchedLevels, fetchedUsers, fetchedPlans, fetchedAi, fetchedDist] = await Promise.all([
+      const [fetchedMetrics, fetchedLessons, fetchedLevels, fetchedUsers, fetchedPlans, fetchedAi, fetchedDist, fetchedRetention] = await Promise.all([
         adminService.getOverviewMetrics(),
         adminService.getScenarios(),
         adminService.getCefrLevels(),
@@ -62,6 +64,7 @@ export default function App() {
         adminService.getSubscriptionPlans(),
         adminService.getAiSettings(),
         adminService.getCefrDistribution(),
+        adminService.getRetentionMetrics(),
       ]);
 
       setOverviewMetrics(fetchedMetrics);
@@ -71,6 +74,7 @@ export default function App() {
       setPlans(fetchedPlans);
       setAiSettings(fetchedAi);
       setCefrDistribution(fetchedDist);
+      setRetentionMetrics(fetchedRetention);
     } catch (err) {
       console.error('Error loading admin data:', err);
     } finally {
@@ -266,6 +270,9 @@ export default function App() {
               {activeTab === 'economy' && <EconomyConfig />}
               {activeTab === 'ai-settings' && (
                 <AiSettings settings={aiSettings} onSave={handleSaveAiSettings} />
+              )}
+              {activeTab === 'retention' && (
+                <RetentionDashboard metrics={retentionMetrics} />
               )}
             </>
           )}

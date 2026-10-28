@@ -123,6 +123,32 @@ from public.ai_usage_daily group by day order by day desc;
 
 ---
 
+### 3.3 Analitica de producto (P-15)
+
+Los eventos viven en `analytics_events (user_id, event_name, properties jsonb, created_at)`.
+La taxonomia esta en `lib/core/analytics/analytics_taxonomy.dart`.
+
+Reglas de `properties`:
+
+- Solo ids, codigos y contadores. Nunca email, nombre, texto de conversacion,
+  audio ni tokens.
+- `sanitizeAnalyticsProperties` descarta claves con PII, listas/mapas y trunca
+  los textos a 200 caracteres.
+
+Vistas (RLS: el dueno ve lo suyo; `app_metadata.role = 'admin'` ve todo):
+
+| Vista | Que mide |
+|---|---|
+| `analytics_onboarding_funnel` | Embudo por paso + completados |
+| `analytics_activation` | Primera sesion dentro de 24 h del registro |
+| `analytics_retention` | Actividad D1 / D7 / D30 por cohorte |
+| `analytics_sessions_per_week` | Sesiones por usuario y semana |
+
+Panel: `web_admin` -> pestana "Retencion y Embudo".
+
+Pendiente legal: actualizar el aviso de privacidad de la ficha de Play para
+declarar estos eventos agregados (no se envia texto de conversacion).
+
 ## 4. Cron
 
 | Job | Frecuencia | Qué hace |
