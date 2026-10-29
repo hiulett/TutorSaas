@@ -40,6 +40,10 @@ _Medido en producción el 18-oct-2026._
 - `oracle_turns` guarda las 6 dimensiones que pinta el radar del dashboard
   (pronunciation, fluency, grammar, vocabulary, comprehension, naturalness),
   rellenadas al cerrar el examen.
+- `daily_stats` lo escribe `register_practice` (minutos y conversaciones del
+  día) desde P-23; antes nadie lo alimentaba y el gráfico semanal salía vacío.
+  La meta diaria se calcula sobre `practice_sessions` (el libro idempotente de
+  P-03), no sobre `daily_stats`.
 
 ### Economía y progresión
 `subscription_plans`, `user_subscriptions`, `payments`, `mana_transactions`,
@@ -130,6 +134,8 @@ El cliente **no** escribe `cefr_level_id` ni `game_rank`:
 | `refund_failed_turn(turn_ref, action)` | Reembolso idempotente desde el cliente (P-06) |
 | `apply_self_declared_level(code)` | Nivel autodeclarado del onboarding, una sola vez (#73) |
 | `apply_placement_as(user, …)` | Resultado del Oráculo; solo `service_role` (#73) |
+| `get_daily_goal_progress(tz)` | Minutos de hoy, meta, racha y si ya se celebró (P-23) |
+| `claim_daily_goal_celebration(tz)` | Celebración de la meta, una vez por día (P-23) |
 
 ---
 
