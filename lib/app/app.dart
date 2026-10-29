@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
+import '../core/analytics/analytics_taxonomy.dart';
 import '../core/i18n/language_settings.dart';
 import '../core/services/retention_analytics.dart';
 import '../core/theme/app_theme.dart';
@@ -32,7 +33,7 @@ class TutorSaaSApp extends ConsumerWidget {
       if (next == null || next.isEmpty) return;
       trackNotificationEvent(
         ref.read(currentUserProvider)?.id ?? '',
-        'notification_opened',
+        AnalyticsEvent.notificationOpened,
         properties: <String, dynamic>{'route': next},
       );
       ref.read(notificationTapRouteProvider.notifier).state = null;

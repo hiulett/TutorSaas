@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -116,7 +117,7 @@ class _NotificationPermissionPromptState
         .requestPermission();
     trackNotificationEvent(
       ref.read(currentUserProvider)?.id ?? '',
-      'notification_permission',
+      AnalyticsEvent.notificationPermission,
       properties: <String, dynamic>{
         'granted': granted,
         'source': 'post_lesson',

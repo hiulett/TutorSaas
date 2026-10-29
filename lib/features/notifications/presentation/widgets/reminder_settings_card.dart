@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/system_snack.dart';
@@ -78,7 +79,7 @@ class _ReminderSettingsCardState extends ConsumerState<ReminderSettingsCard> {
         .requestPermission();
     trackNotificationEvent(
       userId,
-      'notification_permission',
+      AnalyticsEvent.notificationPermission,
       properties: <String, dynamic>{'granted': granted, 'source': 'settings'},
     );
     if (!mounted) return;
