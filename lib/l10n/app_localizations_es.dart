@@ -2782,6 +2782,62 @@ class AppLocalizationsEs extends AppLocalizations {
   String get convo_analyzing_level => 'Analizando tu nivel de comunicación...';
 
   @override
+  String get convo_status_listening => 'Escuchando…';
+
+  @override
+  String get convo_status_thinking => 'Pensando…';
+
+  @override
+  String get convo_status_speaking => 'El tutor está hablando';
+
+  @override
+  String get convo_stop_tutor => 'Detener';
+
+  @override
+  String get convo_tts_title => 'Voz del tutor';
+
+  @override
+  String get convo_tts_speed => 'Velocidad';
+
+  @override
+  String get convo_tts_voice => 'Voz';
+
+  @override
+  String get convo_tts_default_voice => 'Voz del sistema';
+
+  @override
+  String get convo_tts_no_voices =>
+      'No se encontraron voces en inglés. Instala una en Ajustes de Android > Idiomas.';
+
+  @override
+  String get convo_mic_denied_title => 'Micrófono bloqueado';
+
+  @override
+  String get convo_mic_denied_body =>
+      'Dungeon of English necesita el micrófono para escucharte. Actívalo en los ajustes de Android y vuelve a intentarlo.';
+
+  @override
+  String get convo_mic_open_settings => 'Abrir ajustes';
+
+  @override
+  String get convo_mic_retry => 'Reintentar';
+
+  @override
+  String get convo_mic_manual_hint =>
+      'Abre Ajustes > Apps > Dungeon of English > Permisos > Micrófono.';
+
+  @override
+  String get convo_help_title => 'Necesito ayuda';
+
+  @override
+  String get convo_help_hint =>
+      'Toca una frase para enviarla como tu respuesta.';
+
+  @override
+  String get convo_help_empty =>
+      'Este escenario todavía no tiene frases de ayuda. Escribe tu respuesta o cambia de tema.';
+
+  @override
   String get settings_system_config => 'CONFIGURACIÓN DEL SISTEMA';
 
   @override

@@ -6,12 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
+import '../../../../core/platform/app_settings_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../domain/models/help_phrase.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_state.dart';
 import '../providers/conversation_providers.dart';
+import '../providers/help_phrases_provider.dart';
+import '../widgets/conversation_status_bar.dart';
+import '../widgets/help_phrases_sheet.dart';
+import '../widgets/mic_permission_card.dart';
+import '../widgets/tts_settings_sheet.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../dashboard/domain/models/mission_progress_service.dart';
@@ -28,6 +35,9 @@ import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../../../corrections/presentation/providers/corrections_providers.dart';
 import '../../../corrections/presentation/widgets/correction_chip.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
+import '../../../../core/services/retention_analytics.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -273,6 +283,151 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       setState(() {
         _showKeyboardDrawer = false;
       });
+    }
+  }
+
+  // ── P-34 (#119): experiencia de conversación ───────────────────────────────
+
+  /// Analítica best-effort (nunca bloquea ni lanza).
+  void _track(String event, {Map<String, dynamic>? properties}) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    try {
+      unawaited(
+        RetentionAnalytics.instance.track(
+          user.id,
+          event,
+          properties: properties,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Analytics ($event) no disponible: $e');
+    }
+  }
+
+  /// P-34e: abre los ajustes de permisos de Android.
+  Future<void> _openMicAppSettings() async {
+    final l10n = AppLocalizations.of(context);
+    final opened = await ref
+        .read(appSettingsLauncherProvider)
+        .openAppPermissionSettings();
+    _track(AnalyticsEvent.micSettingsOpened, properties: {'opened': opened});
+    if (!opened && mounted) {
+      SystemSnack.show(
+        context,
+        l10n?.convo_mic_manual_hint ??
+            'Abre Ajustes > Apps > Dungeon of English > Permisos > Micrófono.',
+        type: SystemSnackType.error,
+      );
+    }
+  }
+
+  void _retryMicPermission() {
+    ref.read(conversationStateProvider.notifier).startRecording();
+  }
+
+  /// P-34c: hoja con velocidad y voz del tutor (persistidas en user_settings).
+  Future<void> _showTtsSettingsSheet() async {
+    final voices = await ref
+        .read(conversationStateProvider.notifier)
+        .loadAvailableVoices();
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return Consumer(
+          builder: (context, sheetRef, _) {
+            final state = sheetRef.watch(conversationStateProvider);
+            return TtsSettingsSheet(
+              speed: state.ttsSpeed,
+              voiceId: state.tutorVoiceId,
+              voices: voices,
+              title: l10n?.convo_tts_title ?? 'Voz del tutor',
+              speedLabel: l10n?.convo_tts_speed ?? 'Velocidad',
+              voiceLabel: l10n?.convo_tts_voice ?? 'Voz',
+              defaultVoiceLabel:
+                  l10n?.convo_tts_default_voice ?? 'Voz del sistema',
+              noVoicesMessage:
+                  l10n?.convo_tts_no_voices ??
+                  'No se encontraron voces en inglés instaladas. Instala una en Ajustes de Android > Idiomas.',
+              onSpeedChanged: (value) {
+                unawaited(
+                  sheetRef
+                      .read(conversationStateProvider.notifier)
+                      .setTtsSpeed(value),
+                );
+              },
+              onVoiceChanged: (value) {
+                unawaited(
+                  sheetRef
+                      .read(conversationStateProvider.notifier)
+                      .setTutorVoice(value),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// P-34b: "Necesito ayuda" con hasta 3 frases reales del escenario.
+  Future<void> _showHelpPhrases() async {
+    final scenarioId = ref.read(conversationStateProvider).activeScenarioId;
+    final l10n = AppLocalizations.of(context);
+    unawaited(_trackHelpPhrasesShown(scenarioId));
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return Consumer(
+          builder: (context, sheetRef, _) {
+            final asyncPhrases = sheetRef.watch(
+              helpPhrasesProvider(scenarioId),
+            );
+            return HelpPhrasesSheet(
+              title: l10n?.convo_help_title ?? 'Necesito ayuda',
+              hint:
+                  l10n?.convo_help_hint ??
+                  'Toca una frase para enviarla como tu respuesta.',
+              emptyMessage:
+                  l10n?.convo_help_empty ??
+                  'Este escenario todavía no tiene frases de ayuda. Escribe tu respuesta o cambia de tema.',
+              phrases: asyncPhrases.value ?? const <HelpPhrase>[],
+              loading: asyncPhrases.isLoading,
+              onUsePhrase: (phrase) {
+                Navigator.of(sheetContext).pop();
+                _track(
+                  AnalyticsEvent.helpPhraseUsed,
+                  properties: {
+                    'origin': phrase.origin.name,
+                    'phrase_id': phrase.id,
+                  },
+                );
+                ref
+                    .read(conversationStateProvider.notifier)
+                    .sendTextMessage(phrase.text);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _trackHelpPhrasesShown(String? scenarioId) async {
+    try {
+      final phrases = await ref.read(helpPhrasesProvider(scenarioId).future);
+      _track(
+        AnalyticsEvent.helpPhrasesShown,
+        properties: {'count': phrases.length, 'scenario_id': scenarioId ?? ''},
+      );
+    } catch (e) {
+      debugPrint('No se pudo registrar help_phrases_shown: $e');
     }
   }
 
@@ -916,6 +1071,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final conversationState = ref.watch(conversationStateProvider);
     final conversationNotifier = ref.read(conversationStateProvider.notifier);
     final convError = ref.watch(conversationErrorProvider);
@@ -1070,6 +1226,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
+                              IconButton(
+                                key: const Key(
+                                  'conversation-app-voice-settings',
+                                ),
+                                tooltip:
+                                    l10n?.convo_tts_title ?? 'Voz del tutor',
+                                visualDensity: VisualDensity.compact,
+                                icon: const Icon(
+                                  Icons.tune_rounded,
+                                  color: Colors.white70,
+                                  size: 20,
+                                ),
+                                onPressed: _showTtsSettingsSheet,
+                              ),
                               ClipOval(
                                 child: Image.asset(
                                   'assets/images/avatars/oracle_01.png',
@@ -1288,6 +1458,51 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                               color: _isTypingMode
                                                   ? AppColors.manaCyan
                                                   : Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // P-34b (#119): "Necesito ayuda" con frases
+                                  // reales del escenario (solo fuera del Oráculo).
+                                  InkWell(
+                                    key: const Key('conversation-help'),
+                                    onTap: _showHelpPhrases,
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.royalGold.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: AppColors.royalGold.withValues(
+                                            alpha: 0.55,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.lightbulb_outline_rounded,
+                                            color: AppColors.royalGold,
+                                            size: 12,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            l10n?.convo_help_title ??
+                                                'Necesito ayuda',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.royalGold,
                                             ),
                                           ),
                                         ],
@@ -1628,6 +1843,42 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       ),
 
                     // â”€â”€ Controls Row (5 Icons Layout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    // ── P-34e (#119): permiso de micrófono denegado ─────────
+                    if (conversationState.micPermissionDenied)
+                      MicPermissionCard(
+                        title:
+                            l10n?.convo_mic_denied_title ??
+                            'Micrófono bloqueado',
+                        body:
+                            l10n?.convo_mic_denied_body ??
+                            'Dungeon of English necesita el micrófono para escucharte. Actívalo en los ajustes de Android y vuelve a intentarlo.',
+                        openSettingsLabel:
+                            l10n?.convo_mic_open_settings ?? 'Abrir ajustes',
+                        retryLabel: l10n?.convo_mic_retry ?? 'Reintentar',
+                        onOpenSettings: _openMicAppSettings,
+                        onRetry: _retryMicPermission,
+                      ),
+
+                    // ── P-34a/c/g (#119): estado, stop y velocidad del TTS ──
+                    ConversationStatusBar(
+                      isRecording: conversationState.isRecording,
+                      isProcessing: conversationState.isProcessing,
+                      isPlaying: conversationState.isPlaying,
+                      ttsSpeed: conversationState.ttsSpeed,
+                      listeningLabel:
+                          l10n?.convo_status_listening ?? 'Escuchando…',
+                      thinkingLabel: l10n?.convo_status_thinking ?? 'Pensando…',
+                      speakingLabel:
+                          l10n?.convo_status_speaking ??
+                          'El tutor está hablando',
+                      stopLabel: l10n?.convo_stop_tutor ?? 'Detener',
+                      voiceSettingsTooltip:
+                          l10n?.convo_tts_title ?? 'Voz del tutor',
+                      onStopTts: conversationNotifier.pauseTts,
+                      onOpenVoiceSettings: _showTtsSettingsSheet,
+                      onSpeedChanged: conversationNotifier.setTtsSpeed,
+                    ),
+
                     Container(
                       padding: const EdgeInsets.fromLTRB(
                         16.0,
@@ -1773,6 +2024,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             ),
                             onPressed: () => _showSpeechDnaModal(context),
                           ),
+
+                          // P-34b (#119): "Necesito ayuda" vive en la barra de
+                          // modos (con scroll), para no saturar esta fila.
 
                           // Icon 5: Keyboard (Entrada de Texto Directa)
                           IconButton(

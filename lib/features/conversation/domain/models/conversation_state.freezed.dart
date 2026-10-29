@@ -52,6 +52,16 @@ mixin _$ConversationState {
   /// Non-null once the Oracle finishes the exam; holds the placement result.
   Map<String, dynamic>? get oracleResult => throw _privateConstructorUsedError;
 
+  /// P-34e (#119): el permiso de micrófono fue denegado. La pantalla muestra
+  /// una tarjeta accionable con acceso a los ajustes del sistema.
+  bool get micPermissionDenied =>
+      throw _privateConstructorUsedError; // ── P-34c (#119): preferencias de voz del tutor ──────────────────────────
+  /// Multiplicador del TTS (0.75x / 1x / 1.25x).
+  double get ttsSpeed => throw _privateConstructorUsedError;
+
+  /// Nombre de la voz del motor TTS. `null` = voz del sistema.
+  String? get tutorVoiceId => throw _privateConstructorUsedError;
+
   /// Momento en que arrancó la sesión (para el resumen real de duración).
   /// Se fija en [initSession] y en la sesión del Oráculo.
   DateTime? get sessionStartedAt => throw _privateConstructorUsedError;
@@ -84,6 +94,9 @@ abstract class $ConversationStateCopyWith<$Res> {
       bool oracleEvaluating,
       bool oracleFinished,
       Map<String, dynamic>? oracleResult,
+      bool micPermissionDenied,
+      double ttsSpeed,
+      String? tutorVoiceId,
       DateTime? sessionStartedAt});
 }
 
@@ -116,6 +129,9 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
     Object? oracleEvaluating = null,
     Object? oracleFinished = null,
     Object? oracleResult = freezed,
+    Object? micPermissionDenied = null,
+    Object? ttsSpeed = null,
+    Object? tutorVoiceId = freezed,
     Object? sessionStartedAt = freezed,
   }) {
     return _then(_value.copyWith(
@@ -183,6 +199,18 @@ class _$ConversationStateCopyWithImpl<$Res, $Val extends ConversationState>
           ? _value.oracleResult
           : oracleResult // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      micPermissionDenied: null == micPermissionDenied
+          ? _value.micPermissionDenied
+          : micPermissionDenied // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ttsSpeed: null == ttsSpeed
+          ? _value.ttsSpeed
+          : ttsSpeed // ignore: cast_nullable_to_non_nullable
+              as double,
+      tutorVoiceId: freezed == tutorVoiceId
+          ? _value.tutorVoiceId
+          : tutorVoiceId // ignore: cast_nullable_to_non_nullable
+              as String?,
       sessionStartedAt: freezed == sessionStartedAt
           ? _value.sessionStartedAt
           : sessionStartedAt // ignore: cast_nullable_to_non_nullable
@@ -216,6 +244,9 @@ abstract class _$$ConversationStateImplCopyWith<$Res>
       bool oracleEvaluating,
       bool oracleFinished,
       Map<String, dynamic>? oracleResult,
+      bool micPermissionDenied,
+      double ttsSpeed,
+      String? tutorVoiceId,
       DateTime? sessionStartedAt});
 }
 
@@ -246,6 +277,9 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
     Object? oracleEvaluating = null,
     Object? oracleFinished = null,
     Object? oracleResult = freezed,
+    Object? micPermissionDenied = null,
+    Object? ttsSpeed = null,
+    Object? tutorVoiceId = freezed,
     Object? sessionStartedAt = freezed,
   }) {
     return _then(_$ConversationStateImpl(
@@ -313,6 +347,18 @@ class __$$ConversationStateImplCopyWithImpl<$Res>
           ? _value._oracleResult
           : oracleResult // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      micPermissionDenied: null == micPermissionDenied
+          ? _value.micPermissionDenied
+          : micPermissionDenied // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ttsSpeed: null == ttsSpeed
+          ? _value.ttsSpeed
+          : ttsSpeed // ignore: cast_nullable_to_non_nullable
+              as double,
+      tutorVoiceId: freezed == tutorVoiceId
+          ? _value.tutorVoiceId
+          : tutorVoiceId // ignore: cast_nullable_to_non_nullable
+              as String?,
       sessionStartedAt: freezed == sessionStartedAt
           ? _value.sessionStartedAt
           : sessionStartedAt // ignore: cast_nullable_to_non_nullable
@@ -341,6 +387,9 @@ class _$ConversationStateImpl implements _ConversationState {
       this.oracleEvaluating = false,
       this.oracleFinished = false,
       final Map<String, dynamic>? oracleResult,
+      this.micPermissionDenied = false,
+      this.ttsSpeed = 1.0,
+      this.tutorVoiceId,
       this.sessionStartedAt})
       : _messages = messages,
         _goalEvaluationResults = goalEvaluationResults,
@@ -431,6 +480,21 @@ class _$ConversationStateImpl implements _ConversationState {
     return EqualUnmodifiableMapView(value);
   }
 
+  /// P-34e (#119): el permiso de micrófono fue denegado. La pantalla muestra
+  /// una tarjeta accionable con acceso a los ajustes del sistema.
+  @override
+  @JsonKey()
+  final bool micPermissionDenied;
+// ── P-34c (#119): preferencias de voz del tutor ──────────────────────────
+  /// Multiplicador del TTS (0.75x / 1x / 1.25x).
+  @override
+  @JsonKey()
+  final double ttsSpeed;
+
+  /// Nombre de la voz del motor TTS. `null` = voz del sistema.
+  @override
+  final String? tutorVoiceId;
+
   /// Momento en que arrancó la sesión (para el resumen real de duración).
   /// Se fija en [initSession] y en la sesión del Oráculo.
   @override
@@ -438,7 +502,7 @@ class _$ConversationStateImpl implements _ConversationState {
 
   @override
   String toString() {
-    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleEvaluating: $oracleEvaluating, oracleFinished: $oracleFinished, oracleResult: $oracleResult, sessionStartedAt: $sessionStartedAt)';
+    return 'ConversationState(messages: $messages, isRecording: $isRecording, isProcessing: $isProcessing, isPlaying: $isPlaying, currentTranscribingText: $currentTranscribingText, errorMessage: $errorMessage, activeScenarioId: $activeScenarioId, activeScenarioName: $activeScenarioName, goalEvaluationResults: $goalEvaluationResults, newGoalsCompleted: $newGoalsCompleted, isOracleEvaluation: $isOracleEvaluation, oracleTargetLanguage: $oracleTargetLanguage, oracleNativeLanguage: $oracleNativeLanguage, oracleEvaluating: $oracleEvaluating, oracleFinished: $oracleFinished, oracleResult: $oracleResult, micPermissionDenied: $micPermissionDenied, ttsSpeed: $ttsSpeed, tutorVoiceId: $tutorVoiceId, sessionStartedAt: $sessionStartedAt)';
   }
 
   @override
@@ -478,30 +542,40 @@ class _$ConversationStateImpl implements _ConversationState {
                 other.oracleFinished == oracleFinished) &&
             const DeepCollectionEquality()
                 .equals(other._oracleResult, _oracleResult) &&
+            (identical(other.micPermissionDenied, micPermissionDenied) ||
+                other.micPermissionDenied == micPermissionDenied) &&
+            (identical(other.ttsSpeed, ttsSpeed) ||
+                other.ttsSpeed == ttsSpeed) &&
+            (identical(other.tutorVoiceId, tutorVoiceId) ||
+                other.tutorVoiceId == tutorVoiceId) &&
             (identical(other.sessionStartedAt, sessionStartedAt) ||
                 other.sessionStartedAt == sessionStartedAt));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(_messages),
-      isRecording,
-      isProcessing,
-      isPlaying,
-      currentTranscribingText,
-      errorMessage,
-      activeScenarioId,
-      activeScenarioName,
-      const DeepCollectionEquality().hash(_goalEvaluationResults),
-      newGoalsCompleted,
-      isOracleEvaluation,
-      oracleTargetLanguage,
-      oracleNativeLanguage,
-      oracleEvaluating,
-      oracleFinished,
-      const DeepCollectionEquality().hash(_oracleResult),
-      sessionStartedAt);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        const DeepCollectionEquality().hash(_messages),
+        isRecording,
+        isProcessing,
+        isPlaying,
+        currentTranscribingText,
+        errorMessage,
+        activeScenarioId,
+        activeScenarioName,
+        const DeepCollectionEquality().hash(_goalEvaluationResults),
+        newGoalsCompleted,
+        isOracleEvaluation,
+        oracleTargetLanguage,
+        oracleNativeLanguage,
+        oracleEvaluating,
+        oracleFinished,
+        const DeepCollectionEquality().hash(_oracleResult),
+        micPermissionDenied,
+        ttsSpeed,
+        tutorVoiceId,
+        sessionStartedAt
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -529,6 +603,9 @@ abstract class _ConversationState implements ConversationState {
       final bool oracleEvaluating,
       final bool oracleFinished,
       final Map<String, dynamic>? oracleResult,
+      final bool micPermissionDenied,
+      final double ttsSpeed,
+      final String? tutorVoiceId,
       final DateTime? sessionStartedAt}) = _$ConversationStateImpl;
 
   @override
@@ -580,6 +657,18 @@ abstract class _ConversationState implements ConversationState {
 
   /// Non-null once the Oracle finishes the exam; holds the placement result.
   Map<String, dynamic>? get oracleResult;
+  @override
+
+  /// P-34e (#119): el permiso de micrófono fue denegado. La pantalla muestra
+  /// una tarjeta accionable con acceso a los ajustes del sistema.
+  bool get micPermissionDenied;
+  @override // ── P-34c (#119): preferencias de voz del tutor ──────────────────────────
+  /// Multiplicador del TTS (0.75x / 1x / 1.25x).
+  double get ttsSpeed;
+  @override
+
+  /// Nombre de la voz del motor TTS. `null` = voz del sistema.
+  String? get tutorVoiceId;
   @override
 
   /// Momento en que arrancó la sesión (para el resumen real de duración).

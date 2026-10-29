@@ -31,6 +31,8 @@ import '../../../onboarding/domain/models/placement_outcome.dart';
 import '../../../../core/i18n/language_settings.dart';
 import '../../../../core/utils/text_diff_utils.dart';
 import '../../../../core/services/retention_analytics.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
+import '../../domain/models/tts_preferences.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Providers
@@ -85,6 +87,14 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   bool _ttsReady = false;
   bool _ttsSuppressed = false;
 
+  /// P-34c (#119): preferencias de voz activas en esta sesión.
+  double _ttsSpeed = TtsPreferences.defaultSpeed;
+  String? _tutorVoiceId;
+
+  /// P-34g (#119): inicio del turno para medir latencia hasta el primer chunk.
+  DateTime? _turnStartedAt;
+  bool _turnLatencyTracked = false;
+
   bool _hasProcessedThisTurn = false;
   String? _conversationId;
   String? _userId;
@@ -123,6 +133,40 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     _initTts();
   }
 
+  /// Analítica best-effort. Nunca lanza (tests sin Supabase, invitados).
+  void _track(String event, {Map<String, dynamic>? properties}) {
+    final userId = _userId;
+    if (userId == null || userId.isEmpty || userId.startsWith('guest_')) {
+      return;
+    }
+    try {
+      unawaited(
+        RetentionAnalytics.instance.track(
+          userId,
+          event,
+          properties: properties,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Analytics ($event) no disponible: $e');
+    }
+  }
+
+  /// P-34g (#119): latencia hasta el primer chunk de la respuesta.
+  void _trackTurnLatency() {
+    if (_turnLatencyTracked) return;
+    final startedAt = _turnStartedAt;
+    if (startedAt == null) return;
+    _turnLatencyTracked = true;
+    _track(
+      AnalyticsEvent.conversationTurnLatency,
+      properties: {
+        'ms': DateTime.now().difference(startedAt).inMilliseconds,
+        'action': _lastActionCode ?? 'free_chat_turn',
+      },
+    );
+  }
+
   // ── Session Init ────────────────────────────────────────────────────────────
 
   Future<void> initSession({String? scenarioId, String? scenarioTitle}) async {
@@ -144,6 +188,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     _recurringErrors = const [];
     _ref.read(sessionCorrectionsProvider.notifier).clear();
     unawaited(_loadRecurringErrors());
+
+    // P-34c (#119): velocidad y voz del tutor antes del primer _speakTts.
+    await _loadTtsPreferences();
 
     // Fetch latest scenario fields from Supabase DB to sync any edits saved from web_admin.
     // Issue #1: las lecciones usan claves del catálogo Dart (texto) contra
@@ -318,6 +365,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     _assessmentId = null;
     _ref.read(activeConversationIdProvider.notifier).state = null;
 
+    // P-34c (#119): preferencias de voz antes de la primera pregunta.
+    await _loadTtsPreferences();
+
     // Crea la sesión de evaluación en oracle_assessments para poder registrar
     // turnos (oracle_turns) durante la conversación.
     if (_userId != null && !_userId!.startsWith('guest_')) {
@@ -367,9 +417,13 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   Future<void> _initTts() async {
     try {
       await _tts.setLanguage('en-US');
-      await _tts.setSpeechRate(0.48);
+      await _tts.setSpeechRate(TtsPreferences.speechRateFor(_ttsSpeed));
       await _tts.setVolume(1.0);
       await _tts.setPitch(1.05);
+      final voice = _tutorVoiceId;
+      if (voice != null && voice.isNotEmpty) {
+        await _tts.setVoice({'name': voice, 'locale': 'en-US'});
+      }
       _tts.setCompletionHandler(() {
         state = state.copyWith(isPlaying: false);
       });
@@ -377,8 +431,131 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         state = state.copyWith(isPlaying: false);
       });
       _ttsReady = true;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('TTS init failed (non-blocking): $e');
       _ttsReady = false;
+    }
+  }
+
+  /// P-34c (#119): carga `tts_speed` y `tutor_voice_id` de `user_settings`.
+  ///
+  /// Best-effort: si la lectura falla se mantienen los valores por defecto y la
+  /// conversación continúa. Los invitados no tienen fila en `user_settings`.
+  Future<void> _loadTtsPreferences() async {
+    _ttsSpeed = TtsPreferences.defaultSpeed;
+    _tutorVoiceId = null;
+
+    final userId = _userId;
+    if (userId != null && !userId.startsWith('guest_')) {
+      try {
+        final data = await _ref
+            .read(dashboardRepositoryProvider)
+            .getUserSettings(userId);
+        if (data.isNotEmpty) {
+          _ttsSpeed = TtsPreferences.normalizeSpeed(
+            (data['tts_speed'] as num?)?.toDouble(),
+          );
+          final storedVoice = (data['tutor_voice_id'] as String?)?.trim();
+          _tutorVoiceId = (storedVoice == null || storedVoice.isEmpty)
+              ? null
+              : storedVoice;
+        }
+      } catch (e, st) {
+        debugPrint('No se pudieron leer las preferencias de voz: $e');
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:load_tts_prefs',
+          e,
+          stackTrace: st,
+        );
+      }
+    }
+
+    state = state.copyWith(ttsSpeed: _ttsSpeed, tutorVoiceId: _tutorVoiceId);
+    await _applyTtsConfig();
+  }
+
+  /// Aplica velocidad y voz al motor. No bloquea ni rompe el pipeline.
+  Future<void> _applyTtsConfig() async {
+    try {
+      if (!_ttsReady) await _initTts();
+      if (!_ttsReady) return;
+      await _tts.setSpeechRate(TtsPreferences.speechRateFor(_ttsSpeed));
+      final voice = _tutorVoiceId;
+      if (voice != null && voice.isNotEmpty) {
+        await _tts.setVoice({'name': voice, 'locale': 'en-US'});
+      }
+    } catch (e) {
+      debugPrint('TTS config failed (non-blocking): $e');
+    }
+  }
+
+  /// P-34c (#119): cambia la velocidad y la persiste en `user_settings`.
+  Future<void> setTtsSpeed(double speed) async {
+    final normalized = TtsPreferences.normalizeSpeed(speed);
+    _ttsSpeed = normalized;
+    state = state.copyWith(ttsSpeed: normalized);
+    await _applyTtsConfig();
+    await _persistTtsPreference('tts_speed', normalized);
+    _track(AnalyticsEvent.ttsSpeedChanged, properties: {'speed': normalized});
+  }
+
+  /// P-34c (#119): cambia la voz del tutor (`null` = voz del sistema).
+  Future<void> setTutorVoice(String? voiceName) async {
+    final normalized = (voiceName == null || voiceName.trim().isEmpty)
+        ? null
+        : voiceName.trim();
+    _tutorVoiceId = normalized;
+    state = state.copyWith(tutorVoiceId: normalized);
+    await _applyTtsConfig();
+    await _persistTtsPreference('tutor_voice_id', normalized);
+    _track(
+      AnalyticsEvent.ttsVoiceChanged,
+      properties: {'voice': normalized ?? 'system'},
+    );
+  }
+
+  /// Voces instaladas del motor TTS que hablan inglés.
+  ///
+  /// Si el plugin no está disponible (tests) devuelve lista vacía; la UI
+  /// ofrece entonces la voz por defecto y un mensaje accionable.
+  Future<List<Map<String, String>>> loadAvailableVoices() async {
+    try {
+      if (!_ttsReady) await _initTts();
+      if (!_ttsReady) return const [];
+      final raw = await _tts.getVoices;
+      final voices = <Map<String, String>>[];
+      if (raw is List) {
+        for (final item in raw) {
+          if (item is! Map) continue;
+          final name = item['name']?.toString().trim() ?? '';
+          final locale = item['locale']?.toString().trim() ?? '';
+          if (name.isEmpty) continue;
+          if (!locale.toLowerCase().startsWith('en')) continue;
+          voices.add({'name': name, 'locale': locale});
+        }
+      }
+      voices.sort((a, b) => a['name']!.compareTo(b['name']!));
+      return voices;
+    } catch (e) {
+      debugPrint('No se pudieron listar las voces TTS: $e');
+      return const [];
+    }
+  }
+
+  Future<void> _persistTtsPreference(String key, Object? value) async {
+    final userId = _userId;
+    if (userId == null || userId.startsWith('guest_')) return;
+    try {
+      await _ref.read(dashboardRepositoryProvider).updateUserSettings(userId, {
+        key: value,
+      });
+    } catch (e, st) {
+      debugPrint('No se pudo guardar $key en user_settings: $e');
+      ErrorTracker.logSilent(
+        'lib/features/conversation/presentation/providers/conversation_providers.dart:persist_tts_pref',
+        e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -395,9 +572,17 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     try {
       final hasPermission = await _audioRecorder.hasPermission();
       if (!hasPermission) {
+        // P-34e (#119): la pantalla muestra una tarjeta con "Ir a ajustes".
+        // No se usa `errorMessage` para no disparar dos avisos a la vez.
         state = state.copyWith(
-          errorMessage:
-              'Sin permiso de micrófono. Actívalo en la configuración.',
+          isRecording: false,
+          isProcessing: false,
+          micPermissionDenied: true,
+          errorMessage: null,
+        );
+        _track(
+          AnalyticsEvent.micPermissionDenied,
+          properties: {'surface': 'conversation'},
         );
         return;
       }
@@ -440,6 +625,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       _hasProcessedThisTurn = false;
       state = state.copyWith(
         isRecording: true,
+        micPermissionDenied: false,
         currentTranscribingText: 'Escuchando tu voz...',
         errorMessage: null,
       );
@@ -560,8 +746,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     if (trimmed.isEmpty || state.isProcessing) return;
 
     if (state.isPlaying) {
-      await _tts.stop();
-      state = state.copyWith(isPlaying: false);
+      await stopTts();
     }
 
     state = state.copyWith(
@@ -1198,6 +1383,10 @@ ENDING:
     if (_hasProcessedThisTurn) return;
     _hasProcessedThisTurn = true;
     _lastUserText = userText;
+    // P-34g (#119): desde aquí hasta el primer chunk se mide la latencia que
+    // alimenta el indicador "Pensando…" y el evento de analítica.
+    _turnStartedAt = DateTime.now();
+    _turnLatencyTracked = false;
     // P-29: identificador del turno para deduplicar correcciones en servidor.
     _correctionTurnRef =
         '${_conversationId ?? state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
@@ -1331,6 +1520,7 @@ ENDING:
       String fullTutorResponse = '';
 
       await for (final chunk in stream) {
+        _trackTurnLatency();
         fullTutorResponse += chunk;
         final updatedMessages = List<ConversationMessage>.from(state.messages);
         updatedMessages[updatedMessages.length - 1] = ConversationMessage(
@@ -1656,8 +1846,20 @@ ENDING:
 
   Future<void> stopTts({bool suppress = false}) async {
     if (suppress) _ttsSuppressed = true;
-    await _tts.stop();
+    try {
+      await _tts.stop();
+    } catch (e) {
+      // El motor TTS puede no existir (tests, dispositivo sin motor): el
+      // estado debe quedar en "no hablando" igualmente.
+      debugPrint('TTS stop failed (non-blocking): $e');
+    }
     state = state.copyWith(isPlaying: false);
+  }
+
+  /// P-34a (#119): el usuario pulsa "Detener" mientras el tutor narra.
+  Future<void> pauseTts() async {
+    await stopTts();
+    _track(AnalyticsEvent.ttsStopped, properties: {'source': 'button'});
   }
 
   /// End the conversation session — persists final data and refreshes dashboard.
@@ -2046,9 +2248,23 @@ ENDING:
 
   @override
   void dispose() {
-    _audioRecorder.dispose();
-    _tts.stop();
+    unawaited(_disposePlugins());
     super.dispose();
+  }
+
+  /// Cierra los plugins nativos sin romper el árbol de providers cuando no
+  /// existen (tests) o el motor falla.
+  Future<void> _disposePlugins() async {
+    try {
+      await _audioRecorder.dispose();
+    } catch (e) {
+      debugPrint('Record dispose failed (non-blocking): $e');
+    }
+    try {
+      await _tts.stop();
+    } catch (e) {
+      debugPrint('TTS dispose failed (non-blocking): $e');
+    }
   }
 }
 
