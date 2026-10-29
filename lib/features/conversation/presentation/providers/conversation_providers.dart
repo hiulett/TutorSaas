@@ -14,6 +14,7 @@ import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../dashboard/domain/models/session_learned_summary.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../dashboard/data/models/hunter_skill_titles.dart';
 import '../../../dashboard/domain/services/lesson_generator_service.dart';
@@ -92,6 +93,11 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// una sola vez aunque la salida ocurra por varias vías (pop, back, go, dispose).
   bool _sessionFinalized = false;
   Map<String, dynamic>? _lastSessionResult;
+
+  /// P-28: inicio real de la práctica. Se envía al resumen para acotar la
+  /// ventana de `get_session_learned_summary` (la fila de `conversations` se
+  /// reutiliza por escenario, así que `started_at` no marca esta sesión).
+  DateTime? _sessionStartedAt;
   String? _lastUserText;
   String? _lastActionCode;
 
@@ -106,6 +112,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     final user = _ref.read(currentUserProvider);
     _userId = user?.id ?? 'guest_user';
     _sessionFinalized = false; // nueva sesión → se permite cerrar de nuevo
+    _sessionStartedAt = DateTime.now();
 
     // Reset completo del estado: nunca debe heredar flags de una sesión previa
     // (p.ej. isOracleEvaluation=true de la Evaluación del Oráculo del onboarding).
@@ -256,6 +263,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     final user = _ref.read(currentUserProvider);
     _userId = user?.id ?? 'guest_user';
     _sessionFinalized = false; // evaluación nueva → cerrar permitido
+    _sessionStartedAt = DateTime.now();
 
     final target = (targetLanguage?.isNotEmpty ?? false)
         ? targetLanguage!
@@ -1814,6 +1822,12 @@ ENDING:
     final completedGoals = state.goalEvaluationResults.values
         .where((v) => v)
         .length;
+    // P-28: el total de metas sale del catálogo curricular, no del número
+    // de metas evaluadas (que puede ser menor y falsear el "3/3").
+    final sessionLesson = LessonCatalog.getLessonById(
+      state.activeScenarioId,
+      title: state.activeScenarioName,
+    );
     final result = <String, dynamic>{
       'xp': (rewards?['xp'] as num?)?.toInt() ?? 0,
       'gold': (rewards?['gold'] as num?)?.toInt() ?? 0,
@@ -1821,12 +1835,14 @@ ENDING:
       'duplicated': rewards?['duplicated'] ?? false,
       'reward_applied': rewards != null,
       'objectives': completedGoals,
-      'goals_total': state.goalEvaluationResults.length,
+      'goals_total':
+          sessionLesson?.goals.length ?? state.goalEvaluationResults.length,
       'minutes': practiceMinutes,
       'turns': state.messages.where((m) => m.sender == 'user').length,
       'is_oracle': state.isOracleEvaluation,
       'scenario_id': state.activeScenarioId,
       'session_id': rewardSessionId,
+      'started_at': _sessionStartedAt?.toUtc().toIso8601String(),
     };
     _lastSessionResult = result;
     return result;
@@ -1860,9 +1876,103 @@ final conversationErrorProvider = StateProvider<ConversationErrorState?>(
   (ref) => null,
 );
 
-final sessionResultProvider = StateProvider<Map<String, dynamic>?>(
-  (ref) => null,
-);
+/// P-28: recompensa de la sesión confirmada en servidor.
+///
+/// Es `AsyncValue` para que el resumen distinga "confirmando", "lista" y
+/// "error accionable". Reintentar es seguro: `close_session` es idempotente
+/// por conversación (ledger `session_reward_ledger`) y devuelve los importes
+/// ya acreditados.
+class SessionRewardNotifier
+    extends StateNotifier<AsyncValue<Map<String, dynamic>?>> {
+  SessionRewardNotifier(this._ref)
+    : super(const AsyncValue<Map<String, dynamic>?>.data(null));
+
+  final Ref _ref;
+
+  /// Publica el resultado real del cierre de sesión.
+  void confirm(Map<String, dynamic>? result) {
+    state = AsyncValue<Map<String, dynamic>?>.data(result);
+  }
+
+  /// Repite el cierre cuando no se pudo confirmar la recompensa (red, timeout).
+  Future<void> retry() async {
+    final current = state.valueOrNull;
+    final sessionId = current?['session_id'] as String?;
+    if (current == null || sessionId == null || sessionId.isEmpty) {
+      state = AsyncValue<Map<String, dynamic>?>.error(
+        StateError(
+          'No hay una sesión registrada que confirmar. Cierra la conversación '
+          'desde la pantalla de práctica para generar la recompensa.',
+        ),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncValue<Map<String, dynamic>?>.loading();
+    try {
+      final rewards = await _ref
+          .read(economyRepositoryProvider)
+          .closeSession(sessionId);
+      _ref.invalidate(fragmentBalanceProvider);
+      _ref.invalidate(goldBalanceProvider);
+      _ref.invalidate(userProgressProvider);
+      state = AsyncValue<Map<String, dynamic>?>.data({
+        ...current,
+        'xp': (rewards['xp'] as num?)?.toInt() ?? 0,
+        'gold': (rewards['gold'] as num?)?.toInt() ?? 0,
+        'fragments': (rewards['fragments'] as num?)?.toInt() ?? 0,
+        'duplicated': rewards['duplicated'] ?? false,
+        'reward_applied': rewards['success'] == true,
+      });
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/conversation/presentation/providers/conversation_providers.dart:1899',
+        e,
+        stackTrace: st,
+      );
+      state = AsyncValue<Map<String, dynamic>?>.error(e, st);
+    }
+  }
+}
+
+final sessionResultProvider =
+    StateNotifierProvider<
+      SessionRewardNotifier,
+      AsyncValue<Map<String, dynamic>?>
+    >((ref) => SessionRewardNotifier(ref));
+
+/// P-28: "Qué aprendiste" de una sesión, leído de la base de datos.
+///
+/// Una sola RPC agrega palabras nuevas/repasadas, correcciones, metas y foco
+/// recomendado. La ventana la aporta el cliente porque la fila de
+/// `conversations` se reutiliza por escenario. Si falla, el resumen muestra
+/// el error con opción de reintentar (nunca cifras inventadas).
+final sessionLearnedSummaryProvider = FutureProvider.autoDispose
+    .family<LearnedSummaryData, ({String conversationId, DateTime since})>((
+      ref,
+      args,
+    ) async {
+      try {
+        final res = await ref
+            .watch(supabaseClientProvider)
+            .rpc(
+              'get_session_learned_summary',
+              params: {
+                'p_conversation_id': args.conversationId,
+                'p_since': args.since.toUtc().toIso8601String(),
+              },
+            );
+        return LearnedSummaryData.fromRpc(res);
+      } catch (e, st) {
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:1943',
+          e,
+          stackTrace: st,
+        );
+        rethrow;
+      }
+    });
 
 final conversationStateProvider =
     StateNotifierProvider<ConversationNotifier, ConversationState>((ref) {

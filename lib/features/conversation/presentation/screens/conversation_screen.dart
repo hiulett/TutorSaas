@@ -90,7 +90,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final sessionResult = await ref
         .read(conversationStateProvider.notifier)
         .endSession(practiceMinutes: minutesToSave);
-    ref.read(sessionResultProvider.notifier).state = sessionResult;
+    ref.read(sessionResultProvider.notifier).confirm(sessionResult);
 
     if (!navigate || !mounted) return;
     if (showSummary) {
