@@ -43,6 +43,10 @@ const deepseekBaseUrl = Deno.env.get('DEEPSEEK_BASE_URL') ?? 'https://api.deepse
 // si el cliente no lo envía o lo excede, usa los valores siguientes.
 const DEFAULT_MAX_TOKENS = 200;
 const MAX_TOKENS_CAP = 600;
+// #73: la evaluación del Oráculo devuelve un JSON con 10 puntuaciones,
+// fortalezas, debilidades y explicación. Con 600 tokens se truncaba y el
+// servidor caía al respaldo heurístico.
+const MAX_TOKENS_CAP_ORACLE_EVAL = 1200;
 
 // Issue #9: solo se permite el modelo que usa la app.
 const DEFAULT_MODEL = 'deepseek-v4-flash';
@@ -492,7 +496,10 @@ async function handleChat(req: Request, userId: string): Promise<Response> {
   const requestedMaxTokens = typeof body?.max_tokens === 'number'
     ? body.max_tokens
     : DEFAULT_MAX_TOKENS;
-  const maxTokens = Math.min(Math.max(requestedMaxTokens, 1), MAX_TOKENS_CAP);
+  // #73: la evaluación del Oráculo necesita más espacio de salida que un turno
+  // de chat (JSON con 10 métricas). El resto de acciones mantienen el tope.
+  const maxTokensCap = actionCode === 'oracle_eval' ? MAX_TOKENS_CAP_ORACLE_EVAL : MAX_TOKENS_CAP;
+  const maxTokens = Math.min(Math.max(requestedMaxTokens, 1), maxTokensCap);
 
   const payload: Record<string, unknown> = {
     model,

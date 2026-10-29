@@ -20,11 +20,11 @@ import '../../../dashboard/domain/services/lesson_generator_service.dart';
 import '../../../dashboard/domain/models/lesson_unlock_service.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
-import '../../../../core/ai/placement_ai.dart';
+import '../../../onboarding/data/placement_service.dart';
+import '../../../onboarding/domain/models/placement_outcome.dart';
 import '../../../../core/i18n/language_settings.dart';
 import '../../../../core/utils/text_diff_utils.dart';
 import '../../../../core/services/retention_analytics.dart';
-import '../../../onboarding/domain/models/cefr_rank.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Providers
@@ -44,24 +44,24 @@ final activeScenarioIdProvider = StateProvider<String?>((ref) => null);
 /// Issue #76: resultado de la última visita a una escena.
 /// Se usa para que el mundo «recuerde» el intento anterior (chip en la
 /// conversación) sin volver a llamar al modelo.
-final scenarioProgressProvider =
-    FutureProvider.autoDispose.family<Map<String, dynamic>?, String>((ref, scenarioId) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return null;
-  try {
-    final res = await ref
-        .watch(supabaseClientProvider)
-        .from('scenario_progress')
-        .select('last_outcome, attempts, unlocked_next, best_ratio')
-        .eq('user_id', user.id)
-        .eq('scenario_id', scenarioId)
-        .maybeSingle();
-    return res == null ? null : Map<String, dynamic>.from(res as Map);
-  } catch (e) {
-    debugPrint('scenario_progress read failed: $e');
-    return null;
-  }
-});
+final scenarioProgressProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>?, String>((ref, scenarioId) async {
+      final user = ref.watch(currentUserProvider);
+      if (user == null) return null;
+      try {
+        final res = await ref
+            .watch(supabaseClientProvider)
+            .from('scenario_progress')
+            .select('last_outcome, attempts, unlocked_next, best_ratio')
+            .eq('user_id', user.id)
+            .eq('scenario_id', scenarioId)
+            .maybeSingle();
+        return res == null ? null : Map<String, dynamic>.from(res as Map);
+      } catch (e) {
+        debugPrint('scenario_progress read failed: $e');
+        return null;
+      }
+    });
 
 // ──────────────────────────────────────────────────────────────────────────────
 // ConversationNotifier — Orchestrates Voice/Text → Groq/DeepSeek → Supabase Persistence
@@ -96,7 +96,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   String? _lastActionCode;
 
   ConversationNotifier(this._repository, this._ref)
-      : super(ConversationState.initial()) {
+    : super(ConversationState.initial()) {
     _initTts();
   }
 
@@ -117,10 +117,13 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // Issue #1: las lecciones usan claves del catálogo Dart (texto) contra
     // `scenarios.id`, que es UUID. Consultar con una clave de texto lanzaba
     // 22P02 dentro de un try/catch vacío: una petición perdida en cada apertura.
-    final bool scenarioIdIsUuid = scenarioId != null &&
-        RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
-            .hasMatch(scenarioId);
-    if (scenarioIdIsUuid || (scenarioTitle != null && scenarioTitle.isNotEmpty)) {
+    final bool scenarioIdIsUuid =
+        scenarioId != null &&
+        RegExp(
+          r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        ).hasMatch(scenarioId);
+    if (scenarioIdIsUuid ||
+        (scenarioTitle != null && scenarioTitle.isNotEmpty)) {
       try {
         final client = Supabase.instance.client;
         var query = client.from('scenarios').select('*');
@@ -135,7 +138,11 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           LessonCatalog.updateCatalogFromMap(res, locale: uiLang);
         }
       } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:136', e, stackTrace: st);
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:136',
+          e,
+          stackTrace: st,
+        );
       }
     }
 
@@ -146,33 +153,40 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
     state = state.copyWith(
       activeScenarioId: scenarioId,
-      activeScenarioName: scenarioTitle ?? lesson?.title ?? 'Práctica de Conversación',
+      activeScenarioName:
+          scenarioTitle ?? lesson?.title ?? 'Práctica de Conversación',
     );
 
     // Issue #35: evento de inicio de sesión (estaba documentado pero nunca se
     // emitía). Best-effort: no bloquea ni falla el flujo.
-    unawaited(RetentionAnalytics.instance.track(
-      _userId!,
-      'session_start',
-      properties: {
-        'scenario_id': scenarioId ?? '',
-        'oracle': false,
-      },
-    ));
+    unawaited(
+      RetentionAnalytics.instance.track(
+        _userId!,
+        'session_start',
+        properties: {'scenario_id': scenarioId ?? '', 'oracle': false},
+      ),
+    );
 
     // 1. For recommended lessons (with scenarioId), persist to Supabase
     if (scenarioId != null && scenarioId.isNotEmpty) {
-      final convData = await _repository.getOrCreateConversation(_userId!, scenarioId: scenarioId);
+      final convData = await _repository.getOrCreateConversation(
+        _userId!,
+        scenarioId: scenarioId,
+      );
       _conversationId = convData['id'] as String?;
       _ref.read(activeConversationIdProvider.notifier).state = _conversationId;
 
       // 2. If resuming, load historical messages from Supabase
       if (_conversationId != null) {
-        final savedMessages = await _repository.loadConversationMessages(_conversationId!);
+        final savedMessages = await _repository.loadConversationMessages(
+          _conversationId!,
+        );
         // Garantiza que el tutor inicia la conversación: solo reutiliza los
         // mensajes guardados si existe al menos un mensaje de tutor con texto
         // (evita chats vacíos por esquemas/cache viejos).
-        final hasTutorMessage = savedMessages.any((m) => m.sender == 'tutor' && m.text.trim().isNotEmpty);
+        final hasTutorMessage = savedMessages.any(
+          (m) => m.sender == 'tutor' && m.text.trim().isNotEmpty,
+        );
         if (savedMessages.isNotEmpty && hasTutorMessage) {
           state = state.copyWith(messages: savedMessages);
           // Si la conversación sigue en el arranque (solo el saludo del tutor,
@@ -189,9 +203,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           // First time (or broken history): set initial assistant message,
           // graded to the mission's CEFR level (from the catalog).
           final opening = lesson.initialAssistantMessage;
-          state = state.copyWith(messages: [
-            ConversationMessage(sender: 'tutor', text: opening),
-          ]);
+          state = state.copyWith(
+            messages: [ConversationMessage(sender: 'tutor', text: opening)],
+          );
           _repository.saveMessage(_conversationId!, 'assistant', opening);
           // Narra el primer mensaje del Oráculo NPC al abrir el chat.
           await _speakTts(opening);
@@ -199,7 +213,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       }
 
       // Restore previously completed goals from Supabase DB
-      final savedGoals = await _repository.loadCompletedGoals(_userId!, scenarioId);
+      final savedGoals = await _repository.loadCompletedGoals(
+        _userId!,
+        scenarioId,
+      );
       if (savedGoals.isNotEmpty) {
         state = state.copyWith(goalEvaluationResults: savedGoals);
       }
@@ -210,15 +227,15 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
       if (lesson != null) {
         final opening = lesson.initialAssistantMessage;
-        state = state.copyWith(messages: [
-          ConversationMessage(sender: 'tutor', text: opening),
-        ]);
+        state = state.copyWith(
+          messages: [ConversationMessage(sender: 'tutor', text: opening)],
+        );
         await _speakTts(opening);
       } else {
         const opening = 'Hello! How can I help you practice today?';
-        state = state.copyWith(messages: const [
-          ConversationMessage(sender: 'tutor', text: opening),
-        ]);
+        state = state.copyWith(
+          messages: const [ConversationMessage(sender: 'tutor', text: opening)],
+        );
         await _speakTts(opening);
       }
     }
@@ -245,7 +262,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         : _ref.read(userLanguageProvider).learningLanguage;
     // Fallback del nativo: primero el explícito, luego el guardado en BD
     // (users.native_language, seteado en el onboarding), nunca el idioma de UI.
-    final storedNative = (_ref.read(userProfileProvider).value ?? const {})['native_language'] as String?;
+    final storedNative =
+        (_ref.read(userProfileProvider).value ?? const {})['native_language']
+            as String?;
     final native = (nativeLanguage?.isNotEmpty ?? false)
         ? nativeLanguage!
         : ((storedNative?.isNotEmpty ?? false) ? storedNative! : 'es');
@@ -271,15 +290,19 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     if (_userId != null && !_userId!.startsWith('guest_')) {
       try {
         final client = Supabase.instance.client;
-        final row = await client.from('oracle_assessments').insert({
-          'user_id': _userId,
-          'cefr_level': 'A1',
-          'game_rank': 'E',
-          'target_language': target,
-          'native_language': native,
-          'ai_model': 'deepseek-v4-flash',
-          'prompt_version': 'v2',
-        }).select('id').single();
+        final row = await client
+            .from('oracle_assessments')
+            .insert({
+              'user_id': _userId,
+              'cefr_level': 'A1',
+              'game_rank': 'E',
+              'target_language': target,
+              'native_language': native,
+              'ai_model': 'deepseek-v4-flash',
+              'prompt_version': 'v2',
+            })
+            .select('id')
+            .single();
         _assessmentId = row['id'] as String?;
       } catch (e) {
         debugPrint('Oracle assessment session create failed: $e');
@@ -295,7 +318,11 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       _conversationId = conv['id'] as String?;
       _ref.read(activeConversationIdProvider.notifier).state = _conversationId;
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:294', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/conversation/presentation/providers/conversation_providers.dart:294',
+        e,
+        stackTrace: st,
+      );
     }
 
     // El Oráculo inicia la conversación automáticamente.
@@ -336,7 +363,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       final hasPermission = await _audioRecorder.hasPermission();
       if (!hasPermission) {
         state = state.copyWith(
-          errorMessage: 'Sin permiso de micrófono. Actívalo en la configuración.',
+          errorMessage:
+              'Sin permiso de micrófono. Actívalo en la configuración.',
         );
         return;
       }
@@ -350,12 +378,17 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
             state = state.copyWith(
               isRecording: false,
               isProcessing: false,
-              errorMessage: 'SIN MANÁ: adquiere una porción o espera la renovación de tu plan para continuar.',
+              errorMessage:
+                  'SIN MANÁ: adquiere una porción o espera la renovación de tu plan para continuar.',
             );
             return;
           }
         } catch (e, st) {
-          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:352', e, stackTrace: st);
+          ErrorTracker.logSilent(
+            'lib/features/conversation/presentation/providers/conversation_providers.dart:352',
+            e,
+            stackTrace: st,
+          );
         }
       }
 
@@ -405,12 +438,18 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       final recordingStart = _recordingStartTimestamp;
       if (recordingStart != null) {
         final durationSec = DateTime.now().difference(recordingStart).inSeconds;
-        if (_userId != null && !_userId!.startsWith('guest_') && durationSec > 0) {
+        if (_userId != null &&
+            !_userId!.startsWith('guest_') &&
+            durationSec > 0) {
           try {
             // No bloquea el turno: el tracking de audio es best-effort.
             unawaited(_repository.trackAiAudioTime(_userId!, durationSec));
           } catch (e, st) {
-            ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:405', e, stackTrace: st);
+            ErrorTracker.logSilent(
+              'lib/features/conversation/presentation/providers/conversation_providers.dart:405',
+              e,
+              stackTrace: st,
+            );
           }
         }
       }
@@ -445,7 +484,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           state = state.copyWith(
             isProcessing: false,
             currentTranscribingText: '',
-            errorMessage: 'No se detectó voz en el audio. Intenta hablar más cerca del micrófono.',
+            errorMessage:
+                'No se detectó voz en el audio. Intenta hablar más cerca del micrófono.',
           );
         }
       } else {
@@ -460,7 +500,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       String userMsg = 'Error al procesar el audio: $e';
       if (e is DioException) {
         final code = e.response?.statusCode;
-        userMsg = 'Error de conexión con Groq STT ($code). Revisa tu internet o la API Key.';
+        userMsg =
+            'Error de conexión con Groq STT ($code). Revisa tu internet o la API Key.';
       }
       state = state.copyWith(
         isRecording: false,
@@ -468,8 +509,11 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         currentTranscribingText: '',
         errorMessage: userMsg,
       );
-      _ref.read(conversationErrorProvider.notifier).state = ConversationErrorState(
-        message: 'No pudimos transcribir tu audio. Reintenta el audio o escribe tu respuesta.',
+      _ref
+          .read(conversationErrorProvider.notifier)
+          .state = ConversationErrorState(
+        message:
+            'No pudimos transcribir tu audio. Reintenta el audio o escribe tu respuesta.',
         kind: AiErrorKind.stt,
         canRetry: false,
       );
@@ -558,10 +602,12 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
       // 4b. Registrar el turno sin bloquear la narración (best-effort DB).
       if (userText.isNotEmpty) {
-        unawaited(_recordOracleTurn(
-          userText: userText,
-          oracleResponse: fullOracleResponse,
-        ));
+        unawaited(
+          _recordOracleTurn(
+            userText: userText,
+            oracleResponse: fullOracleResponse,
+          ),
+        );
       }
 
       // 5. Evaluate completion: the Oracle signals the end of the exam with
@@ -570,8 +616,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         // Extraer el resultado declarado por el Oráculo (lo que el usuario vio).
         String? declaredCefr;
         String? declaredRank;
-        final resultMatch = RegExp(r'\[RESULT:CEFR=(PRE-A1|[ABC][12]),RANK=([A-Z]+)\]')
-            .firstMatch(fullOracleResponse);
+        final resultMatch = RegExp(
+          r'\[RESULT:CEFR=(PRE-A1|[ABC][12]),RANK=([A-Z]+)\]',
+        ).firstMatch(fullOracleResponse);
         if (resultMatch != null) {
           declaredCefr = resultMatch.group(1)?.toUpperCase();
           declaredRank = resultMatch.group(2)?.toUpperCase();
@@ -582,12 +629,20 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
             .replaceAll(RegExp(r'\[RESULT:[^\]]*\]'), '')
             .trim();
         if (cleaned.isNotEmpty) {
-          final updatedMessages = List<ConversationMessage>.from(state.messages);
-          updatedMessages[updatedMessages.length - 1] =
-              ConversationMessage(sender: 'tutor', text: cleaned);
+          final updatedMessages = List<ConversationMessage>.from(
+            state.messages,
+          );
+          updatedMessages[updatedMessages.length - 1] = ConversationMessage(
+            sender: 'tutor',
+            text: cleaned,
+          );
           state = state.copyWith(messages: updatedMessages);
           if (_conversationId != null) {
-            await _repository.saveMessage(_conversationId!, 'assistant', cleaned);
+            await _repository.saveMessage(
+              _conversationId!,
+              'assistant',
+              cleaned,
+            );
           }
         }
         await _finalizeOracleEvaluation(
@@ -604,7 +659,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       }
       if (_conversationId != null && fullOracleResponse.isNotEmpty) {
         await _repository.saveMessage(
-            _conversationId!, 'assistant', fullOracleResponse);
+          _conversationId!,
+          'assistant',
+          fullOracleResponse,
+        );
       }
     } catch (e) {
       debugPrint('Oracle turn error: $e');
@@ -694,14 +752,24 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       // Pregunta real = la respuesta del Oráculo inmediatamente anterior a la
       // respuesta del usuario actual (no la placeholder).
       final prevTutor = state.messages
-          .where((m) => m.sender == 'tutor' && m.text.isNotEmpty && m.text != oracleResponse)
+          .where(
+            (m) =>
+                m.sender == 'tutor' &&
+                m.text.isNotEmpty &&
+                m.text != oracleResponse,
+          )
           .lastOrNull
           ?.text;
 
       final responseTime = _lastOracleQuestionAt != null
-          ? DateTime.now().difference(_lastOracleQuestionAt!).inMilliseconds / 1000.0
+          ? DateTime.now().difference(_lastOracleQuestionAt!).inMilliseconds /
+                1000.0
           : null;
-      final wordCount = userText.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
+      final wordCount = userText
+          .trim()
+          .split(RegExp(r'\s+'))
+          .where((w) => w.isNotEmpty)
+          .length;
       // Heurística parcial: 0-100 según longitud y variedad de la respuesta.
       final partial = (wordCount * 6).clamp(0, 100);
 
@@ -710,7 +778,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       await client.from('oracle_turns').insert({
         'assessment_id': _assessmentId,
         'turn_order': _turnCounter,
-        'cefr_level': 'A1', // nivel real lo fija la IA en el cierre; provisional
+        'cefr_level':
+            'A1', // nivel real lo fija la IA en el cierre; provisional
         'question_text': prevTutor ?? question ?? '',
         'answer_transcript': userText,
         'response_time_sec': responseTime,
@@ -756,13 +825,12 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
               'Focus questions on their weakest skills to confirm real improvement.\n'
         : '';
 
-    final systemPrompt = '''
+    final systemPrompt =
+        '''
 You are the Oracle of the Guild, an ancient and wise being that examines young adventurers with a natural spoken conversation. You are conducting an ${isPromotion ? 'PROMOTION EXAM' : 'ORAL PLACEMENT EXAM'} in $target for a student whose native language is $native. The exam must feel like a pleasant chat with a guild mentor, never like a form or a test.
 
 OPENING (FIRST TURN ONLY):
-${isPromotion
-  ? 'Say a warm, mystical greeting, acknowledge they have trained and return to be re-assessed at level $currentLevel, then ask if they are ready.'
-  : 'Say exactly this warm greeting, then ask if they are ready:\n"Hello! Welcome to the Adventurer\'s Guild. My name is Oracle. Before assigning your first missions I\'d like to know you a little better. Don\'t worry — this isn\'t an exam, just speak naturally. Are you ready?"'}
+${isPromotion ? 'Say a warm, mystical greeting, acknowledge they have trained and return to be re-assessed at level $currentLevel, then ask if they are ready.' : 'Say exactly this warm greeting, then ask if they are ready:\n"Hello! Welcome to the Adventurer\'s Guild. My name is Oracle. Before assigning your first missions I\'d like to know you a little better. Don\'t worry — this isn\'t an exam, just speak naturally. Are you ready?"'}
 
 CONVERSATION RULES:
 - Always speak ONLY in $target. Never use $native (except one short hint if the student is completely stuck).
@@ -812,17 +880,21 @@ ENDING:
 
     return [
       {'role': 'system', 'content': systemPrompt},
-      ...window.map((m) => {
-            'role': m.sender == 'user' ? 'user' : 'assistant',
-            'content': _stripControlTokens(m.text),
-          }),
+      ...window.map(
+        (m) => {
+          'role': m.sender == 'user' ? 'user' : 'assistant',
+          'content': _stripControlTokens(m.text),
+        },
+      ),
     ];
   }
 
-  /// Clasifica el resultado del examen. Usa como fuente PRINCIPAL el nivel y
-  /// rango que el propio Oráculo declaró en su mensaje final
-  /// ([RESULT:CEFR=..,RANK=..]) — lo que el usuario vio en la conversación.
-  /// `PlacementAiEvaluator` se usa solo como respaldo si faltan o son inválidos.
+  /// Cierra el examen del Oráculo.
+  ///
+  /// #73: el nivel y el rango los decide `evaluate-placement` en el servidor.
+  /// El marcador `[RESULT:CEFR=..,RANK=..]` que declaró el Oráculo se envía
+  /// solo como pista: el servidor la acepta si está a ±1 banda de su propia
+  /// evaluación y nunca permite bajar de nivel en modo promoción.
   Future<void> _finalizeOracleEvaluation({
     String? declaredCefr,
     String? declaredRank,
@@ -838,72 +910,55 @@ ENDING:
           .where((t) => t.trim().isNotEmpty)
           .toList();
 
-      Map<String, dynamic> ai = const {};
+      // #73: el nivel lo calcula y lo persiste el servidor
+      // (`evaluate-placement`). El cliente solo envía la transcripción y la
+      // pista que el Oráculo declaró en la conversación; el servidor valida la
+      // escala cerrada, aplica el modo promoción (nunca baja) y escribe con
+      // service role. Ningún nivel se decide ya en Dart.
+      final PlacementOutcome outcome;
       try {
-        // Reutiliza el mismo Dio del chat (misma autenticación DeepSeek).
-        final dio = _ref.read(conversationDioProvider);
-        ai = await PlacementAiEvaluator.evaluatePlacement(answers, dio: dio);
-      } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:837', e, stackTrace: st);
+        outcome = await _ref
+            .read(placementServiceProvider)
+            .evaluate(
+              answers: answers,
+              declaredCefr: declaredCefr,
+              declaredRank: declaredRank,
+            );
+      } on PlacementException catch (e) {
+        debugPrint('Oracle placement error: ${e.message}');
+        state = state.copyWith(
+          isProcessing: false,
+          oracleEvaluating: false,
+          errorMessage: e.message,
+        );
+        _ref
+            .read(conversationErrorProvider.notifier)
+            .state = ConversationErrorState(
+          message: e.message,
+          kind: e.quota ? AiErrorKind.quota : AiErrorKind.provider,
+          canRetry: true,
+        );
+        return;
       }
       _ref.invalidate(manaStateProvider);
 
       // Issue #25: persistir las 6 dimensiones que lee el radar de habilidades.
-      // Hasta ahora solo se guardaba `partial_score`, así que el radar mostraba
-      // ceros en pronunciación, gramática, vocabulario, comprensión y naturalidad.
-      unawaited(_persistSkillScores(ai));
+      unawaited(_persistSkillScores({'scores': outcome.scores}));
 
-      final validCefrs = const ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-      final aiCefr = _stringField(ai, 'cefr_level', '').toUpperCase();
-      final aiRank = _stringField(ai, 'game_rank', '').toUpperCase();
+      final cefrLevel = outcome.cefrLevel;
+      final gameRank = outcome.gameRank;
 
-      // Prioridad: lo declarado por el Oráculo > evaluación IA > fallback A1/E.
-      String cefrLevel = (declaredCefr != null && validCefrs.contains(declaredCefr))
-          ? declaredCefr
-          : (validCefrs.contains(aiCefr) ? aiCefr : 'A1');
-      // Issue #14: el rango declarado por el modelo se valida contra la escala
-      // cerrada. Un valor arbitrario (p. ej. RANK=ZZ) se descarta.
-      const validRanks = ['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
-      String gameRank = (declaredRank != null && validRanks.contains(declaredRank))
-          ? declaredRank
-          : (validRanks.contains(aiRank)
-              ? aiRank
-              : CefrRank.gameRankFromCefr(cefrLevel));
-
-      // Modo PROMOCIÓN: nunca baja de nivel. Si el Oráculo evalúa un nivel
-      // inferior al actual, se mantiene el nivel actual (la experiencia nunca
-      // castiga; el skill_radar refleja el deterioro real).
-      final currentLevel =
-          (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? '';
-      if (currentLevel.isNotEmpty && currentLevel != cefrLevel) {
-        final currentIdx = validCefrs.indexOf(currentLevel);
-        final evalIdx = validCefrs.indexOf(cefrLevel);
-        final isPromotion = currentLevel.isNotEmpty;
-        if (isPromotion && currentIdx >= 0 && evalIdx >= 0 && evalIdx < currentIdx) {
-          cefrLevel = currentLevel;
-          gameRank = CefrRank.gameRankFromCefr(cefrLevel);
-        }
-      }
-
-      // Validación cruzada: si el rango declarado no es coherente con el CEFR
-      // (marcador mal formado), se deriva del CEFR elegido.
-      if (!validRanks.contains(gameRank)) {
-        gameRank = CefrRank.gameRankFromCefr(cefrLevel);
-      }
-
-      final explanation = _stringField(
-        ai,
-        'explanation',
-        'El Oráculo ha hablado. Nivel $cefrLevel desbloqueado.',
-      );
-      final strengths = _stringListField(ai, 'strengths');
-      final weaknesses = _stringListField(ai, 'weaknesses');
-      final recommendedFocus = _stringField(ai, 'recommended_focus', '');
+      final explanation = outcome.explanation.isNotEmpty
+          ? outcome.explanation
+          : 'El Oráculo ha hablado. Nivel $cefrLevel desbloqueado.';
+      final strengths = outcome.strengths;
+      final weaknesses = outcome.weaknesses;
+      final recommendedFocus = outcome.recommendedFocus;
 
       final result = <String, dynamic>{
         'cefrLevel': cefrLevel,
         'gameRank': gameRank,
-        'scores': ai['scores'] ?? const <String, dynamic>{},
+        'scores': outcome.scores,
         'strengths': strengths,
         'weaknesses': weaknesses,
         'explanation': explanation,
@@ -911,7 +966,8 @@ ENDING:
         'answers': answers,
       };
 
-      // Persistencia en user_language_profiles (columnas de onboarding_revamp).
+      // Persistencia del registro del examen (el nivel ya lo escribió el
+      // servidor en `user_language_profiles`).
       if (_userId != null && !_userId!.startsWith('guest_')) {
         await _persistOracleAssessment(
           userId: _userId!,
@@ -925,6 +981,12 @@ ENDING:
           answers: answers,
         );
       }
+
+      // El nivel vive en `user_language_profiles`: refrescar lo que leen el
+      // dashboard y el radar para mostrar el resultado recién asignado.
+      _ref.invalidate(userProgressProvider);
+      _ref.invalidate(userProfileProvider);
+      _ref.invalidate(manaStateProvider);
 
       // Mensaje épico del Oráculo con el resultado, narrado con su voz.
       final closing = _buildOracleClosingMessage(
@@ -940,7 +1002,11 @@ ENDING:
         try {
           await _repository.saveMessage(_conversationId!, 'assistant', closing);
         } catch (e, st) {
-          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:931', e, stackTrace: st);
+          ErrorTracker.logSilent(
+            'lib/features/conversation/presentation/providers/conversation_providers.dart:931',
+            e,
+            stackTrace: st,
+          );
         }
       }
 
@@ -971,8 +1037,11 @@ ENDING:
         'Welcome to the Guild.';
   }
 
-  /// Upsert de la clasificación del Oráculo. Silencioso si la BD aún no tiene
-  /// las columnas o la tabla (read-only project): no rompe el flujo.
+  /// Registra el examen del Oráculo en `oracle_assessments`.
+  ///
+  /// El nivel y el rango ya los escribió el servidor en
+  /// `user_language_profiles` (#73); aquí solo se guarda el histórico del
+  /// examen (puntuaciones, fortalezas, explicación y transcripción).
   Future<void> _persistOracleAssessment({
     required String userId,
     required String cefrLevel,
@@ -986,27 +1055,10 @@ ENDING:
   }) async {
     try {
       final client = Supabase.instance.client;
-      // #73: el servidor valida CEFR/RANK y aplica el placement. El trigger
-      // guard_language_profile revierte los updates directos del cliente.
-      await client.rpc('apply_placement', params: {
-        'p_cefr_code': cefrLevel,
-        'p_rank': gameRank,
-        'p_scores': scores ?? const <String, dynamic>{},
-        'p_strengths': strengths,
-        'p_weaknesses': weaknesses,
-        'p_explanation': explanation,
-        'p_recommended_focus': recommendedFocus,
-      });
-    } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:999', e, stackTrace: st);
-    }
-
-    try {
-      final client = Supabase.instance.client;
-      final Map<String, dynamic> scoresMap =
-          scores is Map ? Map<String, dynamic>.from(scores) : const {};
-      int _score(String key) =>
-          (scoresMap[key] as num?)?.toInt() ?? 0;
+      final Map<String, dynamic> scoresMap = scores is Map
+          ? Map<String, dynamic>.from(scores)
+          : const {};
+      int _score(String key) => (scoresMap[key] as num?)?.toInt() ?? 0;
 
       final payload = <String, dynamic>{
         'cefr_level': cefrLevel,
@@ -1021,14 +1073,16 @@ ENDING:
         'prompt_version': 'v2',
         'stopped_at_cefr': cefrLevel,
         'duration_seconds': _assessmentDurationSeconds,
-        if (_score('pronunciation') > 0) 'scores_pronunciation': _score('pronunciation'),
+        if (_score('pronunciation') > 0)
+          'scores_pronunciation': _score('pronunciation'),
         if (_score('fluency') > 0) 'scores_fluency': _score('fluency'),
         if (_score('grammar') > 0) 'scores_grammar': _score('grammar'),
         if (_score('vocabulary') > 0) 'scores_vocabulary': _score('vocabulary'),
-        if (_score('listening') > 0) 'scores_comprehension': _score('listening'),
-        if (_score('naturalness') > 0) 'scores_naturalness': _score('naturalness'),
-        if (recommendedFocus.isNotEmpty)
-          'recommended_focus': recommendedFocus,
+        if (_score('listening') > 0)
+          'scores_comprehension': _score('listening'),
+        if (_score('naturalness') > 0)
+          'scores_naturalness': _score('naturalness'),
+        if (recommendedFocus.isNotEmpty) 'recommended_focus': recommendedFocus,
         'answers': answers,
       };
 
@@ -1046,7 +1100,11 @@ ENDING:
         });
       }
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1045', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/conversation/presentation/providers/conversation_providers.dart:1045',
+        e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -1061,8 +1119,9 @@ ENDING:
   static const int maxChatContextMessages = 24;
 
   List<ConversationMessage> _chatWindow() {
-    final withText =
-        state.messages.where((m) => m.text.trim().isNotEmpty).toList();
+    final withText = state.messages
+        .where((m) => m.text.trim().isNotEmpty)
+        .toList();
     if (withText.length <= maxChatContextMessages) return withText;
     return withText.sublist(withText.length - maxChatContextMessages);
   }
@@ -1072,7 +1131,9 @@ ENDING:
   static String _stripControlTokens(String text) {
     return text
         .replaceAll(
-            RegExp(r'\[EVALUATION_COMPLETE\]', caseSensitive: false), '')
+          RegExp(r'\[EVALUATION_COMPLETE\]', caseSensitive: false),
+          '',
+        )
         .replaceAll(RegExp(r'\[RESULT:[^\]]*\]', caseSensitive: false), '')
         .trim();
   }
@@ -1087,14 +1148,20 @@ ENDING:
   List<String> _stringListField(Map<String, dynamic> map, String key) {
     final value = map[key];
     if (value is List) {
-      return value.whereType<String>().where((s) => s.trim().isNotEmpty).toList();
+      return value
+          .whereType<String>()
+          .where((s) => s.trim().isNotEmpty)
+          .toList();
     }
     return const [];
   }
 
   // ── Process Transcription / Text → LLM → Supabase → TTS ────────────────────
 
-  Future<void> _processTranscription(String userText, {bool reuseUserMessage = false}) async {
+  Future<void> _processTranscription(
+    String userText, {
+    bool reuseUserMessage = false,
+  }) async {
     if (_hasProcessedThisTurn) return;
     _hasProcessedThisTurn = true;
     _lastUserText = userText;
@@ -1128,7 +1195,10 @@ ENDING:
         }
 
         state = state.copyWith(
-          messages: [...state.messages.where((m) => m.text.isNotEmpty), userMessage],
+          messages: [
+            ...state.messages.where((m) => m.text.isNotEmpty),
+            userMessage,
+          ],
           currentTranscribingText: '',
         );
 
@@ -1173,21 +1243,22 @@ ENDING:
               'Then ask a follow-up question to continue.';
       }
 
-      final lesson = state.activeScenarioId != null && state.activeScenarioId!.isNotEmpty
+      final lesson =
+          state.activeScenarioId != null && state.activeScenarioId!.isNotEmpty
           ? LessonCatalog.getLessonById(state.activeScenarioId)
           : null;
 
       final roleContext = lesson != null
           ? 'You are an AI Language Tutor roleplaying as ${lesson.assistantRole} in a ${lesson.scenarioContext}. '
-            'The user is playing the role of ${lesson.userRole}. Target CEFR Level: ${lesson.level}. '
-            'Keep your response appropriate for CEFR level ${lesson.level} '
-            '(use simple language for A1/A2, intermediate for B1/B2, advanced for C1, '
-            'native-level fluency and complex discourse for C2). '
-            'IMPORTANT: You MUST ALWAYS respond in English. Never use Spanish or any other language. '
-            'Converse naturally in English according to this role. '
+                'The user is playing the role of ${lesson.userRole}. Target CEFR Level: ${lesson.level}. '
+                'Keep your response appropriate for CEFR level ${lesson.level} '
+                '(use simple language for A1/A2, intermediate for B1/B2, advanced for C1, '
+                'native-level fluency and complex discourse for C2). '
+                'IMPORTANT: You MUST ALWAYS respond in English. Never use Spanish or any other language. '
+                'Converse naturally in English according to this role. '
           : 'You are an AI Language Tutor. '
-            'IMPORTANT: You MUST ALWAYS respond in English. Never use Spanish or any other language. '
-            'Converse naturally in English. ';
+                'IMPORTANT: You MUST ALWAYS respond in English. Never use Spanish or any other language. '
+                'Converse naturally in English. ';
 
       final List<Map<String, String>> historyList = [
         {
@@ -1198,10 +1269,12 @@ ENDING:
               'If the user writes in Spanish, gently remind them to use English and help them translate. '
               'Ask a natural follow-up question to continue the conversation.',
         },
-        ..._chatWindow().map((m) => {
-              'role': m.sender == 'user' ? 'user' : 'assistant',
-              'content': _stripControlTokens(m.text),
-            }),
+        ..._chatWindow().map(
+          (m) => {
+            'role': m.sender == 'user' ? 'user' : 'assistant',
+            'content': _stripControlTokens(m.text),
+          },
+        ),
       ];
 
       // 3. Add typing indicator placeholder for tutor
@@ -1249,7 +1322,9 @@ ENDING:
       // Un fallo de IA NUNCA es un mensaje del tutor: se quita el placeholder
       // vacio, no se narra por TTS y no se persiste en `messages`.
       final msgs = List<ConversationMessage>.from(state.messages);
-      if (msgs.isNotEmpty && msgs.last.sender == 'tutor' && msgs.last.text.isEmpty) {
+      if (msgs.isNotEmpty &&
+          msgs.last.sender == 'tutor' &&
+          msgs.last.text.isEmpty) {
         msgs.removeLast();
       }
       final err = e is AiStreamException
@@ -1268,22 +1343,26 @@ ENDING:
         messages: msgs,
         errorMessage: errorText,
       );
-      _ref.read(conversationErrorProvider.notifier).state = ConversationErrorState(
+      _ref
+          .read(conversationErrorProvider.notifier)
+          .state = ConversationErrorState(
         message: errorText,
         kind: err.kind,
         canRetry: _lastUserText != null && _lastUserText!.isNotEmpty,
       );
-      unawaited(RetentionAnalytics.instance.track(
-        _userId ?? 'anon',
-        'ai_error',
-        properties: {
-          'endpoint': 'chat',
-          'code': err.code,
-          'retries': err.retries,
-          // P-07: el reembolso lo decide el proxy; el cliente no lo sabe.
-          'refunded': false,
-        },
-      ));
+      unawaited(
+        RetentionAnalytics.instance.track(
+          _userId ?? 'anon',
+          'ai_error',
+          properties: {
+            'endpoint': 'chat',
+            'code': err.code,
+            'retries': err.retries,
+            // P-07: el reembolso lo decide el proxy; el cliente no lo sabe.
+            'refunded': false,
+          },
+        ),
+      );
     }
   }
 
@@ -1304,18 +1383,33 @@ ENDING:
   }) async {
     try {
       if (conversationId != null && fullTutorResponse.isNotEmpty) {
-        await _repository.saveMessage(conversationId, 'assistant', fullTutorResponse);
+        await _repository.saveMessage(
+          conversationId,
+          'assistant',
+          fullTutorResponse,
+        );
       }
 
       if (userId != null && userText.isNotEmpty) {
         final wordCount = userText.trim().split(RegExp(r'\s+')).length;
-        final int estimatedWpm = ((wordCount / 4.0) * 60).round().clamp(50, 200);
+        final int estimatedWpm = ((wordCount / 4.0) * 60).round().clamp(
+          50,
+          200,
+        );
         const double latencySec = 1.8;
-        _repository.logFluencyMetrics(userId, state.activeScenarioId, latencySec, estimatedWpm);
+        _repository.logFluencyMetrics(
+          userId,
+          state.activeScenarioId,
+          latencySec,
+          estimatedWpm,
+        );
 
         if (lesson != null && lesson.usefulPhrases.isNotEmpty) {
           for (final phrase in lesson.usefulPhrases) {
-            final double similarity = TextDiffUtils.calculateSimilarity(phrase.phrase, userText);
+            final double similarity = TextDiffUtils.calculateSimilarity(
+              phrase.phrase,
+              userText,
+            );
             if (similarity >= 50.0) {
               await _repository.saveCompletedPhrase(
                 userId,
@@ -1390,12 +1484,14 @@ ENDING:
           .map((m) => '${m.sender == 'user' ? 'Student' : 'Tutor'}: ${m.text}')
           .join('\n');
 
-      final goalItems = uncompleted.map((g) => {
-            'id': g.id,
-            'text': g.text,
-          }).toList();
+      final goalItems = uncompleted
+          .map((g) => {'id': g.id, 'text': g.text})
+          .toList();
 
-      final results = await _repository.evaluateGoals(conversationText, goalItems);
+      final results = await _repository.evaluateGoals(
+        conversationText,
+        goalItems,
+      );
 
       if (results.isNotEmpty) {
         final merged = Map<String, bool>.from(state.goalEvaluationResults);
@@ -1407,9 +1503,19 @@ ENDING:
             if (_userId != null && state.activeScenarioId != null) {
               final goalObj = goals.firstWhere(
                 (g) => g.id == e.key,
-                orElse: () => ScenarioGoalItem(id: e.key, text: 'Meta ${e.key}', keywords: []),
+                orElse: () => ScenarioGoalItem(
+                  id: e.key,
+                  text: 'Meta ${e.key}',
+                  keywords: [],
+                ),
               );
-              _repository.saveCompletedGoal(_userId!, state.activeScenarioId!, _conversationId, e.key, goalObj.text);
+              _repository.saveCompletedGoal(
+                _userId!,
+                state.activeScenarioId!,
+                _conversationId,
+                e.key,
+                goalObj.text,
+              );
             }
           }
         }
@@ -1446,7 +1552,11 @@ ENDING:
         final repo = _ref.read(dashboardRepositoryProvider);
         await repo.logPracticeSession(_userId!, practiceMinutes);
       } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1443', e, stackTrace: st);
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:1443',
+          e,
+          stackTrace: st,
+        );
       }
 
       // Issue #5: cerrar sesión avanza las misiones de sesión y de minutos
@@ -1464,15 +1574,14 @@ ENDING:
           final lesson = LessonCatalog.getLessonById(scenarioId);
           final evaluated = state.goalEvaluationResults.length;
           final totalGoals = lesson?.goals.length ?? evaluated;
-          final completedGoals =
-              state.goalEvaluationResults.values.where((v) => v).length;
+          final completedGoals = state.goalEvaluationResults.values
+              .where((v) => v)
+              .length;
           // Issue #18: sin evaluación no se puede afirmar que la lección se
           // superó. Antes, una evaluación vacía daba ratio 1.0 => "passed".
           if (evaluated > 0 && totalGoals > 0) {
-            final status = LessonUnlockService.meetsThreshold(
-              completedGoals,
-              totalGoals,
-            )
+            final status =
+                LessonUnlockService.meetsThreshold(completedGoals, totalGoals)
                 ? 'passed'
                 : 'failed';
             await Supabase.instance.client.from('lesson_progress').insert({
@@ -1484,17 +1593,25 @@ ENDING:
 
             // Issue #76: el resultado queda en el mundo (consecuencia).
             // Fallo → el NPC lo recuerda; éxito → desbloquea la siguiente.
-            unawaited(Supabase.instance.client.rpc(
-              'record_scenario_outcome',
-              params: {
-                'p_scenario_id': scenarioId,
-                'p_completed': completedGoals,
-                'p_total': totalGoals,
-              },
-            ).then((_) => _ref.invalidate(scenarioProgressProvider)));
+            unawaited(
+              Supabase.instance.client
+                  .rpc(
+                    'record_scenario_outcome',
+                    params: {
+                      'p_scenario_id': scenarioId,
+                      'p_completed': completedGoals,
+                      'p_total': totalGoals,
+                    },
+                  )
+                  .then((_) => _ref.invalidate(scenarioProgressProvider)),
+            );
           }
         } catch (e, st) {
-          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1489', e, stackTrace: st);
+          ErrorTracker.logSilent(
+            'lib/features/conversation/presentation/providers/conversation_providers.dart:1489',
+            e,
+            stackTrace: st,
+          );
         }
       }
 
@@ -1507,13 +1624,17 @@ ENDING:
           final lesson = LessonCatalog.getLessonById(scenarioId);
           final evaluated = state.goalEvaluationResults.length;
           final totalGoals = lesson?.goals.length ?? evaluated;
-          final completedGoals =
-              state.goalEvaluationResults.values.where((v) => v).length;
+          final completedGoals = state.goalEvaluationResults.values
+              .where((v) => v)
+              .length;
           final ratio = totalGoals > 0 ? completedGoals / totalGoals : 1.0;
           if (evaluated > 0 && ratio < LessonUnlockService.passThreshold) {
             final radar = await _ref.read(skillsRadarProvider.future);
             final skill = LessonGeneratorService.weakestSkill(radar);
-            final level = (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? 'A1';
+            final level =
+                (_ref.read(userProgressProvider).value?['level_code']
+                    as String?) ??
+                'A1';
             // Issue #81: la lección de refuerzo se dirige al objetivo que el
             // alumno NO cumplió, no a una categoría genérica.
             final failedGoals = (lesson?.goals ?? const [])
@@ -1534,7 +1655,11 @@ ENDING:
             }
           }
         } catch (e, st) {
-          ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1527', e, stackTrace: st);
+          ErrorTracker.logSilent(
+            'lib/features/conversation/presentation/providers/conversation_providers.dart:1527',
+            e,
+            stackTrace: st,
+          );
         }
       }
 
@@ -1542,7 +1667,9 @@ ENDING:
       // AURA (mérito sin tope). NUNCA otorgan maná ni gemas de maná.
       try {
         final economyRepo = _ref.read(economyRepositoryProvider);
-        final completedGoals = state.goalEvaluationResults.values.where((v) => v).length;
+        final completedGoals = state.goalEvaluationResults.values
+            .where((v) => v)
+            .length;
         final sessionId = _conversationId;
         if (sessionId != null) {
           rewardSessionId = sessionId;
@@ -1557,7 +1684,9 @@ ENDING:
           try {
             final radar = await _ref.read(skillsRadarProvider.future);
             final levelCode =
-                (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? 'A1';
+                (_ref.read(userProgressProvider).value?['level_code']
+                    as String?) ??
+                'A1';
             final levelBonus = switch (levelCode.toUpperCase()) {
               'A2' => 1,
               'B1' => 2,
@@ -1567,14 +1696,24 @@ ENDING:
               _ => 0,
             };
             await economyRepo.addAuraXp(
-                _userId!, sessionId, radar, completedGoals, levelBonus);
+              _userId!,
+              sessionId,
+              radar,
+              completedGoals,
+              levelBonus,
+            );
             _ref.invalidate(auraXpProvider);
           } catch (e, st) {
-            ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1568', e, stackTrace: st);
+            ErrorTracker.logSilent(
+              'lib/features/conversation/presentation/providers/conversation_providers.dart:1568',
+              e,
+              stackTrace: st,
+            );
           }
         }
         // Racha y minutos: una sola fuente de verdad en servidor (issue #88).
-        final streakSessionId = rewardSessionId ??
+        final streakSessionId =
+            rewardSessionId ??
             _conversationId ??
             '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
         if (streakSessionId.isNotEmpty) {
@@ -1589,7 +1728,11 @@ ENDING:
           }
         }
       } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1585', e, stackTrace: st);
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:1585',
+          e,
+          stackTrace: st,
+        );
       }
 
       // Sincronizar títulos de habilidad ganados por desempeño conversacional
@@ -1618,26 +1761,37 @@ ENDING:
         }
         _ref.invalidate(earnedTitlesProvider);
       } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1612', e, stackTrace: st);
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:1612',
+          e,
+          stackTrace: st,
+        );
       }
 
       try {
         // Issue #35: cierre de sesión con volumen real de actividad.
         final turns = state.messages.where((m) => m.sender == 'user').length;
-        final completed =
-            state.goalEvaluationResults.values.where((v) => v).length;
-        unawaited(RetentionAnalytics.instance.track(
-          _userId!,
-          'session_end',
-          properties: {
-            'turns': turns,
-            'goals_completed': completed,
-            'goals_total': state.goalEvaluationResults.length,
-            'oracle': state.isOracleEvaluation,
-          },
-        ));
+        final completed = state.goalEvaluationResults.values
+            .where((v) => v)
+            .length;
+        unawaited(
+          RetentionAnalytics.instance.track(
+            _userId!,
+            'session_end',
+            properties: {
+              'turns': turns,
+              'goals_completed': completed,
+              'goals_total': state.goalEvaluationResults.length,
+              'oracle': state.isOracleEvaluation,
+            },
+          ),
+        );
       } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1629', e, stackTrace: st);
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:1629',
+          e,
+          stackTrace: st,
+        );
       }
       try {
         _ref.invalidate(userProgressProvider);
@@ -1649,12 +1803,17 @@ ENDING:
         // Also increment the refresh trigger for non-autoDispose safety
         _ref.read(dashboardRefreshProvider.notifier).state++;
       } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:1639', e, stackTrace: st);
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:1639',
+          e,
+          stackTrace: st,
+        );
       }
     }
 
-    final completedGoals =
-        state.goalEvaluationResults.values.where((v) => v).length;
+    final completedGoals = state.goalEvaluationResults.values
+        .where((v) => v)
+        .length;
     final result = <String, dynamic>{
       'xp': (rewards?['xp'] as num?)?.toInt() ?? 0,
       'gold': (rewards?['gold'] as num?)?.toInt() ?? 0,
@@ -1697,16 +1856,18 @@ class ConversationErrorState {
   });
 }
 
-final conversationErrorProvider =
-    StateProvider<ConversationErrorState?>((ref) => null);
+final conversationErrorProvider = StateProvider<ConversationErrorState?>(
+  (ref) => null,
+);
 
-final sessionResultProvider =
-    StateProvider<Map<String, dynamic>?>((ref) => null);
+final sessionResultProvider = StateProvider<Map<String, dynamic>?>(
+  (ref) => null,
+);
 
 final conversationStateProvider =
     StateNotifierProvider<ConversationNotifier, ConversationState>((ref) {
-  final repo = ref.watch(conversationRepositoryProvider);
-  return ConversationNotifier(repo, ref);
-});
+      final repo = ref.watch(conversationRepositoryProvider);
+      return ConversationNotifier(repo, ref);
+    });
 
 final micModeHoldToTalkProvider = StateProvider<bool>((ref) => false);

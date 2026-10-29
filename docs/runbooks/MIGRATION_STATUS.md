@@ -1,8 +1,8 @@
 # Estado de las migraciones (auditoría real)
 
-_Actualizado: 28-oct-2026 (recuento aplicado; el desglose de archivos es del 18-oct)._
+_Actualizado: 29-oct-2026 (recuento aplicado; el desglose de archivos es del 18-oct)._
 
-> Estado actual verificado: **67 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **73 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen

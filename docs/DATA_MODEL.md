@@ -94,14 +94,22 @@ producto lo necesita.
 | Contenido propio (conversaciones, mensajes, vocabulario, stats) | `FOR ALL` del dueño |
 
 Escrituras sensibles van por RPC `SECURITY DEFINER` o **service role**:
-`renew_mana_cycle`, `sync_entitlement`, `grant_mana`, `refund_mana`.
+`renew_mana_cycle`, `sync_entitlement`, `grant_mana`, `refund_mana`,
+`apply_placement_as`.
 
-### Deuda conocida
+### Nivel CEFR (cerrado en #73)
 
-`user_language_profiles` sigue siendo escribible por el dueño porque el
-onboarding calcula el CEFR en el cliente. Cerrarlo exige mover el *placement* al
-servidor (issue #14). Riesgo actual: un usuario puede subirse el nivel, pero no
-obtener premium ni maná.
+El cliente **no** escribe `cefr_level_id` ni `game_rank`:
+
+- `guard_language_profile` fuerza el nivel inicial (A1/E) en el `INSERT` y
+  revierte esos campos en el `UPDATE` de `authenticated`/`anon`.
+- `apply_self_declared_level(code)` guarda la elección del onboarding una sola
+  vez y la marca `{"source":"self_declared"}`. Se rechaza si ya hay evaluación.
+- `apply_placement_as(user, …)` (solo `service_role`) escribe el resultado del
+  Oráculo desde la Edge Function `evaluate-placement` y marca
+  `placement_assessed_at`.
+- `apply_placement(…)` sigue existiendo como envoltorio para builds antiguas,
+  pero está revocado para `authenticated`/`anon`.
 
 ---
 
@@ -120,6 +128,8 @@ obtener premium ni maná.
 | `get_dashboard_state(user)` | Progreso + logros del dashboard en una llamada (P-19b) |
 | `refund_mana(user, action)` | Devuelve plan y `daily_used` tras un turno fallido (solo service role) |
 | `refund_failed_turn(turn_ref, action)` | Reembolso idempotente desde el cliente (P-06) |
+| `apply_self_declared_level(code)` | Nivel autodeclarado del onboarding, una sola vez (#73) |
+| `apply_placement_as(user, …)` | Resultado del Oráculo; solo `service_role` (#73) |
 
 ---
 

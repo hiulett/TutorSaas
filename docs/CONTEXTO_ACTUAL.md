@@ -48,8 +48,8 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 - **#76 (resto)** — reacción propia por escena (3 escenas redactadas) y
   consumir unlocked_next en el mapa.
 - **#85** ✅ hecho — el cliente ya no puede completar misiones sin jugar.
-- **#73 (resto)** — Edge Function `evaluate-placement` para calcular el nivel en
-  servidor. Toca el onboarding: hacerlo con dispositivo disponible.
+- **#73 (resto)** ✅ — Edge Function `evaluate-placement` calcula y persiste el
+  nivel en servidor; el cliente ya no escribe `cefr_level_id`.
 
 ### Hecho en las últimas sesiones
 
