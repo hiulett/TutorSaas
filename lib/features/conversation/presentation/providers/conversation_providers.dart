@@ -986,31 +986,17 @@ ENDING:
   }) async {
     try {
       final client = Supabase.instance.client;
-      int cefrId = 1;
-      try {
-        final row = await client
-            .from('cefr_levels')
-            .select('id')
-            .eq('code', cefrLevel)
-            .maybeSingle();
-        if (row != null) cefrId = row['id'] as int;
-      } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:984', e, stackTrace: st);
-      }
-
-      await client.from('user_language_profiles').upsert({
-        'user_id': userId,
-        'language_id': 1,
-        'cefr_level_id': cefrId,
-        'game_rank': gameRank,
-        'placement_scores': scores,
-        'placement_strengths': strengths,
-        'placement_weaknesses': weaknesses,
-        'placement_explanation': explanation,
-        if (recommendedFocus.isNotEmpty)
-          'placement_recommended_focus': recommendedFocus,
-        'placement_assessed_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'user_id, language_id');
+      // #73: el servidor valida CEFR/RANK y aplica el placement. El trigger
+      // guard_language_profile revierte los updates directos del cliente.
+      await client.rpc('apply_placement', params: {
+        'p_cefr_code': cefrLevel,
+        'p_rank': gameRank,
+        'p_scores': scores ?? const <String, dynamic>{},
+        'p_strengths': strengths,
+        'p_weaknesses': weaknesses,
+        'p_explanation': explanation,
+        'p_recommended_focus': recommendedFocus,
+      });
     } catch (e, st) {
       ErrorTracker.logSilent('lib/features/conversation/presentation/providers/conversation_providers.dart:999', e, stackTrace: st);
     }
