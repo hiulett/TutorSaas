@@ -185,33 +185,36 @@ class TtsSettingsSheet extends StatelessWidget {
     required bool selected,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      key: key,
-      onTap: onTap,
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        selected
-            ? Icons.radio_button_checked_rounded
-            : Icons.radio_button_unchecked_rounded,
-        color: selected ? AppColors.manaCyan : Colors.white38,
-        size: 20,
-      ),
-      title: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: selected ? Colors.white : Colors.white70,
-          fontSize: 13,
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        key: key,
+        onTap: onTap,
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(
+          selected
+              ? Icons.radio_button_checked_rounded
+              : Icons.radio_button_unchecked_rounded,
+          color: selected ? AppColors.manaCyan : Colors.white38,
+          size: 20,
         ),
+        title: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: selected ? Colors.white : Colors.white70,
+            fontSize: 13,
+          ),
+        ),
+        subtitle: subtitle == null
+            ? null
+            : Text(
+                subtitle,
+                style: const TextStyle(color: Colors.white38, fontSize: 11),
+              ),
       ),
-      subtitle: subtitle == null
-          ? null
-          : Text(
-              subtitle,
-              style: const TextStyle(color: Colors.white38, fontSize: 11),
-            ),
     );
   }
 }
