@@ -37,6 +37,8 @@ afirmaciones que ya no eran ciertas:
 | «`app_pt.arb` tiene 26 cadenas corruptas» (#49) | Solo 2 caracteres `U+FFFD`; el resto eran Ç/Ã/Ê válidas mal interpretadas al leer como Latin-1 |
 | «El repo no tiene iOS configurado» (#21) | Cierto y **descartado**: el producto es Android únicamente |
 | «Stripe es el flujo de pago» | Eliminado en oct-2026; todo va por Play Billing + RevenueCat |
+| «Los goldens del design system son 3 pixel-goldens» (#207) | Solo `SegmentedBar` conserva pixel-golden; `GlassCard` y los chips RPG se validan con aserciones estructurales porque su PNG de Windows no coincide en Linux. Ver `runbooks/QUALITY_TESTS.md` |
+| «El CI falla por warnings del analyzer» (auditoría 25-oct) | El job usa `--no-fatal-infos`; medido el 29-oct: 0 errores, 0 warnings, 127 infos y 530 pruebas en verde |
 
 Lección: la documentación envejece más rápido que el código. Los hechos de este
 directorio se verificaron contra la base de datos y el código en la fecha

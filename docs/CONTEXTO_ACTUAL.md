@@ -17,7 +17,7 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 | Dato | Valor |
 |---|---|
 | Versión | `1.0.21+22` (Android únicamente) |
-| Tests / analyze | 155 en verde · 0 errores (36 warnings, 128 infos) |
+| Tests / analyze | 530 en verde (0 saltadas) · 0 errores, 0 warnings, 127 infos |
 | AAB / APK | 104,0 MB / 131,9 MB |
 | Backend | Supabase `sipiumfdpvnszthykyog` (producción) |
 | Issues | 85: 52 implementados · 23 parciales · 6 pendientes · 2 decisión · 1 descartado · 1 epic |
@@ -114,7 +114,7 @@ validaciones P3.
 ## Comandos
 
 ```sh
-flutter analyze && flutter test     # 0 errores · 155 tests
+flutter analyze && flutter test     # 0 errores/0 warnings · 530 tests
 flutter gen-l10n                    # tras editar un .arb
 flutter build appbundle --release
 supabase functions deploy <f> --project-ref sipiumfdpvnszthykyog --use-api

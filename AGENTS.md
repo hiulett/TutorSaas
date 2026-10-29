@@ -9,6 +9,7 @@ referencia está en `docs/`:
 - [docs/RELEASE.md](docs/RELEASE.md) — build y publicación
 - [docs/PRODUCT.md](docs/PRODUCT.md) — planes, moneda, decisiones
 - [docs/HISTORY.md](docs/HISTORY.md) — qué cambió y qué ya no es cierto
+- [docs/runbooks/QUALITY_TESTS.md](docs/runbooks/QUALITY_TESTS.md) — tests y red de regresión visual
 
 ---
 
@@ -25,8 +26,8 @@ Backend: Supabase (`sipiumfdpvnszthykyog`). Compras: Play Billing + RevenueCat.
 ## Comandos
 
 ```sh
-flutter analyze     # 0 errores · 0 warnings (136 infos son la línea base)
-flutter test        # 517 pruebas
+flutter analyze     # 0 errores · 0 warnings (127 infos son la línea base)
+flutter test        # 530 pruebas (0 saltadas)
 flutter gen-l10n    # obligatorio tras editar cualquier .arb
 dart run build_runner build --delete-conflicting-outputs   # freezed/json
 flutter build appbundle --release
@@ -116,7 +117,7 @@ cargues la auditoría completa).
 | Comando | Cuándo |
 |---|---|
 | `/build` | Tras editar código: `flutter analyze` (0 errores) |
-| `/test` | Antes de commit: 517 pruebas |
+| `/test` | Antes de commit: 530 pruebas |
 | `/review` | Antes de commit: revisión read-only del diff |
 | `/db-check` | Si tocas esquema, RLS o RPC |
 | `/ui-check` | Si tocas pantallas, estilos o textos |

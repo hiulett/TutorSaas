@@ -25,7 +25,7 @@ flutter-apk/app-release.apk
 
 ```sh
 flutter analyze                           # 0 errores · 0 warnings
-flutter test                              # 167 pruebas
+flutter test                              # 530 pruebas
 flutter gen-l10n                          # si tocaste algún .arb
 
 flutter build appbundle --release         # Play

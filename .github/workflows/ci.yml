@@ -5,6 +5,12 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
+    inputs:
+      update_goldens:
+        description: 'Regenerar la baseline de goldens en Linux (mismo entorno que CI)'
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -36,6 +42,48 @@ jobs:
 
       - name: Test
         run: flutter test
+
+      # Si un pixel-golden falla, `flutter_test` deja los diffs al lado del PNG.
+      - name: Upload golden failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: test/golden/failures/
+          if-no-files-found: ignore
+
+  goldens-baseline:
+    name: Goldens baseline (Linux, manual)
+    # Solo se ejecuta a mano: Actions → CI → Run workflow → update_goldens = true.
+    # Regenera los PNG en el mismo runner/SDK que valida el CI y los deja como
+    # artefacto para descargarlos y commitearlos (docs/runbooks/QUALITY_TESTS.md).
+    if: github.event_name == 'workflow_dispatch' && inputs.update_goldens
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Regenerate goldens
+        run: flutter test test/golden --update-goldens
+
+      - name: Upload baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: goldens-baseline
+          path: test/golden/goldens/
+          if-no-files-found: error
 
   web-admin:
     name: Web admin (lint + test + build)
