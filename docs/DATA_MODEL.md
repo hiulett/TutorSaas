@@ -175,3 +175,71 @@ La foto verificada del esquema (recuentos y consulta para regenerarla) está en
 
 Procedimiento de baseline (requiere Docker + contraseña de BD) y detalle
 completo en [runbooks/MIGRATION_STATUS.md](runbooks/MIGRATION_STATUS.md).
+
+---
+
+## 5. Misiones (#109 · P-24)
+
+### Progreso solo por servidor
+
+Los `mission_instances.current_value/status` los escriben únicamente triggers
+`SECURITY DEFINER` sobre datos reales del jugador:
+
+| Trigger | Tabla origen | Objetivo que avanza |
+|---|---|---|
+| `trg_message_advance_missions` | `messages` | `conversation_turns` |
+| `trg_session_reward_advance_missions` | `session_reward_ledger` | `sessions`, `practice_session`, `speak_minutes` |
+| `trg_vocabulary_advance_missions` | `user_vocabulary` (INSERT) | `vocab_words` |
+| `trg_vocabulary_review_advance_missions` | `vocabulary_reviews` (INSERT) | `vocab_words` (repaso SRS) |
+
+`guard_mission_instance` neutraliza cualquier `UPDATE` de cliente sobre
+`current_value`, `status`, `target_value`, `objective_type`, importes y dueño.
+
+**Quitado del cliente en #109** (`lib/features/missions/...`):
+
+- `advanceMissions()` → RPC `advance_my_missions` (doble conteo en el repaso
+  SRS; ahora lo cubre `trg_vocabulary_review_advance_missions`).
+- `updateProgress()` → escribía `current_value/status` desde el cliente.
+- `updateGuildMissionProgress()` y `contributeToWeeklyRaid()` → sumaban
+  progreso colectivo desde el cliente sin validación.
+
+### Métrica por plantilla y umbral del 5 %
+
+Vista `mission_template_completion_rates` (versionada en
+`supabase/migrations/20261029061945_mission_redesign_observability.sql`):
+
+```sql
+select title, mission_type, instancias, completadas, tasa_completado,
+       cumple_umbral_5pct
+from mission_template_completion_rates
+order by completadas desc nulls last, instancias desc;
+```
+
+Regla de retiro: `tasa_completado < 5` con `instancias >= 30`. Se aplica a mano
+(`update mission_templates set is_active = false`) tras revisión; no se ejecuta
+en la migración. A 29-oct-2026 **ninguna** plantilla alcanza el 5 % (máximo
+1,69 % con n=59), así que no se retira ninguna: el problema era el flujo, no el
+catálogo.
+
+### Alcanzabilidad
+
+Vista `mission_templates_reachability` (espejo de
+`lib/features/missions/domain/models/mission_visibility.dart`). Marca
+`alcanzable = false` cuando el tipo está oculto (`secondary`, `secret`,
+`emergency`, `guild`, `collaborative`, `event`), el objetivo no tiene trigger o
+el target supera el techo medido.
+
+A 29-oct-2026: 13 plantillas `daily` alcanzables, 4 `weekly` alcanzables y 2
+`weekly` fuera de techo (*El Viajero Semanal*, 25 min; *El Políglota*, 20
+palabras). Las 13 `secondary` quedan fuera porque `rotate_daily_missions` solo
+reparte `daily` y `weekly`.
+
+### Reclamo
+
+`claim_mission_reward(p_instance_id)` es `SECURITY DEFINER`, bloquea la fila con
+`FOR UPDATE`, valida `auth.uid()` y `status = 'completed'`, y es idempotente
+(`already_claimed = true`, `xp/gems = 0`). La migración
+`20261029062825_fix_claim_mission_reward_source_id.sql` corrige el `insert` en
+`reward_history` (`source_id` es `NOT NULL`): antes **todo** reclamo fallaba con
+`23502`.
+

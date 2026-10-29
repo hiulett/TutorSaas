@@ -14,7 +14,7 @@ import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../../domain/models/streak_rules.dart';
 import '../providers/dashboard_providers.dart';
 import '../screens/dashboard_screen.dart';
-import 'daily_quests_widget.dart';
+import '../../../missions/presentation/widgets/mission_spotlight_widget.dart';
 import 'league_leaderboard_widget.dart';
 import 'learning_evidence_card.dart';
 import 'charts/skills_radar_chart.dart';
@@ -375,8 +375,8 @@ class ProgressTabView extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
-            // Daily Quests Gamification Widget (conectado a misiones reales)
-            DailyQuestsWidget(streakDays: streak),
+            // Issue #109: misión del día (1 principal + 2 secundarias).
+            MissionSpotlightWidget(streakDays: streak),
 
             const SizedBox(height: 24),
 

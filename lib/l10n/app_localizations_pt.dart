@@ -2427,6 +2427,75 @@ class AppLocalizationsPt extends AppLocalizations {
       'Passe em um teste de impressão de voz';
 
   @override
+  String get missions_title => 'Missões';
+
+  @override
+  String get missions_tab_daily => 'Diárias';
+
+  @override
+  String get missions_tab_weekly => 'Semanais';
+
+  @override
+  String get missions_spotlight => 'MISSÃO DO DIA';
+
+  @override
+  String get missions_see_all => 'VER TODAS';
+
+  @override
+  String get missions_reset_hint => 'Renovação automática: 00:05 UTC';
+
+  @override
+  String get missions_empty_daily =>
+      'Você ainda não tem missões diárias. Elas chegam todos os dias às 00:05 UTC.';
+
+  @override
+  String get missions_empty_weekly =>
+      'Você ainda não tem missões semanais. Elas são atribuídas com o ciclo diário das 00:05 UTC.';
+
+  @override
+  String get missions_unavailable => 'Indisponível';
+
+  @override
+  String get missions_unavailable_hint =>
+      'Esta missão não pode ser concluída com o rastreamento atual.';
+
+  @override
+  String missions_claim_xp(int xp) {
+    return 'Resgatar +$xp XP';
+  }
+
+  @override
+  String missions_claim_success(int xp, int gems) {
+    return 'Recompensa resgatada: +$xp XP · +$gems gemas';
+  }
+
+  @override
+  String get missions_claim_already => 'Você já resgatou esta recompensa.';
+
+  @override
+  String get missions_claim_error =>
+      'Não foi possível resgatar a recompensa. Verifique sua conexão e tente novamente.';
+
+  @override
+  String get missions_load_error =>
+      'Não foi possível carregar suas missões. Toque para tentar novamente.';
+
+  @override
+  String get missions_retry => 'TENTAR NOVAMENTE';
+
+  @override
+  String get missions_unit_minutes => 'min';
+
+  @override
+  String get missions_unit_turns => 'turnos';
+
+  @override
+  String get missions_unit_words => 'palavras';
+
+  @override
+  String get missions_unit_sessions => 'sessões';
+
+  @override
   String get league_level_title => 'Liga de Nível';
 
   @override

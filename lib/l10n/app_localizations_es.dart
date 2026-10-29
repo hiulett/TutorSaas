@@ -2430,6 +2430,75 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quest_desc_pronunciation => 'Supera una prueba de huella de voz';
 
   @override
+  String get missions_title => 'Misiones';
+
+  @override
+  String get missions_tab_daily => 'Diarias';
+
+  @override
+  String get missions_tab_weekly => 'Semanales';
+
+  @override
+  String get missions_spotlight => 'MISIÓN DEL DÍA';
+
+  @override
+  String get missions_see_all => 'VER TODAS';
+
+  @override
+  String get missions_reset_hint => 'Renovación automática: 00:05 UTC';
+
+  @override
+  String get missions_empty_daily =>
+      'Aún no tienes misiones diarias. Llegan cada día a las 00:05 UTC.';
+
+  @override
+  String get missions_empty_weekly =>
+      'Aún no tienes misiones semanales. Se asignan con el ciclo diario de 00:05 UTC.';
+
+  @override
+  String get missions_unavailable => 'No disponible';
+
+  @override
+  String get missions_unavailable_hint =>
+      'Esta misión no se puede completar con el seguimiento actual.';
+
+  @override
+  String missions_claim_xp(int xp) {
+    return 'Reclamar +$xp XP';
+  }
+
+  @override
+  String missions_claim_success(int xp, int gems) {
+    return 'Recompensa reclamada: +$xp XP · +$gems gemas';
+  }
+
+  @override
+  String get missions_claim_already => 'Ya reclamaste esta recompensa.';
+
+  @override
+  String get missions_claim_error =>
+      'No pudimos reclamar la recompensa. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get missions_load_error =>
+      'No pudimos cargar tus misiones. Toca para reintentar.';
+
+  @override
+  String get missions_retry => 'REINTENTAR';
+
+  @override
+  String get missions_unit_minutes => 'min';
+
+  @override
+  String get missions_unit_turns => 'turnos';
+
+  @override
+  String get missions_unit_words => 'palabras';
+
+  @override
+  String get missions_unit_sessions => 'sesiones';
+
+  @override
   String get league_level_title => 'Liga de Nivel';
 
   @override

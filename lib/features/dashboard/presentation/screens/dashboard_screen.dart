@@ -19,6 +19,7 @@ import '../../domain/models/lesson_unlock_service.dart';
 import '../widgets/progress_tab_view.dart';
 import '../../../economy/presentation/widgets/daily_reward_modal.dart';
 import '../../../vocabulary/presentation/widgets/srs_review_card.dart';
+import '../../../missions/presentation/widgets/mission_spotlight_widget.dart';
 import 'settings_screen.dart';
 import 'package:tutorsaas/features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -387,6 +388,9 @@ class DashboardScreen extends ConsumerWidget {
 
                                   // Issue #24: repaso espaciado (solo si hay palabras vencidas).
                                   const SrsReviewCard(),
+
+                                  // Issue #109: mision del dia (1 principal + 2 secundarias).
+                                  const MissionSpotlightWidget(),
 
                                   // Acceso a suscripción (la racha vive en Estado, #80)
                                   Row(

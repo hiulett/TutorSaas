@@ -2,25 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
-import 'dart:async';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
-import '../../../missions/presentation/providers/mission_providers.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class SrsFlashcardModal extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> vocabularyItems;
 
-  const SrsFlashcardModal({
-    super.key,
-    required this.vocabularyItems,
-  });
+  const SrsFlashcardModal({super.key, required this.vocabularyItems});
 
-  static Future<void> show(BuildContext context, List<Map<String, dynamic>> items) {
+  static Future<void> show(
+    BuildContext context,
+    List<Map<String, dynamic>> items,
+  ) {
     return showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surfaceDeep,
@@ -46,14 +44,18 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
   bool get _isProductionCard {
     if (_currentIndex >= widget.vocabularyItems.length) return false;
     final interval =
-        (widget.vocabularyItems[_currentIndex]['interval_days'] as num?)?.toInt() ?? 1;
+        (widget.vocabularyItems[_currentIndex]['interval_days'] as num?)
+            ?.toInt() ??
+        1;
     return interval >= 6;
   }
 
   void _evaluateWord(double difficultyScore) async {
     if (_currentIndex < widget.vocabularyItems.length) {
       final currentItem = widget.vocabularyItems[_currentIndex];
-      final vocabId = currentItem['vocabulary_id'] as String? ?? currentItem['id'] as String?;
+      final vocabId =
+          currentItem['vocabulary_id'] as String? ??
+          currentItem['id'] as String?;
       final user = ref.read(currentUserProvider);
       // Issue #78: a partir de 6 días de intervalo la tarjeta se da la vuelta
       // (se muestra la traducción y hay que recordar la palabra). Solo estas
@@ -63,14 +65,20 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
 
       if (user != null && vocabId != null) {
         try {
-          await ref.read(dashboardRepositoryProvider).updateVocabularySrsScore(
+          await ref
+              .read(dashboardRepositoryProvider)
+              .updateVocabularySrsScore(
                 user.id,
                 vocabId,
                 difficultyScore,
                 cardType: isProduction ? 'production' : 'recognition',
               );
         } catch (e, st) {
-          ErrorTracker.logSilent('lib/features/vocabulary/presentation/widgets/srs_flashcard_modal.dart:70', e, stackTrace: st);
+          ErrorTracker.logSilent(
+            'lib/features/vocabulary/presentation/widgets/srs_flashcard_modal.dart:70',
+            e,
+            stackTrace: st,
+          );
           // P-12 (#97): si la RPC falla, la tarjeta NO avanza: sigue en la
           // cola para que el repaso no se pierda en silencio.
           if (mounted) {
@@ -83,11 +91,9 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
           return;
         }
 
-        // Issue #5: cada palabra repasada cuenta para las misiones de
-        // `vocab_words`.
-        unawaited(ref
-            .read(missionRepositoryProvider)
-            .advanceMissions('vocab_words'));
+        // Issue #109: el avance de `vocab_words` lo hacen los triggers de
+        // servidor; no se llama a `advance_my_missions` desde el cliente
+        // (doble conteo).
       }
     }
 
@@ -157,7 +163,11 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.stars_rounded, color: AppColors.triumphGold, size: 64),
+                    const Icon(
+                      Icons.stars_rounded,
+                      color: AppColors.triumphGold,
+                      size: 64,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'REVIEW WAVE CONQUERED!',
@@ -172,17 +182,31 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                     Text(
                       'Successfully completed $_reviewedCount reviews. Next cycle in 24 hours.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(color: AppColors.onSurfaceVariant, fontSize: 13),
+                      style: GoogleFonts.inter(
+                        color: AppColors.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.runeViolet,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 12,
+                        ),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
                       ),
-                      child: Text(l10n.srs_close, style: GoogleFonts.jetBrainsMono(color: AppColors.onSurface, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        l10n.srs_close,
+                        style: GoogleFonts.jetBrainsMono(
+                          color: AppColors.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -220,9 +244,11 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                               children: [
                                 Text(
                                   (_isProductionCard
-                                          ? widget.vocabularyItems[_currentIndex]['word']
-                                          : widget.vocabularyItems[_currentIndex]['translation'])
-                                      as String? ??
+                                              ? widget
+                                                    .vocabularyItems[_currentIndex]['word']
+                                              : widget
+                                                    .vocabularyItems[_currentIndex]['translation'])
+                                          as String? ??
                                       '',
                                   style: GoogleFonts.spaceGrotesk(
                                     fontSize: 28,
@@ -234,7 +260,12 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                                 const SizedBox(height: 12),
                                 Text(
                                   'PATH: ${(widget.vocabularyItems[_currentIndex]['category'] ?? 'Vocabularies').toUpperCase()}',
-                                  style: GoogleFonts.jetBrainsMono(color: AppColors.onSurface.withValues(alpha: 0.7), fontSize: 12),
+                                  style: GoogleFonts.jetBrainsMono(
+                                    color: AppColors.onSurface.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    fontSize: 12,
+                                  ),
                                 ),
                                 const SizedBox(height: 12),
                               ],
@@ -245,9 +276,11 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                               children: [
                                 Text(
                                   (_isProductionCard
-                                          ? widget.vocabularyItems[_currentIndex]['translation']
-                                          : widget.vocabularyItems[_currentIndex]['word'])
-                                      as String? ??
+                                              ? widget
+                                                    .vocabularyItems[_currentIndex]['translation']
+                                              : widget
+                                                    .vocabularyItems[_currentIndex]['word'])
+                                          as String? ??
                                       '',
                                   style: GoogleFonts.spaceGrotesk(
                                     fontSize: 32,
@@ -260,11 +293,18 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.touch_app_rounded, color: AppColors.onSurfaceVariant, size: 16),
+                                    const Icon(
+                                      Icons.touch_app_rounded,
+                                      color: AppColors.onSurfaceVariant,
+                                      size: 16,
+                                    ),
                                     const SizedBox(width: 6),
                                     Text(
                                       'TAP CARD TO REVEAL',
-                                      style: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        color: AppColors.onSurfaceVariant,
+                                        fontSize: 11,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -289,9 +329,17 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.errorRed,
                         side: const BorderSide(color: AppColors.errorRed),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
                       ),
-                      child: Text(l10n.srs_hard, style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        l10n.srs_hard,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -301,9 +349,17 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.royalGold,
                         side: const BorderSide(color: AppColors.royalGold),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
                       ),
-                      child: Text(l10n.srs_normal, style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        l10n.srs_normal,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -313,9 +369,17 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.easyGreen,
                         foregroundColor: AppColors.onSurface,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
                       ),
-                      child: Text(l10n.srs_easy, style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        l10n.srs_easy,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],

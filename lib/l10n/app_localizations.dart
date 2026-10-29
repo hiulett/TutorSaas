@@ -4510,6 +4510,126 @@ abstract class AppLocalizations {
   /// **'Pass a voice-print test'**
   String get quest_desc_pronunciation;
 
+  /// No description provided for @missions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Missions'**
+  String get missions_title;
+
+  /// No description provided for @missions_tab_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get missions_tab_daily;
+
+  /// No description provided for @missions_tab_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get missions_tab_weekly;
+
+  /// No description provided for @missions_spotlight.
+  ///
+  /// In en, this message translates to:
+  /// **'MISSION OF THE DAY'**
+  String get missions_spotlight;
+
+  /// No description provided for @missions_see_all.
+  ///
+  /// In en, this message translates to:
+  /// **'SEE ALL'**
+  String get missions_see_all;
+
+  /// No description provided for @missions_reset_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic renewal: 00:05 UTC'**
+  String get missions_reset_hint;
+
+  /// No description provided for @missions_empty_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'No daily missions yet. New ones arrive every day at 00:05 UTC.'**
+  String get missions_empty_daily;
+
+  /// No description provided for @missions_empty_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'No weekly missions yet. They are assigned with the daily 00:05 UTC cycle.'**
+  String get missions_empty_weekly;
+
+  /// No description provided for @missions_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get missions_unavailable;
+
+  /// No description provided for @missions_unavailable_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'This mission cannot be completed with the current tracking.'**
+  String get missions_unavailable_hint;
+
+  /// No description provided for @missions_claim_xp.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim +{xp} XP'**
+  String missions_claim_xp(int xp);
+
+  /// No description provided for @missions_claim_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward claimed: +{xp} XP · +{gems} gems'**
+  String missions_claim_success(int xp, int gems);
+
+  /// No description provided for @missions_claim_already.
+  ///
+  /// In en, this message translates to:
+  /// **'You already claimed this reward.'**
+  String get missions_claim_already;
+
+  /// No description provided for @missions_claim_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t claim the reward. Check your connection and try again.'**
+  String get missions_claim_error;
+
+  /// No description provided for @missions_load_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your missions. Tap to retry.'**
+  String get missions_load_error;
+
+  /// No description provided for @missions_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get missions_retry;
+
+  /// No description provided for @missions_unit_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get missions_unit_minutes;
+
+  /// No description provided for @missions_unit_turns.
+  ///
+  /// In en, this message translates to:
+  /// **'turns'**
+  String get missions_unit_turns;
+
+  /// No description provided for @missions_unit_words.
+  ///
+  /// In en, this message translates to:
+  /// **'words'**
+  String get missions_unit_words;
+
+  /// No description provided for @missions_unit_sessions.
+  ///
+  /// In en, this message translates to:
+  /// **'sessions'**
+  String get missions_unit_sessions;
+
   /// No description provided for @league_level_title.
   ///
   /// In en, this message translates to:

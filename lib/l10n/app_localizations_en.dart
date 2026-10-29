@@ -2420,6 +2420,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quest_desc_pronunciation => 'Pass a voice-print test';
 
   @override
+  String get missions_title => 'Missions';
+
+  @override
+  String get missions_tab_daily => 'Daily';
+
+  @override
+  String get missions_tab_weekly => 'Weekly';
+
+  @override
+  String get missions_spotlight => 'MISSION OF THE DAY';
+
+  @override
+  String get missions_see_all => 'SEE ALL';
+
+  @override
+  String get missions_reset_hint => 'Automatic renewal: 00:05 UTC';
+
+  @override
+  String get missions_empty_daily =>
+      'No daily missions yet. New ones arrive every day at 00:05 UTC.';
+
+  @override
+  String get missions_empty_weekly =>
+      'No weekly missions yet. They are assigned with the daily 00:05 UTC cycle.';
+
+  @override
+  String get missions_unavailable => 'Unavailable';
+
+  @override
+  String get missions_unavailable_hint =>
+      'This mission cannot be completed with the current tracking.';
+
+  @override
+  String missions_claim_xp(int xp) {
+    return 'Claim +$xp XP';
+  }
+
+  @override
+  String missions_claim_success(int xp, int gems) {
+    return 'Reward claimed: +$xp XP · +$gems gems';
+  }
+
+  @override
+  String get missions_claim_already => 'You already claimed this reward.';
+
+  @override
+  String get missions_claim_error =>
+      'We couldn\'t claim the reward. Check your connection and try again.';
+
+  @override
+  String get missions_load_error =>
+      'We couldn\'t load your missions. Tap to retry.';
+
+  @override
+  String get missions_retry => 'RETRY';
+
+  @override
+  String get missions_unit_minutes => 'min';
+
+  @override
+  String get missions_unit_turns => 'turns';
+
+  @override
+  String get missions_unit_words => 'words';
+
+  @override
+  String get missions_unit_sessions => 'sessions';
+
+  @override
   String get league_level_title => 'Level League';
 
   @override
