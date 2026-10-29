@@ -4,6 +4,8 @@ import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../data/repositories/mission_repository.dart';
 import '../../domain/repositories/mission_repository.dart';
 import '../../domain/models/mission_models.dart';
+import '../../domain/models/mission_spotlight.dart';
+import '../../domain/models/mission_visibility.dart';
 
 /// Catálogo local fijo de eventos semanales (sin depender de la DB).
 /// Se rota cada semana usando el número de semana ISO del año.
@@ -57,14 +59,40 @@ final completedMissionsProvider = FutureProvider.autoDispose<List<MissionInstanc
   return ref.watch(missionRepositoryProvider).getCompletedMissions(user.id);
 });
 
-/// Misiones diarias activas del usuario (mission_instances con mission_type='daily').
-/// Se conecta a la DB real; se invalida al reclamar una recompensa.
-final dailyMissionsProvider = FutureProvider.autoDispose<List<MissionInstance>>((ref) async {
+/// Misiones abiertas del usuario: activas **y** completadas sin reclamar.
+///
+/// Antes solo se leían las `active`, así que una misión completada
+/// (`status = 'completed'`) desaparecía de la UI y su recompensa quedaba
+/// imposible de reclamar. El progreso sigue siendo solo del servidor; aquí
+/// solo se lee.
+final activeMissionsProvider = FutureProvider.autoDispose<List<MissionInstance>>((ref) async {
   final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
+  if (user == null) return const [];
   ref.watch(dashboardRefreshProvider);
-  final missions = await ref.watch(missionRepositoryProvider).getActiveMissions(user.id);
-  return missions.where((m) => m.missionType == 'daily').toList();
+  final repo = ref.watch(missionRepositoryProvider);
+  final results = await Future.wait([
+    repo.getActiveMissions(user.id),
+    repo.getCompletedMissions(user.id),
+  ]);
+  return [...results[0], ...results[1]];
+});
+
+/// Misiones diarias visibles (incluye las no alcanzables para marcarlas).
+final dailyMissionsProvider = FutureProvider.autoDispose<List<MissionInstance>>((ref) async {
+  final missions = await ref.watch(activeMissionsProvider.future);
+  return MissionVisibility.byType(missions, type: 'daily');
+});
+
+/// Misiones semanales visibles (incluye las no alcanzables para marcarlas).
+final weeklyMissionsProvider = FutureProvider.autoDispose<List<MissionInstance>>((ref) async {
+  final missions = await ref.watch(activeMissionsProvider.future);
+  return MissionVisibility.byType(missions, type: 'weekly');
+});
+
+/// 1 misión principal + 2 secundarias para el bloque destacado de Home.
+final missionSpotlightProvider = FutureProvider.autoDispose<MissionSpotlight>((ref) async {
+  final missions = await ref.watch(activeMissionsProvider.future);
+  return MissionSpotlight.from(missions);
 });
 
 /// Evento semanal en curso, estable por semana ISO: `semana % 5` rota el
