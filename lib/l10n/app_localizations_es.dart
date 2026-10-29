@@ -2818,6 +2818,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get progress_practice => 'PRACTICAR';
 
   @override
+  String get daily_goal_title => 'META DIARIA';
+
+  @override
+  String daily_goal_minutes(int done, int goal) {
+    return '$done / $goal min';
+  }
+
+  @override
+  String daily_goal_remaining(int minutes) {
+    return 'Faltan $minutes min';
+  }
+
+  @override
+  String get daily_goal_done => 'Meta cumplida';
+
+  @override
+  String daily_goal_streak(int days) {
+    return 'Racha $days d';
+  }
+
+  @override
+  String get daily_goal_celebrate => '¡META CUMPLIDA!';
+
+  @override
   String get evidence_title => 'EVIDENCIA DE APRENDIZAJE';
 
   @override

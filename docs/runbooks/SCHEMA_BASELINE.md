@@ -9,14 +9,14 @@ entorno de staging o migración futura.
 
 | Métrica | Valor |
 |---|---|
-| Tablas (`public`) | **79** |
+| Tablas (`public`) | **80** |
 | Vistas | 6 |
-| Funciones | 68 |
-| Políticas RLS | 125 |
+| Funciones | 70 |
+| Políticas RLS | 126 |
 | Tablas sin RLS | **0** |
 | Triggers | 44 |
 | Jobs de cron | 3 |
-| Migraciones registradas | **73** |
+| Migraciones registradas | **74** |
 | Archivos `.sql` en `supabase/migrations/` (raíz) | 134 (59 con prefijo válido, 75 sin él) |
 | Archivos `.sql` en subcarpetas (`archive/`, `audit/`) | 40 |
 

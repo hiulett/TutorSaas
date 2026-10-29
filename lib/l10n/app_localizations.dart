@@ -5200,6 +5200,42 @@ abstract class AppLocalizations {
   /// **'PRACTICE'**
   String get progress_practice;
 
+  /// No description provided for @daily_goal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY GOAL'**
+  String get daily_goal_title;
+
+  /// No description provided for @daily_goal_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {goal} min'**
+  String daily_goal_minutes(int done, int goal);
+
+  /// No description provided for @daily_goal_remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min to go'**
+  String daily_goal_remaining(int minutes);
+
+  /// No description provided for @daily_goal_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal complete'**
+  String get daily_goal_done;
+
+  /// No description provided for @daily_goal_streak.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d streak'**
+  String daily_goal_streak(int days);
+
+  /// No description provided for @daily_goal_celebrate.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY GOAL COMPLETE!'**
+  String get daily_goal_celebrate;
+
   /// No description provided for @evidence_title.
   ///
   /// In en, this message translates to:
