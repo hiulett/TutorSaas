@@ -1,4 +1,5 @@
 import '../../domain/models/conversation_message.dart';
+import '../../domain/models/goal_evaluation_result.dart';
 
 abstract class ConversationRepository {
   Future<String> transcribeAudio(String audioPath);
@@ -13,7 +14,9 @@ abstract class ConversationRepository {
 
   /// Ask DeepSeek to evaluate which lesson goals the student has achieved
   /// based on the full conversation history. Returns map of goalId → achieved.
-  Future<Map<String, bool>> evaluateGoals(
+  /// P-29: la misma llamada devuelve también las correcciones del turno,
+  /// para no añadir una petición extra por turno.
+  Future<GoalEvaluationResult> evaluateGoals(
     String conversationJson,
     List<Map<String, dynamic>> goalItems,
   );
