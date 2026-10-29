@@ -1,3 +1,4 @@
+import '../../../corrections/domain/models/correction_turn_result.dart';
 import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/goal_evaluation_result.dart';
@@ -46,6 +47,15 @@ abstract class ConversationRepository {
     String conversationJson,
     List<Map<String, dynamic>> goalItems,
   );
+
+  /// P-29-b (#193): pide SOLO las correcciones del turno cuando la sesión no
+  /// tiene metas de lección pendientes (conversación libre). Usa su propio
+  /// `action_code` (`correction_turn`) para que el proxy cobre en maná; un 402
+  /// se devuelve como [CorrectionTurnOutcome.noMana] y no rompe el chat.
+  Future<CorrectionTurnResult> evaluateTurnCorrections(
+    String conversationText, {
+    String? conversationId,
+  });
 
   /// Evalúa la "carisma" conversacional (coherencia, naturalidad, confianza,
   /// continuidad) de las respuestas del estudiante. Devuelve 0-100.

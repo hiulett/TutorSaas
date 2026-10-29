@@ -11,10 +11,12 @@ import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../data/repositories/conversation_repository_impl.dart';
 import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/goal_evaluation_gate.dart';
+import '../../domain/models/correction_turn_policy.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
 import '../../../corrections/domain/models/turn_correction.dart';
+import '../../../corrections/domain/models/correction_turn_result.dart';
 import '../../../corrections/presentation/providers/corrections_providers.dart';
 import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -124,6 +126,14 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// P-29: `turn_ref` del turno en curso, para deduplicar correcciones.
   String? _correctionTurnRef;
 
+  /// P-29-b (#193): presupuesto de evaluaciones de corrección en la sesión
+  /// (chat libre). Cuenta también los intentos fallidos: el tope acota el
+  /// gasto de IA, no los aciertos.
+  int _correctionEvaluations = 0;
+
+  /// P-29-b: tras un `402 no_mana` no se vuelve a pedir en esta sesión.
+  bool _correctionsSkippedForMana = false;
+
   /// Errores recurrentes del alumno (vista `user_recurring_errors`).
   /// Alimentan el prompt del tutor y la misión de refuerzo.
   List<CorrectionGroup> _recurringErrors = const [];
@@ -185,6 +195,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // P-29: los chips de corrección de la sesión anterior no se heredan y el
     // contexto de errores recurrentes se refresca al abrir la conversación.
     _correctionTurnRef = null;
+    _correctionEvaluations = 0;
+    _correctionsSkippedForMana = false;
     _recurringErrors = const [];
     _ref.read(sessionCorrectionsProvider.notifier).clear();
     unawaited(_loadRecurringErrors());
@@ -1659,6 +1671,7 @@ ENDING:
       // basura de STT 6 veces por sesión). Se cura UNA vez al cerrar la sesión
       // en `endSession` → `curateSessionVocabulary`.
 
+      var goalEvalRanThisTurn = false;
       if (lesson != null && lesson.goals.isNotEmpty) {
         // P-39: solo las metas pendientes pueden activar la evaluación. Si ya
         // están todas, no se gasta una llamada al cerrar ni en el turno.
@@ -1682,12 +1695,22 @@ ENDING:
           );
           _goalsEvaluatedForLastTurn = _goalEvaluationPendingRetry || hasSignal;
           if (_goalsEvaluatedForLastTurn) {
+            goalEvalRanThisTurn = true;
             final succeeded = await _evaluateGoalsWithAi(lesson.goals);
             _goalsEvaluatedForLastTurn = succeeded;
             _goalEvaluationPendingRetry = !succeeded;
           }
         }
       }
+
+      // P-29-b (#193): si este turno no lanzó `goal_eval`, no hay respuesta que
+      // traiga correcciones (chat libre, lección sin metas o metas ya
+      // cumplidas). Se piden aparte con el gate y el presupuesto de sesión; si
+      // el proxy devuelve 402 no se pide más y el chat sigue igual.
+      await _maybeRequestTurnCorrections(
+        messageText: userText,
+        goalEvalRanThisTurn: goalEvalRanThisTurn,
+      );
     } catch (e) {
       debugPrint('Background DB persistence error: $e');
     }
@@ -1735,13 +1758,7 @@ ENDING:
 
       // Ventana móvil (IA-03): evaluar solo la porción más reciente de la
       // conversación para acotar el costo de tokens.
-      final recent = state.messages.length > 12
-          ? state.messages.sublist(state.messages.length - 12)
-          : state.messages;
-
-      final conversationText = recent
-          .map((m) => '${m.sender == 'user' ? 'Student' : 'Tutor'}: ${m.text}')
-          .join('\n');
+      final conversationText = _recentConversationText();
 
       final goalItems = uncompleted
           .map((g) => {'id': g.id, 'text': g.text})
@@ -1798,11 +1815,91 @@ ENDING:
     }
   }
 
+  /// Ventana móvil (IA-03) de la conversación enviada al modelo: los últimos
+  /// 12 mensajes con texto, en formato `Student:`/`Tutor:`.
+  String _recentConversationText({int maxMessages = 12}) {
+    final recent = state.messages.length > maxMessages
+        ? state.messages.sublist(state.messages.length - maxMessages)
+        : state.messages;
+    return recent
+        .map((m) => '${m.sender == 'user' ? 'Student' : 'Tutor'}: ${m.text}')
+        .join('\n');
+  }
+
+  /// P-29-b (#193): pide las correcciones del turno cuando no hubo `goal_eval`.
+  ///
+  /// Best-effort y sin bloquear: un fallo, un JSON ilegible o un 402 dejan la
+  /// conversación exactamente igual (sin chip y sin error visible). El coste
+  /// lo acota [CorrectionTurnPolicy] (gate de longitud + tope por sesión) y el
+  /// maná lo cobra `llm-proxy` con `action_code = correction_turn`.
+  Future<void> _maybeRequestTurnCorrections({
+    required String messageText,
+    required bool goalEvalRanThisTurn,
+  }) async {
+    final userId = _userId;
+    if (userId == null || userId.startsWith('guest_')) return;
+    if (state.isOracleEvaluation || messageText.trim().isEmpty) return;
+
+    final level = _ref.read(correctionLevelProvider);
+    final shouldRequest = CorrectionTurnPolicy.shouldRequest(
+      correctionLevel: level,
+      lastUserMessage: messageText,
+      evaluationsThisSession: _correctionEvaluations,
+      goalsEvaluatedThisTurn: goalEvalRanThisTurn,
+      skippedForMana: _correctionsSkippedForMana,
+    );
+    if (!shouldRequest) return;
+
+    final result = await _repository.evaluateTurnCorrections(
+      _recentConversationText(),
+      conversationId: _conversationId,
+    );
+
+    switch (result.outcome) {
+      case CorrectionTurnOutcome.noMana:
+        // Plan gratuito sin maná: se deja de pedir en esta sesión. El turno ya
+        // está respondido, así que el 402 no rompe nada.
+        _correctionsSkippedForMana = true;
+        debugPrint('correction_turn: sin maná, correcciones desactivadas');
+      case CorrectionTurnOutcome.ok:
+      case CorrectionTurnOutcome.failed:
+        // Los intentos fallidos también consumen presupuesto: el tope acota el
+        // gasto de IA por sesión, no solo las evaluaciones con éxito.
+        _correctionEvaluations++;
+    }
+
+    _handleTurnCorrections(result.corrections, messageText: messageText);
+
+    unawaited(
+      RetentionAnalytics.instance.track(
+        userId,
+        AnalyticsEvent.correctionEval,
+        properties: {
+          'action': 'correction_turn',
+          'result': switch (result.outcome) {
+            CorrectionTurnOutcome.ok => 'ok',
+            CorrectionTurnOutcome.noMana => 'no_mana',
+            CorrectionTurnOutcome.failed => 'failed',
+          },
+          'count': result.corrections.length,
+          'evals': _correctionEvaluations,
+          'level': normalizeCorrectionLevel(level),
+        },
+      ),
+    );
+  }
+
   /// P-29: pinta el chip bajo la burbuja del último mensaje y registra las
   /// correcciones en `public.corrections` (best-effort, sin bloquear el turno).
-  void _handleTurnCorrections(List<TurnCorrection> corrections) {
+  ///
+  /// [messageText] ancla el chip al turno evaluado aunque el alumno ya haya
+  /// enviado otro mensaje mientras la evaluación corría en segundo plano.
+  void _handleTurnCorrections(
+    List<TurnCorrection> corrections, {
+    String? messageText,
+  }) {
     if (corrections.isEmpty) return;
-    final target = _lastUserText;
+    final target = messageText ?? _lastUserText;
     if (target == null || target.isEmpty) return;
 
     _ref

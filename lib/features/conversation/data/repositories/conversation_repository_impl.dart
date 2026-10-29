@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 import 'package:tutorsaas/core/ai/sse_chat_decoder.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/retention_analytics.dart';
+import '../../../corrections/domain/models/correction_prompt.dart';
+import '../../../corrections/domain/models/correction_turn_result.dart';
 import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_message.dart';
@@ -329,6 +331,71 @@ No markdown, no explanation, no code blocks.
     } catch (e) {
       debugPrint('Error evaluating goals: $e');
       return GoalEvaluationResult.empty;
+    }
+  }
+
+  /// P-29-b (#193): correcciones en conversación libre.
+  ///
+  /// Reutiliza el endpoint `/chat` (sin metas: el prompt solo pide
+  /// correcciones) con `action_code = correction_turn`, que el proxy cobra en
+  /// maná antes de llamar al modelo. La validación de tipos y el recorte a 3
+  /// correcciones son los mismos de P-29 ([parseGoalEvaluation] →
+  /// [parseCorrections]); un JSON roto deja el turno intacto.
+  @override
+  Future<CorrectionTurnResult> evaluateTurnCorrections(
+    String conversationText, {
+    String? conversationId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.llmProxyBaseUrl}/chat',
+        data: {
+          'model': 'deepseek-v4-flash',
+          'messages': [
+            {
+              'role': 'system',
+              'content': buildCorrectionTurnPrompt(conversationText),
+            },
+          ],
+          'stream': false,
+          'temperature': 0.3,
+          'max_tokens': 400,
+          'action_code': 'correction_turn',
+          // P-14: el coste se atribuye a la sesión (ai_cost_by_session).
+          if (conversationId != null) 'conversation_id': conversationId,
+          'client_capabilities': const ['server_mana'],
+        },
+        options: Options(
+          headers: await _proxyHeaders(await _authToken()),
+          connectTimeout: const Duration(seconds: 20),
+          receiveTimeout: const Duration(seconds: 30),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final content = _chatContent(response.data);
+        final evaluation = parseGoalEvaluation(content);
+        return CorrectionTurnResult(
+          // Sin JSON legible no damos el turno por evaluado: el siguiente
+          // turno (si queda presupuesto) lo reintenta.
+          outcome: evaluation.succeeded
+              ? CorrectionTurnOutcome.ok
+              : CorrectionTurnOutcome.failed,
+          corrections: evaluation.corrections,
+        );
+      }
+      debugPrint(
+        'correction_turn: respuesta no utilizable (${response.statusCode})',
+      );
+      return CorrectionTurnResult.failed;
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      debugPrint('correction_turn failed (status=$status): $e');
+      if (status == 402) return CorrectionTurnResult.noMana;
+      return CorrectionTurnResult.failed;
+    } catch (e) {
+      debugPrint('correction_turn error: $e');
+      return CorrectionTurnResult.failed;
     }
   }
 

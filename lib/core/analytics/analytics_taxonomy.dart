@@ -21,6 +21,10 @@ abstract final class AnalyticsEvent {
   static const invokeLlm = 'invoke_llm';
   static const aiError = 'ai_error';
 
+  // P-29-b (#193): evaluación de correcciones de un turno en chat libre
+  // (`action_code = correction_turn`). `result`: ok | no_mana | failed.
+  static const correctionEval = 'correction_eval';
+
   static const paywallViewed = 'paywall_viewed';
   static const purchaseStarted = 'purchase_started';
   static const purchaseSucceeded = 'purchase_succeeded';
@@ -57,6 +61,7 @@ abstract final class AnalyticsEvent {
     sessionEnd,
     invokeLlm,
     aiError,
+    correctionEval,
     paywallViewed,
     purchaseStarted,
     purchaseSucceeded,

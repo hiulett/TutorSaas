@@ -117,6 +117,65 @@ vocabulario en una sola llamada, modelo más pequeño para tareas booleanas y
 resumen del contexto antiguo (esto último añade una llamada, así que solo tiene
 sentido si el ahorro de contexto la compensa).
 
+#### Correcciones en conversación libre (P-29-b / #193)
+
+En una lección con metas pendientes las correcciones viajan en la respuesta de
+`goal_eval` (gratuita) y **no** hay llamada extra. Cuando no hay `goal_eval` en
+el turno —chat libre, lección sin metas o metas ya cumplidas— el cliente pide
+solo las correcciones con su propio `action_code`:
+
+| `action_code` | Coste | Quién lo pide | Cuándo |
+|---|---|---|---|
+| `correction_turn` | **3 maná** | `ConversationRepository.evaluateTurnCorrections` | Turno sin `goal_eval`, si el gate y el presupuesto lo permiten |
+
+Alta aplicada con `apply_migration ai_action_costs_correction_turn_p29b`
+(versión `20261029145742`, archivo
+`supabase/migrations/20261029145742_ai_action_costs_correction_turn_p29b.sql`).
+Rollback: `delete from public.ai_action_costs where action_code =
+'correction_turn';` — el proxy devuelve `400 invalid_action` y el cliente lo
+trata como fallo silencioso (sin chip, chat intacto).
+
+Reglas de activación (`CorrectionTurnPolicy`, lógica pura y testeada):
+
+1. **Gate existente**: la respuesta del alumno necesita ≥5 palabras
+   (`GoalEvaluationGate`); en chat libre no hay metas que aporten keywords.
+2. **Tope por sesión**: máximo **6** evaluaciones (`maxEvaluationsPerSession`).
+   Con 3 de maná son 18 de maná extra como máximo por sesión, frente a 8 por
+   turno de conversación libre. Los intentos fallidos también consumen
+   presupuesto: el tope acota el gasto, no los aciertos.
+3. **`correction_level = important_only`** no llama al modelo. Ese nivel sigue
+   recibiendo correcciones en lecciones con metas (donde la evaluación ya se
+   paga para marcar objetivos).
+4. **Sin duplicados**: si el turno lanzó `goal_eval`, `correction_turn` no se
+   pide aunque quede presupuesto.
+
+Degradación: un `402 no_mana` desactiva las correcciones **el resto de la
+sesión** (no se reintenta ni se muestra error); un JSON ilegible o un fallo de
+red dejan el turno igual y consumen una de las 6 evaluaciones. Las correcciones
+se registran en `public.corrections` (`turn_ref` + `upsert` idempotente) y el
+chip se pinta bajo la burbuja como en P-29.
+
+Evento de analítica: `correction_eval` (`analytics_events`), con `action`,
+`result` (`ok` | `no_mana` | `failed`), `count` (correcciones aceptadas),
+`evals` (acumulado de la sesión) y `level`. Sin texto del alumno.
+
+```sql
+-- Coste real de las correcciones en chat libre (últimos 30 días)
+select action_code, count(*) as calls,
+       round(avg(input_tokens)) as tokens_in,
+       round(sum(cost_estimate_usd)::numeric, 4) as usd
+from public.ai_usage_logs
+where action_code = 'correction_turn'
+  and created_at > now() - interval '30 days'
+group by 1;
+
+-- Coste por sesión incluyendo correcciones
+select conversation_id, sum(calls) as calls, round(sum(cost_estimate_usd), 4) as usd
+from public.ai_usage_by_session
+where started_at > now() - interval '7 days'
+group by 1 order by 3 desc limit 20;
+```
+
 
 ### 3.2 Cobro de maná en el proxy (P-07)
 
