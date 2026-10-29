@@ -80,6 +80,8 @@ const MANA_CHARGE_MODE = (Deno.env.get('MANA_CHARGE_MODE') ?? 'capability').trim
 const FALLBACK_PAID_ACTIONS = new Set([
   'dungeon_turn',
   'free_chat_turn',
+  // P-29-b (#193): correcciones en conversación libre.
+  'correction_turn',
   'lesson_generation',
   'oracle_eval',
   'oracle_turn',
