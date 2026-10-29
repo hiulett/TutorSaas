@@ -1,5 +1,6 @@
 import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../../data/models/lesson_catalog.dart';
+import 'lesson_completion.dart';
 import 'mission_progress_service.dart';
 
 /// Estado de desbloqueo de una lección en la Ruta por Etapas.
@@ -26,9 +27,10 @@ enum LessonUnlockState {
 /// actual solo la primera lección disponible; el resto secuencial. Los niveles
 /// superiores quedan bloqueados.
 ///
-/// Una lección se considera "superada" (desbloquea la siguiente) al alcanzar el
-/// [passThreshold] (70%) de sus metas; la maestría (100%) puede completarse
-/// después volviendo a la lección.
+/// Una lección se considera "superada" (desbloquea la siguiente) al cumplir
+/// [LessonCompletion.isPassed] (75 % de sus metas, con tolerancia de una meta
+/// fallada en lecciones de 4 metas o menos); la maestría (100 %) puede
+/// completarse después volviendo a la lección.
 ///
 /// Helper puro — sin widgets ni dependencias de Flutter. Fuente única: la
 /// evaluación del Oráculo (nivel CEFR persistido) + `user_scenario_goals`.
@@ -36,23 +38,18 @@ class LessonUnlockService {
   const LessonUnlockService._();
 
   /// Umbral de metas (0..1) para considerar una lección superada.
-  static const double passThreshold = 0.75;
+  static const double passThreshold = LessonCompletion.passThreshold;
 
-  /// Regla de superación de una lección (issue #17).
+  /// Regla de superación de una lección (issue #17, unificada en P-38).
   ///
-  /// Se supera cuando:
-  ///  - se completan todas las metas, o
-  ///  - con 4 metas o menos, falla como máximo una, o
-  ///  - se alcanza [passThreshold] del total (lecciones largas).
+  /// Delega en [LessonCompletion.isPassed]: se supera cuando se completan
+  /// todas las metas, o con 4 metas o menos se falla como máximo una, o se
+  /// alcanza [passThreshold] del total (lecciones largas).
   ///
   /// El umbral anterior (0.80) exigía el 100 % en lecciones de 3–4 metas y
   /// dejaba al alumno bloqueado con 3/4 (75 %).
-  static bool meetsThreshold(int completed, int total) {
-    if (total <= 0) return true;
-    if (completed >= total) return true;
-    if (total <= 4 && completed >= total - 1) return true;
-    return (completed / total) >= passThreshold;
-  }
+  static bool meetsThreshold(int completed, int total) =>
+      LessonCompletion.isPassed(completed, total);
 
   /// Índice canónico del nivel; -1 si no se reconoce.
   /// Orden CEFR centralizado en [CefrRank.cefrOrder].
@@ -71,7 +68,7 @@ class LessonUnlockService {
     return (done / lesson.goals.length).clamp(0.0, 1.0);
   }
 
-  /// ¿La lección está "superada"? (≥ [passThreshold] de sus metas).
+  /// ¿La lección está "superada"? (regla única en [LessonCompletion]).
   static bool _isCompleted(
     List<Map<String, dynamic>> goalRows,
     LessonData lesson,

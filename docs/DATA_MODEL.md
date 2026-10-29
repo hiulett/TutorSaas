@@ -38,6 +38,13 @@ _Medido en producción el 18-oct-2026._
 - `conversations.scenario_id` es **`varchar`**, no UUID: guarda tanto UUIDs de
   escenario como claves del catálogo Dart (`a1_ordering_coffee_at_a_cafe`) y el
   literal `oracle-evaluation`.
+- Criterio único de "lección superada": `lesson_completion_passed()` en SQL y
+  `LessonCompletion.isPassed` en Dart (75 %, con una meta fallada tolerada en
+  lecciones de 4 metas o menos). Las estrellas salen de
+  `lesson_completion_stars()`. Diagnóstico del doble currículo en
+  [runbooks/CURRICULUM_ALIGNMENT.md](runbooks/CURRICULUM_ALIGNMENT.md) y en las
+  vistas `lesson_completion_state`, `curriculum_progress_keys` y
+  `curriculum_alignment_summary`.
 - `oracle_turns` guarda las 6 dimensiones que pinta el radar del dashboard
   (pronunciation, fluency, grammar, vocabulary, comprehension, naturalness),
   rellenadas al cerrar el examen.

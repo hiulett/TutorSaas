@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/models/title_evaluator.dart';
+import '../../domain/models/lesson_completion.dart';
 import '../models/lesson_catalog.dart';
 import '../models/hunter_skill_titles.dart';
 
@@ -157,19 +158,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
           final goalsDone = sid != null ? (completedGoalsCount[sid] ?? 0) : 0;
           final phrasesDone = sid != null ? (completedPhrasesCount[sid] ?? 0) : 0;
 
-          final bool isCompleted = goalsDone >= totalGoals;
+          final bool isCompleted = LessonCompletion.isPassed(
+            goalsDone,
+            totalGoals,
+          );
           final double progress = (goalsDone / totalGoals).clamp(0.0, 1.0);
 
-          int stars = 0;
-          if (isCompleted) {
-            if (phrasesDone >= totalPhrases) {
-              stars = 3;
-            } else if (phrasesDone >= (totalPhrases / 2).ceil()) {
-              stars = 2;
-            } else {
-              stars = 1;
-            }
-          }
+          // Estrellas derivadas de la misma regla que el desbloqueo (P-38).
+          final stars = LessonCompletion.stars(
+            completed: goalsDone,
+            total: totalGoals,
+            phrasesUsed: phrasesDone,
+            phrasesTotal: totalPhrases,
+          );
 
           return {
             ...s,

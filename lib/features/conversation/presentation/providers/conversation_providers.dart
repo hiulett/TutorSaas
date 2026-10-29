@@ -22,8 +22,8 @@ import '../../../dashboard/domain/models/session_learned_summary.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../dashboard/data/models/hunter_skill_titles.dart';
 import '../../../dashboard/domain/services/lesson_generator_service.dart';
-import '../../../dashboard/domain/models/lesson_unlock_service.dart';
 import '../../../dashboard/domain/models/remedial_lesson.dart';
+import '../../../dashboard/domain/models/lesson_completion.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../onboarding/data/placement_service.dart';
@@ -1946,7 +1946,7 @@ ENDING:
       // sesión y vocabulario). No se duplica desde el cliente (issue #93).
 
       // Registro de superación de la lección (lesson_progress):
-      //  - passed si cumple ≥80% de metas (LessonUnlockService.passThreshold).
+      //  - passed si cumple la regla única `LessonCompletion.isPassed`.
       //  - failed si no; permite reintentar gastando maná.
       final scenarioId = state.activeScenarioId;
       if (scenarioId != null && !state.isOracleEvaluation) {
@@ -1961,7 +1961,7 @@ ENDING:
           // superó. Antes, una evaluación vacía daba ratio 1.0 => "passed".
           if (evaluated > 0 && totalGoals > 0) {
             final status =
-                LessonUnlockService.meetsThreshold(completedGoals, totalGoals)
+                LessonCompletion.isPassed(completedGoals, totalGoals)
                 ? 'passed'
                 : 'failed';
             await Supabase.instance.client.from('lesson_progress').insert({
@@ -2008,8 +2008,8 @@ ENDING:
           final completedGoals = state.goalEvaluationResults.values
               .where((v) => v)
               .length;
-          final ratio = totalGoals > 0 ? completedGoals / totalGoals : 1.0;
-          if (evaluated > 0 && ratio < LessonUnlockService.passThreshold) {
+          if (evaluated > 0 &&
+              !LessonCompletion.isPassed(completedGoals, totalGoals)) {
             final radar = await _ref.read(skillsRadarProvider.future);
             // Los errores de esta misma sesión ya están en `corrections`:
             // se releen para que el refuerzo use la evidencia más reciente.

@@ -38,7 +38,9 @@
 
 - `GlassCard` gana la arena de gestos: pasa `onTap:`, no envuelvas.
 - La escritura de `xp/racha/minutos` desde el cliente la descarta `guard_language_profile`.
-- Hay dos currículos (Dart y BD) y dos criterios de "completada".
+- Hay dos currículos (Dart y BD); el criterio de "completada" ya es único
+  (P-38 fase 1, `LessonCompletion` + `lesson_completion_passed()`). Faltan el
+  mapeo `lesson_key` y el corte del runtime: `docs/runbooks/CURRICULUM_ALIGNMENT.md`.
 - El resumen de sesión muestra cifras fijas; la recompensa real viene de `apply_session_rewards`.
 
 ## Herramientas y rutas frecuentes
