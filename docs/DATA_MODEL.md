@@ -23,7 +23,8 @@ _Medido en producción el 18-oct-2026._
 - `user_language_profiles` es el centro del progreso: nivel CEFR, rango, XP,
   racha, clase de cazador, equipo cosmético.
 - `user_settings` guarda preferencias (meta diaria, intereses, estilo de
-  corrección, personalidad del tutor).
+  corrección, personalidad del tutor). También el opt-out de los emails de
+  reactivación (`reactivation_emails`) y su token de baja (issue #107).
 
 ### Aprendizaje
 `scenarios` (500 filas sembradas), `scenario_goals`, `scenario_objectives`,
@@ -40,6 +41,10 @@ _Medido en producción el 18-oct-2026._
 - `oracle_turns` guarda las 6 dimensiones que pinta el radar del dashboard
   (pronunciation, fluency, grammar, vocabulary, comprehension, naturalness),
   rellenadas al cerrar el examen.
+- `daily_stats` lo escribe `register_practice` (minutos y conversaciones del
+  día) desde P-23; antes nadie lo alimentaba y el gráfico semanal salía vacío.
+  La meta diaria se calcula sobre `practice_sessions` (el libro idempotente de
+  P-03), no sobre `daily_stats`.
 
 ### Economía y progresión
 `subscription_plans`, `user_subscriptions`, `payments`, `mana_transactions`,
@@ -73,7 +78,7 @@ _Medido en producción el 18-oct-2026._
 ### Operación
 `retention_events`, `analytics_events`, `api_request_logs`, `ai_usage_logs`,
 `llm_quota_events`, `revenuecat_events`, `system_ai_settings`,
-`player_daily_state`
+`player_daily_state`, `reactivation_emails`
 
 - `revenuecat_events` da idempotencia al webhook (PK = `event.id`).
 - `retention_events` recibe los eventos de producto (paywall, onboarding, etc.).
@@ -94,14 +99,22 @@ producto lo necesita.
 | Contenido propio (conversaciones, mensajes, vocabulario, stats) | `FOR ALL` del dueño |
 
 Escrituras sensibles van por RPC `SECURITY DEFINER` o **service role**:
-`renew_mana_cycle`, `sync_entitlement`, `grant_mana`, `refund_mana`.
+`renew_mana_cycle`, `sync_entitlement`, `grant_mana`, `refund_mana`,
+`apply_placement_as`.
 
-### Deuda conocida
+### Nivel CEFR (cerrado en #73)
 
-`user_language_profiles` sigue siendo escribible por el dueño porque el
-onboarding calcula el CEFR en el cliente. Cerrarlo exige mover el *placement* al
-servidor (issue #14). Riesgo actual: un usuario puede subirse el nivel, pero no
-obtener premium ni maná.
+El cliente **no** escribe `cefr_level_id` ni `game_rank`:
+
+- `guard_language_profile` fuerza el nivel inicial (A1/E) en el `INSERT` y
+  revierte esos campos en el `UPDATE` de `authenticated`/`anon`.
+- `apply_self_declared_level(code)` guarda la elección del onboarding una sola
+  vez y la marca `{"source":"self_declared"}`. Se rechaza si ya hay evaluación.
+- `apply_placement_as(user, …)` (solo `service_role`) escribe el resultado del
+  Oráculo desde la Edge Function `evaluate-placement` y marca
+  `placement_assessed_at`.
+- `apply_placement(…)` sigue existiendo como envoltorio para builds antiguas,
+  pero está revocado para `authenticated`/`anon`.
 
 ---
 
@@ -117,6 +130,14 @@ obtener premium ni maná.
 | `session_rewards(...)` | Cierra sesión y acredita XP/maná |
 | `check_ai_audio_quota` / `track_ai_audio_time` | Cuota de audio |
 | `purge_stale_participants(seconds)` | Limpia presencia |
+| `get_dashboard_state(user)` | Progreso + logros del dashboard en una llamada (P-19b) |
+| `refund_mana(user, action)` | Devuelve plan y `daily_used` tras un turno fallido (solo service role) |
+| `refund_failed_turn(turn_ref, action)` | Reembolso idempotente desde el cliente (P-06) |
+| `apply_self_declared_level(code)` | Nivel autodeclarado del onboarding, una sola vez (#73) |
+| `apply_placement_as(user, …)` | Resultado del Oráculo; solo `service_role` (#73) |
+| `get_daily_goal_progress(tz)` | Minutos de hoy, meta, racha y si ya se celebró (P-23) |
+| `claim_daily_goal_celebration(tz)` | Celebración de la meta, una vez por día (P-23) |
+| `claim_mana_grace(user)` | Turno de gracia diario del maná; solo `service_role` (P-26) |
 
 ---
 
@@ -124,18 +145,33 @@ obtener premium ni maná.
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | 116 |
-| Con prefijo válido de 14 dígitos | 41 |
+| Archivos `.sql` en `supabase/migrations/` (raíz) | 134 |
+| Con prefijo válido de 14 dígitos | 59 |
 | Sin prefijo (el CLI los ignora) | 75 |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas | 48 |
-| Aplicadas **sin archivo** en el repo | **33** |
+| Migraciones aplicadas | **67** |
 
 El repo **no reproduce** el esquema: 33 migraciones se aplicaron desde el SQL
 Editor y solo existen en el historial de Supabase.
 
 ⚠️ **No ejecutar `supabase db push` contra producción**: intentaría aplicar 26
 archivos con prefijo no registrado.
+
+La foto verificada del esquema (recuentos y consulta para regenerarla) está en
+[runbooks/SCHEMA_BASELINE.md](runbooks/SCHEMA_BASELINE.md).
+
+---
+
+## 5. Objetos añadidos en octubre de 2026
+
+| Objeto | Para qué | Historia |
+|---|---|---|
+| `ai_usage_logs` (+ `action_code`, `audio_seconds`, `status`, `cost_estimate_usd`) | Uso y coste de IA | P-14 #99 |
+| Vistas `ai_usage_daily`, `ai_usage_by_session` | Coste por usuario/día/sesión | P-14 #99 |
+| `analytics_events` política `analytics_events_select_admin` + vistas `analytics_onboarding_funnel`, `analytics_activation`, `analytics_retention`, `analytics_sessions_per_week` | Embudo, activación y retención | P-15 #100 |
+| `get_dashboard_state(uuid)` | Progreso + logros en una RPC | P-19b #163 |
+| Trigger `trg_message_sequence` | `sequence_number` sin carrera | P-19 #104 |
+| `refund_mana` actualizado | Restaura también `daily_used` | P-07 #92 |
 
 Procedimiento de baseline (requiere Docker + contraseña de BD) y detalle
 completo en [runbooks/MIGRATION_STATUS.md](runbooks/MIGRATION_STATUS.md).

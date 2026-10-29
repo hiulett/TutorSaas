@@ -2,7 +2,13 @@ import '../../domain/models/conversation_message.dart';
 
 abstract class ConversationRepository {
   Future<String> transcribeAudio(String audioPath);
-  Stream<String> getTutorResponseStream(List<Map<String, String>> history);
+  /// [actionCode] y [conversationId] viajan al proxy para el registro de uso
+  /// de IA (P-14). No cambian el contenido de la conversación.
+  Stream<String> getTutorResponseStream(
+    List<Map<String, String>> history, {
+    String actionCode = 'free_chat_turn',
+    String? conversationId,
+  });
   Future<String> generateTtsAudio(String text);
 
   // Persistence & Analysis

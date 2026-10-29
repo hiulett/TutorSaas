@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -37,23 +38,48 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         backgroundColor: AppColors.medievalStone,
         title: Row(
           children: [
-            const Icon(Icons.storefront_rounded, color: AppColors.manaCyan, size: 20),
+            const Icon(
+              Icons.storefront_rounded,
+              color: AppColors.manaCyan,
+              size: 20,
+            ),
             const SizedBox(width: 8),
-            Text(l10n?.confirm_purchase ?? 'CONFIRMAR COMPRA', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+            Text(
+              l10n?.confirm_purchase ?? 'CONFIRMAR COMPRA',
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+            ),
           ],
         ),
         content: Text(
-          l10n?.purchase_confirm_question(name, priceLabel) ?? '¿Adquirir "$name" por $priceLabel?',
-          style: GoogleFonts.inter(fontSize: 12, color: AppColors.onSurface.withValues(alpha: 0.85), height: 1.4),
+          l10n?.purchase_confirm_question(name, priceLabel) ??
+              '¿Adquirir "$name" por $priceLabel?',
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: AppColors.onSurface.withValues(alpha: 0.85),
+            height: 1.4,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text((l10n?.cancel ?? 'Cancel').toUpperCase(), style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+            child: Text(
+              (l10n?.cancel ?? 'Cancel').toUpperCase(),
+              style: const TextStyle(
+                color: AppColors.onSurfaceVariant,
+                fontSize: 11,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n?.buy ?? 'COMPRAR', style: const TextStyle(color: AppColors.royalGold, fontWeight: FontWeight.bold, fontSize: 11)),
+            child: Text(
+              l10n?.buy ?? 'COMPRAR',
+              style: const TextStyle(
+                color: AppColors.royalGold,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
           ),
         ],
       ),
@@ -64,7 +90,8 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   Future<void> _buyGoldCosmetic(Map<String, dynamic> item) async {
     final price = (item['price_gold'] as num?)?.toInt() ?? 0;
     final name = item['name'] as String? ?? 'este objeto';
-    final priceLabel = AppLocalizations.of(context)?.price_gold('$price') ?? '$price ORO';
+    final priceLabel =
+        AppLocalizations.of(context)?.price_gold('$price') ?? '$price ORO';
     final confirmed = await _confirmPurchase(name, priceLabel);
     if (!confirmed || !mounted) return;
     setState(() => _isBuying = true);
@@ -80,13 +107,21 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
           SystemSnack.show(
             context,
             ok
-                ? (AppLocalizations.of(context)?.cosmetic_purchased ?? '¡COSMÉTICO ADQUIRIDO! 🪙')
-                : (AppLocalizations.of(context)?.gold_insufficient ?? 'ORO INSUFICIENTE O YA ADQUIRIDO ❌'),
+                ? (AppLocalizations.of(context)?.cosmetic_purchased ??
+                      '¡COSMÉTICO ADQUIRIDO! 🪙')
+                : (AppLocalizations.of(context)?.gold_insufficient ??
+                      'ORO INSUFICIENTE O YA ADQUIRIDO ❌'),
             type: ok ? SystemSnackType.success : SystemSnackType.error,
           );
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/economy/presentation/screens/shop_screen.dart:89',
+        e,
+        stackTrace: st,
+      );
+    }
     if (mounted) setState(() => _isBuying = false);
   }
 
@@ -111,13 +146,20 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
   String _cosmeticLabel(AppLocalizations? l10n, String category) {
     switch (category) {
-      case 'title': return l10n?.cosmetic_title ?? 'TITLE';
-      case 'frame': return l10n?.cosmetic_frame ?? 'FRAME';
-      case 'aura': return l10n?.cosmetic_aura ?? 'AURA';
-      case 'pet': return l10n?.cosmetic_pet ?? 'COMPANION';
-      case 'emote': return l10n?.cosmetic_emote ?? 'EMOTE';
-      case 'table_theme': return l10n?.cosmetic_theme ?? 'THEME';
-      default: return category.toUpperCase();
+      case 'title':
+        return l10n?.cosmetic_title ?? 'TITLE';
+      case 'frame':
+        return l10n?.cosmetic_frame ?? 'FRAME';
+      case 'aura':
+        return l10n?.cosmetic_aura ?? 'AURA';
+      case 'pet':
+        return l10n?.cosmetic_pet ?? 'COMPANION';
+      case 'emote':
+        return l10n?.cosmetic_emote ?? 'EMOTE';
+      case 'table_theme':
+        return l10n?.cosmetic_theme ?? 'THEME';
+      default:
+        return category.toUpperCase();
     }
   }
 
@@ -141,7 +183,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             children: [
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -149,7 +194,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onSurface),
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: AppColors.onSurface,
+                            ),
                             onPressed: () => context.pop(),
                           ),
                           Expanded(
@@ -172,15 +220,26 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.voidBg.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.5)),
+                            border: Border.all(
+                              color: AppColors.runeViolet.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.bolt_rounded, color: AppColors.runeViolet, size: 16),
+                              const Icon(
+                                Icons.bolt_rounded,
+                                color: AppColors.runeViolet,
+                                size: 16,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 '$manaRemaining',
@@ -195,15 +254,24 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.voidBg.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
+                            border: Border.all(
+                              color: AppColors.royalGold.withValues(alpha: 0.5),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.monetization_on_rounded, color: AppColors.royalGold, size: 16),
+                              const Icon(
+                                Icons.monetization_on_rounded,
+                                color: AppColors.royalGold,
+                                size: 16,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 '$gold',
@@ -229,24 +297,42 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
                   children: [
-                    _buildTabButton('oro', l10n?.gold_shop_tab ?? 'TIENDA DE ORO', Icons.monetization_on_rounded),
+                    _buildTabButton(
+                      'oro',
+                      l10n?.gold_shop_tab ?? 'TIENDA DE ORO',
+                      Icons.monetization_on_rounded,
+                    ),
                     const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () => context.push('/inventory'),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 9,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.runeViolet.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.6)),
+                          border: Border.all(
+                            color: AppColors.runeViolet.withValues(alpha: 0.6),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.backpack_rounded, color: AppColors.runeViolet, size: 15),
+                            const Icon(
+                              Icons.backpack_rounded,
+                              color: AppColors.runeViolet,
+                              size: 15,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               l10n?.my_items ?? 'MIS ÍTEMS',
-                              style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: AppColors.runeViolet),
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                color: AppColors.runeViolet,
+                              ),
                             ),
                           ],
                         ),
@@ -279,13 +365,38 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.storefront_rounded, color: AppColors.onSurfaceVariant, size: 48),
+              const Icon(
+                Icons.storefront_rounded,
+                color: AppColors.onSurfaceVariant,
+                size: 48,
+              ),
               const SizedBox(height: 12),
               Text(
                 l10n?.gold_shop_unavailable ??
-                    'La Tienda de Oro aún no está disponible.\nAplica la migración price_gold en el SQL Editor.',
+                    'La Tienda de Oro aún no está disponible.\nVuelve a intentarlo en un momento.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.jetBrainsMono(fontSize: 11, color: AppColors.onSurfaceVariant),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 11,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton.icon(
+                // P-11f: reintento real en vez de un mensaje tecnico.
+                onPressed: () => ref.invalidate(goldCosmeticsProvider),
+                icon: const Icon(
+                  Icons.refresh_rounded,
+                  color: AppColors.emeraldGreen,
+                  size: 16,
+                ),
+                label: Text(
+                  l10n?.retry ?? 'REINTENTAR',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.emeraldGreen,
+                  ),
+                ),
               ),
             ],
           ),
@@ -331,23 +442,37 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                         (item['name'] as String? ?? '').toUpperCase(),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.onSurface, height: 1.25),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.onSurface,
+                          height: 1.25,
+                        ),
                       ),
                       const SizedBox(height: 3),
                       Row(
                         children: [
                           Text(
                             _cosmeticLabel(l10n, category),
-                            style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.bold, color: color, letterSpacing: 0.5),
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                          if ((item['description'] as String?)?.isNotEmpty == true) ...[
+                          if ((item['description'] as String?)?.isNotEmpty ==
+                              true) ...[
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 item['description'] as String,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant),
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  color: AppColors.onSurfaceVariant,
+                                ),
                               ),
                             ),
                           ],
@@ -356,11 +481,22 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          const Icon(Icons.monetization_on_rounded, color: AppColors.royalGold, size: 13),
+                          const Icon(
+                            Icons.monetization_on_rounded,
+                            color: AppColors.royalGold,
+                            size: 13,
+                          ),
                           const SizedBox(width: 4),
                           Text(
-                            (AppLocalizations.of(context)?.price_gold('$price') ?? '$price ORO'),
-                            style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.royalGold),
+                            (AppLocalizations.of(
+                                  context,
+                                )?.price_gold('$price') ??
+                                '$price ORO'),
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.royalGold,
+                            ),
                           ),
                         ],
                       ),
@@ -373,17 +509,27 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       ? null
                       : () => _buyGoldCosmetic(item),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isOwned ? AppColors.emeraldGreen.withValues(alpha: 0.2) : color,
+                    backgroundColor: isOwned
+                        ? AppColors.emeraldGreen.withValues(alpha: 0.2)
+                        : color,
                     foregroundColor: AppColors.voidBg,
                     minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                   child: Text(
                     isOwned
                         ? (AppLocalizations.of(context)?.owned ?? 'ADQUIRIDO')
                         : (AppLocalizations.of(context)?.buy ?? 'COMPRAR'),
-                    style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -402,21 +548,35 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.05),
+          color: isSelected
+              ? AppColors.manaCyan
+              : AppColors.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: isSelected ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.10)),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.manaCyan
+                : AppColors.onSurface.withValues(alpha: 0.10),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: isSelected ? AppColors.voidBg : AppColors.onSurface.withValues(alpha: 0.7)),
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected
+                  ? AppColors.voidBg
+                  : AppColors.onSurface.withValues(alpha: 0.7),
+            ),
             const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? AppColors.voidBg : AppColors.onSurface.withValues(alpha: 0.7),
+                color: isSelected
+                    ? AppColors.voidBg
+                    : AppColors.onSurface.withValues(alpha: 0.7),
                 letterSpacing: 0.5,
               ),
             ),

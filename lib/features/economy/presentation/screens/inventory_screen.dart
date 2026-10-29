@@ -59,19 +59,26 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     // también actualiza `equipped_title_code` (el que muestra el HUD).
     final isBeingEquipped = item?['is_equipped'] != true;
     if (type == 'title') {
-      await ref.read(dashboardRepositoryProvider).updateUserProfile(
-        user.id,
-        equippedTitleCode: isBeingEquipped ? itemCode : 'oido_halcon_abismo_c',
-      );
+      await ref
+          .read(dashboardRepositoryProvider)
+          .updateUserProfile(
+            user.id,
+            equippedTitleCode: isBeingEquipped
+                ? itemCode
+                : 'oido_halcon_abismo_c',
+          );
       ref.invalidate(userProfileProvider);
       ref.invalidate(userProgressProvider);
     }
 
     ref.invalidate(inventoryProvider);
     if (mounted) {
-      SystemSnack.show(context, AppLocalizations.of(context)?.equipment_updated ?? 'EQUIPO ACTUALIZADO',
-          type: SystemSnackType.info,
-          duration: const Duration(milliseconds: 1200));
+      SystemSnack.show(
+        context,
+        AppLocalizations.of(context)?.equipment_updated ?? 'EQUIPO ACTUALIZADO',
+        type: SystemSnackType.info,
+        duration: const Duration(milliseconds: 1200),
+      );
     }
   }
 
@@ -82,7 +89,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final inventory = inventoryAsync.value ?? [];
     final aura = ref.watch(auraStateProvider).value;
 
-    final List<String> categories = ['all', ...inventory.map((i) => (i['item_type'] as String? ?? 'cosmetic')).toSet()];
+    final List<String> categories = [
+      'all',
+      ...inventory
+          .map((i) => (i['item_type'] as String? ?? 'cosmetic'))
+          .toSet(),
+    ];
 
     final filtered = _filter == 'all'
         ? inventory
@@ -96,11 +108,17 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onSurface),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: AppColors.onSurface,
+                      ),
                       onPressed: () => context.pop(),
                     ),
                     Expanded(
@@ -139,18 +157,29 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       child: GestureDetector(
                         onTap: () => setState(() => _filter = c),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: isActive ? AppColors.manaCyan.withValues(alpha: 0.15) : AppColors.onSurface.withValues(alpha: 0.04),
+                            color: isActive
+                                ? AppColors.manaCyan.withValues(alpha: 0.15)
+                                : AppColors.onSurface.withValues(alpha: 0.04),
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: isActive ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.12)),
+                            border: Border.all(
+                              color: isActive
+                                  ? AppColors.manaCyan
+                                  : AppColors.onSurface.withValues(alpha: 0.12),
+                            ),
                           ),
                           child: Text(
                             c.toUpperCase(),
                             style: GoogleFonts.jetBrainsMono(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: isActive ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.7),
+                              color: isActive
+                                  ? AppColors.manaCyan
+                                  : AppColors.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
                         ),
@@ -163,21 +192,46 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
               Expanded(
                 child: inventoryAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.manaCyan)),
-                  error: (_, __) => Center(child: Text(l10n.inventory_load_error, style: TextStyle(color: AppColors.onSurfaceVariant))),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.manaCyan),
+                  ),
+                  error: (_, __) => Center(
+                    child: Text(
+                      l10n.inventory_load_error,
+                      style: TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                  ),
                   data: (items) {
                     if (items.isEmpty) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.inventory_2_outlined, color: AppColors.onSurfaceVariant, size: 48),
+                            const Icon(
+                              Icons.inventory_2_outlined,
+                              color: AppColors.onSurfaceVariant,
+                              size: 48,
+                            ),
                             const SizedBox(height: 12),
-                            Text(l10n.inventory_empty, style: GoogleFonts.jetBrainsMono(fontSize: 12, color: AppColors.onSurfaceVariant, letterSpacing: 1.5)),
+                            Text(
+                              l10n.inventory_empty,
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 12,
+                                color: AppColors.onSurfaceVariant,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             GestureDetector(
                               onTap: () => context.push('/shop'),
-                              child: Text(l10n.inventory_visit_shop, style: GoogleFonts.jetBrainsMono(fontSize: 11, color: AppColors.manaCyan, fontWeight: FontWeight.bold)),
+                              child: Text(
+                                l10n.inventory_visit_shop,
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 11,
+                                  color: AppColors.manaCyan,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -188,11 +242,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
                         final item = filtered[index];
-                        final auraLocked = (item['item_type'] as String? ?? 'cosmetic') == 'aura' && !(aura?.isAwakened ?? false);
+                        final auraLocked =
+                            (item['item_type'] as String? ?? 'cosmetic') ==
+                                'aura' &&
+                            !(aura?.isAwakened ?? false);
                         return _InventoryItemCard(
                           item: item,
                           auraLocked: auraLocked,
-                          onEquip: () => _toggleEquip(item['item_code'] as String? ?? ''),
+                          onEquip: () =>
+                              _toggleEquip(item['item_code'] as String? ?? ''),
                         );
                       },
                     );
@@ -220,23 +278,35 @@ class _InventoryItemCard extends StatelessWidget {
 
   IconData _iconFor(String type) {
     switch (type) {
-      case 'title': return Icons.military_tech_rounded;
-      case 'frame': return Icons.verified_user_rounded;
-      case 'aura': return Icons.auto_awesome_rounded;
-      case 'pet': return Icons.pets_rounded;
-      case 'emote': return Icons.emoji_emotions_rounded;
-      case 'consumable': return Icons.bolt_rounded;
-      default: return Icons.inventory_2_rounded;
+      case 'title':
+        return Icons.military_tech_rounded;
+      case 'frame':
+        return Icons.verified_user_rounded;
+      case 'aura':
+        return Icons.auto_awesome_rounded;
+      case 'pet':
+        return Icons.pets_rounded;
+      case 'emote':
+        return Icons.emoji_emotions_rounded;
+      case 'consumable':
+        return Icons.bolt_rounded;
+      default:
+        return Icons.inventory_2_rounded;
     }
   }
 
   Color _colorFor(String type) {
     switch (type) {
-      case 'title': return AppColors.royalGold;
-      case 'frame': return AppColors.manaCyan;
-      case 'aura': return AppColors.runeViolet;
-      case 'pet': return AppColors.emeraldGreen;
-      default: return AppColors.onSurfaceVariant;
+      case 'title':
+        return AppColors.royalGold;
+      case 'frame':
+        return AppColors.manaCyan;
+      case 'aura':
+        return AppColors.runeViolet;
+      case 'pet':
+        return AppColors.emeraldGreen;
+      default:
+        return AppColors.onSurfaceVariant;
     }
   }
 
@@ -251,7 +321,11 @@ class _InventoryItemCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
-        border: Border.all(color: isEquipped ? color.withValues(alpha: 0.6) : AppColors.onSurface.withValues(alpha: 0.10)),
+        border: Border.all(
+          color: isEquipped
+              ? color.withValues(alpha: 0.6)
+              : AppColors.onSurface.withValues(alpha: 0.10),
+        ),
         opacity: isEquipped ? 0.15 : 0.05,
         padding: const EdgeInsets.all(14),
         child: Row(
@@ -272,7 +346,12 @@ class _InventoryItemCard extends StatelessWidget {
                 children: [
                   Text(
                     code.toUpperCase().replaceAll('_', ' '),
-                    style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface, height: 1.25),
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                      height: 1.25,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -281,31 +360,53 @@ class _InventoryItemCard extends StatelessWidget {
                     children: [
                       Text(
                         type.toUpperCase(),
-                        style: GoogleFonts.jetBrainsMono(fontSize: 9, color: color),
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 9,
+                          color: color,
+                        ),
                       ),
                       if (auraLocked) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.onSurface.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Text(
                             '🔒 AURA BLOQUEADA',
-                            style: GoogleFonts.jetBrainsMono(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant),
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],
                       if (isEquipped) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.emeraldGreen.withValues(alpha: 0.2),
+                            color: AppColors.emeraldGreen.withValues(
+                              alpha: 0.2,
+                            ),
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
-                          child: Text(l10n.inventory_equipped, style: GoogleFonts.jetBrainsMono(fontSize: 8, fontWeight: FontWeight.bold, color: AppColors.emeraldGreen)),
+                          child: Text(
+                            l10n.inventory_equipped,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.emeraldGreen,
+                            ),
+                          ),
                         ),
                       ],
                     ],
@@ -317,19 +418,33 @@ class _InventoryItemCard extends StatelessWidget {
               ElevatedButton(
                 onPressed: (auraLocked && !isEquipped) ? null : onEquip,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isEquipped ? AppColors.onSurface.withValues(alpha: 0.12) : color,
-                  foregroundColor: isEquipped ? AppColors.onSurface.withValues(alpha: 0.7) : AppColors.voidBg,
+                  backgroundColor: isEquipped
+                      ? AppColors.onSurface.withValues(alpha: 0.12)
+                      : color,
+                  foregroundColor: isEquipped
+                      ? AppColors.onSurface.withValues(alpha: 0.7)
+                      : AppColors.voidBg,
                   minimumSize: const Size(48, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
                 child: Text(
                   auraLocked && !isEquipped
                       ? '🔒'
                       : (isEquipped
-                          ? (AppLocalizations.of(context)?.unequip ?? 'QUITAR')
-                          : (AppLocalizations.of(context)?.equip ?? 'EQUIPAR')),
-                  style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.bold),
+                            ? (AppLocalizations.of(context)?.unequip ??
+                                  'QUITAR')
+                            : (AppLocalizations.of(context)?.equip ??
+                                  'EQUIPAR')),
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
           ],

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 
 /// Persistencia JSON ligera (SharedPreferences) para caches de datos que
 /// cambian poco (catálogos). Permite pintar al instante en el cold start y
@@ -19,7 +20,9 @@ class JsonDiskCache {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(key, json);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/core/cache/json_disk_cache.dart:22', e, stackTrace: st);
+    }
   }
 
   static Future<List<Map<String, dynamic>>?> readList(String key) async {

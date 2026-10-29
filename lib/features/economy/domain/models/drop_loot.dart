@@ -99,9 +99,9 @@ class DropLoot {
   }
 
   static String rarityLabel(DropRarity rarity) => switch (rarity) {
-        DropRarity.comun => 'COMÚN',
-        DropRarity.raro => 'RARO',
-        DropRarity.epico => 'ÉPICO',
-        DropRarity.legendario => 'LEGENDARIO',
-      };
+    DropRarity.comun => 'COMÚN',
+    DropRarity.raro => 'RARO',
+    DropRarity.epico => 'ÉPICO',
+    DropRarity.legendario => 'LEGENDARIO',
+  };
 }

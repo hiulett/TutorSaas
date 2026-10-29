@@ -1,0 +1,81 @@
+name: Release Android
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build signed AAB
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      AAB_SIZE_BUDGET_MB: '150'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      # Si el secreto existe, se firma con la upload key; si no, Gradle usa
+      # debug (solo para builds locales de prueba).
+      - name: Configure signing
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_STORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=$GITHUB_WORKSPACE/android/app/upload-keystore.jks
+          EOF
+
+      - name: Build AAB
+        run: flutter build appbundle --release
+
+      - name: Check AAB size budget
+        run: |
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          SIZE_MB=$(( $(stat -c%s "$AAB") / 1024 / 1024 ))
+          echo "AAB: ${SIZE_MB} MB (presupuesto ${AAB_SIZE_BUDGET_MB} MB)"
+          if [ "$SIZE_MB" -gt "$AAB_SIZE_BUDGET_MB" ]; then
+            echo "::error::El AAB (${SIZE_MB} MB) supera el presupuesto de ${AAB_SIZE_BUDGET_MB} MB"
+            exit 1
+          fi
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 14
+
+      - name: Upload to Play (internal track)
+        if: env.PLAY_SERVICE_ACCOUNT_JSON != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ env.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.tutorsaas.tutorsaas
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal

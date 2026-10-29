@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../domain/models/conversation_message.dart';
+import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_state.dart';
 import '../providers/conversation_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -16,7 +19,6 @@ import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/live_goals_tracker_bar.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
-import '../../../../core/widgets/mana_meter_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
@@ -25,7 +27,6 @@ import '../../../economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../../../../l10n/app_localizations.dart';
-
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String? scenarioId;
@@ -57,7 +58,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   bool _showKeyboardDrawer = false;
   bool _isBlindListening = false;
   bool _isTypingMode = false;
-  int _usedMana = 15;
   final TextEditingController _textController = TextEditingController();
   // Auto-scroll de la conversaciÃ³n: baja hasta el Ãºltimo mensaje al avanzar.
   final ScrollController _chatScrollController = ScrollController();
@@ -87,10 +87,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final minutes = duration.inMinutes;
     final minutesToSave = minutes > 0 ? minutes : 1;
     // Idempotente: endSession solo persiste la primera vez (flag en el notifier).
-    final sessionResult =
-        await ref.read(conversationStateProvider.notifier).endSession(
-      practiceMinutes: minutesToSave,
-    );
+    final sessionResult = await ref
+        .read(conversationStateProvider.notifier)
+        .endSession(practiceMinutes: minutesToSave);
     ref.read(sessionResultProvider.notifier).state = sessionResult;
 
     if (!navigate || !mounted) return;
@@ -98,7 +97,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       final router = GoRouter.of(context);
       try {
         router.push('/summary');
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/screens/conversation_screen.dart:101',
+          e,
+          stackTrace: st,
+        );
+      }
     }
   }
 
@@ -133,7 +138,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // Initialize session with optional scenario persistence
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (widget.oracleMode) {
-        ref.read(conversationStateProvider.notifier).initOracleSession(
+        ref
+            .read(conversationStateProvider.notifier)
+            .initOracleSession(
               targetLanguage: widget.oracleTargetLanguage,
               nativeLanguage: widget.oracleNativeLanguage,
             );
@@ -145,13 +152,23 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         try {
           manaState = ref.read(manaStateProvider).value;
           if (manaState == null) {
-            await ref.read(manaStateProvider.notifier).load().timeout(const Duration(seconds: 6));
+            await ref
+                .read(manaStateProvider.notifier)
+                .load()
+                .timeout(const Duration(seconds: 6));
             manaState = ref.read(manaStateProvider).value;
           }
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent(
+            'lib/features/conversation/presentation/screens/conversation_screen.dart:151',
+            e,
+            stackTrace: st,
+          );
+        }
         if (manaState != null) {
           final isFree = manaState['is_free'] as bool? ?? true;
-          final dailyRemaining = (manaState['daily_remaining'] as num?)?.toInt() ?? 0;
+          final dailyRemaining =
+              (manaState['daily_remaining'] as num?)?.toInt() ?? 0;
           final remaining = (manaState['remaining'] as num?)?.toInt() ?? 0;
           // Coste mÃ­nimo para al menos UN turno de mazmorra (ai_action_costs:
           // dungeon_turn = 12). Si el manÃ¡ no alcanza ni para eso, se bloquea.
@@ -165,7 +182,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             return;
           }
         }
-        ref.read(conversationStateProvider.notifier).initSession(
+        ref
+            .read(conversationStateProvider.notifier)
+            .initSession(
               scenarioId: widget.scenarioId,
               scenarioTitle: widget.scenarioTitle,
             );
@@ -181,17 +200,30 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // salida dispare una nueva narraciÃ³n.
     try {
       ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/conversation/presentation/screens/conversation_screen.dart:184',
+        e,
+        stackTrace: st,
+      );
+    }
     // Red de seguridad: si la sesiÃ³n NO se cerrÃ³ por ninguna vÃ­a previa
     // (app muerta, kill de widget, salida por go), persiste el progreso aquÃ­.
     // Idempotente: endSession solo guarda la primera vez (flag en el notifier).
     try {
-      final isOracleEval =
-          ref.read(conversationStateProvider).isOracleEvaluation;
+      final isOracleEval = ref
+          .read(conversationStateProvider)
+          .isOracleEvaluation;
       if (!isOracleEval) {
         unawaited(ref.read(conversationStateProvider.notifier).endSession());
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/conversation/presentation/screens/conversation_screen.dart:194',
+        e,
+        stackTrace: st,
+      );
+    }
     _textController.dispose();
     _chatScrollController.dispose();
     try {
@@ -202,7 +234,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       ref.invalidate(fluencyTrendsProvider);
       ref.invalidate(weeklyPracticeProvider);
       ref.invalidate(learnedVocabularyProvider);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/conversation/presentation/screens/conversation_screen.dart:205',
+        e,
+        stackTrace: st,
+      );
+    }
     super.dispose();
   }
 
@@ -244,7 +282,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       widget.scenarioId,
       title: widget.scenarioTitle,
     );
-    final userChatText = state.messages.where((m) => m.sender == 'user').map((m) => m.text.toLowerCase()).join(' ');
+    final userChatText = state.messages
+        .where((m) => m.sender == 'user')
+        .map((m) => m.text.toLowerCase())
+        .join(' ');
 
     showModalBottomSheet(
       context: context,
@@ -282,10 +323,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        const Icon(Icons.explore_rounded, color: AppColors.runeViolet, size: 28),
+                        const Icon(
+                          Icons.explore_rounded,
+                          color: AppColors.runeViolet,
+                          size: 28,
+                        ),
                         const SizedBox(width: 10),
                         Text(
-                          AppLocalizations.of(context)?.convo_mission_guide ?? 'GuÃ­a de MisiÃ³n y Contexto',
+                          AppLocalizations.of(context)?.convo_mission_guide ??
+                              'GuÃ­a de MisiÃ³n y Contexto',
                           style: GoogleFonts.spaceGrotesk(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -303,28 +349,49 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.scenarioTitle ?? lesson?.title ?? (AppLocalizations.of(context)?.convo_practice_title ?? 'PrÃ¡ctica de ConversaciÃ³n'),
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            widget.scenarioTitle ??
+                                lesson?.title ??
+                                (AppLocalizations.of(
+                                      context,
+                                    )?.convo_practice_title ??
+                                    'PrÃ¡ctica de ConversaciÃ³n'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             AppLocalizations.of(context)?.convo_objective(
-                                  lesson?.mainObjective ?? 'Practica tu conversaciÃ³n en el idioma seleccionado.',
+                                  lesson?.mainObjective ??
+                                      'Practica tu conversaciÃ³n en el idioma seleccionado.',
                                 ) ??
                                 'Objetivo: ${lesson?.mainObjective ?? 'Practica tu conversaciÃ³n en el idioma seleccionado.'}',
-                            style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+                            style: const TextStyle(
+                              color: AppColors.onSurfaceVariant,
+                              fontSize: 13,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(AppLocalizations.of(context)!.conversation_goals, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(
+                      AppLocalizations.of(context)!.conversation_goals,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     if (lesson != null) ...[
                       ...lesson.goals.asMap().entries.map((entry) {
                         final idx = entry.key + 1;
                         final g = entry.value;
-                        final isDone = state.goalEvaluationResults[g.id] == true;
+                        final isDone =
+                            state.goalEvaluationResults[g.id] == true;
                         return _buildGoalItem(
                           '$idx. ${g.text}',
                           isDone,
@@ -335,12 +402,23 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
-                          AppLocalizations.of(context)?.convo_select_goals ?? 'Selecciona una lecciÃ³n para ver las metas especÃ­ficas.',
-                          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+                          AppLocalizations.of(context)?.convo_select_goals ??
+                              'Selecciona una lecciÃ³n para ver las metas especÃ­ficas.',
+                          style: const TextStyle(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     const SizedBox(height: 20),
-                    Text(AppLocalizations.of(context)!.conversation_key_phrases, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(
+                      AppLocalizations.of(context)!.conversation_key_phrases,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     if (lesson != null)
                       SizedBox(
@@ -348,8 +426,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: lesson.usefulPhrases.map((phraseItem) {
-                            final isUsed = userChatText.contains(phraseItem.phrase.toLowerCase().split(' ').first);
-                            return _buildPhraseChip(context, phraseItem.phrase, isUsed: isUsed);
+                            final isUsed = userChatText.contains(
+                              phraseItem.phrase.toLowerCase().split(' ').first,
+                            );
+                            return _buildPhraseChip(
+                              context,
+                              phraseItem.phrase,
+                              isUsed: isUsed,
+                            );
                           }).toList(),
                         ),
                       )
@@ -357,8 +441,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
-                          AppLocalizations.of(context)?.convo_select_phrases ?? 'Selecciona una lecciÃ³n para ver frases clave sugeridas.',
-                          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+                          AppLocalizations.of(context)?.convo_select_phrases ??
+                              'Selecciona una lecciÃ³n para ver frases clave sugeridas.',
+                          style: const TextStyle(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     const SizedBox(height: 24),
@@ -381,7 +469,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           Row(
             children: [
               Icon(
-                isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                isCompleted
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
                 color: isCompleted ? AppColors.manaCyan : Colors.white38,
                 size: 20,
               ),
@@ -403,7 +493,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               padding: const EdgeInsets.only(left: 30, top: 2),
               child: Text(
                 'ðŸ’¡ $hint',
-                style: const TextStyle(color: Colors.white38, fontSize: 11, fontStyle: FontStyle.italic),
+                style: const TextStyle(
+                  color: Colors.white38,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
         ],
@@ -411,7 +505,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     );
   }
 
-  Widget _buildPhraseChip(BuildContext context, String phrase, {bool isUsed = false}) {
+  Widget _buildPhraseChip(
+    BuildContext context,
+    String phrase, {
+    bool isUsed = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: InkWell(
@@ -422,19 +520,25 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isUsed 
+            color: isUsed
                 ? AppColors.manaCyan.withValues(alpha: 0.2)
                 : AppColors.runeViolet.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isUsed ? AppColors.manaCyan : AppColors.runeViolet.withValues(alpha: 0.3),
+              color: isUsed
+                  ? AppColors.manaCyan
+                  : AppColors.runeViolet.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (isUsed) ...[
-                const Icon(Icons.check_circle_rounded, color: AppColors.manaCyan, size: 14),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.manaCyan,
+                  size: 14,
+                ),
                 const SizedBox(width: 6),
               ],
               Text(
@@ -457,11 +561,21 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   void _showSpeechDnaModal(BuildContext context) {
     final messages = ref.read(conversationStateProvider).messages;
     final userMessages = messages.where((m) => m.sender == 'user').toList();
-    final wordCount = userMessages.fold(0, (sum, m) => sum + m.text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length);
+    final wordCount = userMessages.fold(
+      0,
+      (sum, m) =>
+          sum +
+          m.text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length,
+    );
 
     // Calculate real WPM based on elapsed practice session time
-    final elapsedMinutes = math.max(0.2, DateTime.now().difference(_startTime).inSeconds / 60.0);
-    final calculatedWpm = userMessages.isNotEmpty ? (wordCount / elapsedMinutes).round() : 0;
+    final elapsedMinutes = math.max(
+      0.2,
+      DateTime.now().difference(_startTime).inSeconds / 60.0,
+    );
+    final calculatedWpm = userMessages.isNotEmpty
+        ? (wordCount / elapsedMinutes).round()
+        : 0;
     final wpmText = userMessages.isNotEmpty ? '$calculatedWpm WPM' : '0 WPM';
 
     // Calculate real phonetic clarity score based on user participation
@@ -472,24 +586,45 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // Get real rank (Fâ†’SSS) and language from user profile
     final progressAsync = ref.read(userProgressProvider);
     final cefrCode = progressAsync.value?['level_code'] as String? ?? 'A1';
-    final gameRank = (progressAsync.value?['game_rank'] as String?)?.isNotEmpty == true
-        ? (progressAsync.value?['game_rank'] as String)!
+    final gameRank =
+        (progressAsync.value?['game_rank'] as String?)?.isNotEmpty == true
+        ? (progressAsync.value?['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
-    final cefrLevel = progressAsync.value?['level'] as String? ?? 'Principiante';
+    final cefrLevel =
+        progressAsync.value?['level'] as String? ?? 'Principiante';
     final cefrText = '$gameRank ($cefrLevel)';
-    final languageName = progressAsync.value?['language'] as String? ?? 'InglÃ©s';
+    final languageName =
+        progressAsync.value?['language'] as String? ?? 'InglÃ©s';
     final cleanLanguage = languageName.toLowerCase();
 
     // Extract real phonemes to practice based on words present in actual user text
-    final fullUserText = userMessages.map((m) => m.text).join(' ').toLowerCase();
+    final fullUserText = userMessages
+        .map((m) => m.text)
+        .join(' ')
+        .toLowerCase();
     final List<String> detectedPhonemes = [];
 
-    if (cleanLanguage.contains('francÃ©s') || cleanLanguage.contains('french') || cleanLanguage.contains('fr')) {
+    if (cleanLanguage.contains('francÃ©s') ||
+        cleanLanguage.contains('french') ||
+        cleanLanguage.contains('fr')) {
       // French phonemes
-      final hasR = fullUserText.contains('r') || fullUserText.contains('bistro') || fullUserText.contains('bonjour');
-      final hasU = fullUserText.contains('u') || fullUserText.contains('salut') || fullUserText.contains('tu');
-      final hasEu = fullUserText.contains('eu') || fullUserText.contains('deux') || fullUserText.contains('bleu');
-      final hasNasal = fullUserText.contains('on') || fullUserText.contains('in') || fullUserText.contains('an') || fullUserText.contains('en');
+      final hasR =
+          fullUserText.contains('r') ||
+          fullUserText.contains('bistro') ||
+          fullUserText.contains('bonjour');
+      final hasU =
+          fullUserText.contains('u') ||
+          fullUserText.contains('salut') ||
+          fullUserText.contains('tu');
+      final hasEu =
+          fullUserText.contains('eu') ||
+          fullUserText.contains('deux') ||
+          fullUserText.contains('bleu');
+      final hasNasal =
+          fullUserText.contains('on') ||
+          fullUserText.contains('in') ||
+          fullUserText.contains('an') ||
+          fullUserText.contains('en');
 
       if (!hasR) detectedPhonemes.add('/r/ (bistro, bonjour)');
       if (!hasU) detectedPhonemes.add('/u/ (salut, tu)');
@@ -498,12 +633,26 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       if (detectedPhonemes.isEmpty) {
         detectedPhonemes.add('/r/ (bistro, uvular)');
       }
-    } else if (cleanLanguage.contains('alemÃ¡n') || cleanLanguage.contains('german') || cleanLanguage.contains('de')) {
+    } else if (cleanLanguage.contains('alemÃ¡n') ||
+        cleanLanguage.contains('german') ||
+        cleanLanguage.contains('de')) {
       // German phonemes
-      final hasCh = fullUserText.contains('ch') || fullUserText.contains('ich') || fullUserText.contains('sprechen');
-      final hasAch = fullUserText.contains('ach') || fullUserText.contains('buch') || fullUserText.contains('machen');
-      final hasOe = fullUserText.contains('Ã¶') || fullUserText.contains('oe') || fullUserText.contains('schÃ¶n');
-      final hasUe = fullUserText.contains('Ã¼') || fullUserText.contains('ue') || fullUserText.contains('mÃ¼de');
+      final hasCh =
+          fullUserText.contains('ch') ||
+          fullUserText.contains('ich') ||
+          fullUserText.contains('sprechen');
+      final hasAch =
+          fullUserText.contains('ach') ||
+          fullUserText.contains('buch') ||
+          fullUserText.contains('machen');
+      final hasOe =
+          fullUserText.contains('Ã¶') ||
+          fullUserText.contains('oe') ||
+          fullUserText.contains('schÃ¶n');
+      final hasUe =
+          fullUserText.contains('Ã¼') ||
+          fullUserText.contains('ue') ||
+          fullUserText.contains('mÃ¼de');
 
       if (!hasCh) detectedPhonemes.add('/ch/ (ich, sprechen)');
       if (!hasAch) detectedPhonemes.add('/ach/ (ach, buch)');
@@ -512,12 +661,26 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       if (detectedPhonemes.isEmpty) {
         detectedPhonemes.add('/ch/ (ich, ach)');
       }
-    } else if (cleanLanguage.contains('italiano') || cleanLanguage.contains('italian') || cleanLanguage.contains('it')) {
+    } else if (cleanLanguage.contains('italiano') ||
+        cleanLanguage.contains('italian') ||
+        cleanLanguage.contains('it')) {
       // Italian phonemes
-      final hasGl = fullUserText.contains('gl') || fullUserText.contains('gli') || fullUserText.contains('famiglia');
-      final hasGn = fullUserText.contains('gn') || fullUserText.contains('signore') || fullUserText.contains('bagno');
-      final hasZ = fullUserText.contains('z') || fullUserText.contains('grazie') || fullUserText.contains('pizza');
-      final hasR = fullUserText.contains('r') || fullUserText.contains('treno') || fullUserText.contains('vorrei');
+      final hasGl =
+          fullUserText.contains('gl') ||
+          fullUserText.contains('gli') ||
+          fullUserText.contains('famiglia');
+      final hasGn =
+          fullUserText.contains('gn') ||
+          fullUserText.contains('signore') ||
+          fullUserText.contains('bagno');
+      final hasZ =
+          fullUserText.contains('z') ||
+          fullUserText.contains('grazie') ||
+          fullUserText.contains('pizza');
+      final hasR =
+          fullUserText.contains('r') ||
+          fullUserText.contains('treno') ||
+          fullUserText.contains('vorrei');
 
       if (!hasGl) detectedPhonemes.add('/gl/ (gli, famiglia)');
       if (!hasGn) detectedPhonemes.add('/gn/ (signore, bagno)');
@@ -528,10 +691,22 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       }
     } else {
       // Default to English phonemes
-      final hasTh = fullUserText.contains('th') || fullUserText.contains('think') || fullUserText.contains('the');
-      final hasR = fullUserText.contains('r') || fullUserText.contains('restaurant') || fullUserText.contains('right');
-      final hasSh = fullUserText.contains('sh') || fullUserText.contains('she') || fullUserText.contains('should');
-      final hasV = fullUserText.contains('v') || fullUserText.contains('very') || fullUserText.contains('voice');
+      final hasTh =
+          fullUserText.contains('th') ||
+          fullUserText.contains('think') ||
+          fullUserText.contains('the');
+      final hasR =
+          fullUserText.contains('r') ||
+          fullUserText.contains('restaurant') ||
+          fullUserText.contains('right');
+      final hasSh =
+          fullUserText.contains('sh') ||
+          fullUserText.contains('she') ||
+          fullUserText.contains('should');
+      final hasV =
+          fullUserText.contains('v') ||
+          fullUserText.contains('very') ||
+          fullUserText.contains('voice');
 
       if (!hasTh) detectedPhonemes.add('/th/ (think, thank)');
       if (!hasR) detectedPhonemes.add('/r/ (restaurant, right)');
@@ -575,11 +750,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Icon(Icons.fingerprint_rounded, color: AppColors.runeViolet, size: 28),
+                    const Icon(
+                      Icons.fingerprint_rounded,
+                      color: AppColors.runeViolet,
+                      size: 28,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        AppLocalizations.of(context)?.convo_voice_print ?? 'Huella de Voz & PronunciaciÃ³n',
+                        AppLocalizations.of(context)?.convo_voice_print ??
+                            'Huella de Voz & PronunciaciÃ³n',
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -595,26 +775,67 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_phonetic_clarity ?? 'Claridad FonÃ©tica', phoneticClarityValue, Icons.graphic_eq_rounded, AppColors.manaCyan)),
+                    Expanded(
+                      child: _buildMetricCard(
+                        AppLocalizations.of(context)?.convo_phonetic_clarity ??
+                            'Claridad FonÃ©tica',
+                        phoneticClarityValue,
+                        Icons.graphic_eq_rounded,
+                        AppColors.manaCyan,
+                      ),
+                    ),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_speech_speed ?? 'Velocidad Habla', wpmText, Icons.speed_rounded, AppColors.manaCyan)),
+                    Expanded(
+                      child: _buildMetricCard(
+                        AppLocalizations.of(context)?.convo_speech_speed ??
+                            'Velocidad Habla',
+                        wpmText,
+                        Icons.speed_rounded,
+                        AppColors.manaCyan,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_words_spoken ?? 'Palabras Habladas', '$wordCount', Icons.chat_bubble_outline_rounded, const Color(0xFFFFD700))),
+                    Expanded(
+                      child: _buildMetricCard(
+                        AppLocalizations.of(context)?.convo_words_spoken ??
+                            'Palabras Habladas',
+                        '$wordCount',
+                        Icons.chat_bubble_outline_rounded,
+                        const Color(0xFFFFD700),
+                      ),
+                    ),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildMetricCard(AppLocalizations.of(context)?.convo_cefr_level ?? 'Nivel CEFR', cefrText, Icons.auto_awesome_rounded, AppColors.runeViolet)),
+                    Expanded(
+                      child: _buildMetricCard(
+                        AppLocalizations.of(context)?.convo_cefr_level ??
+                            'Nivel CEFR',
+                        cefrText,
+                        Icons.auto_awesome_rounded,
+                        AppColors.runeViolet,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 18),
-                Text(AppLocalizations.of(context)!.conversation_phonemes, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(
+                  AppLocalizations.of(context)!.conversation_phonemes,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: detectedPhonemes.map((ph) => _buildPhonemeTag(ph)).toList(),
+                  children: detectedPhonemes
+                      .map((ph) => _buildPhonemeTag(ph))
+                      .toList(),
                 ),
                 const SizedBox(height: 20),
               ],
@@ -625,7 +846,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     );
   }
 
-  Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
+  Widget _buildMetricCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return GlassCard(
       blur: 20,
       opacity: 0.05,
@@ -643,7 +869,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   label,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11, height: 1.2),
+                  style: const TextStyle(
+                    color: AppColors.onSurfaceVariant,
+                    fontSize: 11,
+                    height: 1.2,
+                  ),
                 ),
               ),
             ],
@@ -654,7 +884,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             alignment: Alignment.centerLeft,
             child: Text(
               value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
             ),
           ),
         ],
@@ -670,7 +904,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white12),
       ),
-      child: Text(phoneme, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+      child: Text(
+        phoneme,
+        style: const TextStyle(color: Colors.white70, fontSize: 12),
+      ),
     );
   }
 
@@ -685,8 +922,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
       // ManÃ¡ agotado â†’ abrir el GuardiÃ¡n de la Mazmorra (compra/espera/equipar)
       // en vez de un snack.
-      if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
-        final isManaDepleted = next.errorMessage!.contains('SIN MANÃ');
+      if (next.errorMessage != null &&
+          next.errorMessage != prev?.errorMessage) {
+        // P-26: se decide por el tipo de error, no por el texto del mensaje.
+        final isManaDepleted =
+            ref.read(conversationErrorProvider)?.kind == AiErrorKind.quota;
         if (isManaDepleted) {
           if (mounted) {
             Navigator.of(context).push(
@@ -696,7 +936,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             );
           }
         } else {
-          SystemSnack.show(context, next.errorMessage!, type: SystemSnackType.error);
+          SystemSnack.show(
+            context,
+            next.errorMessage!,
+            type: SystemSnackType.error,
+          );
         }
       }
       // Examen del OrÃ¡culo terminado: mostrar botÃ³n para continuar
@@ -708,7 +952,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       // baja la conversaciÃ³n hasta el final para ver la Ãºltima respuesta.
       final prevLen = prev?.messages.length ?? 0;
       final nextLen = next.messages.length;
-      final lastChanged = nextLen > 0 &&
+      final lastChanged =
+          nextLen > 0 &&
           prevLen == nextLen &&
           (prev?.messages.isNotEmpty ?? false) &&
           prev!.messages.last.text != next.messages.last.text &&
@@ -741,676 +986,883 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       body: CyberManhwaBackground(
         levelCode: currentLesson?.level ?? 'A1',
         child: PopScope(
-        canPop: true,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (!didPop) return;
-          // Salida normal (back/gesto): cerrar sesiÃ³n y mostrar resumen.
-          await _handleExit(isOracle: isOracle, showSummary: true, navigate: true);
-        },
-        child: Stack(
-          children: [
-            // Ambient Background Glow
-            Positioned(
-              top: -150,
-              left: -150,
-              child: Container(
-                width: 400,
-                height: 400,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.runeViolet.withValues(alpha: 0.15),
+          canPop: true,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (!didPop) return;
+            // Salida normal (back/gesto): cerrar sesiÃ³n y mostrar resumen.
+            await _handleExit(
+              isOracle: isOracle,
+              showSummary: true,
+              navigate: true,
+            );
+          },
+          child: Stack(
+            children: [
+              // Ambient Background Glow
+              Positioned(
+                top: -150,
+                left: -150,
+                child: Container(
+                  width: 400,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.runeViolet.withValues(alpha: 0.15),
+                  ),
                 ),
               ),
-            ),
 
-            SafeArea(
-              child: Column(
-                children: [
-                  // App Bar with Dynamic Top Progress Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                              onPressed: () async {
-                                // Cierra la sesiÃ³n (idempotente) antes de salir.
-                                await _handleExit(isOracle: isOracle, showSummary: true, navigate: false);
-                                if (context.mounted) {
-                                  if (context.canPop()) {
-                                    context.pop();
-                                  } else {
-                                    context.go('/home');
-                                  }
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                isOracle
-                                    ? AppLocalizations.of(context)!.oracle_title
-                                    : (widget.scenarioTitle ?? conversationState.activeScenarioName ?? 'PrÃ¡ctica de ConversaciÃ³n'),
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  height: 1.2,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            ClipOval(
-                              child: Image.asset(
-                                'assets/images/avatars/oracle_01.png',
-                                width: 30,
-                                height: 30,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        if (!isOracle) ...[
+              SafeArea(
+                child: Column(
+                  children: [
+                    // App Bar with Dynamic Top Progress Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Column(
+                        children: [
                           Row(
                             children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () async {
+                                  // Cierra la sesiÃ³n (idempotente) antes de salir.
+                                  await _handleExit(
+                                    isOracle: isOracle,
+                                    showSummary: true,
+                                    navigate: false,
+                                  );
+                                  if (context.mounted) {
+                                    if (context.canPop()) {
+                                      context.pop();
+                                    } else {
+                                      context.go('/home');
+                                    }
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 8),
                               Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: Container(
-                                    height: 6,
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: FractionallySizedBox(
-                                        widthFactor: realProgressRatio,
-                                        child: Container(
-                                          color: const Color(0xFFF1C40F),
-                                        ),
-                                      ),
-                                    ),
+                                child: Text(
+                                  isOracle
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.oracle_title
+                                      : (widget.scenarioTitle ??
+                                            conversationState
+                                                .activeScenarioName ??
+                                            'PrÃ¡ctica de ConversaciÃ³n'),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1.2,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              SizedBox(
-                                width: 36,
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    '${(realProgressRatio * 100).round()}%',
-                                    style: const TextStyle(
-                                      color: Color(0xFFF1C40F),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                              ClipOval(
+                                child: Image.asset(
+                                  'assets/images/avatars/oracle_01.png',
+                                  width: 30,
+                                  height: 30,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                             ],
                           ),
-                          if (LessonCatalog.getLessonById(widget.scenarioId, title: widget.scenarioTitle) != null) ...[
-                            const SizedBox(height: 8),
-                            LiveGoalsTrackerBar(
-                              goals: LessonCatalog.getLessonById(widget.scenarioId, title: widget.scenarioTitle)!.goals,
-                              goalEvaluationResults: conversationState.goalEvaluationResults,
-                              onTapCompass: () => _showScenarioMissionModal(context),
-                            ),
-                          ],
                           const SizedBox(height: 8),
-                        ],
-
-                        // Mana & Mode Controls Bar
-                        if (!isOracle)
-                          SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          child: Row(
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 8),
-                                child: SizedBox(
-                                  width: 120,
-                                  child: OracleManaBar(showLabel: true, compact: true),
-                                ),
-                              ),
-                              ManaMeterWidget(
-                                currentMana: (450 - _usedMana).clamp(0, 500),
-                                usedInSession: _usedMana,
-                              ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _isBlindListening = !_isBlindListening;
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(16),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: _isBlindListening
-                                        ? const Color(0xFFFF00FF).withValues(alpha: 0.2)
-                                        : Colors.white.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: _isBlindListening ? const Color(0xFFFF00FF) : Colors.white24,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(_isBlindListening ? 'ðŸ™ˆ' : 'ðŸ‘ï¸', style: const TextStyle(fontSize: 12)),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        _isBlindListening
-                                            ? (AppLocalizations.of(context)?.convo_hidden_chat ?? 'Chat Oculto (4Âª/5Âª Estrella ðŸŒŸ)')
-                                            : (AppLocalizations.of(context)?.convo_visible_chat ?? 'Chat Visible'),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: _isBlindListening ? const Color(0xFFFF00FF) : Colors.white70,
+                          if (!isOracle) ...[
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Container(
+                                      height: 6,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: FractionallySizedBox(
+                                          widthFactor: realProgressRatio,
+                                          child: Container(
+                                            color: const Color(0xFFF1C40F),
+                                          ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _isTypingMode = !_isTypingMode;
-                                    _showKeyboardDrawer = _isTypingMode;
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(16),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: _isTypingMode
-                                        ? AppColors.manaCyan.withValues(alpha: 0.2)
-                                        : Colors.white.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: _isTypingMode ? AppColors.manaCyan : Colors.white24,
                                     ),
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(_isTypingMode ? 'âŒ¨ï¸' : 'ðŸŽ™ï¸', style: const TextStyle(fontSize: 12)),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        _isTypingMode
-                                            ? (AppLocalizations.of(context)?.convo_write_mode ?? 'Modo Escritura')
-                                            : (AppLocalizations.of(context)?.convo_voice_mode ?? 'Modo Voz'),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: _isTypingMode ? AppColors.manaCyan : Colors.white70,
-                                        ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 36,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '${(realProgressRatio * 100).round()}%',
+                                      style: const TextStyle(
+                                        color: Color(0xFFF1C40F),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
+                              ],
+                            ),
+                            if (LessonCatalog.getLessonById(
+                                  widget.scenarioId,
+                                  title: widget.scenarioTitle,
+                                ) !=
+                                null) ...[
+                              const SizedBox(height: 8),
+                              LiveGoalsTrackerBar(
+                                goals: LessonCatalog.getLessonById(
+                                  widget.scenarioId,
+                                  title: widget.scenarioTitle,
+                                )!.goals,
+                                goalEvaluationResults:
+                                    conversationState.goalEvaluationResults,
+                                onTapCompass: () =>
+                                    _showScenarioMissionModal(context),
                               ),
                             ],
-                          ),
-                        ),
-                      ],
+                            const SizedBox(height: 8),
+                          ],
+
+                          // Mana & Mode Controls Bar
+                          if (!isOracle)
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: SizedBox(
+                                      width: 120,
+                                      // P-26: el medidor muestra el coste del próximo
+                                      // turno de esta sesión (mazmorra 12 / chat 8).
+                                      child: OracleManaBar(
+                                        showLabel: true,
+                                        compact: true,
+                                        costPerTurn:
+                                            conversationState
+                                                    .activeScenarioId !=
+                                                null
+                                            ? 12
+                                            : 8,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _isBlindListening = !_isBlindListening;
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _isBlindListening
+                                            ? const Color(
+                                                0xFFFF00FF,
+                                              ).withValues(alpha: 0.2)
+                                            : Colors.white.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: _isBlindListening
+                                              ? const Color(0xFFFF00FF)
+                                              : Colors.white24,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            _isBlindListening
+                                                ? 'ðŸ™ˆ'
+                                                : 'ðŸ‘ï¸',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _isBlindListening
+                                                ? (AppLocalizations.of(
+                                                        context,
+                                                      )?.convo_hidden_chat ??
+                                                      'Chat Oculto (4Âª/5Âª Estrella ðŸŒŸ)')
+                                                : (AppLocalizations.of(
+                                                        context,
+                                                      )?.convo_visible_chat ??
+                                                      'Chat Visible'),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: _isBlindListening
+                                                  ? const Color(0xFFFF00FF)
+                                                  : Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _isTypingMode = !_isTypingMode;
+                                        _showKeyboardDrawer = _isTypingMode;
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _isTypingMode
+                                            ? AppColors.manaCyan.withValues(
+                                                alpha: 0.2,
+                                              )
+                                            : Colors.white.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: _isTypingMode
+                                              ? AppColors.manaCyan
+                                              : Colors.white24,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            _isTypingMode
+                                                ? 'âŒ¨ï¸'
+                                                : 'ðŸŽ™ï¸',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _isTypingMode
+                                                ? (AppLocalizations.of(
+                                                        context,
+                                                      )?.convo_write_mode ??
+                                                      'Modo Escritura')
+                                                : (AppLocalizations.of(
+                                                        context,
+                                                      )?.convo_voice_mode ??
+                                                      'Modo Voz'),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: _isTypingMode
+                                                  ? AppColors.manaCyan
+                                                  : Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Waveform Audio Visualizer
-                  VoiceWaveformVisualizer(
-                    isAiSpeaking: conversationState.isPlaying || conversationState.isProcessing,
-                    isUserSpeaking: conversationState.isRecording,
-                  ),
+                    // Waveform Audio Visualizer
+                    VoiceWaveformVisualizer(
+                      isAiSpeaking:
+                          conversationState.isPlaying ||
+                          conversationState.isProcessing,
+                      isUserSpeaking: conversationState.isRecording,
+                    ),
 
-                  // Issue #76: el mundo recuerda el intento anterior.
-                  Builder(builder: (context) {
-                    final scenarioId = conversationState.activeScenarioId;
-                    if (scenarioId == null) return const SizedBox.shrink();
-                    final progress =
-                        ref.watch(scenarioProgressProvider(scenarioId)).value;
-                    if (progress == null) return const SizedBox.shrink();
-                    final attempts =
-                        (progress['attempts'] as num?)?.toInt() ?? 1;
-                    final outcome = progress['last_outcome'] as String?;
-                    if (attempts < 2 || outcome == 'success') {
-                      return const SizedBox.shrink();
-                    }
-                    final l = AppLocalizations.of(context);
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.history_rounded,
-                              size: 14, color: AppColors.guildAmber),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              outcome == 'partial'
-                                  ? (l?.npc_remembers_partial ??
-                                      'EL NPC RECUERDA QUE CASI LO LOGRAS')
-                                  : (l?.npc_remembers_failure ??
-                                      'EL NPC RECUERDA TU ÚLTIMO INTENTO'),
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.jetBrainsMono(
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                    // Issue #76: el mundo recuerda el intento anterior.
+                    Builder(
+                      builder: (context) {
+                        final scenarioId = conversationState.activeScenarioId;
+                        if (scenarioId == null) return const SizedBox.shrink();
+                        final progress = ref
+                            .watch(scenarioProgressProvider(scenarioId))
+                            .value;
+                        if (progress == null) return const SizedBox.shrink();
+                        final attempts =
+                            (progress['attempts'] as num?)?.toInt() ?? 1;
+                        final outcome = progress['last_outcome'] as String?;
+                        if (attempts < 2 || outcome == 'success') {
+                          return const SizedBox.shrink();
+                        }
+                        final l = AppLocalizations.of(context);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 2,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.history_rounded,
+                                size: 14,
                                 color: AppColors.guildAmber,
                               ),
-                            ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  outcome == 'partial'
+                                      ? (l?.npc_remembers_partial ??
+                                            'EL NPC RECUERDA QUE CASI LO LOGRAS')
+                                      : (l?.npc_remembers_failure ??
+                                            'EL NPC RECUERDA TU ÚLTIMO INTENTO'),
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.jetBrainsMono(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                    color: AppColors.guildAmber,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  }),
-
-                  // Conversation Messages Canvas
-                  Expanded(
-                    child: ListView.builder(
-                      controller: _chatScrollController,
-                      padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 100.0),
-                      itemCount: conversationState.messages.length,
-                      itemBuilder: (context, index) {
-                        final message = conversationState.messages[index];
-                        final isUser = message.sender == 'user';
-
-                        Widget bubble;
-                        if (!isUser) {
-                          final bubbleContent = ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.78,
-                            ),
-                            child: _buildTutorBubble(context, message, conversationNotifier),
-                          );
-                          // El tutor (OrÃ¡culo) muestra su avatar junto a cada mensaje
-                          // en todas las conversaciones (misiones y evaluaciÃ³n).
-                          bubble = Padding(
-                            padding: const EdgeInsets.only(bottom: 24.0),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipOval(
-                                    child: Image.asset(
-                                      'assets/images/avatars/oracle_01.png',
-                                      width: 42,
-                                      height: 42,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(child: bubbleContent),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else {
-                          final bubbleContent = ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.78,
-                            ),
-                            child: _buildUserBubble(context, message),
-                          );
-                          // El aventurero muestra su avatar (clase del jugador)
-                          // junto a cada mensaje, espejo del avatar del tutor.
-                          final heroClass =
-                              ref.watch(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior';
-                          bubble = Padding(
-                            padding: const EdgeInsets.only(bottom: 24.0),
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(child: bubbleContent),
-                                  const SizedBox(width: 10),
-                                  RpgAvatar(
-                                    avatarUrl: heroClass,
-                                    hunterClass: heroClass,
-                                    initials: 'HÃ‰ROE',
-                                    size: 42,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-
-                        final isLatest = index == conversationState.messages.length - 1;
-                        if (isLatest && index > 0) return _AnimatedMessage(child: bubble);
-                        return bubble;
+                        );
                       },
                     ),
-                  ),
 
-                  // â”€â”€ 20 Topics Horizontal Bar (Icon 2: Hashtag) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                  if (convError != null)
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.errorContainer.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.5)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline_rounded,
-                              color: AppColors.errorRed, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              convError.message,
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                          ),
-                          if (convError.canRetry)
-                            TextButton(
-                              onPressed: () => conversationNotifier.retryLastTurn(),
-                              child: const Text('Reintentar'),
-                            ),
-                          TextButton(
-                            onPressed: () {
-                              ref.read(conversationErrorProvider.notifier).state = null;
-                              setState(() => _showKeyboardDrawer = true);
-                            },
-                            child: const Text('Escribir'),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  if (_showTopicsBar)
-                    Container(
-                      height: 52,
-                      color: const Color(0xFF0F172A),
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                    // Conversation Messages Canvas
+                    Expanded(
                       child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        itemCount: _randomTopics.length,
+                        controller: _chatScrollController,
+                        padding: const EdgeInsets.fromLTRB(
+                          20.0,
+                          16.0,
+                          20.0,
+                          100.0,
+                        ),
+                        itemCount: conversationState.messages.length,
                         itemBuilder: (context, index) {
-                          final topic = _randomTopics[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: InkWell(
-                              onTap: () => _onTopicSelected(topic['title']!),
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.runeViolet.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.4)),
-                                ),
+                          final message = conversationState.messages[index];
+                          final isUser = message.sender == 'user';
+
+                          Widget bubble;
+                          if (!isUser) {
+                            final bubbleContent = ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.78,
+                              ),
+                              child: _buildTutorBubble(
+                                context,
+                                message,
+                                conversationNotifier,
+                              ),
+                            );
+                            // El tutor (OrÃ¡culo) muestra su avatar junto a cada mensaje
+                            // en todas las conversaciones (misiones y evaluaciÃ³n).
+                            bubble = Padding(
+                              padding: const EdgeInsets.only(bottom: 24.0),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                                 child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipOval(
+                                      child: Image.asset(
+                                        'assets/images/avatars/oracle_01.png',
+                                        width: 42,
+                                        height: 42,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(child: bubbleContent),
+                                  ],
+                                ),
+                              ),
+                            );
+                          } else {
+                            final bubbleContent = ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.78,
+                              ),
+                              child: _buildUserBubble(context, message),
+                            );
+                            // El aventurero muestra su avatar (clase del jugador)
+                            // junto a cada mensaje, espejo del avatar del tutor.
+                            final heroProfile = ref
+                                .watch(userProfileProvider)
+                                .value;
+                            final heroClass = playerClassOf(heroProfile);
+                            bubble = Padding(
+                              padding: const EdgeInsets.only(bottom: 24.0),
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(topic['icon']!, style: const TextStyle(fontSize: 14)),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      topic['title']!,
-                                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    Flexible(child: bubbleContent),
+                                    const SizedBox(width: 10),
+                                    RpgAvatar(
+                                      avatarUrl: playerAvatarUrlOf(heroProfile),
+                                      hunterClass: heroClass,
+                                      initials: 'HÃ‰ROE',
+                                      size: 42,
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                          );
+                            );
+                          }
+
+                          final isLatest =
+                              index == conversationState.messages.length - 1;
+                          if (isLatest && index > 0)
+                            return _AnimatedMessage(child: bubble);
+                          return bubble;
                         },
                       ),
                     ),
 
-                  // â”€â”€ Text Input Drawer (Icon 5: Keyboard) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                  if (_showKeyboardDrawer)
-                    Container(
-                      color: const Color(0xFF0F172A),
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _textController,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                hintText: AppLocalizations.of(context)?.convo_input_hint ?? 'Escribe tu mensaje en inglÃ©s...',
-                                hintStyle: const TextStyle(color: Colors.white38),
-                                filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.08),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                  borderSide: BorderSide.none,
+                    // â”€â”€ 20 Topics Horizontal Bar (Icon 2: Hashtag) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    if (convError != null)
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorContainer.withValues(
+                            alpha: 0.35,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.errorRed.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              color: AppColors.errorRed,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                convError.message,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
                                 ),
                               ),
-                              onSubmitted: (_) => _submitTextMessage(),
                             ),
-                          ),
-                          const SizedBox(width: 8),
+                            if (convError.canRetry)
+                              TextButton(
+                                onPressed: () =>
+                                    conversationNotifier.retryLastTurn(),
+                                child: const Text('Reintentar'),
+                              ),
+                            TextButton(
+                              onPressed: () {
+                                ref
+                                        .read(
+                                          conversationErrorProvider.notifier,
+                                        )
+                                        .state =
+                                    null;
+                                setState(() => _showKeyboardDrawer = true);
+                              },
+                              child: const Text('Escribir'),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    if (_showTopicsBar)
+                      Container(
+                        height: 52,
+                        color: const Color(0xFF0F172A),
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          itemCount: _randomTopics.length,
+                          itemBuilder: (context, index) {
+                            final topic = _randomTopics[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: InkWell(
+                                onTap: () => _onTopicSelected(topic['title']!),
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.runeViolet.withValues(
+                                      alpha: 0.18,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: AppColors.runeViolet.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        topic['icon']!,
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        topic['title']!,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                    // â”€â”€ Text Input Drawer (Icon 5: Keyboard) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    if (_showKeyboardDrawer)
+                      Container(
+                        color: const Color(0xFF0F172A),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _textController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  hintText:
+                                      AppLocalizations.of(
+                                        context,
+                                      )?.convo_input_hint ??
+                                      'Escribe tu mensaje en inglÃ©s...',
+                                  hintStyle: const TextStyle(
+                                    color: Colors.white38,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                onSubmitted: (_) => _submitTextMessage(),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.send_rounded,
+                                color: AppColors.runeViolet,
+                              ),
+                              onPressed: _submitTextMessage,
+                            ),
+                            IconButton(
+                              tooltip: 'Cerrar',
+                              icon: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white54,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _showKeyboardDrawer = false;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // â”€â”€ Controls Row (5 Icons Layout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(
+                        16.0,
+                        16.0,
+                        16.0,
+                        24.0,
+                      ),
+                      color: AppColors.surfaceDim.withValues(alpha: 0.95),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          // Icon 1: Compass (GuÃ­a de MisiÃ³n) â€” oculto en el examen del OrÃ¡culo
+                          if (!isOracle)
+                            IconButton(
+                              tooltip: 'Objetivos de la misión',
+                              icon: const Icon(
+                                Icons.explore_outlined,
+                                color: Colors.white70,
+                                size: 28,
+                              ),
+                              onPressed: () =>
+                                  _showScenarioMissionModal(context),
+                            ),
+
+                          // Icon 2: Hashtag (20 TÃ³picos al azar) â€” oculto en el examen del OrÃ¡culo
+                          if (!isOracle)
+                            IconButton(
+                              tooltip: 'Temas sugeridos',
+                              icon: Icon(
+                                Icons.tag_rounded,
+                                color: _showTopicsBar
+                                    ? AppColors.runeViolet
+                                    : Colors.white70,
+                                size: 28,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _showTopicsBar = !_showTopicsBar;
+                                  _showKeyboardDrawer = false;
+                                });
+                              },
+                            ),
+
+                          // Icon 3: Mic (Tap-to-Talk) â€” o botÃ³n CONTINUAR al terminar el OrÃ¡culo
+                          if (isOracle && conversationState.oracleFinished)
+                            GestureDetector(
+                              onTap: () async {
+                                // Cierra el TTS/sesiÃ³n OrÃ¡culo (no registra normal).
+                                await _handleExit(
+                                  isOracle: true,
+                                  showSummary: false,
+                                  navigate: false,
+                                );
+                                final navigator = Navigator.of(context);
+                                if (navigator.canPop()) {
+                                  navigator.pop(conversationState.oracleResult);
+                                } else {
+                                  context.go('/home');
+                                }
+                              },
+                              child: Container(
+                                width: 120,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  color: AppColors.medievalAgedGold,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.medievalAgedGold
+                                          .withValues(alpha: 0.5),
+                                      blurRadius: 12,
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.auto_awesome_rounded,
+                                      color: AppColors.medievalBg,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      AppLocalizations.of(
+                                            context,
+                                          )?.convo_continue ??
+                                          'CONTINUAR',
+                                      style: GoogleFonts.jetBrainsMono(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.medievalBg,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            GestureDetector(
+                              onTap: () {
+                                if (conversationState.isPlaying) {
+                                  conversationNotifier.stopTts();
+                                } else if (conversationState.isRecording) {
+                                  conversationNotifier.stopRecording();
+                                } else if (!conversationState.isProcessing) {
+                                  conversationNotifier.startRecording();
+                                }
+                              },
+                              child: Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  conversationState.isRecording
+                                      ? Icons.stop_rounded
+                                      : Icons.mic_rounded,
+                                  color: const Color(0xFF0F172A),
+                                  size: 36,
+                                ),
+                              ),
+                            ),
+
+                          // Icon 4: Fingerprint (Huella de Voz & BiometrÃ­a)
                           IconButton(
-                            icon: const Icon(Icons.send_rounded, color: AppColors.runeViolet),
-                            onPressed: _submitTextMessage,
+                            tooltip: 'Huella de voz',
+                            icon: const Icon(
+                              Icons.fingerprint_rounded,
+                              color: AppColors.runeViolet,
+                              size: 28,
+                            ),
+                            onPressed: () => _showSpeechDnaModal(context),
                           ),
+
+                          // Icon 5: Keyboard (Entrada de Texto Directa)
                           IconButton(
-                            tooltip: 'Cerrar',
-                            icon: const Icon(Icons.close_rounded, color: Colors.white54),
+                            icon: Icon(
+                              Icons.keyboard_rounded,
+                              color: _showKeyboardDrawer
+                                  ? AppColors.runeViolet
+                                  : Colors.white70,
+                              size: 28,
+                            ),
                             onPressed: () {
                               setState(() {
-                                _showKeyboardDrawer = false;
+                                _showKeyboardDrawer = !_showKeyboardDrawer;
+                                _showTopicsBar = false;
                               });
                             },
                           ),
                         ],
                       ),
                     ),
-
-                  // â”€â”€ Controls Row (5 Icons Layout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
-                    color: AppColors.surfaceDim.withValues(alpha: 0.95),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        // Icon 1: Compass (GuÃ­a de MisiÃ³n) â€” oculto en el examen del OrÃ¡culo
-                        if (!isOracle)
-                          IconButton(
-                          tooltip: 'Objetivos de la misión',
-                          icon: const Icon(Icons.explore_outlined, color: Colors.white70, size: 28),
-                          onPressed: () => _showScenarioMissionModal(context),
-                        ),
-
-                        // Icon 2: Hashtag (20 TÃ³picos al azar) â€” oculto en el examen del OrÃ¡culo
-                        if (!isOracle)
-                          IconButton(
-                          tooltip: 'Temas sugeridos',
-                          icon: Icon(
-                            Icons.tag_rounded,
-                            color: _showTopicsBar ? AppColors.runeViolet : Colors.white70,
-                            size: 28,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _showTopicsBar = !_showTopicsBar;
-                              _showKeyboardDrawer = false;
-                            });
-                          },
-                        ),
-
-                        // Icon 3: Mic (Tap-to-Talk) â€” o botÃ³n CONTINUAR al terminar el OrÃ¡culo
-                        if (isOracle && conversationState.oracleFinished)
-                          GestureDetector(
-                            onTap: () async {
-                              // Cierra el TTS/sesiÃ³n OrÃ¡culo (no registra normal).
-                              await _handleExit(isOracle: true, showSummary: false, navigate: false);
-                              final navigator = Navigator.of(context);
-                              if (navigator.canPop()) {
-                                navigator.pop(conversationState.oracleResult);
-                              } else {
-                                context.go('/home');
-                              }
-                            },
-                            child: Container(
-                              width: 120,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24),
-                                color: AppColors.medievalAgedGold,
-                                boxShadow: [
-                                  BoxShadow(color: AppColors.medievalAgedGold.withValues(alpha: 0.5), blurRadius: 12),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.auto_awesome_rounded, color: AppColors.medievalBg, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    AppLocalizations.of(context)?.convo_continue ?? 'CONTINUAR',
-                                    style: GoogleFonts.jetBrainsMono(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.medievalBg,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          GestureDetector(
-                            onTap: () {
-                              if (conversationState.isPlaying) {
-                                conversationNotifier.stopTts();
-                              } else if (conversationState.isRecording) {
-                                conversationNotifier.stopRecording();
-                              } else if (!conversationState.isProcessing) {
-                                conversationNotifier.startRecording();
-                              }
-                            },
-                            child: Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.15),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                conversationState.isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-                                color: const Color(0xFF0F172A),
-                                size: 36,
-                              ),
-                            ),
-                          ),
-
-                        // Icon 4: Fingerprint (Huella de Voz & BiometrÃ­a)
-                        IconButton(
-                          tooltip: 'Huella de voz',
-                          icon: const Icon(Icons.fingerprint_rounded, color: AppColors.runeViolet, size: 28),
-                          onPressed: () => _showSpeechDnaModal(context),
-                        ),
-
-                        // Icon 5: Keyboard (Entrada de Texto Directa)
-                        IconButton(
-                          icon: Icon(
-                            Icons.keyboard_rounded,
-                            color: _showKeyboardDrawer ? AppColors.runeViolet : Colors.white70,
-                            size: 28,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _showKeyboardDrawer = !_showKeyboardDrawer;
-                              _showTopicsBar = false;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Overlay: el OrÃ¡culo estÃ¡ evaluando la conversaciÃ³n
-            if (isOracle && conversationState.oracleEvaluating)
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  color: AppColors.medievalBg.withValues(alpha: 0.82),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: CircularProgressIndicator(
-                            color: AppColors.medievalAgedGold,
-                            strokeWidth: 3,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)?.convo_oracle_evaluating ?? 'EL ORÃCULO ESTÃ EVALUANDO TU CONVERSACIÃ“N...',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.jetBrainsMono(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
-                            color: AppColors.medievalText,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          AppLocalizations.of(context)?.convo_analyzing_level ?? 'Analizando tu nivel de comunicaciÃ³n...',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: AppColors.medievalTextDim,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
               ),
 
-            // Floating Draggable & Collapsible Monster Overlay
-            if (!isOracle)
-              DraggableMonsterWidget(
-                monster: HunterCatalog.regularMonsters.first,
-                isSpeaking: conversationState.isPlaying || conversationState.isProcessing,
-                avatarAsset: 'assets/images/avatars/oracle_01.png',
-              ),
-          ],
+              // Overlay: el OrÃ¡culo estÃ¡ evaluando la conversaciÃ³n
+              if (isOracle && conversationState.oracleEvaluating)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    color: AppColors.medievalBg.withValues(alpha: 0.82),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: CircularProgressIndicator(
+                              color: AppColors.medievalAgedGold,
+                              strokeWidth: 3,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            AppLocalizations.of(
+                                  context,
+                                )?.convo_oracle_evaluating ??
+                                'EL ORÃCULO ESTÃ EVALUANDO TU CONVERSACIÃ“N...',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                              color: AppColors.medievalText,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            AppLocalizations.of(
+                                  context,
+                                )?.convo_analyzing_level ??
+                                'Analizando tu nivel de comunicaciÃ³n...',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppColors.medievalTextDim,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Floating Draggable & Collapsible Monster Overlay
+              if (!isOracle)
+                DraggableMonsterWidget(
+                  monster: HunterCatalog.regularMonsters.first,
+                  isSpeaking:
+                      conversationState.isPlaying ||
+                      conversationState.isProcessing,
+                  avatarAsset: 'assets/images/avatars/oracle_01.png',
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // Tutor Bubble
   Widget _buildTutorBubble(
@@ -1470,7 +1922,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.replay_rounded, color: Colors.white70, size: 20),
+                    icon: const Icon(
+                      Icons.replay_rounded,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
                     onPressed: () => notifier.playTtsVoice(message.text),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -1503,7 +1959,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         children: [
           Text(
             message.text,
-            style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              height: 1.4,
+            ),
           ),
           if (message.correctionExplanation != null) ...[
             const SizedBox(height: 10),
@@ -1512,11 +1972,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               decoration: BoxDecoration(
                 color: AppColors.runeViolet.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.runeViolet.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.runeViolet.withValues(alpha: 0.3),
+                ),
               ),
               child: Text(
                 message.correctionExplanation!,
-                style: const TextStyle(color: AppColors.runeVioletText, fontSize: 12),
+                style: const TextStyle(
+                  color: AppColors.runeVioletText,
+                  fontSize: 12,
+                ),
               ),
             ),
           ],
@@ -1529,7 +1994,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 class _AnimatedMessage extends StatefulWidget {
   final Widget child;
   final int delay;
-  const _AnimatedMessage({required this.child, this.delay = 0});
+  const _AnimatedMessage({required this.child}) : delay = 0;
 
   @override
   State<_AnimatedMessage> createState() => _AnimatedMessageState();
@@ -1544,14 +2009,28 @@ class _AnimatedMessageState extends State<_AnimatedMessage>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
-    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    Future.delayed(Duration(milliseconds: widget.delay), () { if (mounted) _controller.forward(); });
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _fadeAnim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.05),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _controller.forward();
+    });
   }
 
   @override
-  void dispose() { _controller.dispose(); super.dispose(); }
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1560,7 +2039,10 @@ class _AnimatedMessageState extends State<_AnimatedMessage>
       builder: (context, child) {
         return Opacity(
           opacity: _fadeAnim.value,
-          child: Transform.translate(offset: Offset(0, _slideAnim.value.dy * 20), child: widget.child),
+          child: Transform.translate(
+            offset: Offset(0, _slideAnim.value.dy * 20),
+            child: widget.child,
+          ),
         );
       },
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../features/onboarding/domain/models/cefr_rank.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/models/title_evaluator.dart';
 import '../models/lesson_catalog.dart';
@@ -11,64 +11,37 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   DashboardRepositoryImpl(this._supabaseClient);
 
+  // P-19b (#163): una sola RPC devuelve progreso + logros. Cache corta para
+  // que los dos providers que se reconstruyen juntos no la llamen dos veces.
+  Map<String, dynamic>? _stateCache;
+  DateTime? _stateAt;
+  static const Duration _stateTtl = Duration(seconds: 20);
+
+  Future<Map<String, dynamic>> _dashboardState(String userId) async {
+    final cached = _stateCache;
+    final at = _stateAt;
+    if (cached != null && at != null && DateTime.now().difference(at) < _stateTtl) {
+      return cached;
+    }
+    final res = await _supabaseClient.rpc(
+      'get_dashboard_state',
+      params: {'p_user_id': userId},
+    );
+    final map = res is Map
+        ? Map<String, dynamic>.from(res)
+        : <String, dynamic>{};
+    _stateCache = map;
+    _stateAt = DateTime.now();
+    return map;
+  }
+
   @override
   Future<Map<String, dynamic>> getUserProgress(String userId) async {
-    try {
-      final response = await _supabaseClient
-          .from('user_language_profiles')
-          .select('xp_points, current_streak, last_practice_date, game_rank, equipped_title_code, languages(code, name, flag_emoji), cefr_levels(code, name)')
-          .eq('user_id', userId)
-          .maybeSingle();
-
-      if (response == null) {
-        return {
-          'xp': 0,
-          'streak': 0,
-          'last_practice_date': null,
-          'level': 'Principiante',
-          'level_code': 'A1',
-          'game_rank': 'E',
-          'language': 'Inglés',
-          'language_emoji': '🇺🇸',
-        };
-      }
-
-      final xp = response['xp_points'] as int? ?? 0;
-      final streak = response['current_streak'] as int? ?? 0;
-      
-      final languages = response['languages'] as Map<String, dynamic>?;
-      final languageName = languages?['name'] as String? ?? 'Inglés';
-      final languageEmoji = languages?['flag_emoji'] as String? ?? '🇺🇸';
-
-      final cefr = response['cefr_levels'] as Map<String, dynamic>?;
-      final cefrName = cefr?['name'] as String? ?? 'Principiante';
-      final cefrCode = cefr?['code'] as String? ?? 'A1';
-      final gameRank = (response['game_rank'] as String?)?.isNotEmpty == true
-          ? (response['game_rank'] as String)!
-          : CefrRank.gameRankFromCefr(cefrCode);
-
-      return {
-        'xp': xp,
-        'streak': streak,
-        'last_practice_date': response['last_practice_date'],
-        'level': cefrName,
-        'level_code': cefrCode,
-        'game_rank': gameRank,
-        'language': languageName,
-        'language_emoji': languageEmoji,
-        'equipped_title_code': response['equipped_title_code'] as String? ?? 'oido_halcon_abismo_c',
-      };
-    } catch (_) {
-      return {
-        'xp': 0,
-        'streak': 0,
-        'level': 'Principiante',
-        'level_code': 'A1',
-        'game_rank': 'E',
-        'language': 'Inglés',
-        'language_emoji': '🇺🇸',
-      };
-    }
+    // P-19b (#163): progreso y logros salen de la misma RPC.
+    final state = await _dashboardState(userId);
+    final progress = state['progress'];
+    if (progress is Map) return Map<String, dynamic>.from(progress);
+    throw StateError('get_dashboard_state sin progress');
   }
 
   @override
@@ -114,7 +87,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
         for (final sc in scenarios) {
           LessonCatalog.updateCatalogFromMap(sc);
         }
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:117', e, stackTrace: st);
+      }
 
       // Filter and prioritize scenarios matching user's onboarding interests & daily goal
       if (scenarios.isNotEmpty) {
@@ -249,117 +224,17 @@ class DashboardRepositoryImpl implements DashboardRepository {
   @override
   Future<List<Map<String, dynamic>>> getUserAchievements(String userId) async {
     try {
-      // 1. Fetch user stats from database
-      final profilesRes = await _supabaseClient
-          .from('user_language_profiles')
-          .select('current_streak, language_id')
-          .eq('user_id', userId);
-
-      final streak = profilesRes.isNotEmpty ? (profilesRes.first['current_streak'] as int? ?? 0) : 0;
-      final languagesCount = profilesRes.map((p) => p['language_id']).toSet().length;
-
-      final convosRes = await _supabaseClient
-          .from('conversations')
-          .select('id')
-          .eq('user_id', userId);
-      final conversationsCount = convosRes.length;
-      final convoIds = convosRes.map((c) => c['id']).toList();
-
-      debugPrint('[Achievements] conversations=$conversationsCount convoIds=$convoIds');
-
-      int messagesCount = 0;
-      if (convoIds.isNotEmpty) {
-        final messagesRes = await _supabaseClient
-            .from('messages')
-            .select('id')
-            .inFilter('conversation_id', convoIds)
-            .eq('role', 'user');
-        messagesCount = messagesRes.length;
-        debugPrint('[Achievements] messagesCount=$messagesCount');
+      final state = await _dashboardState(userId);
+      final achievements = state['achievements'];
+      if (achievements is List) {
+        return achievements
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
       }
-
-      final vocabRes = await _supabaseClient
-          .from('user_vocabulary')
-          .select('id')
-          .eq('user_id', userId);
-      final vocabularyCount = vocabRes.length;
-
-      const double maxPronunciation = 0.0; // Default or extended later if needed
-
-      // 2. Fetch all achievements
-      final allAchievements = await _supabaseClient
-          .from('achievements')
-          .select();
-
-      // 3. Fetch unlocked achievements
-      final unlockedRes = await _supabaseClient
-          .from('user_achievements')
-          .select('achievement_id')
-          .eq('user_id', userId);
-      final unlockedIds = unlockedRes.map((ua) => ua['achievement_id'] as int).toSet();
-
-      final List<Map<String, dynamic>> results = [];
-
-      for (final ach in allAchievements) {
-        final id = ach['id'] as int;
-        final code = ach['code'] as String;
-        final title = ach['title'] as String;
-        final description = ach['description'] as String? ?? '';
-        final tier = ach['icon_url'] as String? ?? 'bronze'; // We use icon_url to store the tier
-        final xpReward = ach['xp_reward'] as int? ?? 0;
-        final conditionType = ach['condition_type'] as String?;
-        final conditionValue = ach['condition_value'] as int? ?? 1;
-
-        int currentValue = 0;
-        if (conditionType == 'streak') {
-          currentValue = streak;
-        } else if (conditionType == 'conversations') {
-          currentValue = conversationsCount;
-        } else if (conditionType == 'messages') {
-          currentValue = messagesCount;
-        } else if (conditionType == 'languages') {
-          currentValue = languagesCount;
-        } else if (conditionType == 'vocabulary') {
-          currentValue = vocabularyCount;
-        } else if (conditionType == 'pronunciation') {
-          currentValue = maxPronunciation.toInt();
-        }
-
-        final isUnlocked = unlockedIds.contains(id) || currentValue >= conditionValue;
-
-        // Auto unlock if completed but not recorded
-        if (currentValue >= conditionValue && !unlockedIds.contains(id)) {
-          try {
-            await _supabaseClient.from('user_achievements').upsert({
-              'user_id': userId,
-              'achievement_id': id,
-            }, onConflict: 'user_id, achievement_id');
-          } catch (_) {}
-        }
-
-        results.add({
-          'id': id,
-          'code': code,
-          'title': title,
-          'description': description,
-          'tier': tier,
-          'xp_reward': xpReward,
-          'current_value': currentValue,
-          'target_value': conditionValue,
-          'is_unlocked': isUnlocked,
-          'progress': currentValue / conditionValue,
-        });
-      }
-
-      // Sort: unlocked first, then by tier
-      results.sort((a, b) {
-        if (a['is_unlocked'] && !b['is_unlocked']) return -1;
-        if (!a['is_unlocked'] && b['is_unlocked']) return 1;
-        return 0;
-      });
-
-      return results;
-    } catch (_) {
+      return [];
+    } catch (e, st) {
+      ErrorTracker.logSilent('dashboard.getUserAchievements', e, stackTrace: st);
       return [];
     }
   }
@@ -878,7 +753,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
               .from('user_language_profiles')
               .update({'carisma_score': carisma})
               .eq('user_id', userId);
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:881', e, stackTrace: st);
+        }
       }
 
       final codes = TitleEvaluator.earnedCodes(
@@ -909,9 +786,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
             'tier': title.tier,
           });
           newlyEarned.add(code);
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:912', e, stackTrace: st);
+        }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:914', e, stackTrace: st);
+    }
     return newlyEarned;
   }
 

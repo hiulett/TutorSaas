@@ -358,6 +358,18 @@ abstract class AppLocalizations {
   /// **'SYSTEM STATUS'**
   String get dashboard_title;
 
+  /// No description provided for @dashboard_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Showing your last saved progress.'**
+  String get dashboard_offline;
+
+  /// No description provided for @dashboard_offline_age.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Last progress {minutes} min ago.'**
+  String dashboard_offline_age(int minutes);
+
   /// No description provided for @dungeons.
   ///
   /// In en, this message translates to:
@@ -573,6 +585,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Settings'**
   String get save_settings;
+
+  /// No description provided for @settings_save_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save settings.'**
+  String get settings_save_error;
+
+  /// No description provided for @settings_delete_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the account.'**
+  String get settings_delete_error;
+
+  /// No description provided for @settings_app_language.
+  ///
+  /// In en, this message translates to:
+  /// **'APP LANGUAGE'**
+  String get settings_app_language;
 
   /// No description provided for @saved.
   ///
@@ -2470,6 +2500,18 @@ abstract class AppLocalizations {
   /// **'VIEW VOCABULARY'**
   String get summary_view_vocab;
 
+  /// No description provided for @summary_vocab_title.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION VOCABULARY'**
+  String get summary_vocab_title;
+
+  /// No description provided for @summary_vocab_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No words saved from this session yet.'**
+  String get summary_vocab_empty;
+
   /// No description provided for @summary_vocab_saved.
   ///
   /// In en, this message translates to:
@@ -3103,7 +3145,7 @@ abstract class AppLocalizations {
   /// No description provided for @gold_shop_unavailable.
   ///
   /// In en, this message translates to:
-  /// **'The Gold Shop is not available yet.\nApply the price_gold migration in the SQL Editor.'**
+  /// **'The Gold Shop is not available yet.\nPlease try again in a moment.'**
   String get gold_shop_unavailable;
 
   /// No description provided for @owned.
@@ -4996,6 +5038,30 @@ abstract class AppLocalizations {
   /// **'We detected that your device uses {lang}. The app will be shown in that language.'**
   String onboarding_device_lang(String lang);
 
+  /// No description provided for @privacy_title.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get privacy_title;
+
+  /// No description provided for @privacy_body.
+  ///
+  /// In en, this message translates to:
+  /// **'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings.'**
+  String get privacy_body;
+
+  /// No description provided for @privacy_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'GOT IT'**
+  String get privacy_accept;
+
+  /// No description provided for @onboarding_privacy_link.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get onboarding_privacy_link;
+
   /// No description provided for @onboarding_beginner.
   ///
   /// In en, this message translates to:
@@ -5133,6 +5199,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PRACTICE'**
   String get progress_practice;
+
+  /// No description provided for @welcome_back_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WELCOME BACK'**
+  String get welcome_back_title;
+
+  /// No description provided for @welcome_back_days.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days away'**
+  String welcome_back_days(int days);
+
+  /// No description provided for @welcome_back_lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'You left off at {lesson}'**
+  String welcome_back_lesson(String lesson);
+
+  /// No description provided for @welcome_back_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} goals to go'**
+  String welcome_back_goals(int count);
+
+  /// No description provided for @welcome_back_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'You finished it. Replay it or pick the next one.'**
+  String get welcome_back_completed;
+
+  /// No description provided for @welcome_back_streak_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start a new streak today.'**
+  String get welcome_back_streak_reset;
+
+  /// No description provided for @welcome_back_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get welcome_back_continue;
+
+  /// No description provided for @welcome_back_later.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get welcome_back_later;
+
+  /// No description provided for @radar_estimated_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate based on your conversation'**
+  String get radar_estimated_tooltip;
+
+  /// No description provided for @radar_estimated_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate based on your conversation'**
+  String get radar_estimated_note;
+
+  /// No description provided for @radar_pronunciation_unmeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation: no real measurement yet'**
+  String get radar_pronunciation_unmeasured;
+
+  /// No description provided for @band_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get band_low;
+
+  /// No description provided for @band_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get band_medium;
+
+  /// No description provided for @band_high.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get band_high;
+
+  /// No description provided for @mana_cost_per_turn.
+  ///
+  /// In en, this message translates to:
+  /// **'{cost}/turn'**
+  String mana_cost_per_turn(int cost);
+
+  /// No description provided for @mana_low_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} turns left today'**
+  String mana_low_warning(int count);
+
+  /// No description provided for @mana_empty_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'No mana for the next turn'**
+  String get mana_empty_warning;
+
+  /// No description provided for @guardian_alternative_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WHILE YOU WAIT'**
+  String get guardian_alternative_title;
+
+  /// No description provided for @guardian_refill_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Refills in {hours} h {minutes} min'**
+  String guardian_refill_in(int hours, int minutes);
+
+  /// No description provided for @guardian_refill_at.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews on {date}'**
+  String guardian_refill_at(String date);
+
+  /// No description provided for @guardian_review_vocab.
+  ///
+  /// In en, this message translates to:
+  /// **'Review vocabulary (free)'**
+  String get guardian_review_vocab;
+
+  /// No description provided for @guardian_low_cost_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Text chat ({cost} mana)'**
+  String guardian_low_cost_chat(int cost);
+
+  /// No description provided for @guardian_no_due_words.
+  ///
+  /// In en, this message translates to:
+  /// **'No words due for review right now.'**
+  String get guardian_no_due_words;
+
+  /// No description provided for @daily_goal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY GOAL'**
+  String get daily_goal_title;
+
+  /// No description provided for @daily_goal_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {goal} min'**
+  String daily_goal_minutes(int done, int goal);
+
+  /// No description provided for @daily_goal_remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min to go'**
+  String daily_goal_remaining(int minutes);
+
+  /// No description provided for @daily_goal_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal complete'**
+  String get daily_goal_done;
+
+  /// No description provided for @daily_goal_streak.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d streak'**
+  String daily_goal_streak(int days);
+
+  /// No description provided for @daily_goal_celebrate.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY GOAL COMPLETE!'**
+  String get daily_goal_celebrate;
+
+  /// No description provided for @evidence_title.
+  ///
+  /// In en, this message translates to:
+  /// **'LEARNING EVIDENCE'**
+  String get evidence_title;
+
+  /// No description provided for @evidence_disclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence, not a grade.'**
+  String get evidence_disclaimer;
+
+  /// No description provided for @evidence_retention.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day retention'**
+  String get evidence_retention;
+
+  /// No description provided for @evidence_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparable progress'**
+  String get evidence_progress;
+
+  /// No description provided for @evidence_transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get evidence_transfer;
+
+  /// No description provided for @evidence_no_data.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get evidence_no_data;
+
+  /// No description provided for @evidence_needs_weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'You need 4 weeks'**
+  String get evidence_needs_weeks;
+
+  /// No description provided for @evidence_progress_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} → {last} missions/week'**
+  String evidence_progress_value(int first, int last);
+
+  /// No description provided for @evidence_transfer_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{types} mission types'**
+  String evidence_transfer_value(int types);
 
   /// No description provided for @progress_streak_at_risk.
   ///

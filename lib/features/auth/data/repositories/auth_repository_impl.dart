@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/google_sign_in_error.dart';
+import 'package:flutter/services.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final SupabaseClient _supabaseClient;
@@ -20,7 +22,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<User?> signInWithGoogle() async {
-    if (!kIsWeb && Platform.isAndroid) {
+    try {
+      if (!kIsWeb && Platform.isAndroid) {
       final googleSignIn = GoogleSignIn(
         serverClientId: '879543775149-f9fqcrpbgq9qbk16i2rkbi78spo9jceo.apps.googleusercontent.com',
       );
@@ -50,6 +53,12 @@ class AuthRepositoryImpl implements AuthRepository {
         redirectTo: _redirectTo,
       );
       return _supabaseClient.auth.currentUser;
+      }
+    } on PlatformException catch (e) {
+      if (isGoogleSignInConfigError(e)) {
+        throw 'Google Sign-In rechazo esta build: el SHA-1 de la firma no esta registrado en Google Cloud.';
+      }
+      rethrow;
     }
   }
 

@@ -15,8 +15,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/user_settings.dart';
 import '../providers/dashboard_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../notifications/presentation/widgets/reminder_settings_card.dart';
 import '../../../onboarding/presentation/providers/onboarding_providers.dart';
+import '../../../notifications/presentation/widgets/reminder_settings_card.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -35,7 +35,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final remoteSettings = ref.watch(userSettingsProvider);
 
     // Initialize local copy from remote settings once they are ready
@@ -204,10 +203,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               'AUDIO & COMMUNICATIONS',
                         ),
                         const SizedBox(height: 12),
+                        // Issue #39: los controles de SFX siguen retirados
+                        // porque no hay audio de efectos en runtime.
                         // Issue #106: el recordatorio diario ya existe de verdad
-                        // (notificacion local). Los controles de SFX siguen
-                        // retirados porque no hay audio de efectos en runtime
-                        // (Issue #39).
+                        // (notificacion local), asi que recupera su tarjeta.
                         const ReminderSettingsCard(),
                         const SizedBox(height: 24),
 
@@ -269,9 +268,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               : () async {
                   setState(() => _isSaving = true);
                   try {
-                    // El recordatorio se guarda al instante (tarjeta propia).
-                    // Se mezcla el estado vivo para que este boton no lo pise
-                    // con la copia local.
+                    // El recordatorio diario se guarda al instante desde su
+                    // propia tarjeta (Issue #106): se mezcla el estado vivo para
+                    // que este boton no lo pise con la copia local.
                     final liveSettings = ref.read(userSettingsProvider);
                     final toSave = currentSettings.copyWith(
                       notificationsEnabled: liveSettings.notificationsEnabled,
@@ -320,7 +319,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Error guardando configuración: $e'),
+                          content: Text(
+                            AppLocalizations.of(context)?.settings_save_error ??
+                                'Could not save settings.',
+                          ),
                           backgroundColor: AppColors.errorRed,
                         ),
                       );
@@ -425,45 +427,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       blur: 20,
       opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: InkWell(
-        onTap: () => _showCefrBottomSheet(context),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.psychology_rounded,
-              color: AppColors.manaCyan,
-              size: 24,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CEFR PRACTICE LEVEL',
-                    style: GoogleFonts.spaceGrotesk(
-                      color: AppColors.onSurface,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.psychology_rounded,
+            color: AppColors.manaCyan,
+            size: 24,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CEFR PRACTICE LEVEL',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: AppColors.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'LEVEL $_selectedCefrLevel',
-                    style: GoogleFonts.jetBrainsMono(
-                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
-                      fontSize: 12,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'LEVEL $_selectedCefrLevel',
+                  style: GoogleFonts.jetBrainsMono(
+                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
+                    fontSize: 12,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
-            ),
-          ],
-        ),
+          ),
+          // P-11a: el nivel lo fija el examen del Oraculo; aqui no se edita.
+          const Icon(
+            Icons.lock_outline_rounded,
+            color: AppColors.onSurfaceVariant,
+            size: 18,
+          ),
+        ],
       ),
     );
   }
@@ -584,13 +585,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('CANCELAR'),
+            child: Text(l10n?.cancel ?? 'CANCEL'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
-              'ELIMINAR',
-              style: TextStyle(color: AppColors.errorRed),
+            child: Text(
+              l10n?.delete ?? 'DELETE',
+              style: const TextStyle(color: AppColors.errorRed),
             ),
           ),
         ],
@@ -608,41 +609,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (!context.mounted) return;
       SystemSnack.show(
         context,
-        'No se pudo eliminar la cuenta: $e',
+        '${l10n?.settings_delete_error ?? 'Could not delete the account.'}: $e',
         type: SystemSnackType.error,
       );
     }
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surfaceDeep,
-        title: const Text(
-          '¿CERRAR SESIÓN?',
+        title: Text(
+          l10n?.logout_confirm_title ?? 'LOG OUT?',
           style: TextStyle(
             color: AppColors.onSurface,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
-        content: const Text(
-          'Tu progreso queda guardado. Necesitarás volver a iniciar sesión para continuar.',
+        content: Text(
+          l10n?.logout_confirm_desc ??
+              'Your progress is saved. You will need to sign in again to continue.',
           style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(
-              'CANCELAR',
+            child: Text(
+              l10n?.cancel ?? 'CANCEL',
               style: TextStyle(color: AppColors.onSurfaceVariant),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
-              'CERRAR SESIÓN',
+            child: Text(
+              (l10n?.logout ?? 'LOG OUT').toUpperCase(),
               style: TextStyle(
                 color: AppColors.errorRed,
                 fontWeight: FontWeight.bold,
@@ -706,66 +709,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     fontSize: 11,
                     color: AppColors.onSurfaceVariant,
                   ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCefrBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.sheetBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(4.0),
-          topRight: Radius.circular(4.0),
-        ),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'SELECT CEFR LEVEL PATH',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: ['PRE-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((
-                    lvl,
-                  ) {
-                    final isSel = _selectedCefrLevel == lvl;
-                    return ChoiceChip(
-                      selected: isSel,
-                      onSelected: (_) {
-                        setState(() => _selectedCefrLevel = lvl);
-                        Navigator.pop(context);
-                      },
-                      label: Text(lvl),
-                      labelStyle: GoogleFonts.jetBrainsMono(
-                        color: isSel
-                            ? AppColors.onSurface
-                            : AppColors.onSurface.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      selectedColor: AppColors.runeViolet,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                      ),
-                    );
-                  }).toList(),
                 ),
               ],
             ),
@@ -1616,7 +1559,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'IDIOMA DE LA APLICACIÓN',
+                    AppLocalizations.of(context)?.settings_app_language ??
+                        'APP LANGUAGE',
                     style: GoogleFonts.spaceGrotesk(
                       color: AppColors.onSurface,
                       fontSize: 13,
@@ -1670,7 +1614,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'IDIOMA DE LA APLICACIÓN',
+                  AppLocalizations.of(sheetContext)?.settings_app_language ??
+                      'APP LANGUAGE',
                   style: GoogleFonts.spaceGrotesk(
                     color: AppColors.onSurface,
                     fontSize: 16,

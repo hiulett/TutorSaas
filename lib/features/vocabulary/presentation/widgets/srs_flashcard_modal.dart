@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import 'dart:async';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -67,7 +69,19 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                 difficultyScore,
                 cardType: isProduction ? 'production' : 'recognition',
               );
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/vocabulary/presentation/widgets/srs_flashcard_modal.dart:70', e, stackTrace: st);
+          // P-12 (#97): si la RPC falla, la tarjeta NO avanza: sigue en la
+          // cola para que el repaso no se pierda en silencio.
+          if (mounted) {
+            SystemSnack.show(
+              context,
+              'No se pudo guardar el repaso. Intenta de nuevo.',
+              type: SystemSnackType.error,
+            );
+          }
+          return;
+        }
 
         // Issue #5: cada palabra repasada cuenta para las misiones de
         // `vocab_words`.

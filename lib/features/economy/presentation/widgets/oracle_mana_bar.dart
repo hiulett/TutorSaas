@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/segmented_bar.dart';
 import '../../../../core/widgets/animated_counter.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/models/mana_budget.dart';
 import '../providers/economy_providers.dart';
 
 /// Barra única de MANÁ (FASE B).
@@ -20,7 +21,16 @@ class OracleManaBar extends ConsumerWidget {
   final bool showLabel;
   final bool compact;
 
-  const OracleManaBar({super.key, this.showLabel = true, this.compact = false});
+  /// Coste de la próxima acción de IA (P-26). Permite mostrar los turnos que
+  /// quedan: mazmorra 12, chat libre 8, Oráculo 15 (`ai_action_costs`).
+  final int costPerTurn;
+
+  const OracleManaBar({
+    super.key,
+    this.showLabel = true,
+    this.compact = false,
+    this.costPerTurn = ManaBudget.defaultCostPerTurn,
+  });
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return '';
@@ -33,18 +43,20 @@ class OracleManaBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final manaAsync = ref.watch(manaStateProvider);
-    final mana = manaAsync.value ?? const {
-      'allowance': 1800,
-      'purchased': 0,
-      'used': 0,
-      'remaining': 1800,
-      'expires_at': null,
-      'plan': 'Plan Gratuito',
-      'is_free': true,
-      'daily_limit': 200,
-      'daily_used': 0,
-      'daily_remaining': 200,
-    };
+    final mana =
+        manaAsync.value ??
+        const {
+          'allowance': 1800,
+          'purchased': 0,
+          'used': 0,
+          'remaining': 1800,
+          'expires_at': null,
+          'plan': 'Plan Gratuito',
+          'is_free': true,
+          'daily_limit': 200,
+          'daily_used': 0,
+          'daily_remaining': 200,
+        };
     final bool isFree = mana['is_free'] as bool? ?? true;
     final int allowance = mana['allowance'] as int? ?? 1800;
     final int purchased = mana['purchased'] as int? ?? 0;
@@ -64,8 +76,12 @@ class OracleManaBar extends ConsumerWidget {
     //   pago  → saldo mensual (remaining/available), se recarga al renovar.
     final int barValue = isFree ? dailyRemaining : remaining;
     final int barMax = isFree ? dailyLimit : available;
-    final double progress = barMax > 0 ? (barValue / barMax).clamp(0.0, 1.0) : 0.0;
+    final double progress = barMax > 0
+        ? (barValue / barMax).clamp(0.0, 1.0)
+        : 0.0;
     final bool exhausted = barValue <= 0;
+
+    final budget = ManaBudget.fromState(mana, costPerTurn: costPerTurn);
 
     final double titleSize = compact ? 9 : 10;
     final double numSize = compact ? 10 : 11;
@@ -76,7 +92,11 @@ class OracleManaBar extends ConsumerWidget {
         if (showLabel) ...[
           Row(
             children: [
-              const Icon(Icons.bolt_rounded, color: AppColors.runeViolet, size: 13),
+              const Icon(
+                Icons.bolt_rounded,
+                color: AppColors.runeViolet,
+                size: 13,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -97,7 +117,9 @@ class OracleManaBar extends ConsumerWidget {
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: numSize,
                   fontWeight: FontWeight.bold,
-                  color: exhausted ? AppColors.crimsonRed : AppColors.runeViolet,
+                  color: exhausted
+                      ? AppColors.crimsonRed
+                      : AppColors.runeViolet,
                 ),
               ),
             ],
@@ -105,7 +127,8 @@ class OracleManaBar extends ConsumerWidget {
           const SizedBox(height: 4),
         ],
         Tooltip(
-          message: l10n?.mana_tooltip ??
+          message:
+              l10n?.mana_tooltip ??
               'MANÁ: energía para toda acción IA (Oráculo, mazmorras, chats). '
                   'Se adquiere con tu plan y porciones/gemas; expira con el ciclo.',
           child: SegmentedBar(
@@ -131,12 +154,37 @@ class OracleManaBar extends ConsumerWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  isFree
+                  exhausted
+                      ? (l10n?.mana_empty_warning ??
+                            'Sin maná para el próximo turno')
+                      : budget.isLow
+                      ? (l10n?.mana_low_warning(budget.turnsLeft) ??
+                            'Te quedan ${budget.turnsLeft} turnos hoy')
+                      : isFree
                       ? (l10n?.mana_daily_available ?? 'maná disponible hoy')
                       : (l10n?.mana_available ?? 'maná disponible'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: titleSize, color: AppColors.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: titleSize,
+                    fontWeight: (exhausted || budget.isLow)
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: exhausted
+                        ? AppColors.crimsonRed
+                        : budget.isLow
+                        ? AppColors.royalGold
+                        : AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                l10n?.mana_cost_per_turn(budget.costPerTurn) ??
+                    '${budget.costPerTurn}/turno',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: titleSize,
+                  color: AppColors.onSurfaceVariant,
                 ),
               ),
               if (!isFree && expiresAt != null) ...[

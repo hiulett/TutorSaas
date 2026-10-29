@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -19,7 +21,6 @@ import '../../../../core/services/retention_analytics.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/hunter_class.dart';
 import '../../../../app/navigation_resolver.dart';
-
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -45,7 +46,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _selectedDailyGoal = 15;
   final List<String> _selectedInterests = [];
   String _selectedCorrectionStyle = 'balanced';
-  String _selectedCorrectionExplanationLanguage = 'native'; // 'native' vs 'target'
+  String _selectedCorrectionExplanationLanguage =
+      'native'; // 'native' vs 'target'
   String _selectedObstacle = '';
 
   // Estado
@@ -84,9 +86,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (settings.followDeviceLanguage) {
         SystemSnack.show(
           context,
-          AppLocalizations.of(context)?.onboarding_device_lang(deviceLang.toUpperCase()) ??
+          AppLocalizations.of(
+                context,
+              )?.onboarding_device_lang(deviceLang.toUpperCase()) ??
               'Hemos detectado que tu dispositivo utiliza ${deviceLang.toUpperCase()}. '
-              'La aplicación se mostrará en ese idioma.',
+                  'La aplicación se mostrará en ese idioma.',
           type: SystemSnackType.info,
           duration: const Duration(milliseconds: 3000),
         );
@@ -100,16 +104,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _trackOnboarding('onboarding_step', {'step': _currentPage});
     // Onboarding de 4 pasos: nativo → objetivo → clasificación IA → personaje.
     if (_currentPage == 0 && _selectedNativeLanguageCode.isEmpty) {
-      SystemSnack.show(context, l10n.onb_validate_native,
-          type: SystemSnackType.warning,
-          duration: const Duration(milliseconds: 1500));
+      SystemSnack.show(
+        context,
+        l10n.onb_validate_native,
+        type: SystemSnackType.warning,
+        duration: const Duration(milliseconds: 1500),
+      );
       return;
     }
 
     if (_currentPage == 1 && _selectedLanguageCode.isEmpty) {
-      SystemSnack.show(context, l10n.onb_validate_target,
-          type: SystemSnackType.warning,
-          duration: const Duration(milliseconds: 1500));
+      SystemSnack.show(
+        context,
+        l10n.onb_validate_target,
+        type: SystemSnackType.warning,
+        duration: const Duration(milliseconds: 1500),
+      );
       return;
     }
 
@@ -137,6 +147,44 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
     RetentionAnalytics.instance.track(user.id, event, properties: properties);
+  }
+
+  /// P-20: explica que se envia a la IA y que no se envia.
+  void _showPrivacyDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surfaceDeep,
+        title: Text(
+          l10n?.privacy_title ?? 'PRIVACY',
+          style: GoogleFonts.spaceGrotesk(
+            color: AppColors.onSurface,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            l10n?.privacy_body ?? '',
+            style: GoogleFonts.inter(
+              color: AppColors.onSurfaceVariant,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              l10n?.privacy_accept ?? 'GOT IT',
+              style: const TextStyle(color: AppColors.manaCyan),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _prevPage() {
@@ -192,7 +240,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _completeOnboardingAndPurchase() async {
     setState(() => _isSaving = true);
     try {
-      final user = ref.read(currentUserProvider) ?? ref.read(supabaseClientProvider).auth.currentUser;
+      final user =
+          ref.read(currentUserProvider) ??
+          ref.read(supabaseClientProvider).auth.currentUser;
 
       // Issue #55: sin sesión no se puede guardar el perfil. Antes se usaba un
       // id `guest_<timestamp>` que rompía el upsert y acababa devolviendo al
@@ -213,9 +263,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
       // Si el usuario omitió la evaluación del Oráculo (paso opcional), se
       // parte del rango inicial A1.
-      final String cefrCode = _selectedCefrCode.isEmpty ? 'A1' : _selectedCefrCode;
+      final String cefrCode = _selectedCefrCode.isEmpty
+          ? 'A1'
+          : _selectedCefrCode;
 
-      await ref.read(onboardingRepositoryProvider).saveOnboardingData(
+      await ref
+          .read(onboardingRepositoryProvider)
+          .saveOnboardingData(
             userId: targetUserId,
             targetLanguageCode: _selectedLanguageCode,
             nativeLanguageCode: _selectedNativeLanguageCode,
@@ -237,37 +291,67 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final languageNotifier = ref.read(userLanguageProvider.notifier);
       await languageNotifier.setLearningLanguage(_selectedLanguageCode);
       await languageNotifier.setAiExplanationsInNative(
-          _selectedCorrectionExplanationLanguage == 'native');
+        _selectedCorrectionExplanationLanguage == 'native',
+      );
 
-      if (_gameRank != null || _characterClass.isNotEmpty) {
+      if (_characterClass.isNotEmpty) {
         try {
-          await ref.read(supabaseClientProvider).from('user_language_profiles').update({
-            if (_gameRank != null) 'game_rank': _gameRank,
-            'character_class': _characterClass.isNotEmpty ? _characterClass : 'warrior',
-            'avatar_index': _selectedAvatarIndex,
-          }).eq('user_id', targetUserId);
-        } catch (_) {}
+          // #73: `game_rank` y `cefr_level_id` los asigna el servidor; aquí
+          // solo se guarda lo que sí es del jugador (clase y avatar).
+          await ref
+              .read(supabaseClientProvider)
+              .from('user_language_profiles')
+              .update({
+                'character_class': _characterClass,
+                'avatar_index': _selectedAvatarIndex,
+              })
+              .eq('user_id', targetUserId);
+        } catch (e, st) {
+          ErrorTracker.logSilent(
+            'lib/features/onboarding/presentation/screens/onboarding_screen.dart:249',
+            e,
+            stackTrace: st,
+          );
+        }
       }
 
       try {
-        final accountName = (user.userMetadata?['full_name'] as String?) ??
+        final accountName =
+            (user.userMetadata?['full_name'] as String?) ??
             (user.email?.split('@').first ?? 'Hunter');
-        await ref.read(dashboardRepositoryProvider).updateUserProfile(
-          targetUserId,
-          displayName: _characterName.isNotEmpty ? _characterName : accountName,
-          avatarUrl: _characterClass,
-          nativeLanguage: _selectedNativeLanguageCode,
-          bio: '¡Hola! Soy un cazador aventurero.',
-        );
+        await ref
+            .read(dashboardRepositoryProvider)
+            .updateUserProfile(
+              targetUserId,
+              displayName: _characterName.isNotEmpty
+                  ? _characterName
+                  : accountName,
+              nativeLanguage: _selectedNativeLanguageCode,
+              bio: '¡Hola! Soy un cazador aventurero.',
+            );
         ref.invalidate(userProfileProvider);
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent(
+          'lib/features/onboarding/presentation/screens/onboarding_screen.dart:263',
+          e,
+          stackTrace: st,
+        );
+      }
 
       // UX-02: el paywall se mueve post-sesión. El onboarding siempre arranca en plan free.
       ref.read(isPremiumProvider.notifier).setPremium(false);
 
       try {
-        await ref.read(userLanguageProvider.notifier).setLearningLanguage(_selectedLanguageCode);
-      } catch (_) {}
+        await ref
+            .read(userLanguageProvider.notifier)
+            .setLearningLanguage(_selectedLanguageCode);
+      } catch (e, st) {
+        ErrorTracker.logSilent(
+          'lib/features/onboarding/presentation/screens/onboarding_screen.dart:270',
+          e,
+          stackTrace: st,
+        );
+      }
 
       if (mounted) {
         setState(() {
@@ -300,11 +384,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   CyberBgMode _getOnboardingBgMode() {
     switch (_currentPage) {
-      case 0: return CyberBgMode.onboardingStep0;
-      case 1: return CyberBgMode.onboardingStep2;
-      case 2: return CyberBgMode.onboardingStep7;
-      case 3: return CyberBgMode.onboardingStep3;
-      default: return CyberBgMode.onboardingStep0;
+      case 0:
+        return CyberBgMode.onboardingStep0;
+      case 1:
+        return CyberBgMode.onboardingStep2;
+      case 2:
+        return CyberBgMode.onboardingStep7;
+      case 3:
+        return CyberBgMode.onboardingStep3;
+      default:
+        return CyberBgMode.onboardingStep0;
     }
   }
 
@@ -321,138 +410,178 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       body: CyberManhwaBackground(
         bgMode: _getOnboardingBgMode(),
         child: Stack(
-        children: [
-          // Background Glow Orbs
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.runeViolet.withValues(alpha: 0.12),
+          children: [
+            // Background Glow Orbs
+            Positioned(
+              top: -100,
+              left: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.runeViolet.withValues(alpha: 0.12),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.manaCyan.withValues(alpha: 0.1),
+            Positioned(
+              bottom: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.manaCyan.withValues(alpha: 0.1),
+                ),
               ),
             ),
-          ),
 
-          // Main Layout
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Onboarding Header & Progress Indicator (5 pasos — UX-01)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (_currentPage > 0)
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onSurface),
-                          onPressed: _prevPage,
-                        )
-                      else
-                        const SizedBox(width: 48),
-                      // Segmented Progress Bar (5 pasos)
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(4, (index) {
-                            final isActive = index <= _currentPage;
-                            return Expanded(
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 3),
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: isActive
-                                      ? AppColors.runeViolet
-                                      : AppColors.onSurface.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(AppRadius.sm),
+            // Main Layout
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Onboarding Header & Progress Indicator (5 pasos — UX-01)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (_currentPage > 0)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: AppColors.onSurface,
+                            ),
+                            onPressed: _prevPage,
+                          )
+                        else
+                          const SizedBox(width: 48),
+                        // Segmented Progress Bar (5 pasos)
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(4, (index) {
+                              final isActive = index <= _currentPage;
+                              return Expanded(
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: isActive
+                                        ? AppColors.runeViolet
+                                        : AppColors.onSurface.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.sm,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          '${_currentPage + 1}/4',
+                          style: AppTypography.stat(
+                            context,
+                          ).copyWith(color: AppColors.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Scrollable Questionnaire Pages (4 pasos)
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          _buildNativeLanguagePage(theme),
+                          _buildTargetLanguagePage(theme),
+                          _buildAiClassificationPage(theme),
+                          _buildCharacterCreationPage(theme),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Bottom Action Button (oculto en el paso 4 — el wizard de personaje tiene su propio botón)
+                    if (_currentPage != 3)
+                      ElevatedButton(
+                        onPressed: _isSaving ? null : _nextPage,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.runeViolet,
+                          foregroundColor: AppColors.onSurface,
+                          // Issue #60: el texto largo desbordaba el ancho del botón.
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 20,
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(4.0),
+                            ),
+                          ),
+                          elevation: 8,
+                          shadowColor: AppColors.runeViolet.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.onSurface,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _currentPage == 2
+                                      ? l10n.onboarding_start_eval
+                                      : l10n.btn_continue,
+                                  textAlign: TextAlign.center,
+                                  style: AppTypography.title(context),
                                 ),
                               ),
-                            );
-                          }),
-                        ),
                       ),
-                      const SizedBox(width: 16),
-                      Text(
-                        '${_currentPage + 1}/4',
-                        style: AppTypography.stat(context).copyWith(
+                    if (_currentPage != 3) const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () => _showPrivacyDialog(context),
+                      icon: const Icon(
+                        Icons.privacy_tip_outlined,
+                        size: 14,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                      label: Text(
+                        l10n.onboarding_privacy_link,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.onSurfaceVariant,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Scrollable Questionnaire Pages (4 pasos)
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        _buildNativeLanguagePage(theme),
-                        _buildTargetLanguagePage(theme),
-                        _buildAiClassificationPage(theme),
-                        _buildCharacterCreationPage(theme),
-                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Bottom Action Button (oculto en el paso 4 — el wizard de personaje tiene su propio botón)
-                  if (_currentPage != 3)
-                    ElevatedButton(
-                      onPressed: _isSaving ? null : _nextPage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.runeViolet,
-                        foregroundColor: AppColors.onSurface,
-                        // Issue #60: el texto largo desbordaba el ancho del botón.
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                        ),
-                        elevation: 8,
-                        shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
-                      ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2.5),
-                            )
-                          : FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                _currentPage == 2 ? l10n.onboarding_start_eval : l10n.btn_continue,
-                                textAlign: TextAlign.center,
-                                style: AppTypography.title(context),
-                              ),
-                            ),
-                    ),
-                  if (_currentPage != 3) const SizedBox(height: 12),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   IconData _heroClassIcon(String heroClass) {
     return HunterClass.findById(heroClass).icon;
@@ -523,7 +652,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ),
                       child: IntrinsicHeight(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 24.0,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -536,9 +668,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               Text(
                                 l10n.welcome_hunter_suffix,
                                 textAlign: TextAlign.center,
-                                style: AppTypography.headline(context).copyWith(
-                                  color: AppColors.royalGold,
-                                ),
+                                style: AppTypography.headline(
+                                  context,
+                                ).copyWith(color: AppColors.royalGold),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -553,7 +685,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               // Tarjeta de Licencia de Gremio (avatar real + nivel IA + detalles)
                               GlassCard(
                                 borderColor: AppColors.royalGold,
-                                border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.6), width: 1.5),
+                                border: Border.all(
+                                  color: AppColors.royalGold.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  width: 1.5,
+                                ),
                                 showRunicCorners: true,
                                 runicColor: AppColors.royalGold,
                                 opacity: AppColors.glassOpacity,
@@ -567,17 +704,35 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                         height: 120,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          border: Border.all(color: classColor, width: 2),
-                                          boxShadow: [BoxShadow(color: classColor.withValues(alpha: 0.4), blurRadius: 16)],
+                                          border: Border.all(
+                                            color: classColor,
+                                            width: 2,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: classColor.withValues(
+                                                alpha: 0.4,
+                                              ),
+                                              blurRadius: 16,
+                                            ),
+                                          ],
                                         ),
                                         child: ClipOval(
                                           child: Image.asset(
-                                            HunterClass.findById(heroClass).avatarAsset,
+                                            HunterClass.findById(
+                                              heroClass,
+                                            ).avatarAsset,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => Container(
-                                              color: AppColors.surfaceContainerLow,
-                                              child: Icon(_heroClassIcon(heroClass), color: classColor, size: 44),
-                                            ),
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(
+                                                  color: AppColors
+                                                      .surfaceContainerLow,
+                                                  child: Icon(
+                                                    _heroClassIcon(heroClass),
+                                                    color: classColor,
+                                                    size: 44,
+                                                  ),
+                                                ),
                                           ),
                                         ),
                                       ),
@@ -586,28 +741,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                       Text(
                                         displayName,
                                         textAlign: TextAlign.center,
-                                        style: AppTypography.headline(context).copyWith(
-                                          color: AppColors.onSurface,
-                                          fontSize: 22,
-                                        ),
+                                        style: AppTypography.headline(context)
+                                            .copyWith(
+                                              color: AppColors.onSurface,
+                                              fontSize: 22,
+                                            ),
                                       ),
                                       const SizedBox(height: 4),
                                       // Clase + rol
                                       Text(
                                         _heroClassName(heroClass, l10n),
-                                        style: AppTypography.subtitle(context).copyWith(
-                                          color: classColor,
-                                          letterSpacing: 1,
-                                        ),
+                                        style: AppTypography.subtitle(context)
+                                            .copyWith(
+                                              color: classColor,
+                                              letterSpacing: 1,
+                                            ),
                                       ),
                                       const SizedBox(height: 14),
                                       // Nivel IA (CEFR + rango)
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          _buildHeroRankPill(context, l10n.hero_cefr_label, cefrCode),
+                                          _buildHeroRankPill(
+                                            context,
+                                            l10n.hero_cefr_label,
+                                            cefrCode,
+                                          ),
                                           const SizedBox(width: 12),
-                                          _buildHeroRankPill(context, l10n.rank, gameRank),
+                                          _buildHeroRankPill(
+                                            context,
+                                            l10n.rank,
+                                            gameRank,
+                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 12),
@@ -615,44 +781,75 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                       Text(
                                         CefrRank.rankDescription(gameRank),
                                         textAlign: TextAlign.center,
-                                        style: AppTypography.bodyMuted(context).copyWith(
-                                          color: AppColors.onSurface.withValues(alpha: 0.75),
-                                          height: 1.4,
-                                        ),
+                                        style: AppTypography.bodyMuted(context)
+                                            .copyWith(
+                                              color: AppColors.onSurface
+                                                  .withValues(alpha: 0.75),
+                                              height: 1.4,
+                                            ),
                                       ),
                                       const SizedBox(height: 14),
                                       // Detalles de licencia (clase + fecha)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
                                         decoration: BoxDecoration(
-                                          border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.3)),
-                                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                                          border: Border.all(
+                                            color: AppColors.royalGold
+                                                .withValues(alpha: 0.3),
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            AppRadius.sm,
+                                          ),
                                         ),
                                         child: Wrap(
                                           alignment: WrapAlignment.center,
-                                          crossAxisAlignment: WrapCrossAlignment.center,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
                                           spacing: 14,
                                           runSpacing: 6,
                                           children: [
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(Icons.badge_outlined, size: 14, color: AppColors.royalGold),
+                                                const Icon(
+                                                  Icons.badge_outlined,
+                                                  size: 14,
+                                                  color: AppColors.royalGold,
+                                                ),
                                                 const SizedBox(width: 6),
                                                 Text(
                                                   '${l10n.hero_class_label}: ${_heroClassName(heroClass, l10n)}',
-                                                  style: AppTypography.tiny(context).copyWith(color: AppColors.onSurfaceVariant),
+                                                  style:
+                                                      AppTypography.tiny(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: AppColors
+                                                            .onSurfaceVariant,
+                                                      ),
                                                 ),
                                               ],
                                             ),
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(Icons.calendar_month_outlined, size: 14, color: AppColors.royalGold),
+                                                const Icon(
+                                                  Icons.calendar_month_outlined,
+                                                  size: 14,
+                                                  color: AppColors.royalGold,
+                                                ),
                                                 const SizedBox(width: 6),
                                                 Text(
                                                   '${l10n.hero_member_since}: ${_formatDate(DateTime.now())}',
-                                                  style: AppTypography.tiny(context).copyWith(color: AppColors.onSurfaceVariant),
+                                                  style:
+                                                      AppTypography.tiny(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: AppColors
+                                                            .onSurfaceVariant,
+                                                      ),
                                                 ),
                                               ],
                                             ),
@@ -668,7 +865,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 l10n.adventure_begins,
                                 textAlign: TextAlign.center,
                                 style: AppTypography.body(context).copyWith(
-                                  color: AppColors.onSurface.withValues(alpha: 0.8),
+                                  color: AppColors.onSurface.withValues(
+                                    alpha: 0.8,
+                                  ),
                                 ),
                               ),
                               const Spacer(),
@@ -706,15 +905,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           Text(
             label,
-            style: AppTypography.tiny(context).copyWith(color: AppColors.royalGold),
+            style: AppTypography.tiny(
+              context,
+            ).copyWith(color: AppColors.royalGold),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: AppTypography.stat(context).copyWith(
-              color: AppColors.royalGoldLight,
-              fontSize: 16,
-            ),
+            style: AppTypography.stat(
+              context,
+            ).copyWith(color: AppColors.royalGoldLight, fontSize: 16),
           ),
         ],
       ),
@@ -742,23 +942,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.onboarding_lang,
-            style: AppTypography.headline(context),
-          ),
+          Text(l10n.onboarding_lang, style: AppTypography.headline(context)),
           const SizedBox(height: 8),
           Text(
             l10n.onboarding_lang_desc,
-            style: AppTypography.body(context).copyWith(
-              color: AppColors.onSurface.withValues(alpha: 0.7),
-            ),
+            style: AppTypography.body(
+              context,
+            ).copyWith(color: AppColors.onSurface.withValues(alpha: 0.7)),
           ),
           const SizedBox(height: 24),
 
           // Native Language Selector
           Text(
             l10n.onboarding_native_lang,
-            style: AppTypography.body(context).copyWith(fontWeight: FontWeight.bold, color: AppColors.manaCyan),
+            style: AppTypography.body(
+              context,
+            ).copyWith(fontWeight: FontWeight.bold, color: AppColors.manaCyan),
           ),
           const SizedBox(height: 8),
           ..._nativeLanguages.map((lang) {
@@ -780,22 +979,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       _selectedNativeLanguageCode = lang['code']!;
                     });
                   },
-                  border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.10)),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.runeViolet
+                        : AppColors.onSurface.withValues(alpha: 0.10),
+                  ),
                   opacity: AppColors.glassOpacity,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: isSelected ? AppColors.runeViolet : AppColors.outlineVariant, width: 1),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.runeViolet
+                                  : AppColors.outlineVariant,
+                              width: 1,
+                            ),
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Text(
                             lang['code']!.toUpperCase(),
                             style: AppTypography.label(context).copyWith(
-                              color: isSelected ? AppColors.runeViolet : AppColors.onSurfaceVariant,
+                              color: isSelected
+                                  ? AppColors.runeViolet
+                                  : AppColors.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -804,7 +1020,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           child: Text(
                             '${lang['native']} (${lang['name']})',
                             style: AppTypography.body(context).copyWith(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                               color: AppColors.onSurface,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -812,7 +1030,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 20),
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.runeViolet,
+                            size: 20,
+                          ),
                         ],
                       ],
                     ),
@@ -836,16 +1058,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.onboarding_target,
-            style: AppTypography.headline(context),
-          ),
+          Text(l10n.onboarding_target, style: AppTypography.headline(context)),
           const SizedBox(height: 8),
           Text(
             l10n.onboarding_target_desc,
-            style: AppTypography.body(context).copyWith(
-              color: AppColors.onSurface.withValues(alpha: 0.7),
-            ),
+            style: AppTypography.body(
+              context,
+            ).copyWith(color: AppColors.onSurface.withValues(alpha: 0.7)),
           ),
           const SizedBox(height: 24),
 
@@ -858,14 +1077,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               border: Border.all(color: AppColors.runeViolet, width: 1.5),
               opacity: AppColors.glassOpacity,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
                     Text(
                       'EN',
-                      style: AppTypography.stat(context).copyWith(
-                        color: AppColors.runeViolet,
-                      ),
+                      style: AppTypography.stat(
+                        context,
+                      ).copyWith(color: AppColors.runeViolet),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -879,7 +1101,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.check_circle_rounded, color: AppColors.runeViolet, size: 20),
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.runeViolet,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),
@@ -887,7 +1113,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.onboarding_english_only ?? 'Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes.',
+            l10n.onboarding_english_only,
             style: AppTypography.bodyMuted(context),
           ),
           const SizedBox(height: 24),
@@ -911,16 +1137,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 8),
           Text(
             l10n.onboarding_oracle_classification_desc,
-            style: AppTypography.body(context).copyWith(
-              color: AppColors.onSurface.withValues(alpha: 0.7),
-            ),
+            style: AppTypography.body(
+              context,
+            ).copyWith(color: AppColors.onSurface.withValues(alpha: 0.7)),
           ),
           const SizedBox(height: 24),
 
           // GlassCard destacada con la explicación de la evaluación conversacional
           GlassCard(
             borderColor: AppColors.royalGold,
-            border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.6), width: 1.5),
+            border: Border.all(
+              color: AppColors.royalGold.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
             opacity: AppColors.glassOpacity,
             showRunicCorners: true,
             runicColor: AppColors.royalGold,
@@ -937,7 +1166,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           color: AppColors.royalGold.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.auto_awesome_rounded, color: AppColors.royalGold, size: 24),
+                        child: const Icon(
+                          Icons.auto_awesome_rounded,
+                          color: AppColors.royalGold,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -975,18 +1208,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               decoration: BoxDecoration(
                 color: AppColors.manaCyan.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: AppColors.manaCyan.withValues(alpha: 0.5),
+                ),
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.eco_rounded, color: AppColors.manaCyan, size: 24),
+                  const Icon(
+                    Icons.eco_rounded,
+                    color: AppColors.manaCyan,
+                    size: 24,
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    AppLocalizations.of(context)?.onboarding_beginner ?? 'SOY PRINCIPIANTE ABSOLUTO (PRE-A1)',
+                    AppLocalizations.of(context)?.onboarding_beginner ??
+                        'SOY PRINCIPIANTE ABSOLUTO (PRE-A1)',
                     textAlign: TextAlign.center,
-                    style: AppTypography.subtitle(context).copyWith(
-                      color: AppColors.manaCyan,
-                    ),
+                    style: AppTypography.subtitle(
+                      context,
+                    ).copyWith(color: AppColors.manaCyan),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -1007,9 +1247,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             l10n.onboarding_evaluation_optional,
             textAlign: TextAlign.center,
-            style: AppTypography.bodyMuted(context).copyWith(
-              color: AppColors.onSurface.withValues(alpha: 0.6),
-            ),
+            style: AppTypography.bodyMuted(
+              context,
+            ).copyWith(color: AppColors.onSurface.withValues(alpha: 0.6)),
           ),
           const SizedBox(height: 24),
         ],
@@ -1017,4 +1257,3 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 }
-

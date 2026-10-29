@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../../domain/models/mission_models.dart';
 import '../../domain/repositories/mission_repository.dart';
@@ -74,7 +75,9 @@ class MissionRepositoryImpl implements MissionRepository {
           await _client.from('reward_history').delete().eq('id', id);
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:77', e, stackTrace: st);
+    }
   }
 
   /// Verifica cuotas y hace cleanup antes de aceptar nueva misión.
@@ -360,7 +363,9 @@ class MissionRepositoryImpl implements MissionRepository {
           'gem_reward': missionData['gem_reward'] ?? 10,
         });
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:363', e, stackTrace: st);
+    }
   }
 
   // ── Emergency Missions ─────────────────────────────────────────────────
@@ -445,7 +450,9 @@ class MissionRepositoryImpl implements MissionRepository {
           .delete()
           .eq('user_id', userId)
           .lt('claimed_at', DateTime.now().subtract(const Duration(days: 7)).toIso8601String());
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:448', e, stackTrace: st);
+    }
   }
 
   // ── Guild Missions (colaborativas) ───────────────────────────────────────
@@ -476,7 +483,7 @@ class MissionRepositoryImpl implements MissionRepository {
       }
       final ordered = query.order('game_rank').order('quest_type');
       final data = limit != null
-          ? await ordered.limit(limit!)
+          ? await ordered.limit(limit)
           : await ordered;
       return (data as List).map((m) => GuildQuest.fromMap(m)).toList();
     } catch (_) {
@@ -537,7 +544,9 @@ class MissionRepositoryImpl implements MissionRepository {
         },
         onConflict: 'user_id, quest_id',
       );
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:540', e, stackTrace: st);
+    }
   }
 
   /// Acepta una misión del pool del gremio → mission_instance activa.

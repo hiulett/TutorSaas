@@ -33,10 +33,14 @@ class ManaItemInventory extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.local_drink_rounded, color: AppColors.manaCyan, size: 20),
+              const Icon(
+                Icons.local_drink_rounded,
+                color: AppColors.manaCyan,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
-                l10n.mana_inventory_title ?? 'INVENTARIO DE MANÁ',
+                l10n.mana_inventory_title,
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -60,28 +64,42 @@ class ManaItemInventory extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(
                 child: SizedBox(
-                  width: 20, height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.runeViolet),
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.runeViolet,
+                  ),
                 ),
               ),
             ),
             error: (_, __) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                l10n.mana_inventory_empty ?? 'No pudimos cargar tu inventario.',
-                style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                l10n.mana_inventory_empty,
+                style: const TextStyle(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: 12,
+                ),
               ),
             ),
             data: (items) {
-              final inBag = items.where((i) => i['status'] == 'inventory').toList();
+              final inBag = items
+                  .where((i) => i['status'] == 'inventory')
+                  .toList();
               if (inBag.isEmpty) {
                 return Text(
-                  l10n.mana_inventory_empty ?? 'No tienes elixires ni gemas en la bolsa.',
-                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                  l10n.mana_inventory_empty,
+                  style: const TextStyle(
+                    color: AppColors.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 );
               }
               return Column(
-                children: inBag.map((item) => _buildInventoryRow(context, ref, item)).toList(),
+                children: inBag
+                    .map((item) => _buildInventoryRow(context, ref, item))
+                    .toList(),
               );
             },
           ),
@@ -121,16 +139,22 @@ class ManaItemInventory extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${isGema ? l10n.mana_gem_label ?? 'GEMA' : l10n.mana_elixir_label ?? 'ELIXIR'} · $mana ⚡',
+                  '${isGema ? l10n.mana_gem_label : l10n.mana_elixir_label} · $mana ⚡',
                   style: GoogleFonts.spaceGrotesk(
-                    fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
                   ),
                 ),
                 if (expiry != null)
                   Text(
-                    l10n.mana_expiry_countdown(expiry.inHours, expiry.inMinutes % 60),
+                    l10n.mana_expiry_countdown(
+                      expiry.inHours,
+                      expiry.inMinutes % 60,
+                    ),
                     style: GoogleFonts.jetBrainsMono(
-                      fontSize: 10, color: AppColors.royalGold,
+                      fontSize: 10,
+                      color: AppColors.royalGold,
                     ),
                   ),
               ],
@@ -141,7 +165,11 @@ class ManaItemInventory extends ConsumerWidget {
     );
   }
 
-  Widget _buildInventoryRow(BuildContext context, WidgetRef ref, Map<String, dynamic> item) {
+  Widget _buildInventoryRow(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> item,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final user = ref.read(currentUserProvider);
     final id = item['id']?.toString() ?? '';
@@ -161,28 +189,37 @@ class ManaItemInventory extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '${isGema ? l10n.mana_gem_label ?? 'GEMA' : l10n.mana_elixir_label ?? 'ELIXIR'} · $mana ⚡',
-              style: GoogleFonts.spaceGrotesk(fontSize: 12, color: AppColors.onSurface),
+              '${isGema ? l10n.mana_gem_label : l10n.mana_elixir_label} · $mana ⚡',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 12,
+                color: AppColors.onSurface,
+              ),
             ),
           ),
           TextButton(
             onPressed: () async {
-              final ok = await ref.read(economyRepositoryProvider).equipManaItem(user?.id ?? '', id);
+              final ok = await ref
+                  .read(economyRepositoryProvider)
+                  .equipManaItem(user?.id ?? '', id);
               if (ok) {
                 ref.invalidate(manaItemsProvider);
                 ref.invalidate(manaStateProvider);
                 if (context.mounted) {
                   SystemSnack.show(
                     context,
-                    l10n.mana_item_equipped ?? 'Maná equipado',
+                    l10n.mana_item_equipped,
                     type: SystemSnackType.success,
                   );
                 }
               }
             },
             child: Text(
-              l10n.mana_equip ?? 'EQUIPAR',
-              style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
+              l10n.mana_equip,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: AppColors.manaCyan,
+              ),
             ),
           ),
         ],

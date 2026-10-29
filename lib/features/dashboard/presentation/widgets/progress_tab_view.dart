@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,7 +16,7 @@ import '../providers/dashboard_providers.dart';
 import '../screens/dashboard_screen.dart';
 import 'daily_quests_widget.dart';
 import 'league_leaderboard_widget.dart';
-import 'aura_hud.dart';
+import 'learning_evidence_card.dart';
 import 'charts/skills_radar_chart.dart';
 
 class ProgressTabView extends ConsumerWidget {
@@ -30,12 +31,13 @@ class ProgressTabView extends ConsumerWidget {
     final weeklyPracticeAsync = ref.watch(weeklyPracticeProvider);
     final leaderboardAsync = ref.watch(leaderboardProvider);
     final currentUser = ref.watch(currentUserProvider);
-    final String avatarUrl = profile['avatar_url'] as String? ?? 'warrior';
+    final String playerClass = playerClassOf(profile);
+    final String? avatarUrl = playerAvatarUrlOf(profile);
     final String displayName = profile['display_name'] as String? ?? 'Estudiante TutorSaaS';
     final String cefrCode = progress['level_code'] as String? ?? 'B1';
     // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
     final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
-        ? (progress['game_rank'] as String)!
+        ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
     final String langEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
     final String langName = progress['language'] as String? ?? 'Inglés';
@@ -81,7 +83,7 @@ class ProgressTabView extends ConsumerWidget {
                     avatarUrl: avatarUrl,
                     initials: displayName.isNotEmpty ? displayName.substring(0, displayName.length > 1 ? 2 : 1) : 'H',
                     size: 64,
-                    hunterClass: avatarUrl,
+                    hunterClass: playerClass,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -286,6 +288,9 @@ class ProgressTabView extends ConsumerWidget {
             const SkillsRadarChart(),
 
             const SizedBox(height: 24),
+
+            const LearningEvidenceCard(),
+            const SizedBox(height: 12),
 
             // Weekly Practice Chart Title & Card
             Text(

@@ -63,13 +63,16 @@ proveedor (no se envía) para el chat; 0.3 para evaluación de metas y placement
 
 ### 2.3 Cierre / placement del Oráculo
 - **Disparador:** el modelo emite `[EVALUATION_COMPLETE][RESULT:CEFR=…,RANK=…]`.
-- **Evaluación de puntuaciones:** segunda llamada `PlacementAiEvaluator`
-  (`placement_ai.dart:52-72`): `t=0.3`, `max_tokens=600`, JSON de 7 claves.
-- **Validación:** `_parseJsonDefensive` + `_normalizeCefr` (si es inválido → `A1`);
-  el **nivel lo fija el texto declarado por el modelo**, no la evaluación.
-- **Persistencia:** `oracle_assessments`, `oracle_turns`, `user_language_profiles`,
-  `speech_dna_metrics`.
-- **Si falla:** heurística por número de palabras (`placement_ai.dart:272-287`).
+- **Evaluación de puntuaciones:** Edge Function `evaluate-placement` (#73):
+  llama a `llm-proxy /chat` con `action_code=oracle_eval` (`t=0.3`,
+  `max_tokens=1000`, JSON de 7 claves). El cliente solo envía la transcripción.
+- **Validación (servidor):** escala cerrada PRE-A1…C2 y F…SSS; la pista
+  declarada se acepta a ±1 banda; modo promoción (el nivel nunca baja).
+- **Persistencia:** `apply_placement_as` (solo `service_role`) escribe
+  `user_language_profiles`; el cliente añade `oracle_assessments`,
+  `oracle_turns` y `speech_dna_metrics`.
+- **Si falla:** heurística por número de palabras en el servidor (`source:
+  heuristic`).
 - **Coste:** 15/turno + 30 de cierre.
 - **Riesgo:** sin tope de turnos ni timeout de cierre: si el modelo no emite el
   token, el examen no termina.

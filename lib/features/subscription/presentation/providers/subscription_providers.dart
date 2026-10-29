@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -35,6 +36,9 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
   final RevenueCatService _rcService;
   final String? _userId;
 
+  /// P-19: TTL de la reconciliacion con RevenueCat.
+  static DateTime? _lastEntitlementSync;
+
   PremiumStatusNotifier(this._repository, this._rcService, this._userId)
       : super(false) {
     _checkStatus();
@@ -45,10 +49,27 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
     try {
       // RevenueCat: entitlement Pro activo = premium (fuente autoritativa).
       if (ApiConstants.revenueCatApiKey.isNotEmpty) {
-        await _rcService.configure(_userId!);
+        await _rcService.configure(_userId);
         // Issue #69: alinea Supabase con RevenueCat antes de leer el estado,
         // así el maná y la clase reflejan la compra aunque el webhook falle.
-        await _repository.syncEntitlement();
+        // P-19: como mucho una sincronización por hora; el provider se recrea
+        // a menudo y no debe golpear la Edge Function cada vez.
+        final lastSync = _lastEntitlementSync;
+        final needsSync = lastSync == null ||
+            DateTime.now().difference(lastSync) > const Duration(hours: 1);
+        if (needsSync) {
+          _lastEntitlementSync = DateTime.now();
+          try {
+            await _repository.syncEntitlement();
+          } catch (syncError, syncStack) {
+            _lastEntitlementSync = null;
+            ErrorTracker.logSilent(
+              'subscription.syncEntitlement',
+              syncError,
+              stackTrace: syncStack,
+            );
+          }
+        }
         final active = await _rcService.isProActive();
         if (mounted) {
           state = active;
@@ -60,7 +81,9 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
       if (mounted) {
         state = isPrem;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/subscription/presentation/providers/subscription_providers.dart:63', e, stackTrace: st);
+    }
   }
 
   void setPremium(bool val) {
