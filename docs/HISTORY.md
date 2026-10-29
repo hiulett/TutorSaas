@@ -33,7 +33,7 @@ afirmaciones que ya no eran ciertas:
 |---|---|
 | «Las conversaciones de lección no se guardan (id de texto contra UUID)» (#1) | `conversations.scenario_id` es **`varchar`**; se guardan. Producción tenía 17 mensajes en una lección |
 | «El radar lee columnas que nadie escribe» (#25) | Cierto hasta oct-2026, pero el evaluador **ya devolvía** las 6 dimensiones; solo faltaba persistirlas |
-| «Meta diaria e intereses no se usan» (#48) | El dashboard **ya filtraba** escenarios por intereses y meta desde `user_settings` |
+| «Meta diaria e intereses no se usan» (#48) | El dashboard **ya filtraba** escenarios por intereses y meta desde `user_settings`. Matiz verificado en P-40 (#125): el orden por intereses solo se aplicaba si `user_settings.interests` tenía datos y en producción **estaba vacío en las 68 filas**; además el onboarding también guarda los intereses en `user_ai_profiles.focus_areas`, que no se leía |
 | «`app_pt.arb` tiene 26 cadenas corruptas» (#49) | Solo 2 caracteres `U+FFFD`; el resto eran Ç/Ã/Ê válidas mal interpretadas al leer como Latin-1 |
 | «El repo no tiene iOS configurado» (#21) | Cierto y **descartado**: el producto es Android únicamente |
 | «Stripe es el flujo de pago» | Eliminado en oct-2026; todo va por Play Billing + RevenueCat |

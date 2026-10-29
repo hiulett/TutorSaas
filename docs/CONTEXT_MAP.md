@@ -23,6 +23,7 @@
 - Build y publicación: `docs/RELEASE.md`
 - Tests y red de regresión visual (goldens, guard de tokens): `docs/runbooks/QUALITY_TESTS.md`
 - Estado de migraciones: `docs/runbooks/MIGRATION_STATUS.md`
+- Personalización del tutor (qué campo se lee, P-40): `docs/runbooks/P40_PERSONALIZACION.md`
 - Decisiones de producto: `docs/PRODUCT.md`
 - Correcciones a documentación antigua: `docs/HISTORY.md`
 

@@ -9,12 +9,16 @@ import 'package:record/record.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../data/repositories/conversation_repository_impl.dart';
+import '../../data/repositories/tutor_personalization_repository.dart';
 import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/goal_evaluation_gate.dart';
 import '../../domain/models/correction_turn_policy.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
+import '../../domain/models/tutor_adaptation.dart';
+import '../../domain/models/tutor_personalization.dart';
 import '../../domain/repositories/conversation_repository.dart';
+import '../../domain/services/tutor_prompt_builder.dart';
 import '../../../corrections/domain/models/turn_correction.dart';
 import '../../../corrections/domain/models/correction_turn_result.dart';
 import '../../../corrections/presentation/providers/corrections_providers.dart';
@@ -49,6 +53,13 @@ final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   return ConversationRepositoryImpl(dio, supabase);
 });
+
+/// P-40 (#125): perfil que personaliza al tutor (intereses, nivel real,
+/// instrucciones del perfil de IA y repaso acumulativo).
+final tutorPersonalizationRepositoryProvider =
+    Provider<TutorPersonalizationRepository>((ref) {
+      return TutorPersonalizationRepository(ref.watch(supabaseClientProvider));
+    });
 
 final activeConversationIdProvider = StateProvider<String?>((ref) => null);
 final activeScenarioIdProvider = StateProvider<String?>((ref) => null);
@@ -149,6 +160,20 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// Alimentan el prompt del tutor y la misión de refuerzo.
   List<CorrectionGroup> _recurringErrors = const [];
 
+  /// P-40 (#125): perfil de personalización leído al abrir la sesión.
+  TutorPersonalization _personalization = TutorPersonalization.empty;
+  Future<void>? _personalizationFuture;
+  bool _personalizationLoaded = false;
+
+  /// P-40: ajuste de dificultad dentro del nivel (rachas de acierto/fallo).
+  final TutorAdaptationTracker _adaptation = TutorAdaptationTracker();
+
+  /// P-40: señales del turno en curso. Se reinician al empezar cada turno y se
+  /// consumen al terminar la persistencia en segundo plano (sin IA extra).
+  int _turnNumber = 0;
+  int _correctionsThisTurn = 0;
+  int _goalsCompletedThisTurn = 0;
+
   ConversationNotifier(this._repository, this._ref)
     : super(ConversationState.initial()) {
     _initTts();
@@ -211,6 +236,13 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     _recurringErrors = const [];
     _ref.read(sessionCorrectionsProvider.notifier).clear();
     unawaited(_loadRecurringErrors());
+    // P-40 (#125): cada sesión arranca con rachas limpias y el perfil del
+    // alumno releído (pudo cambiar de intereses o de nivel desde la anterior).
+    _adaptation.reset();
+    _turnNumber = 0;
+    _correctionsThisTurn = 0;
+    _goalsCompletedThisTurn = 0;
+    unawaited(_loadTutorPersonalization(scenarioId: scenarioId));
 
     // P-34c (#119): velocidad y voz del tutor antes del primer _speakTts.
     await _loadTtsPreferences();
@@ -260,14 +292,20 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     );
 
     // Issue #35: evento de inicio de sesión (estaba documentado pero nunca se
-    // emitía). Best-effort: no bloquea ni falla el flujo.
-    unawaited(
-      RetentionAnalytics.instance.track(
-        _userId!,
-        'session_start',
-        properties: {'scenario_id': scenarioId ?? '', 'oracle': false},
-      ),
-    );
+    // emitía). Best-effort: no bloquea ni falla el flujo. El try evita que un
+    // cliente de analítica no inicializado (tests, arranque degradado) tumbe la
+    // apertura de la conversación.
+    try {
+      unawaited(
+        RetentionAnalytics.instance.track(
+          _userId!,
+          'session_start',
+          properties: {'scenario_id': scenarioId ?? '', 'oracle': false},
+        ),
+      );
+    } catch (e) {
+      debugPrint('Analytics (session_start) no disponible: $e');
+    }
 
     // 1. For recommended lessons (with scenarioId), persist to Supabase
     if (scenarioId != null && scenarioId.isNotEmpty) {
@@ -383,6 +421,11 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       activeScenarioId: 'oracle-evaluation',
       activeScenarioName: 'ORÁCULO',
     );
+    // P-40: el examen no usa el ajuste de dificultad por rachas; el Oráculo
+    // tiene su propia progresión CEFR.
+    _adaptation.reset();
+    _correctionsThisTurn = 0;
+    _goalsCompletedThisTurn = 0;
     _conversationId = null;
     _assessmentStart = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     _turnCounter = 0;
@@ -1520,6 +1563,12 @@ ENDING:
     if (_hasProcessedThisTurn) return;
     _hasProcessedThisTurn = true;
     _lastUserText = userText;
+    // P-40 (#125): señales del turno para el ajuste de dificultad. Se reinician
+    // aquí y se consumen al cerrar la persistencia en segundo plano.
+    _turnNumber++;
+    final int turnNumber = _turnNumber;
+    _correctionsThisTurn = 0;
+    _goalsCompletedThisTurn = 0;
     // P-34g (#119): desde aquí hasta el primer chunk se mide la latencia que
     // alimenta el indicador "Pensando…" y el evento de analítica.
     _turnStartedAt = DateTime.now();
@@ -1579,62 +1628,58 @@ ENDING:
         );
       }
 
-      // 2. Build system instructions and history for DeepSeek
-      final correctionLevel = _ref.read(correctionLevelProvider);
-      String correctionInstructions = '';
-      switch (correctionLevel) {
-        case 'important_only':
-          correctionInstructions =
-              'Only correct mistakes that prevent understanding or represent severe grammar errors. '
-              'Keep corrections minimal and very brief.';
-          break;
-        case 'short':
-          correctionInstructions =
-              'Provide a very short correction (one line max) then immediately continue the conversation. '
-              'Do not explain grammar rules.';
-          break;
-        case 'moderate':
-          correctionInstructions =
-              'Provide the correction and a brief explanation of 1 to 2 lines, then continue the conversation.';
-          break;
-        case 'detailed':
-        default:
-          correctionInstructions =
-              'Provide detailed corrections with full grammar explanations. '
-              'Suggest alternative phrasing and explain why the error occurred. '
-              'Then ask a follow-up question to continue.';
-      }
-
+      // 2. Build system instructions and history for DeepSeek.
+      //
+      // P-40 (#125): el prompt se compone con el perfil real del alumno
+      // (intereses, estilo, instrucciones del perfil de IA, errores
+      // recurrentes, metas pendientes, objetivo y frases útiles del escenario,
+      // repaso acumulativo y el ajuste de dificultad del turno). No añade
+      // ninguna llamada al modelo: viaja en este mismo turno de chat.
       final lesson =
           state.activeScenarioId != null && state.activeScenarioId!.isNotEmpty
           ? LessonCatalog.getLessonById(state.activeScenarioId)
           : null;
 
-      final roleContext = lesson != null
-          ? 'You are an AI Language Tutor roleplaying as ${lesson.assistantRole} in a ${lesson.scenarioContext}. '
-                'The user is playing the role of ${lesson.userRole}. Target CEFR Level: ${lesson.level}. '
-                'Keep your response appropriate for CEFR level ${lesson.level} '
-                '(use simple language for A1/A2, intermediate for B1/B2, advanced for C1, '
-                'native-level fluency and complex discourse for C2). '
-                'IMPORTANT: You MUST ALWAYS respond in English. Never use Spanish or any other language. '
-                'Converse naturally in English according to this role. '
-          : 'You are an AI Language Tutor. '
-                'IMPORTANT: You MUST ALWAYS respond in English. Never use Spanish or any other language. '
-                'Converse naturally in English. ';
-
-      // P-29: los errores recurrentes del alumno entran en el prompt del tutor
-      // (una sola consulta cacheada al abrir la sesión).
-      final recurringHint = buildTutorRecurringErrorsHint(_recurringErrors);
+      final personalization = await _ensureTutorPersonalization();
+      final pendingGoals = lesson == null
+          ? const <String>[]
+          : lesson.goals
+                .where((g) => state.goalEvaluationResults[g.id] != true)
+                .map((g) => g.text)
+                .toList(growable: false);
 
       final List<Map<String, String>> historyList = [
         {
           'role': 'system',
-          'content':
-              '$roleContext'
-              'Analyze the user message, point out any grammar or vocabulary mistakes adhering to: $correctionInstructions. '
-              'If the user writes in Spanish, gently remind them to use English and help them translate. '
-              'Ask a natural follow-up question to continue the conversation.'
-              '${recurringHint.isEmpty ? '' : ' $recurringHint'}',
+          'content': TutorPromptBuilder.build(
+            TutorPromptInput(
+              correctionLevel: personalization.correctionLevel.isNotEmpty
+                  ? personalization.correctionLevel
+                  : _ref.read(correctionLevelProvider),
+              cefrLevel: lesson?.level ?? personalization.cefrLevel,
+              tutorPersonality: personalization.tutorPersonality,
+              correctionStyle: personalization.correctionStyle,
+              interests: personalization.allInterests,
+              motivation: personalization.motivation,
+              tutorPromptInstructions: personalization.tutorPromptInstructions,
+              pedagogicalSummary: personalization.pedagogicalSummary,
+              assistantRole: lesson?.assistantRole,
+              userRole: lesson?.userRole,
+              scenarioContext: lesson?.scenarioContext,
+              mainObjective: lesson?.mainObjective,
+              pendingGoals: pendingGoals,
+              usefulPhrases:
+                  lesson?.usefulPhrases
+                      .map((p) => p.phrase)
+                      .toList(growable: false) ??
+                  const <String>[],
+              recurringErrors: _recurringErrors,
+              reviewPhrases: personalization.reviewPhrases,
+              adaptation: _adaptation.adjustment,
+              struggleStreak: _adaptation.struggleStreak,
+              successStreak: _adaptation.successStreak,
+            ),
+          ),
         },
         ..._chatWindow().map(
           (m) => {
@@ -1684,6 +1729,7 @@ ENDING:
         userId: _userId,
         userText: userText,
         lesson: lesson,
+        turnNumber: turnNumber,
       );
     } catch (e) {
       debugPrint('Conversation error: $e');
@@ -1748,6 +1794,7 @@ ENDING:
     required String? userId,
     required String userText,
     required LessonData? lesson,
+    int turnNumber = 0,
   }) async {
     try {
       if (conversationId != null && fullTutorResponse.isNotEmpty) {
@@ -1838,6 +1885,10 @@ ENDING:
       );
     } catch (e) {
       debugPrint('Background DB persistence error: $e');
+    } finally {
+      // P-40 (#125): con las correcciones y las metas ya evaluadas, se cierra
+      // el turno para el ajuste de dificultad. No hay llamada extra al modelo.
+      _recordTurnAdaptation(turnNumber: turnNumber, userText: userText);
     }
   }
 
@@ -1932,6 +1983,8 @@ ENDING:
           goalEvaluationResults: merged,
           newGoalsCompleted: state.newGoalsCompleted + newlyCompleted,
         );
+        // P-40 (#125): señal de éxito del turno.
+        _goalsCompletedThisTurn += newlyCompleted;
       }
       return true;
     } catch (e) {
@@ -2024,6 +2077,9 @@ ENDING:
     String? messageText,
   }) {
     if (corrections.isEmpty) return;
+    // P-40 (#125): señal de fallo para el ajuste de dificultad del próximo
+    // turno (sin coste: usa las correcciones que el turno ya evaluó).
+    _correctionsThisTurn += corrections.length;
     final target = messageText ?? _lastUserText;
     if (target == null || target.isEmpty) return;
 
@@ -2060,6 +2116,67 @@ ENDING:
     } catch (e) {
       debugPrint('No se pudieron cargar los errores recurrentes: $e');
     }
+  }
+
+  /// P-40 (#125): lee el perfil del alumno sin bloquear la apertura del chat.
+  ///
+  /// El primer turno espera la lectura con [_ensureTutorPersonalization]; el
+  /// saludo inicial no, para no retrasar la narración. Invitados y sesiones del
+  /// Oráculo no pagan estas consultas.
+  Future<void> _loadTutorPersonalization({String? scenarioId}) {
+    final userId = _userId;
+    _personalization = TutorPersonalization.empty;
+    _personalizationLoaded = false;
+    if (userId == null || userId.startsWith('guest_')) {
+      _personalizationLoaded = true;
+      _personalizationFuture = Future<void>.value();
+      return _personalizationFuture!;
+    }
+    final future = _ref
+        .read(tutorPersonalizationRepositoryProvider)
+        .load(userId, currentScenarioId: scenarioId)
+        .then<void>((value) {
+          _personalization = value;
+          _personalizationLoaded = true;
+        })
+        .catchError((Object e) {
+          debugPrint('No se pudo cargar la personalización del tutor: $e');
+        });
+    _personalizationFuture = future;
+    return future;
+  }
+
+  /// Garantiza el perfil antes de construir el prompt (solo la primera vez).
+  Future<TutorPersonalization> _ensureTutorPersonalization() async {
+    final pending = _personalizationFuture;
+    if (!_personalizationLoaded && pending != null) {
+      await pending;
+    }
+    return _personalization;
+  }
+
+  /// P-40: convierte las señales del turno en una racha de acierto/fallo.
+  ///
+  /// Corre al terminar la persistencia del turno (donde ya se conocen las
+  /// correcciones y las metas cumplidas). Si el alumno ya envió otro turno
+  /// mientras tanto, no se mezclan señales.
+  void _recordTurnAdaptation({
+    required int turnNumber,
+    required String userText,
+  }) {
+    if (turnNumber != _turnNumber) return;
+    final wordCount = userText
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .length;
+    _adaptation.record(
+      TutorTurnOutcome(
+        corrections: _correctionsThisTurn,
+        wordCount: wordCount,
+        goalsCompleted: _goalsCompletedThisTurn,
+      ),
+    );
   }
 
   Future<void> playTtsVoice(String text) async {
