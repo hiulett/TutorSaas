@@ -16,6 +16,7 @@ import '../providers/dashboard_providers.dart';
 import '../screens/dashboard_screen.dart';
 import 'daily_quests_widget.dart';
 import 'league_leaderboard_widget.dart';
+import 'learning_evidence_card.dart';
 import 'charts/skills_radar_chart.dart';
 
 class ProgressTabView extends ConsumerWidget {
@@ -287,6 +288,9 @@ class ProgressTabView extends ConsumerWidget {
             const SkillsRadarChart(),
 
             const SizedBox(height: 24),
+
+            const LearningEvidenceCard(),
+            const SizedBox(height: 12),
 
             // Weekly Practice Chart Title & Card
             Text(
