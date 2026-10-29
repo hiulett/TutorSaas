@@ -37,7 +37,8 @@ class MissionClaimResult {
     if (response is! Map) {
       return const MissionClaimResult.failure('invalid_response');
     }
-    final ok = response['ok'] == true;
+    // `success` es la clave canónica; `ok` se acepta como alias legacy.
+    final ok = response['success'] == true || response['ok'] == true;
     if (!ok) {
       final reason = response['reason'];
       return MissionClaimResult.failure(

@@ -271,3 +271,29 @@ reparte `daily` y `weekly`.
 `reward_history` (`source_id` es `NOT NULL`): antes **todo** reclamo fallaba con
 `23502`.
 
+Contrato normalizado (`20261029171705`):
+
+```json
+{ "success": true, "ok": true, "already_claimed": false, "xp": 100, "gems": 20, "reason": null }
+```
+
+`success` es la clave canónica; `ok` se mantiene como alias deprecado para
+builds antiguas. Motivos: `not_found`, `not_completed`.
+
+### Recompensas de sesión
+
+La única vía es `close_session(uuid)`: deriva objetivos (`user_scenario_goals`)
+y minutos (`ended_at - started_at`) del servidor y escribe
+`session_reward_ledger`.
+
+```json
+{ "xp": 300, "gold": 10, "success": true, "fragments": 5, "duplicated": false }
+```
+
+En la segunda llamada devuelve los mismos importes con `duplicated: true`.
+
+`apply_session_rewards` está **deprecada**: exige `auth.uid() = p_user_id` pero
+su `EXECUTE` está revocado a `authenticated`, así que nadie puede llamarla
+(se conserva solo por historial).
+
+
