@@ -1134,8 +1134,9 @@ ENDING:
   static const int maxChatContextChars = 6000;
 
   List<ConversationMessage> _chatWindow() {
-    final withText =
-        state.messages.where((m) => m.text.trim().isNotEmpty).toList();
+    final withText = state.messages
+        .where((m) => m.text.trim().isNotEmpty)
+        .toList();
     if (withText.length <= maxChatContextMessages) return withText;
 
     final selected = <ConversationMessage>[];
@@ -1163,24 +1164,6 @@ ENDING:
         )
         .replaceAll(RegExp(r'\[RESULT:[^\]]*\]', caseSensitive: false), '')
         .trim();
-  }
-
-  String _stringField(Map<String, dynamic> map, String key, String fallback) {
-    final value = map[key];
-    if (value is String && value.trim().isNotEmpty) return value.trim();
-    if (value is num) return value.toString();
-    return fallback;
-  }
-
-  List<String> _stringListField(Map<String, dynamic> map, String key) {
-    final value = map[key];
-    if (value is List) {
-      return value
-          .whereType<String>()
-          .where((s) => s.trim().isNotEmpty)
-          .toList();
-    }
-    return const [];
   }
 
   // ── Process Transcription / Text → LLM → Supabase → TTS ────────────────────
@@ -1593,11 +1576,13 @@ ENDING:
         !_userId!.startsWith('guest_')) {
       try {
         final scenarioId = state.activeScenarioId;
-        final lesson =
-            scenarioId == null ? null : LessonCatalog.getLessonById(scenarioId);
+        final lesson = scenarioId == null
+            ? null
+            : LessonCatalog.getLessonById(scenarioId);
         if (lesson != null && lesson.goals.isNotEmpty) {
-          await _evaluateGoalsWithAi(lesson.goals)
-              .timeout(const Duration(seconds: 12));
+          await _evaluateGoalsWithAi(
+            lesson.goals,
+          ).timeout(const Duration(seconds: 12));
         }
       } catch (e, st) {
         ErrorTracker.logSilent(

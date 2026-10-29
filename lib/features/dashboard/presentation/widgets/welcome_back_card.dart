@@ -8,7 +8,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../domain/models/welcome_back.dart';
 import '../providers/dashboard_providers.dart';
 
 /// P-27 (#112): tarjeta de retorno tras ≥3 días sin practicar.
