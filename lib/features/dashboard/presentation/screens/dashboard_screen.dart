@@ -13,6 +13,7 @@ import '../../../subscription/presentation/providers/subscription_providers.dart
 import '../widgets/learning_path_roadmap.dart';
 import '../widgets/hunter_hud_header.dart';
 import '../widgets/daily_goal_ring_card.dart';
+import '../widgets/welcome_back_card.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
 import '../widgets/progress_tab_view.dart';
@@ -379,6 +380,9 @@ class DashboardScreen extends ConsumerWidget {
                                   const SizedBox(height: 12),
 
                                   // P-23 (#108): anillo de la meta diaria.
+                                  // P-27 (#112): retorno tras inactividad.
+                                  const WelcomeBackCard(),
+
                                   const DailyGoalRingCard(),
 
                                   // Issue #24: repaso espaciado (solo si hay palabras vencidas).

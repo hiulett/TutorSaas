@@ -2818,6 +2818,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String get progress_practice => 'PRACTICAR';
 
   @override
+  String get welcome_back_title => 'BIENVENIDO DE VUELTA';
+
+  @override
+  String welcome_back_days(int days) {
+    return '$days días sin entrenar';
+  }
+
+  @override
+  String welcome_back_lesson(String lesson) {
+    return 'Te quedaste en $lesson';
+  }
+
+  @override
+  String welcome_back_goals(int count) {
+    return 'Te faltan $count metas';
+  }
+
+  @override
+  String get welcome_back_completed =>
+      'La completaste. Puedes repetirla o seguir con la siguiente.';
+
+  @override
+  String get welcome_back_streak_reset => 'Empecemos una racha nueva hoy.';
+
+  @override
+  String get welcome_back_continue => 'CONTINUAR';
+
+  @override
+  String get welcome_back_later => 'Ahora no';
+
+  @override
   String get radar_estimated_tooltip => 'Estimación basada en tu conversación';
 
   @override

@@ -5200,6 +5200,54 @@ abstract class AppLocalizations {
   /// **'PRACTICE'**
   String get progress_practice;
 
+  /// No description provided for @welcome_back_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WELCOME BACK'**
+  String get welcome_back_title;
+
+  /// No description provided for @welcome_back_days.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days away'**
+  String welcome_back_days(int days);
+
+  /// No description provided for @welcome_back_lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'You left off at {lesson}'**
+  String welcome_back_lesson(String lesson);
+
+  /// No description provided for @welcome_back_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} goals to go'**
+  String welcome_back_goals(int count);
+
+  /// No description provided for @welcome_back_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'You finished it. Replay it or pick the next one.'**
+  String get welcome_back_completed;
+
+  /// No description provided for @welcome_back_streak_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start a new streak today.'**
+  String get welcome_back_streak_reset;
+
+  /// No description provided for @welcome_back_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get welcome_back_continue;
+
+  /// No description provided for @welcome_back_later.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get welcome_back_later;
+
   /// No description provided for @radar_estimated_tooltip.
   ///
   /// In en, this message translates to:

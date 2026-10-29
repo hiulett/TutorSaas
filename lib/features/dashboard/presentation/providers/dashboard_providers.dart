@@ -11,9 +11,11 @@ import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../data/models/hunter_catalog.dart';
 import '../../data/models/hunter_skill_titles.dart';
+import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/aura_system.dart';
 import '../../domain/models/daily_goal_progress.dart';
 import '../../domain/models/user_settings.dart';
+import '../../domain/models/welcome_back.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
@@ -80,6 +82,84 @@ final dailyGoalCelebrationProvider = Provider<Future<bool> Function()>((ref) {
       return false;
     }
   };
+});
+
+/// P-27 (#112): tarjeta de "bienvenido de vuelta" tras ≥3 días sin practicar.
+///
+/// Usa `last_practice_date` (lo mantiene `register_practice`), la última
+/// conversación no borrada y las metas completadas de ese escenario. Si no hay
+/// lección identificable, no se muestra nada: mejor no inventar contexto.
+final welcomeBackProvider = FutureProvider.autoDispose<WelcomeBack?>((
+  ref,
+) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return null;
+  ref.watch(dashboardRefreshProvider);
+  final supabase = ref.watch(supabaseClientProvider);
+
+  try {
+    final profile = await supabase
+        .from('user_language_profiles')
+        .select('last_practice_date, current_streak')
+        .eq('user_id', user.id)
+        .order('language_id')
+        .limit(1)
+        .maybeSingle();
+
+    final lastRaw = profile?['last_practice_date'];
+    final last = lastRaw is String ? DateTime.tryParse(lastRaw) : null;
+    if (last == null) return null;
+
+    final today = DateTime.now();
+    final lastDay = DateTime(last.year, last.month, last.day);
+    final daysAway = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).difference(lastDay).inDays;
+
+    final conversation = await supabase
+        .from('conversations')
+        .select('scenario_id')
+        .eq('user_id', user.id)
+        .isFilter('deleted_at', null)
+        .not('scenario_id', 'is', null)
+        .order('started_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    final lesson = LessonCatalog.getLessonById(
+      conversation?['scenario_id'] as String?,
+    );
+    if (lesson == null) return null;
+
+    final goals = await supabase
+        .from('user_scenario_goals')
+        .select('goal_id')
+        .eq('user_id', user.id)
+        .eq('scenario_id', lesson.id)
+        .eq('is_completed', true);
+
+    final completed = (goals as List).length;
+    final total = lesson.goals.length;
+    final remaining = total > completed ? total - completed : 0;
+
+    return WelcomeBack(
+      daysAway: daysAway,
+      lessonId: lesson.id,
+      lessonTitle: lesson.title,
+      goalsRemaining: remaining,
+      totalGoals: total,
+      streak: (profile?['current_streak'] as num?)?.toInt() ?? 0,
+    );
+  } catch (e, st) {
+    ErrorTracker.logSilent(
+      'lib/features/dashboard/presentation/providers/dashboard_providers.dart:welcome_back',
+      e,
+      stackTrace: st,
+    );
+    return null;
+  }
 });
 
 /// Issue #24: palabras pendientes de repaso (SM-2).
