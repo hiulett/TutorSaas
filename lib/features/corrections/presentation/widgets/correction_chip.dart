@@ -18,7 +18,7 @@ class CorrectionChip extends StatefulWidget {
     required this.level,
   });
 
-  final List<SessionCorrection> corrections;
+  final List<TurnCorrection> corrections;
   final String level;
 
   @override

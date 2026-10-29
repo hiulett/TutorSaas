@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../analytics/analytics_taxonomy.dart';
+import '../telemetry/startup_probe.dart';
 
 /// Best-effort fire-and-forget analytics of retention events (OBS-02).
 ///
@@ -21,9 +23,8 @@ class RetentionAnalytics {
     return _instance ??= RetentionAnalytics(Supabase.instance.client);
   }
 
-  /// Logs a usage event. [eventName] should be one of:
-  /// 'app_open' | 'session_start' | 'session_end' | 'invoke_llm' |
-  /// 'claim_daily' | 'purchase_item' | 'paywall_viewed'.
+  /// Registra un evento de [AnalyticsEvent]. Las propiedades pasan por
+  /// [sanitizeAnalyticsProperties]: sin PII, sin texto libre y con topes.
   Future<void> track(
     String userId,
     String eventName, {
@@ -34,7 +35,7 @@ class RetentionAnalytics {
       await _client.from('analytics_events').insert({
         'user_id': userId,
         'event_name': eventName,
-        'properties': properties ?? const <String, dynamic>{},
+        'properties': sanitizeAnalyticsProperties(properties),
       });
       debugPrint('[Analytics] Event tracked: $eventName');
     } catch (e) {
@@ -48,7 +49,11 @@ class RetentionAnalytics {
   Future<void> trackAppOpenOnce(String userId) async {
     if (_appOpenTracked) return;
     _appOpenTracked = true;
-    await track(userId, 'app_open');
+    await track(
+      userId,
+      AnalyticsEvent.appOpen,
+      properties: StartupProbe.appOpenProperties(),
+    );
   }
 }
 

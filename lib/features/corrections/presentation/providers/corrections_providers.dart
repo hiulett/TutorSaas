@@ -12,12 +12,12 @@ final correctionsRepositoryProvider = Provider<CorrectionsRepository>((ref) {
 /// Correcciones de la sesión en curso, ancladas al texto del mensaje del
 /// usuario para pintar el chip bajo la burbuja correcta.
 class SessionCorrectionsNotifier
-    extends StateNotifier<List<SessionCorrection>> {
+    extends StateNotifier<List<TurnCorrection>> {
   SessionCorrectionsNotifier() : super(const []);
 
   /// Reemplaza las correcciones del mensaje [messageText] (idempotente: un
   /// reintento de la evaluación no acumula chips duplicados).
-  void addForMessage(String messageText, List<SessionCorrection> corrections) {
+  void addForMessage(String messageText, List<TurnCorrection> corrections) {
     if (corrections.isEmpty) return;
     final kept = state
         .where((c) => c.messageText != messageText)
@@ -32,7 +32,7 @@ class SessionCorrectionsNotifier
 }
 
 final sessionCorrectionsProvider =
-    StateNotifierProvider<SessionCorrectionsNotifier, List<SessionCorrection>>(
+    StateNotifierProvider<SessionCorrectionsNotifier, List<TurnCorrection>>(
       (ref) => SessionCorrectionsNotifier(),
     );
 

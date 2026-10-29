@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../domain/repositories/chat_rooms_repository.dart';
 class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
   final SupabaseClient _supabaseClient;
@@ -646,13 +647,26 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
           .from('users')
           .select('id, display_name, avatar_url')
           .inFilter('id', userIds);
+      // P-11i: la clase se lee de user_language_profiles, no de avatar_url.
+      final classesRes = await _supabaseClient
+          .from('user_language_profiles')
+          .select('user_id, character_class')
+          .inFilter('user_id', userIds);
+      final classes = <String, String>{
+        for (final row in classesRes)
+          row['user_id'] as String: row['character_class'] as String? ?? '',
+      };
       for (final u in res) {
-        map[u['id'] as String] = {
+        final id = u['id'] as String;
+        map[id] = {
           'display_name': u['display_name'] as String? ?? '',
-          'avatar_url': u['avatar_url'] as String? ?? 'warrior',
+          'avatar_url': u['avatar_url'] as String? ?? '',
+          'character_class': classes[id] ?? '',
         };
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/chat_rooms/data/repositories/chat_rooms_repository_impl.dart:655', e, stackTrace: st);
+    }
     return map;
   }
 
@@ -699,7 +713,8 @@ class ChatRoomsRepositoryImpl implements ChatRoomsRepository {
         return {
           'user_id': id,
           'display_name': profile['display_name'] as String? ?? '',
-          'avatar_url': profile['avatar_url'] as String? ?? 'warrior',
+          'avatar_url': profile['avatar_url'] as String? ?? '',
+          'character_class': profile['character_class'] as String? ?? '',
         };
       }).toList();
     } catch (e) {

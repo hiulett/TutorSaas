@@ -98,3 +98,21 @@ Play Billing → RevenueCat → webhook → Supabase → app
 - Precios: los de Play (localizados), nunca cadenas escritas a mano.
 - Pruebas: license testers de Play (ver runbook).
 - Sin Stripe, sin venta web.
+
+---
+
+## 8. Maná: tope diario y turno de gracia (P-26, oct-2026)
+
+**Decisión:** se mantiene el tope diario de **200 de maná** del plan gratuito
+(≈16 turnos de mazmorra a 12 por turno) y se añade **un turno de gracia al día**.
+
+- El turno de gracia solo se concede cuando `consume_mana` responde
+  `daily_limit_reached` (plan gratuito). No aplica al saldo mensual agotado.
+- Es idempotente por día (`user_subscriptions.mana_grace_date`) y lo reclama
+  `llm-proxy` con service role (`claim_mana_grace`). El cliente no puede pedirlo.
+- Motivo: el usuario puede **cerrar el intercambio en curso** en vez de quedarse
+  bloqueado a mitad de una misión, sin abrir un consumo ilimitado.
+- La UI avisa con 3 turnos o menos y muestra el coste del próximo turno.
+
+**Revisión:** con los datos de `ai_usage_logs` (P-14) se reevalúa el 200 cuando
+haya al menos dos semanas de uso real por parte de testers.

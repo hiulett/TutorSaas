@@ -19,7 +19,7 @@ final hunterClassesProvider = FutureProvider.autoDispose<List<HunterClassData>>(
           .select()
           .eq('is_active', true)
           .order('display_order');
-      if (rows != null && rows.isNotEmpty) {
+      if (rows.isNotEmpty) {
         return rows.map((m) => HunterClassData.fromMap(m)).toList();
       }
     } catch (e) {

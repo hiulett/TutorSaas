@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -59,7 +61,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
           // Entrada a la mesa en estado "de pie" (escucha + chat, sin audio).
           await ref.read(chatRoomsRepositoryProvider).joinTable(widget.roomId);
           _startHeartbeat();
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:62', e, stackTrace: st);
+        }
       }
       await _connectLiveKit();
       _startSpeakingPoll();
@@ -151,7 +155,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     try {
       await lp.setMicrophoneEnabled(next);
       setState(() => _micOn = next);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:154', e, stackTrace: st);
+    }
   }
 
   Future<void> _disconnectLiveKit() async {
@@ -161,7 +167,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
     if (r != null) {
       try {
         await r.disconnect();
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:164', e, stackTrace: st);
+      }
     }
     if (mounted) setState(() => _micOn = false);
   }
@@ -280,7 +288,9 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
         type: ok ? SystemSnackType.success : SystemSnackType.error,
       );
       if (ok) ref.invalidate(chatRoomParticipantsProvider(widget.roomId));
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/chat_rooms/presentation/screens/voice_room_screen.dart:283', e, stackTrace: st);
+    }
   }
 
   int? _detectMySeat() {
@@ -915,9 +925,13 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                   final speakerName = isSelf
                                       ? (AppLocalizations.of(context)?.voice_you ?? 'YOU')
                                       : (otherName.isNotEmpty ? otherName : (AppLocalizations.of(context)?.voice_hunter_slot('$slotNum') ?? 'HUNTER $slotNum'));
+                                  final selfProfile = ref.read(userProfileProvider).value;
                                   final speakerAvatar = isSelf
-                                      ? (ref.read(userProfileProvider).value?['avatar_url'] as String? ?? 'warrior')
-                                      : (speakerProfile?['avatar_url'] as String? ?? 'warrior');
+                                      ? playerAvatarUrlOf(selfProfile)
+                                      : playerAvatarUrlOf(speakerProfile);
+                                  final speakerClass = isSelf
+                                      ? playerClassOf(selfProfile)
+                                      : playerClassOf(speakerProfile);
                                   final isSpeaking = _speakingIds.contains(speakerUserId);
 
                                   return GestureDetector(
@@ -938,11 +952,11 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                             children: [
                                               RpgAvatar(
                                                 avatarUrl: speakerAvatar,
+                                                hunterClass: speakerClass,
                                                 initials: speakerName.isNotEmpty
                                                     ? speakerName.substring(0, 1).toUpperCase()
                                                     : 'H$slotNum',
                                                 size: 36,
-                                                hunterClass: speakerAvatar,
                                               ),
                                               if (isSpeaking)
                                                 const Positioned(
@@ -1025,10 +1039,10 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                                                         clipBehavior: Clip.none,
                                                         children: [
                                                           RpgAvatar(
-                                                            avatarUrl: audProfile?['avatar_url'] as String? ?? 'warrior',
+                                                            avatarUrl: playerAvatarUrlOf(audProfile),
                                                             initials: audInitials,
                                                             size: 30,
-                                                            hunterClass: audProfile?['avatar_url'] as String? ?? 'warrior',
+                                                            hunterClass: playerClassOf(audProfile),
                                                           ),
                                                           if (isSelfStanding)
                                                             const Positioned(

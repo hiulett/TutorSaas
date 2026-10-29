@@ -140,17 +140,17 @@ void main() {
 
   group('correctionsForLevel (correction_level)', () {
     final corrections = [
-      const SessionCorrection(
+      const TurnCorrection(
         original: 'I go',
         corrected: 'I went',
         type: CorrectionType.grammar,
       ),
-      const SessionCorrection(
+      const TurnCorrection(
         original: 'big house',
         corrected: 'large house',
         type: CorrectionType.wordChoice,
       ),
-      const SessionCorrection(
+      const TurnCorrection(
         original: 'definately',
         corrected: 'definitely',
         type: CorrectionType.typoStt,

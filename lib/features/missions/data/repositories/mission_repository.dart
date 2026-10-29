@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../onboarding/domain/models/cefr_rank.dart';
+import '../../domain/models/mission_claim_result.dart';
 import '../../domain/models/mission_models.dart';
 import '../../domain/repositories/mission_repository.dart';
 
@@ -74,7 +76,9 @@ class MissionRepositoryImpl implements MissionRepository {
           await _client.from('reward_history').delete().eq('id', id);
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:77', e, stackTrace: st);
+    }
   }
 
   /// Verifica cuotas y hace cleanup antes de aceptar nueva misión.
@@ -173,71 +177,22 @@ class MissionRepositoryImpl implements MissionRepository {
     }
   }
 
-  /// Incrementa el progreso de una misión en [delta] unidades.
-  /// Marca `completed` solo cuando se alcanza el target; de lo contrario
-  /// persiste el progreso parcial en vivo (T-402).
-  Future<bool> updateProgress(String instanceId, {int delta = 1}) async {
-    try {
-      final instance = await _client
-          .from('mission_instances')
-          .select('current_value, target_value, status, user_id, quest_id')
-          .eq('id', instanceId)
-          .maybeSingle();
-      if (instance == null) return false;
-
-      final current = (instance['current_value'] as num?)?.toInt() ?? 0;
-      final target = (instance['target_value'] as num?)?.toInt() ?? 1;
-      final next = (current + delta).clamp(0, target);
-      final isDone = next >= target;
-      final isAlreadyDone = instance['status'] == 'completed';
-
-      await _client.from('mission_instances').update({
-        'current_value': next,
-        'status': isDone ? 'completed' : 'active',
-        if (isDone && !isAlreadyDone) 'completed_at': DateTime.now().toIso8601String(),
-      }).eq('id', instanceId);
-
-      // Si es una misión del pool del gremio y se acaba de completar,
-      // regístrala en player_completed_quests (historial / ocultar del pool).
-      if (isDone && !isAlreadyDone) {
-        final questId = instance['quest_id'] as String?;
-        final userId = instance['user_id'] as String?;
-        if (questId != null && userId != null) {
-          await markGuildQuestCompleted(userId, questId);
-        }
-      }
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Issue #5: avanza las misiones activas del usuario por tipo de objetivo.
-  /// Best-effort: nunca interrumpe el flujo de juego si la RPC falla.
-  @override
-  Future<void> advanceMissions(String objectiveType, {int delta = 1}) async {
-    if (delta <= 0) return;
-    try {
-      await _client.rpc('advance_my_missions', params: {
-        'p_type': objectiveType,
-        'p_delta': delta,
-      });
-    } catch (e) {
-      debugPrint('advanceMissions($objectiveType, $delta) failed: $e');
-    }
-  }
-
-  Future<bool> claimReward(String instanceId, String userId) async {
+  /// Issue #109: el progreso lo avanza **solo** el servidor mediante triggers
+  /// (`messages` → `conversation_turns`, `session_reward_ledger` →
+  /// `sessions`/`practice_session`/`speak_minutes`, `user_vocabulary` y
+  /// `vocabulary_reviews` → `vocab_words` → `advance_missions_for_user`).
+  /// El cliente no llama a `advance_my_missions`: duplicaba el avance.
+  Future<MissionClaimResult> claimReward(String instanceId, String userId) async {
     try {
       // Issue #93: importes y estado se validan en servidor; el cliente ya no
       // elige cantidades ni escribe reward_history.
       final res = await _client.rpc('claim_mission_reward', params: {
         'p_instance_id': instanceId,
       });
-      if (res is Map) return res['ok'] == true;
-      return false;
-    } catch (_) {
-      return false;
+      return MissionClaimResult.fromRpc(res);
+    } catch (e) {
+      debugPrint('claimReward($instanceId) falló: $e');
+      return MissionClaimResult.failure('exception');
     }
   }
 
@@ -360,7 +315,9 @@ class MissionRepositoryImpl implements MissionRepository {
           'gem_reward': missionData['gem_reward'] ?? 10,
         });
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:363', e, stackTrace: st);
+    }
   }
 
   // ── Emergency Missions ─────────────────────────────────────────────────
@@ -445,7 +402,9 @@ class MissionRepositoryImpl implements MissionRepository {
           .delete()
           .eq('user_id', userId)
           .lt('claimed_at', DateTime.now().subtract(const Duration(days: 7)).toIso8601String());
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:448', e, stackTrace: st);
+    }
   }
 
   // ── Guild Missions (colaborativas) ───────────────────────────────────────
@@ -476,7 +435,7 @@ class MissionRepositoryImpl implements MissionRepository {
       }
       final ordered = query.order('game_rank').order('quest_type');
       final data = limit != null
-          ? await ordered.limit(limit!)
+          ? await ordered.limit(limit)
           : await ordered;
       return (data as List).map((m) => GuildQuest.fromMap(m)).toList();
     } catch (_) {
@@ -537,7 +496,9 @@ class MissionRepositoryImpl implements MissionRepository {
         },
         onConflict: 'user_id, quest_id',
       );
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/features/missions/data/repositories/mission_repository.dart:540', e, stackTrace: st);
+    }
   }
 
   /// Acepta una misión del pool del gremio → mission_instance activa.
@@ -606,30 +567,6 @@ class MissionRepositoryImpl implements MissionRepository {
     }
   }
 
-  /// Incrementa el progreso colectivo de una misión del gremio.
-  Future<bool> updateGuildMissionProgress(String missionId, int delta) async {
-    try {
-      final mission = await _client
-          .from('guild_collaborative_missions')
-          .select('current_value, target_value')
-          .eq('id', missionId)
-          .maybeSingle();
-      if (mission == null) return false;
-
-      final current = (mission['current_value'] as num?)?.toInt() ?? 0;
-      final target = (mission['target_value'] as num?)?.toInt() ?? 1;
-      final next = (current + delta).clamp(0, target);
-
-      await _client
-          .from('guild_collaborative_missions')
-          .update({'current_value': next})
-          .eq('id', missionId);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
   /// Raid cooperativa semanal: la misión colaborativa vigente más reciente.
   Future<Map<String, dynamic>?> getWeeklyRaid() async {
     try {
@@ -646,26 +583,6 @@ class MissionRepositoryImpl implements MissionRepository {
     } catch (e) {
       debugPrint('getWeeklyRaid error: $e');
       return null;
-    }
-  }
-
-  /// Suma [amount] al progreso colectivo de la raid (best-effort, no bloquea).
-  Future<void> contributeToWeeklyRaid(String missionId, int amount) async {
-    try {
-      final mission = await _client
-          .from('guild_collaborative_missions')
-          .select('current_value')
-          .eq('id', missionId)
-          .maybeSingle();
-      if (mission == null) return;
-
-      final current = (mission['current_value'] as num?)?.toInt() ?? 0;
-      await _client
-          .from('guild_collaborative_missions')
-          .update({'current_value': current + amount})
-          .eq('id', missionId);
-    } catch (e) {
-      debugPrint('contributeToWeeklyRaid error: $e');
     }
   }
 

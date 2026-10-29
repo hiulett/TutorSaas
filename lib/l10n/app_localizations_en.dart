@@ -147,6 +147,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_title => 'SYSTEM STATUS';
 
   @override
+  String get dashboard_offline =>
+      'No connection. Showing your last saved progress.';
+
+  @override
+  String dashboard_offline_age(int minutes) {
+    return 'No connection. Last progress $minutes min ago.';
+  }
+
+  @override
   String get dungeons => 'DUNGEONS';
 
   @override
@@ -255,6 +264,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get save_settings => 'Save Settings';
+
+  @override
+  String get settings_save_error => 'Could not save settings.';
+
+  @override
+  String get settings_delete_error => 'Could not delete the account.';
+
+  @override
+  String get settings_app_language => 'APP LANGUAGE';
 
   @override
   String get saved => 'Settings and Onboarding saved successfully';
@@ -1271,6 +1289,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get summary_view_vocab => 'VIEW VOCABULARY';
 
   @override
+  String get summary_vocab_title => 'SESSION VOCABULARY';
+
+  @override
+  String get summary_vocab_empty => 'No words saved from this session yet.';
+
+  @override
   String get summary_vocab_saved => 'Vocabulary saved to your profile.';
 
   @override
@@ -1627,7 +1651,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gold_shop_unavailable =>
-      'The Gold Shop is not available yet.\nApply the price_gold migration in the SQL Editor.';
+      'The Gold Shop is not available yet.\nPlease try again in a moment.';
 
   @override
   String get owned => 'OWNED';
@@ -2275,6 +2299,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get session_maintained => 'Maintained';
 
   @override
+  String get summary_learned_title => 'WHAT YOU LEARNED';
+
+  @override
+  String get summary_learned_words => 'NEW AND REVIEWED WORDS';
+
+  @override
+  String get summary_learned_word_new => 'NEW';
+
+  @override
+  String get summary_learned_word_review => 'REVIEW';
+
+  @override
+  String get summary_learned_no_words =>
+      'No vocabulary was recorded in this session yet.';
+
+  @override
+  String get summary_learned_corrections => 'CORRECTIONS';
+
+  @override
+  String get summary_learned_no_corrections =>
+      'No corrections: you communicated clearly this time.';
+
+  @override
+  String get summary_learned_focus => 'RECOMMENDED FOCUS';
+
+  @override
+  String get summary_learned_no_focus =>
+      'Not enough data for a recommendation yet.';
+
+  @override
+  String get summary_learned_loading => 'Loading your session data...';
+
+  @override
+  String get summary_learned_error =>
+      'We couldn\'t load what you learned. Check your connection and try again.';
+
+  @override
+  String summary_learned_minutes_value(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get summary_goals => 'GOALS';
+
+  @override
+  String get summary_turns => 'TURNS';
+
+  @override
+  String summary_turns_value(int count) {
+    return '$count turns';
+  }
+
+  @override
+  String get summary_reward_loading => 'Confirming your reward...';
+
+  @override
+  String get summary_reward_error =>
+      'We couldn\'t confirm your reward. Check your connection and try again.';
+
+  @override
+  String get summary_retry => 'TRY AGAIN';
+
+  @override
+  String get summary_review_words => 'REVIEW WORDS';
+
+  @override
   String get profile_status_panel => 'STATUS PANEL';
 
   @override
@@ -2328,6 +2418,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quest_desc_pronunciation => 'Pass a voice-print test';
+
+  @override
+  String get missions_title => 'Missions';
+
+  @override
+  String get missions_tab_daily => 'Daily';
+
+  @override
+  String get missions_tab_weekly => 'Weekly';
+
+  @override
+  String get missions_spotlight => 'MISSION OF THE DAY';
+
+  @override
+  String get missions_see_all => 'SEE ALL';
+
+  @override
+  String get missions_reset_hint => 'Automatic renewal: 00:05 UTC';
+
+  @override
+  String get missions_empty_daily =>
+      'No daily missions yet. New ones arrive every day at 00:05 UTC.';
+
+  @override
+  String get missions_empty_weekly =>
+      'No weekly missions yet. They are assigned with the daily 00:05 UTC cycle.';
+
+  @override
+  String get missions_unavailable => 'Unavailable';
+
+  @override
+  String get missions_unavailable_hint =>
+      'This mission cannot be completed with the current tracking.';
+
+  @override
+  String missions_claim_xp(int xp) {
+    return 'Claim +$xp XP';
+  }
+
+  @override
+  String missions_claim_success(int xp, int gems) {
+    return 'Reward claimed: +$xp XP · +$gems gems';
+  }
+
+  @override
+  String get missions_claim_already => 'You already claimed this reward.';
+
+  @override
+  String get missions_claim_error =>
+      'We couldn\'t claim the reward. Check your connection and try again.';
+
+  @override
+  String get missions_load_error =>
+      'We couldn\'t load your missions. Tap to retry.';
+
+  @override
+  String get missions_retry => 'RETRY';
+
+  @override
+  String get missions_unit_minutes => 'min';
+
+  @override
+  String get missions_unit_turns => 'turns';
+
+  @override
+  String get missions_unit_words => 'words';
+
+  @override
+  String get missions_unit_sessions => 'sessions';
 
   @override
   String get league_level_title => 'Level League';
@@ -2686,6 +2845,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get privacy_title => 'PRIVACY';
+
+  @override
+  String get privacy_body =>
+      'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings.';
+
+  @override
+  String get privacy_accept => 'GOT IT';
+
+  @override
+  String get onboarding_privacy_link => 'PRIVACY';
+
+  @override
   String get onboarding_beginner => 'I AM AN ABSOLUTE BEGINNER (PRE-A1)';
 
   @override
@@ -2764,6 +2936,160 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get progress_practice => 'PRACTICE';
+
+  @override
+  String get settings_haptics => 'VIBRATION';
+
+  @override
+  String get settings_haptics_desc => 'Vibrate on goal complete and level up';
+
+  @override
+  String get settings_sounds => 'SOUNDS';
+
+  @override
+  String get settings_sounds_desc => 'System sound on celebrations';
+
+  @override
+  String get welcome_back_title => 'WELCOME BACK';
+
+  @override
+  String welcome_back_days(int days) {
+    return '$days days away';
+  }
+
+  @override
+  String welcome_back_lesson(String lesson) {
+    return 'You left off at $lesson';
+  }
+
+  @override
+  String welcome_back_goals(int count) {
+    return '$count goals to go';
+  }
+
+  @override
+  String get welcome_back_completed =>
+      'You finished it. Replay it or pick the next one.';
+
+  @override
+  String get welcome_back_streak_reset => 'Let\'s start a new streak today.';
+
+  @override
+  String get welcome_back_continue => 'CONTINUE';
+
+  @override
+  String get welcome_back_later => 'Not now';
+
+  @override
+  String get radar_estimated_tooltip => 'Estimate based on your conversation';
+
+  @override
+  String get radar_estimated_note => 'Estimate based on your conversation';
+
+  @override
+  String get radar_pronunciation_unmeasured =>
+      'Pronunciation: no real measurement yet';
+
+  @override
+  String get band_low => 'Low';
+
+  @override
+  String get band_medium => 'Medium';
+
+  @override
+  String get band_high => 'High';
+
+  @override
+  String mana_cost_per_turn(int cost) {
+    return '$cost/turn';
+  }
+
+  @override
+  String mana_low_warning(int count) {
+    return '$count turns left today';
+  }
+
+  @override
+  String get mana_empty_warning => 'No mana for the next turn';
+
+  @override
+  String get guardian_alternative_title => 'WHILE YOU WAIT';
+
+  @override
+  String guardian_refill_in(int hours, int minutes) {
+    return 'Refills in $hours h $minutes min';
+  }
+
+  @override
+  String guardian_refill_at(String date) {
+    return 'Renews on $date';
+  }
+
+  @override
+  String get guardian_review_vocab => 'Review vocabulary (free)';
+
+  @override
+  String guardian_low_cost_chat(int cost) {
+    return 'Text chat ($cost mana)';
+  }
+
+  @override
+  String get guardian_no_due_words => 'No words due for review right now.';
+
+  @override
+  String get daily_goal_title => 'DAILY GOAL';
+
+  @override
+  String daily_goal_minutes(int done, int goal) {
+    return '$done / $goal min';
+  }
+
+  @override
+  String daily_goal_remaining(int minutes) {
+    return '$minutes min to go';
+  }
+
+  @override
+  String get daily_goal_done => 'Goal complete';
+
+  @override
+  String daily_goal_streak(int days) {
+    return '${days}d streak';
+  }
+
+  @override
+  String get daily_goal_celebrate => 'DAILY GOAL COMPLETE!';
+
+  @override
+  String get evidence_title => 'LEARNING EVIDENCE';
+
+  @override
+  String get evidence_disclaimer => 'Evidence, not a grade.';
+
+  @override
+  String get evidence_retention => '7-day retention';
+
+  @override
+  String get evidence_progress => 'Comparable progress';
+
+  @override
+  String get evidence_transfer => 'Transfer';
+
+  @override
+  String get evidence_no_data => 'No data yet';
+
+  @override
+  String get evidence_needs_weeks => 'You need 4 weeks';
+
+  @override
+  String evidence_progress_value(int first, int last) {
+    return '$first → $last missions/week';
+  }
+
+  @override
+  String evidence_transfer_value(int types) {
+    return '$types mission types';
+  }
 
   @override
   String get progress_streak_at_risk => 'STREAK AT RISK!';
@@ -3315,4 +3641,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get correction_type_typo_stt => 'Transcription';
+
+  @override
+  String get notif_settings_title => 'DAILY REMINDER';
+
+  @override
+  String get notif_settings_desc =>
+      'One reminder a day, at the time you choose. Never at night.';
+
+  @override
+  String get notif_time_label => 'REMINDER TIME';
+
+  @override
+  String get notif_days_label => 'ACTIVE DAYS';
+
+  @override
+  String get notif_quiet_hours =>
+      'Quiet hours are 22:00-08:00, so the reminder moved to 08:00.';
+
+  @override
+  String notif_time_updated(String time) {
+    return 'Reminder set for $time.';
+  }
+
+  @override
+  String get notif_permission_denied =>
+      'Notifications are blocked. Allow them in Android settings > Apps > Dungeon of English > Notifications.';
+
+  @override
+  String get notif_permission_open_settings => 'OPEN ANDROID SETTINGS';
+
+  @override
+  String get notif_prompt_title => 'DON\'T LOSE YOUR STREAK';
+
+  @override
+  String get notif_prompt_body =>
+      'Turn on one daily reminder and we will nudge you at the time you choose. You can change it or turn it off in Settings.';
+
+  @override
+  String get notif_prompt_accept => 'TURN IT ON';
+
+  @override
+  String get notif_prompt_later => 'NOT NOW';
+
+  @override
+  String get notif_enabled_ok => 'Daily reminder armed.';
+
+  @override
+  String get notif_save_error =>
+      'Could not save the reminder. Check your connection and try again.';
+
+  @override
+  String get notif_reminder_title => 'Your streak awaits';
+
+  @override
+  String get notif_reminder_body =>
+      'A short raid today keeps the streak alive. Your tutor is ready.';
 }

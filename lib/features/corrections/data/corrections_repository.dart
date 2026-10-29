@@ -31,7 +31,7 @@ class CorrectionsRepository {
   Future<void> saveCorrections({
     required String userId,
     required String turnRef,
-    required List<SessionCorrection> corrections,
+    required List<TurnCorrection> corrections,
     String? conversationId,
     String? messageId,
   }) async {

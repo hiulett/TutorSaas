@@ -1,3 +1,4 @@
+import '../models/mission_claim_result.dart';
 import '../models/mission_models.dart';
 
 /// Contrato del repositorio de misiones.
@@ -23,17 +24,14 @@ abstract class MissionRepository {
 
   Future<MissionInstance?> acceptMission(String userId, MissionTemplate template);
 
-  /// Incrementa el progreso de una misión en [delta] unidades.
-  /// Marca `completed` solo cuando se alcanza el target; de lo contrario
-  /// persiste el progreso parcial en vivo (T-402).
-  Future<bool> updateProgress(String instanceId, {int delta = 1});
-
-  /// Issue #5: avanza **todas** las misiones activas del usuario cuyo
-  /// `objective_type` coincide. Usa la RPC `advance_my_missions`, que toma el
-  /// usuario de la sesión (auth.uid()) y no puede escribir misiones ajenas.
-  Future<void> advanceMissions(String objectiveType, {int delta = 1});
-
-  Future<bool> claimReward(String instanceId, String userId);
+  /// Reclama la recompensa de una instancia completada.
+  ///
+  /// Issue #109: el progreso y la recompensa son **solo del servidor**. El
+  /// cliente no escribe `current_value`, `status` ni importes; la RPC
+  /// `claim_mission_reward` valida usuario/estado/multiplicador y devuelve los
+  /// importes reales. El `userId` se mantiene en la firma por compatibilidad de
+  /// llamadas, pero la RPC usa `auth.uid()`.
+  Future<MissionClaimResult> claimReward(String instanceId, String userId);
 
   /// Aplica un item `mission_modifier` a una misión activa (Fase 9 · MM-03).
   /// Códigos soportados:
@@ -110,15 +108,9 @@ abstract class MissionRepository {
   /// Misiones colaborativas del gremio activas en la ventana temporal.
   Future<List<GuildMission>> getActiveGuildMissions();
 
-  /// Incrementa el progreso colectivo de una misión del gremio.
-  Future<bool> updateGuildMissionProgress(String missionId, int delta);
-
   /// Raid semanal: la misión colaborativa activa más reciente
   /// (expires_at > now). Devuelve null si no hay raid vigente.
   Future<Map<String, dynamic>?> getWeeklyRaid();
-
-  /// Suma [amount] al progreso colectivo de la raid semanal (best-effort).
-  Future<void> contributeToWeeklyRaid(String missionId, int amount);
 
   // ── Global Events ────────────────────────────────────────────────────────
 

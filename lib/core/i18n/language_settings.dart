@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 
 class UserLanguageSettings {
   final String uiLanguage;
@@ -111,7 +112,9 @@ class UserLanguageNotifier extends StateNotifier<UserLanguageSettings> {
           ...state.toJson(),
         });
       }
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/core/i18n/language_settings.dart:114', e, stackTrace: st);
+    }
   }
 }
 
@@ -156,9 +159,13 @@ final languageSyncProvider = Provider<UserLanguageNotifier>((ref) {
               .eq('user_id', user.id)
               .maybeSingle();
           await notifier.syncFromSupabase(remote);
-        } catch (_) {}
+        } catch (e, st) {
+          ErrorTracker.logSilent('lib/core/i18n/language_settings.dart:159', e, stackTrace: st);
+        }
       });
     }
-  } catch (_) {}
+  } catch (e, st) {
+    ErrorTracker.logSilent('lib/core/i18n/language_settings.dart:162', e, stackTrace: st);
+  }
   return notifier;
 });

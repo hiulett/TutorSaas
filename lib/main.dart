@@ -6,11 +6,13 @@ import 'app/app.dart';
 import 'core/constants/api_constants.dart';
 import 'core/services/crash_reporter.dart';
 import 'core/utils/error_tracker.dart';
+import 'core/telemetry/startup_probe.dart';
 
 import 'core/widgets/configuration_error_widget.dart';
 import 'core/theme/app_theme.dart';
 
 void main() async {
+  StartupProbe.markProcessStart();
   debugPrint('App Main: Iniciando...');
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('App Main: Widgets Binding inicializado.');

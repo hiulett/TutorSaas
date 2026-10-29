@@ -15,7 +15,7 @@ class GoalEvaluationResult {
   final Map<String, bool> goals;
 
   /// Correcciones válidas del turno (ya filtradas por tipo y tamaño).
-  final List<SessionCorrection> corrections;
+  final List<TurnCorrection> corrections;
 
   /// Bloques de corrección descartados por no cumplir el esquema.
   final int discardedCorrections;

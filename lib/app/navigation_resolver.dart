@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../features/onboarding/presentation/providers/onboarding_providers.dart';
 
 /// Resultado de la decisión de navegación inicial.
@@ -45,14 +46,18 @@ class NavigationDecisionEngine {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_cacheKey(userId), true);
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/app/navigation_resolver.dart:48', e, stackTrace: st);
+    }
   }
 
   static Future<void> _clearPersistedProfile(String userId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_cacheKey(userId));
-    } catch (_) {}
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/app/navigation_resolver.dart:55', e, stackTrace: st);
+    }
   }
 
   static Future<NavDestination> resolve({
@@ -96,7 +101,9 @@ class NavigationDecisionEngine {
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool(_cacheKey(userId), has);
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/app/navigation_resolver.dart:99', e, stackTrace: st);
+      }
       return has;
     } catch (e) {
       debugPrint('[Nav] Error/timeout verificando perfil ($e) → decisión persistida.');

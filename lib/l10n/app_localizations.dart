@@ -358,6 +358,18 @@ abstract class AppLocalizations {
   /// **'SYSTEM STATUS'**
   String get dashboard_title;
 
+  /// No description provided for @dashboard_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Showing your last saved progress.'**
+  String get dashboard_offline;
+
+  /// No description provided for @dashboard_offline_age.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Last progress {minutes} min ago.'**
+  String dashboard_offline_age(int minutes);
+
   /// No description provided for @dungeons.
   ///
   /// In en, this message translates to:
@@ -573,6 +585,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Settings'**
   String get save_settings;
+
+  /// No description provided for @settings_save_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save settings.'**
+  String get settings_save_error;
+
+  /// No description provided for @settings_delete_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the account.'**
+  String get settings_delete_error;
+
+  /// No description provided for @settings_app_language.
+  ///
+  /// In en, this message translates to:
+  /// **'APP LANGUAGE'**
+  String get settings_app_language;
 
   /// No description provided for @saved.
   ///
@@ -2470,6 +2500,18 @@ abstract class AppLocalizations {
   /// **'VIEW VOCABULARY'**
   String get summary_view_vocab;
 
+  /// No description provided for @summary_vocab_title.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION VOCABULARY'**
+  String get summary_vocab_title;
+
+  /// No description provided for @summary_vocab_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No words saved from this session yet.'**
+  String get summary_vocab_empty;
+
   /// No description provided for @summary_vocab_saved.
   ///
   /// In en, this message translates to:
@@ -3103,7 +3145,7 @@ abstract class AppLocalizations {
   /// No description provided for @gold_shop_unavailable.
   ///
   /// In en, this message translates to:
-  /// **'The Gold Shop is not available yet.\nApply the price_gold migration in the SQL Editor.'**
+  /// **'The Gold Shop is not available yet.\nPlease try again in a moment.'**
   String get gold_shop_unavailable;
 
   /// No description provided for @owned.
@@ -4252,6 +4294,120 @@ abstract class AppLocalizations {
   /// **'Maintained'**
   String get session_maintained;
 
+  /// Section title of the post-session summary (issue #113)
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT YOU LEARNED'**
+  String get summary_learned_title;
+
+  /// No description provided for @summary_learned_words.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW AND REVIEWED WORDS'**
+  String get summary_learned_words;
+
+  /// No description provided for @summary_learned_word_new.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get summary_learned_word_new;
+
+  /// No description provided for @summary_learned_word_review.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW'**
+  String get summary_learned_word_review;
+
+  /// No description provided for @summary_learned_no_words.
+  ///
+  /// In en, this message translates to:
+  /// **'No vocabulary was recorded in this session yet.'**
+  String get summary_learned_no_words;
+
+  /// No description provided for @summary_learned_corrections.
+  ///
+  /// In en, this message translates to:
+  /// **'CORRECTIONS'**
+  String get summary_learned_corrections;
+
+  /// No description provided for @summary_learned_no_corrections.
+  ///
+  /// In en, this message translates to:
+  /// **'No corrections: you communicated clearly this time.'**
+  String get summary_learned_no_corrections;
+
+  /// No description provided for @summary_learned_focus.
+  ///
+  /// In en, this message translates to:
+  /// **'RECOMMENDED FOCUS'**
+  String get summary_learned_focus;
+
+  /// No description provided for @summary_learned_no_focus.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data for a recommendation yet.'**
+  String get summary_learned_no_focus;
+
+  /// No description provided for @summary_learned_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your session data...'**
+  String get summary_learned_loading;
+
+  /// No description provided for @summary_learned_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load what you learned. Check your connection and try again.'**
+  String get summary_learned_error;
+
+  /// No description provided for @summary_learned_minutes_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String summary_learned_minutes_value(int count);
+
+  /// No description provided for @summary_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'GOALS'**
+  String get summary_goals;
+
+  /// No description provided for @summary_turns.
+  ///
+  /// In en, this message translates to:
+  /// **'TURNS'**
+  String get summary_turns;
+
+  /// No description provided for @summary_turns_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} turns'**
+  String summary_turns_value(int count);
+
+  /// No description provided for @summary_reward_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your reward...'**
+  String get summary_reward_loading;
+
+  /// No description provided for @summary_reward_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t confirm your reward. Check your connection and try again.'**
+  String get summary_reward_error;
+
+  /// No description provided for @summary_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get summary_retry;
+
+  /// No description provided for @summary_review_words.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW WORDS'**
+  String get summary_review_words;
+
   /// No description provided for @profile_status_panel.
   ///
   /// In en, this message translates to:
@@ -4353,6 +4509,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pass a voice-print test'**
   String get quest_desc_pronunciation;
+
+  /// No description provided for @missions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Missions'**
+  String get missions_title;
+
+  /// No description provided for @missions_tab_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get missions_tab_daily;
+
+  /// No description provided for @missions_tab_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get missions_tab_weekly;
+
+  /// No description provided for @missions_spotlight.
+  ///
+  /// In en, this message translates to:
+  /// **'MISSION OF THE DAY'**
+  String get missions_spotlight;
+
+  /// No description provided for @missions_see_all.
+  ///
+  /// In en, this message translates to:
+  /// **'SEE ALL'**
+  String get missions_see_all;
+
+  /// No description provided for @missions_reset_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic renewal: 00:05 UTC'**
+  String get missions_reset_hint;
+
+  /// No description provided for @missions_empty_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'No daily missions yet. New ones arrive every day at 00:05 UTC.'**
+  String get missions_empty_daily;
+
+  /// No description provided for @missions_empty_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'No weekly missions yet. They are assigned with the daily 00:05 UTC cycle.'**
+  String get missions_empty_weekly;
+
+  /// No description provided for @missions_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get missions_unavailable;
+
+  /// No description provided for @missions_unavailable_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'This mission cannot be completed with the current tracking.'**
+  String get missions_unavailable_hint;
+
+  /// No description provided for @missions_claim_xp.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim +{xp} XP'**
+  String missions_claim_xp(int xp);
+
+  /// No description provided for @missions_claim_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward claimed: +{xp} XP · +{gems} gems'**
+  String missions_claim_success(int xp, int gems);
+
+  /// No description provided for @missions_claim_already.
+  ///
+  /// In en, this message translates to:
+  /// **'You already claimed this reward.'**
+  String get missions_claim_already;
+
+  /// No description provided for @missions_claim_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t claim the reward. Check your connection and try again.'**
+  String get missions_claim_error;
+
+  /// No description provided for @missions_load_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your missions. Tap to retry.'**
+  String get missions_load_error;
+
+  /// No description provided for @missions_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get missions_retry;
+
+  /// No description provided for @missions_unit_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get missions_unit_minutes;
+
+  /// No description provided for @missions_unit_turns.
+  ///
+  /// In en, this message translates to:
+  /// **'turns'**
+  String get missions_unit_turns;
+
+  /// No description provided for @missions_unit_words.
+  ///
+  /// In en, this message translates to:
+  /// **'words'**
+  String get missions_unit_words;
+
+  /// No description provided for @missions_unit_sessions.
+  ///
+  /// In en, this message translates to:
+  /// **'sessions'**
+  String get missions_unit_sessions;
 
   /// No description provided for @league_level_title.
   ///
@@ -4996,6 +5272,30 @@ abstract class AppLocalizations {
   /// **'We detected that your device uses {lang}. The app will be shown in that language.'**
   String onboarding_device_lang(String lang);
 
+  /// No description provided for @privacy_title.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get privacy_title;
+
+  /// No description provided for @privacy_body.
+  ///
+  /// In en, this message translates to:
+  /// **'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings.'**
+  String get privacy_body;
+
+  /// No description provided for @privacy_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'GOT IT'**
+  String get privacy_accept;
+
+  /// No description provided for @onboarding_privacy_link.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get onboarding_privacy_link;
+
   /// No description provided for @onboarding_beginner.
   ///
   /// In en, this message translates to:
@@ -5133,6 +5433,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PRACTICE'**
   String get progress_practice;
+
+  /// No description provided for @settings_haptics.
+  ///
+  /// In en, this message translates to:
+  /// **'VIBRATION'**
+  String get settings_haptics;
+
+  /// No description provided for @settings_haptics_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrate on goal complete and level up'**
+  String get settings_haptics_desc;
+
+  /// No description provided for @settings_sounds.
+  ///
+  /// In en, this message translates to:
+  /// **'SOUNDS'**
+  String get settings_sounds;
+
+  /// No description provided for @settings_sounds_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'System sound on celebrations'**
+  String get settings_sounds_desc;
+
+  /// No description provided for @welcome_back_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WELCOME BACK'**
+  String get welcome_back_title;
+
+  /// No description provided for @welcome_back_days.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days away'**
+  String welcome_back_days(int days);
+
+  /// No description provided for @welcome_back_lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'You left off at {lesson}'**
+  String welcome_back_lesson(String lesson);
+
+  /// No description provided for @welcome_back_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} goals to go'**
+  String welcome_back_goals(int count);
+
+  /// No description provided for @welcome_back_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'You finished it. Replay it or pick the next one.'**
+  String get welcome_back_completed;
+
+  /// No description provided for @welcome_back_streak_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start a new streak today.'**
+  String get welcome_back_streak_reset;
+
+  /// No description provided for @welcome_back_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get welcome_back_continue;
+
+  /// No description provided for @welcome_back_later.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get welcome_back_later;
+
+  /// No description provided for @radar_estimated_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate based on your conversation'**
+  String get radar_estimated_tooltip;
+
+  /// No description provided for @radar_estimated_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate based on your conversation'**
+  String get radar_estimated_note;
+
+  /// No description provided for @radar_pronunciation_unmeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation: no real measurement yet'**
+  String get radar_pronunciation_unmeasured;
+
+  /// No description provided for @band_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get band_low;
+
+  /// No description provided for @band_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get band_medium;
+
+  /// No description provided for @band_high.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get band_high;
+
+  /// No description provided for @mana_cost_per_turn.
+  ///
+  /// In en, this message translates to:
+  /// **'{cost}/turn'**
+  String mana_cost_per_turn(int cost);
+
+  /// No description provided for @mana_low_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} turns left today'**
+  String mana_low_warning(int count);
+
+  /// No description provided for @mana_empty_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'No mana for the next turn'**
+  String get mana_empty_warning;
+
+  /// No description provided for @guardian_alternative_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WHILE YOU WAIT'**
+  String get guardian_alternative_title;
+
+  /// No description provided for @guardian_refill_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Refills in {hours} h {minutes} min'**
+  String guardian_refill_in(int hours, int minutes);
+
+  /// No description provided for @guardian_refill_at.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews on {date}'**
+  String guardian_refill_at(String date);
+
+  /// No description provided for @guardian_review_vocab.
+  ///
+  /// In en, this message translates to:
+  /// **'Review vocabulary (free)'**
+  String get guardian_review_vocab;
+
+  /// No description provided for @guardian_low_cost_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Text chat ({cost} mana)'**
+  String guardian_low_cost_chat(int cost);
+
+  /// No description provided for @guardian_no_due_words.
+  ///
+  /// In en, this message translates to:
+  /// **'No words due for review right now.'**
+  String get guardian_no_due_words;
+
+  /// No description provided for @daily_goal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY GOAL'**
+  String get daily_goal_title;
+
+  /// No description provided for @daily_goal_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {goal} min'**
+  String daily_goal_minutes(int done, int goal);
+
+  /// No description provided for @daily_goal_remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min to go'**
+  String daily_goal_remaining(int minutes);
+
+  /// No description provided for @daily_goal_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal complete'**
+  String get daily_goal_done;
+
+  /// No description provided for @daily_goal_streak.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d streak'**
+  String daily_goal_streak(int days);
+
+  /// No description provided for @daily_goal_celebrate.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY GOAL COMPLETE!'**
+  String get daily_goal_celebrate;
+
+  /// No description provided for @evidence_title.
+  ///
+  /// In en, this message translates to:
+  /// **'LEARNING EVIDENCE'**
+  String get evidence_title;
+
+  /// No description provided for @evidence_disclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence, not a grade.'**
+  String get evidence_disclaimer;
+
+  /// No description provided for @evidence_retention.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day retention'**
+  String get evidence_retention;
+
+  /// No description provided for @evidence_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparable progress'**
+  String get evidence_progress;
+
+  /// No description provided for @evidence_transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get evidence_transfer;
+
+  /// No description provided for @evidence_no_data.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get evidence_no_data;
+
+  /// No description provided for @evidence_needs_weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'You need 4 weeks'**
+  String get evidence_needs_weeks;
+
+  /// No description provided for @evidence_progress_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} → {last} missions/week'**
+  String evidence_progress_value(int first, int last);
+
+  /// No description provided for @evidence_transfer_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{types} mission types'**
+  String evidence_transfer_value(int types);
 
   /// No description provided for @progress_streak_at_risk.
   ///
@@ -6123,6 +6675,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transcription'**
   String get correction_type_typo_stt;
+
+  /// No description provided for @notif_settings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY REMINDER'**
+  String get notif_settings_title;
+
+  /// No description provided for @notif_settings_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'One reminder a day, at the time you choose. Never at night.'**
+  String get notif_settings_desc;
+
+  /// No description provided for @notif_time_label.
+  ///
+  /// In en, this message translates to:
+  /// **'REMINDER TIME'**
+  String get notif_time_label;
+
+  /// No description provided for @notif_days_label.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE DAYS'**
+  String get notif_days_label;
+
+  /// No description provided for @notif_quiet_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet hours are 22:00-08:00, so the reminder moved to 08:00.'**
+  String get notif_quiet_hours;
+
+  /// No description provided for @notif_time_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set for {time}.'**
+  String notif_time_updated(String time);
+
+  /// No description provided for @notif_permission_denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked. Allow them in Android settings > Apps > Dungeon of English > Notifications.'**
+  String get notif_permission_denied;
+
+  /// No description provided for @notif_permission_open_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN ANDROID SETTINGS'**
+  String get notif_permission_open_settings;
+
+  /// No description provided for @notif_prompt_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DON\'T LOSE YOUR STREAK'**
+  String get notif_prompt_title;
+
+  /// No description provided for @notif_prompt_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on one daily reminder and we will nudge you at the time you choose. You can change it or turn it off in Settings.'**
+  String get notif_prompt_body;
+
+  /// No description provided for @notif_prompt_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'TURN IT ON'**
+  String get notif_prompt_accept;
+
+  /// No description provided for @notif_prompt_later.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT NOW'**
+  String get notif_prompt_later;
+
+  /// No description provided for @notif_enabled_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder armed.'**
+  String get notif_enabled_ok;
+
+  /// No description provided for @notif_save_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the reminder. Check your connection and try again.'**
+  String get notif_save_error;
+
+  /// No description provided for @notif_reminder_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak awaits'**
+  String get notif_reminder_title;
+
+  /// No description provided for @notif_reminder_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A short raid today keeps the streak alive. Your tutor is ready.'**
+  String get notif_reminder_body;
 }
 
 class _AppLocalizationsDelegate

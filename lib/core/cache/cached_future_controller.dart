@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tutorsaas/core/utils/error_tracker.dart';
 
 /// Cache de datos por-usuario con TTL + stale-while-revalidate (SWR) y
 /// persistencia opcional en disco (cold start sin queries).
@@ -61,11 +62,13 @@ class CachedFutureController<T> extends StateNotifier<AsyncValue<T>> {
     // Sin dato en memoria → intenta la cache persistida (lectura instantánea).
     if (!state.hasValue && _diskLoader != null) {
       try {
-        final disk = await _diskLoader!();
+        final disk = await _diskLoader();
         if (disk != null) {
           state = AsyncValue.data(disk);
         }
-      } catch (_) {}
+      } catch (e, st) {
+        ErrorTracker.logSilent('lib/core/cache/cached_future_controller.dart:68', e, stackTrace: st);
+      }
     }
 
     final isFresh = _isFresh();
@@ -103,7 +106,7 @@ class CachedFutureController<T> extends StateNotifier<AsyncValue<T>> {
         state = AsyncValue.data(data);
       }
       if (_diskWriter != null) {
-        unawaited(_diskWriter!(data));
+        unawaited(_diskWriter(data));
       }
     } catch (e, st) {
       // Si ya hay dato (memoria/disco) se conserva: un refresh fallido no debe

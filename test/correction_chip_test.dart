@@ -6,13 +6,13 @@ import 'package:tutorsaas/features/corrections/presentation/widgets/correction_c
 /// P-29 — El chip es discreto: solo se despliega al tocarlo y respeta
 /// `correction_level`.
 void main() {
-  const grammar = SessionCorrection(
+  const grammar = TurnCorrection(
     original: 'I go yesterday',
     corrected: 'I went yesterday',
     type: CorrectionType.grammar,
     explanation: 'Use the past simple for finished actions.',
   );
-  const wordChoice = SessionCorrection(
+  const wordChoice = TurnCorrection(
     original: 'big house',
     corrected: 'large house',
     type: CorrectionType.wordChoice,
@@ -20,7 +20,7 @@ void main() {
 
   Future<void> pumpChip(
     WidgetTester tester, {
-    required List<SessionCorrection> corrections,
+    required List<TurnCorrection> corrections,
     required String level,
   }) {
     return tester.pumpWidget(

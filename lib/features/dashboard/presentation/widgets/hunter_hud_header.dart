@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/floating_reward.dart';
+import '../../../../core/services/sensory_feedback.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
@@ -135,7 +136,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
     final String cefrCode = progress['level_code'] as String? ?? 'A1';
     // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
     final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
-        ? (progress['game_rank'] as String)!
+        ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
     final int xp = progress['xp'] as int? ?? 0;
     final String languageEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
@@ -162,6 +163,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
     // Detección de subida de nivel (AN-E): muestra recompensa flotante.
     final currentLevel = xp ~/ _xpPerLevel;
     if (currentLevel > _lastLevel && _lastLevel >= 0) {
+      ref.read(sensoryFeedbackProvider).fire(SensoryEvent.levelUp);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           FloatingReward.show(

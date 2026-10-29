@@ -41,8 +41,8 @@ const int maxCorrectionTextLength = 240;
 const int maxCorrectionExplanationLength = 320;
 
 /// Una corrección concreta de un turno.
-class SessionCorrection {
-  const SessionCorrection({
+class TurnCorrection {
+  const TurnCorrection({
     required this.original,
     required this.corrected,
     required this.type,
@@ -72,8 +72,8 @@ class SessionCorrection {
   String get dedupeKey =>
       '${type.wireName}|${normalizeCorrectionText(original)}';
 
-  SessionCorrection copyWith({String? messageText, String? turnRef}) {
-    return SessionCorrection(
+  TurnCorrection copyWith({String? messageText, String? turnRef}) {
+    return TurnCorrection(
       original: original,
       corrected: corrected,
       type: type,
@@ -91,7 +91,7 @@ class CorrectionParseResult {
     this.discarded = 0,
   });
 
-  final List<SessionCorrection> corrections;
+  final List<TurnCorrection> corrections;
 
   /// Elementos rechazados (tipo desconocido, vacíos, duplicados o de más).
   final int discarded;
@@ -124,7 +124,7 @@ CorrectionParseResult parseCorrections(
   }
 
   final seen = <String>{};
-  final accepted = <SessionCorrection>[];
+  final accepted = <TurnCorrection>[];
   var discarded = 0;
 
   for (final item in raw) {
@@ -147,7 +147,7 @@ CorrectionParseResult parseCorrections(
   return CorrectionParseResult(corrections: accepted, discarded: discarded);
 }
 
-SessionCorrection? _parseOne(
+TurnCorrection? _parseOne(
   Object? item, {
   required String messageText,
   required String? turnRef,
@@ -167,7 +167,7 @@ SessionCorrection? _parseOne(
   final explanation =
       _cleanText(item['explanation'], maxCorrectionExplanationLength) ?? '';
 
-  return SessionCorrection(
+  return TurnCorrection(
     original: original,
     corrected: corrected,
     type: type,
@@ -240,8 +240,8 @@ bool showsCorrectionExplanation(String level) {
 ///
 /// `important_only` se limita a errores de gramática (los que más rompen la
 /// comprensión); no se puede detectar severidad real sin una señal del modelo.
-List<SessionCorrection> correctionsForLevel(
-  List<SessionCorrection> corrections,
+List<TurnCorrection> correctionsForLevel(
+  List<TurnCorrection> corrections,
   String level,
 ) {
   final normalized = normalizeCorrectionLevel(level);

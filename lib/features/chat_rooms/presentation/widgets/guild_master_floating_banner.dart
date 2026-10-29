@@ -146,7 +146,10 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
     try {
       final repo = ref.read(conversationRepositoryProvider);
       final buffer = StringBuffer();
-      await for (final chunk in repo.getTutorResponseStream(history)) {
+      await for (final chunk in repo.getTutorResponseStream(
+        history,
+        actionCode: 'guild_chat',
+      )) {
         buffer.write(chunk);
         setState(() {
           applyGuildMasterChunk(_chatHistory, buffer.toString());
@@ -190,7 +193,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
     final progress = ref.watch(userProgressProvider).value ?? {};
     final cefr = progress['level_code'] as String? ?? 'A1';
     final gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
-        ? (progress['game_rank'] as String)!
+        ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefr);
     final screenSize = MediaQuery.of(context).size;
 

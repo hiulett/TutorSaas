@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,17 +27,18 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _bioController;
   String _selectedLanguage = 'es';
-  String _currentAvatarUrl = 'warrior';
+  String _currentAvatarUrl = '';
+  String _selectedClass = 'warrior';
   bool _isSaving = false;
-  bool _isUploading = false;
 
   // Profile field state (sin stat points: STR/INT/DEX/LUK ya no se usan).
-  final List<Map<String, String>> _hunterClasses = [
-    {'id': 'warrior', 'name': 'WARRIOR', 'desc': 'Physical strength & high defense'},
-    {'id': 'mage', 'name': 'MAGE', 'desc': 'Spell casting & mana manipulation'},
-    {'id': 'assassin', 'name': 'ASSASSIN', 'desc': 'Stealth, speed & critical strikes'},
-    {'id': 'necromancer', 'name': 'NECROMANCER', 'desc': 'Summoning the dead & dark magic'},
-    {'id': 'priest', 'name': 'PRIEST', 'desc': 'Healing, buffing & holy light'},
+  // P-11g: solo el id; el nombre visible sale de l10n (`_className`).
+  final List<String> _hunterClasses = [
+    'warrior',
+    'mage',
+    'assassin',
+    'necromancer',
+    'priest',
   ];
 
   String _className(String id) {
@@ -69,13 +71,15 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       if (profile != null) {
         _nameController.text = profile['display_name'] as String? ?? '';
         _selectedLanguage = profile['native_language'] as String? ?? 'es';
-        _currentAvatarUrl = profile['avatar_url'] as String? ?? 'warrior';
+        _selectedClass = playerClassOf(profile);
+        _currentAvatarUrl = playerAvatarUrlOf(profile) ?? '';
         _bioController.text = profile['bio'] as String? ?? '';
         setState(() {});
       } else {
         final authUser = ref.read(currentUserProvider);
         _nameController.text = authUser?.userMetadata?['full_name'] ?? authUser?.email?.split('@').first ?? '';
-        _currentAvatarUrl = 'warrior';
+        _selectedClass = 'warrior';
+        _currentAvatarUrl = '';
         setState(() {});
       }
     });
@@ -103,7 +107,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       if (image == null) return;
 
       setState(() {
-        _isUploading = true;
       });
 
       final user = ref.read(currentUserProvider);
@@ -127,7 +130,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
       setState(() {
         _currentAvatarUrl = publicUrl;
-        _isUploading = false;
       });
 
       if (mounted && context.mounted) {
@@ -146,7 +148,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isUploading = false;
         });
       }
       if (mounted && context.mounted) {
@@ -324,12 +325,12 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                 alignment: Alignment.bottomRight,
                                 children: [
                                   RpgAvatar(
-                                    avatarUrl: _currentAvatarUrl,
+                                    avatarUrl: _currentAvatarUrl.isEmpty ? null : _currentAvatarUrl,
                                     initials: _nameController.text.isNotEmpty
                                         ? _nameController.text.substring(0, _nameController.text.length > 1 ? 2 : 1)
                                         : 'H',
                                     size: 80,
-                                    hunterClass: _currentAvatarUrl,
+                                    hunterClass: _selectedClass,
                                   ),
                                   GestureDetector(
                                     onTap: _showAvatarPicker,
@@ -380,7 +381,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      l10n.profile_edit_class_path(_currentAvatarUrl.toUpperCase()),
+                                      l10n.profile_edit_class_path(_className(_selectedClass)),
                                       style: GoogleFonts.jetBrainsMono(
                                         color: AppColors.onSurfaceVariant,
                                         fontSize: 11,
@@ -409,11 +410,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           spacing: 8,
                           runSpacing: 8,
                           children: _hunterClasses.map((hc) {
-                            final isSelected = _currentAvatarUrl == hc['id'];
+                            final isSelected = _selectedClass == hc;
                             return GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  _currentAvatarUrl = hc['id']!;
+                                  _selectedClass = hc;
                                 });
                               },
                               child: Container(
@@ -429,7 +430,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  _className(hc['id']!),
+                                  _className(hc),
                                   style: GoogleFonts.jetBrainsMono(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
@@ -554,7 +555,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                     await ref.read(dashboardRepositoryProvider).updateUserProfile(
                                       user.id,
                                       displayName: _nameController.text,
-                                      avatarUrl: _currentAvatarUrl,
+                                      avatarUrl: _currentAvatarUrl.isEmpty ? null : _currentAvatarUrl,
                                       nativeLanguage: _selectedLanguage,
                                       // Save stats inside the bio field formatted
                                       bio: _formatBio(),
@@ -566,10 +567,18 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                                       UserAttributes(
                                         data: {
                                           'full_name': _nameController.text,
-                                          'avatar_url': _currentAvatarUrl,
+                                          if (_currentAvatarUrl.isNotEmpty)
+                                            'avatar_url': _currentAvatarUrl,
                                         },
                                       ),
                                     );
+
+                                    // P-11i: la clase se guarda en su tabla, no
+                                    // en users.avatar_url.
+                                    await supabase
+                                        .from('user_language_profiles')
+                                        .update({'character_class': _selectedClass})
+                                        .eq('user_id', user.id);
 
                                     ref.invalidate(userProfileProvider);
                                     // Refresca el progreso (rango/nombre del

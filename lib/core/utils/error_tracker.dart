@@ -48,6 +48,12 @@ class ErrorTracker {
     }
   }
 
+  /// Registro de fallos best-effort (cache, preferencias, analitica): nunca
+  /// interrumpe al usuario, pero deja rastro en debug y en Sentry si esta activo.
+  static void logSilent(String context, Object error, {StackTrace? stackTrace}) {
+    logError('$context: $error', stackTrace: stackTrace);
+  }
+
   /// Record user interaction events for product analytics
   static void logEvent(String eventName, {Map<String, dynamic>? parameters}) {
     if (kDebugMode) {
