@@ -23,7 +23,8 @@ _Medido en producción el 18-oct-2026._
 - `user_language_profiles` es el centro del progreso: nivel CEFR, rango, XP,
   racha, clase de cazador, equipo cosmético.
 - `user_settings` guarda preferencias (meta diaria, intereses, estilo de
-  corrección, personalidad del tutor).
+  corrección, personalidad del tutor). También el opt-out de los emails de
+  reactivación (`reactivation_emails`) y su token de baja (issue #107).
 
 ### Aprendizaje
 `scenarios` (500 filas sembradas), `scenario_goals`, `scenario_objectives`,
@@ -77,7 +78,7 @@ _Medido en producción el 18-oct-2026._
 ### Operación
 `retention_events`, `analytics_events`, `api_request_logs`, `ai_usage_logs`,
 `llm_quota_events`, `revenuecat_events`, `system_ai_settings`,
-`player_daily_state`
+`player_daily_state`, `reactivation_emails`
 
 - `revenuecat_events` da idempotencia al webhook (PK = `event.id`).
 - `retention_events` recibe los eventos de producto (paywall, onboarding, etc.).
