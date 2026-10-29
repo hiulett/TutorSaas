@@ -17,13 +17,19 @@ import '../screens/dashboard_screen.dart';
 import '../../../missions/presentation/widgets/mission_spotlight_widget.dart';
 import 'league_leaderboard_widget.dart';
 import 'learning_evidence_card.dart';
+import 'level_checkpoint_banner.dart';
+import 'weekly_report_card.dart';
 import 'charts/skills_radar_chart.dart';
 
 class ProgressTabView extends ConsumerWidget {
   final Map<String, dynamic> profile;
   final Map<String, dynamic> progress;
 
-  const ProgressTabView({super.key, required this.profile, required this.progress});
+  const ProgressTabView({
+    super.key,
+    required this.profile,
+    required this.progress,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,10 +39,12 @@ class ProgressTabView extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
     final String playerClass = playerClassOf(profile);
     final String? avatarUrl = playerAvatarUrlOf(profile);
-    final String displayName = profile['display_name'] as String? ?? 'Estudiante TutorSaaS';
+    final String displayName =
+        profile['display_name'] as String? ?? 'Estudiante TutorSaaS';
     final String cefrCode = progress['level_code'] as String? ?? 'B1';
     // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
-    final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
+    final String gameRank =
+        (progress['game_rank'] as String?)?.isNotEmpty == true
         ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
     final String langEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
@@ -45,8 +53,9 @@ class ProgressTabView extends ConsumerWidget {
     final int streak = progress['streak'] as int? ?? 0;
 
     // P-04: el aviso usa la fecha real de la ultima practica, no un contador.
-    final DateTime? lastPractice =
-        DateTime.tryParse((progress['last_practice_date'] ?? '').toString());
+    final DateTime? lastPractice = DateTime.tryParse(
+      (progress['last_practice_date'] ?? '').toString(),
+    );
     final bool streakAtRisk = StreakRules.shouldRemind(
       streak: streak,
       lastPractice: lastPractice,
@@ -81,7 +90,12 @@ class ProgressTabView extends ConsumerWidget {
                 children: [
                   RpgAvatar(
                     avatarUrl: avatarUrl,
-                    initials: displayName.isNotEmpty ? displayName.substring(0, displayName.length > 1 ? 2 : 1) : 'H',
+                    initials: displayName.isNotEmpty
+                        ? displayName.substring(
+                            0,
+                            displayName.length > 1 ? 2 : 1,
+                          )
+                        : 'H',
                     size: 64,
                     hunterClass: playerClass,
                   ),
@@ -115,9 +129,17 @@ class ProgressTabView extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit_rounded, color: AppColors.runeViolet, size: 20),
+                        icon: const Icon(
+                          Icons.edit_rounded,
+                          color: AppColors.runeViolet,
+                          size: 20,
+                        ),
                         onPressed: () => context.push('/profile-edit'),
-                        tooltip: AppLocalizations.of(context)?.progress_edit_profile ?? 'Editar Perfil',
+                        tooltip:
+                            AppLocalizations.of(
+                              context,
+                            )?.progress_edit_profile ??
+                            'Editar Perfil',
                       ),
                     ],
                   ),
@@ -155,7 +177,10 @@ class ProgressTabView extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppLocalizations.of(context)?.progress_streak_at_risk ?? '¡RACHA EN RIESGO!',
+                            AppLocalizations.of(
+                                  context,
+                                )?.progress_streak_at_risk ??
+                                '¡RACHA EN RIESGO!',
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -167,7 +192,11 @@ class ProgressTabView extends ConsumerWidget {
                           Text(
                             AppLocalizations.of(context)?.progress_streak_hint(
                                   streak,
-                                  streak == 1 ? (AppLocalizations.of(context)?.days ?? 'día') : (AppLocalizations.of(context)?.days ?? 'días'),
+                                  streak == 1
+                                      ? (AppLocalizations.of(context)?.days ??
+                                            'día')
+                                      : (AppLocalizations.of(context)?.days ??
+                                            'días'),
                                 ) ??
                                 'Practica hoy para mantener tu racha de $streak ${streak == 1 ? 'día' : 'días'}.',
                             style: GoogleFonts.inter(
@@ -176,14 +205,21 @@ class ProgressTabView extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 10),
-                           SizedBox(
+                          SizedBox(
                             width: double.infinity,
                             height: 42,
                             child: ElevatedButton.icon(
-                              onPressed: () => ref.read(dashboardTabProvider.notifier).state = 0,
+                              onPressed: () =>
+                                  ref
+                                          .read(dashboardTabProvider.notifier)
+                                          .state =
+                                      0,
                               icon: const Icon(Icons.mic_rounded, size: 16),
                               label: Text(
-                                AppLocalizations.of(context)?.progress_practice ?? 'PRACTICAR',
+                                AppLocalizations.of(
+                                      context,
+                                    )?.progress_practice ??
+                                    'PRACTICAR',
                                 style: GoogleFonts.jetBrainsMono(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -211,6 +247,10 @@ class ProgressTabView extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
+            // P-43 (#128): mini-chequeo del nivel cada ~10 lecciones.
+            const LevelCheckpointBanner(),
+            const SizedBox(height: 12),
+
             // Key Real DB Stats Grid
             Row(
               children: [
@@ -221,15 +261,26 @@ class ProgressTabView extends ConsumerWidget {
                     padding: const EdgeInsets.all(14),
                     child: Column(
                       children: [
-                        const Icon(Icons.stars_rounded, color: AppColors.royalGold, size: 22),
+                        const Icon(
+                          Icons.stars_rounded,
+                          color: AppColors.royalGold,
+                          size: 22,
+                        ),
                         const SizedBox(height: 6),
                         Text(
                           '$xp XP',
-                          style: const TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            color: AppColors.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         Text(
                           l10n.progress_xp_points,
-                          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10),
+                          style: const TextStyle(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -243,15 +294,26 @@ class ProgressTabView extends ConsumerWidget {
                     padding: const EdgeInsets.all(14),
                     child: Column(
                       children: [
-                        const Icon(Icons.local_fire_department_rounded, color: AppColors.royalGold, size: 22),
+                        const Icon(
+                          Icons.local_fire_department_rounded,
+                          color: AppColors.royalGold,
+                          size: 22,
+                        ),
                         const SizedBox(height: 6),
                         Text(
                           '$streak Días',
-                          style: const TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            color: AppColors.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         Text(
                           l10n.progress_active_streak,
-                          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10),
+                          style: const TextStyle(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -265,15 +327,26 @@ class ProgressTabView extends ConsumerWidget {
                     padding: const EdgeInsets.all(14),
                     child: Column(
                       children: [
-                        const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 22),
+                        const Icon(
+                          Icons.psychology_rounded,
+                          color: AppColors.manaCyan,
+                          size: 22,
+                        ),
                         const SizedBox(height: 6),
                         Text(
                           'Rango $gameRank',
-                          style: const TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            color: AppColors.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         Text(
                           l10n.progress_active_rank,
-                          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10),
+                          style: const TextStyle(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -292,9 +365,14 @@ class ProgressTabView extends ConsumerWidget {
             const LearningEvidenceCard(),
             const SizedBox(height: 12),
 
+            // P-43 (#128): informe semanal calculado en servidor.
+            const WeeklyReportCard(),
+            const SizedBox(height: 12),
+
             // Weekly Practice Chart Title & Card
             Text(
-              AppLocalizations.of(context)?.progress_weekly_voice ?? 'Práctica Semanal (Minutos de Voz)',
+              AppLocalizations.of(context)?.progress_weekly_voice ??
+                  'Práctica Semanal (Minutos de Voz)',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -332,7 +410,10 @@ class ProgressTabView extends ConsumerWidget {
                             height: height > 6 ? height : 6,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [AppColors.runeViolet, AppColors.manaCyan],
+                                colors: [
+                                  AppColors.runeViolet,
+                                  AppColors.manaCyan,
+                                ],
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
                               ),
@@ -358,7 +439,9 @@ class ProgressTabView extends ConsumerWidget {
                 blur: 20,
                 opacity: AppColors.glassOpacity,
                 padding: EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: CircularProgressIndicator(color: AppColors.runeViolet)),
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.runeViolet),
+                ),
               ),
               error: (e, s) => GlassCard(
                 blur: 20,
@@ -367,7 +450,9 @@ class ProgressTabView extends ConsumerWidget {
                 child: Center(
                   child: Text(
                     'Error al cargar datos de práctica',
-                    style: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.7)),
+                    style: TextStyle(
+                      color: AppColors.onSurface.withValues(alpha: 0.7),
+                    ),
                   ),
                 ),
               ),
@@ -423,14 +508,23 @@ class LeaderboardSection extends StatelessWidget {
     final ranked = [...entries];
     if (ranked.isEmpty) {
       // Sin datos de BD → solo el usuario (vista mínima real).
-      rows.add({'rank': 1, 'name': currentDisplayName, 'xp': currentXp, 'stars': 0, 'avatar': null, 'isUser': true});
+      rows.add({
+        'rank': 1,
+        'name': currentDisplayName,
+        'xp': currentXp,
+        'stars': 0,
+        'avatar': null,
+        'isUser': true,
+      });
     } else {
       for (var i = 0; i < ranked.length; i++) {
         final e = ranked[i];
         final isUser = e['user_id']?.toString() == currentUserId;
         rows.add({
           'rank': i + 1,
-          'name': isUser ? currentDisplayName : 'Cazador ${e['user_id'].toString().substring(0, 4).toUpperCase()}',
+          'name': isUser
+              ? currentDisplayName
+              : 'Cazador ${e['user_id'].toString().substring(0, 4).toUpperCase()}',
           'xp': (e['xp_points'] as num?)?.toInt() ?? 0,
           'stars': 0,
           'avatar': isUser ? null : null,
@@ -439,7 +533,8 @@ class LeaderboardSection extends StatelessWidget {
       }
     }
     return LeagueLeaderboardWidget(
-      activeLeague: AppLocalizations.of(context)?.progress_xp_rank ?? 'Rango de XP',
+      activeLeague:
+          AppLocalizations.of(context)?.progress_xp_rank ?? 'Rango de XP',
       userRank: rows.indexWhere((r) => r['isUser'] == true) + 1,
       userXp: currentXp,
       userLevelCode: currentLevel,

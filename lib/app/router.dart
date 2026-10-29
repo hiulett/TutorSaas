@@ -16,6 +16,7 @@ import '../features/economy/presentation/screens/shop_screen.dart';
 import '../features/economy/presentation/screens/inventory_screen.dart';
 import '../features/economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../features/corrections/presentation/screens/my_errors_screen.dart';
+import '../features/weekly_report/presentation/screens/weekly_report_screen.dart';
 import '../features/boss_exam/domain/models/boss_exam_outcome.dart';
 import '../features/boss_exam/presentation/screens/boss_exam_result_screen.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
@@ -115,6 +116,12 @@ final List<RouteBase> appRoutes = <RouteBase>[
   GoRoute(
     path: '/my-errors',
     builder: (context, state) => const MyErrorsScreen(),
+  ),
+
+  // P-43 (#128): informe semanal calculado en servidor.
+  GoRoute(
+    path: '/weekly-report',
+    builder: (context, state) => const WeeklyReportScreen(),
   ),
   GoRoute(
     path: '/missions',

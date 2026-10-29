@@ -27,6 +27,7 @@ void main() {
         '/inventory',
         '/dungeon-guardian',
         '/boss-result',
+        '/weekly-report',
       ]),
     );
     expect(paths, isNot(contains('/disruption')));

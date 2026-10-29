@@ -1,12 +1,12 @@
 # Modelo de datos
 
-_Medido en producción el 18-oct-2026._
+_Medido en producción el 29-oct-2026._
 
 | Objeto | Cantidad |
 |---|---|
-| Tablas en `public` | **75** |
-| Políticas RLS | **120** sobre 72 tablas |
-| Funciones (`public`) | **52** |
+| Tablas en `public` | **84** |
+| Políticas RLS | **130** sobre 80 tablas |
+| Funciones (`public`) | **82** |
 | Trabajos `pg_cron` | 3 |
 | Buckets de Storage | 1 |
 | Vistas | 0 |
@@ -166,6 +166,9 @@ restauran ítems equipados. El cliente interpreta el resultado con
 | `get_daily_goal_progress(tz)` | Minutos de hoy, meta, racha y si ya se celebró (P-23) |
 | `claim_daily_goal_celebration(tz)` | Celebración de la meta, una vez por día (P-23) |
 | `claim_mana_grace(user)` | Turno de gracia diario del maná; solo `service_role` (P-26) |
+| `boss_exam_status(language)` | Requisitos del jefe + mini-chequeo cada 10 lecciones (P-31 #116, P-43 #128) |
+| `get_weekly_report(week_offset, tz, language)` | Informe semanal en servidor: palabras, correcciones, minutos, lecciones y nivel; `has_data=false` si la semana está vacía (P-43 #128) |
+| `learning_evidence()` | Retención, misiones y transferencia sin inventar ceros (#74) |
 
 ---
 
@@ -173,17 +176,19 @@ restauran ítems equipados. El cliente interpreta el resultado con
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` (raíz) | 134 |
-| Con prefijo válido de 14 dígitos | 59 |
+| Archivos `.sql` en `supabase/migrations/` (raíz) | 164 |
+| Con prefijo válido de 14 dígitos | 89 |
 | Sin prefijo (el CLI los ignora) | 75 |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas | **67** |
+| Migraciones aplicadas | **98** |
 
-El repo **no reproduce** el esquema: 33 migraciones se aplicaron desde el SQL
-Editor y solo existen en el historial de Supabase.
+_Recuento local y `schema_migrations` del 29-oct-2026._
 
-⚠️ **No ejecutar `supabase db push` contra producción**: intentaría aplicar 26
-archivos con prefijo no registrado.
+El repo **no reproduce** el esquema: parte del historial se aplicó desde el SQL
+Editor o por MCP y solo existe en `schema_migrations` de Supabase.
+
+⚠️ **No ejecutar `supabase db push` contra producción**: intentaría aplicar
+archivos con prefijo que no están registrados en el historial.
 
 La foto verificada del esquema (recuentos y consulta para regenerarla) está en
 [runbooks/SCHEMA_BASELINE.md](runbooks/SCHEMA_BASELINE.md).

@@ -20,6 +20,12 @@ void main() {
     expect(router.contains('boss_exam_result_screen.dart'), isTrue);
   });
 
+  test('P-43: /weekly-report está registrada y apunta al informe semanal', () {
+    expect(router.contains("path: '/weekly-report'"), isTrue);
+    expect(router.contains('WeeklyReportScreen()'), isTrue);
+    expect(router.contains('weekly_report_screen.dart'), isTrue);
+  });
+
   test('las rutas documentadas siguen presentes', () {
     for (final path in [
       '/splash',

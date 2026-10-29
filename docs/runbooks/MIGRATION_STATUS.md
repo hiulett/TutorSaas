@@ -1,26 +1,26 @@
 # Estado de las migraciones (auditoría real)
 
-_Actualizado: 29-oct-2026 (recuento aplicado; el desglose de archivos es del 18-oct)._
+_Actualizado: 29-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
 
-> Estado actual verificado: **97 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **98 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | **116** |
-| De ellos, con prefijo de 14 dígitos válido | 41 |
+| Archivos `.sql` en `supabase/migrations/` | **164** |
+| De ellos, con prefijo de 14 dígitos válido | 89 |
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **48** |
-| Aplicadas **con** archivo correspondiente | 15 |
-| Aplicadas **sin** archivo en el repo | **33** |
-| Archivos con prefijo que **no** están aplicados | 26 |
+| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **98** |
+| Aplicadas **con** archivo correspondiente | 59 |
+| Aplicadas **sin** archivo en el repo | **39** |
+| Archivos con prefijo que **no** están aplicados | 30 |
 
 ## Por qué el repo no reproduce el esquema
 
-1. **33 migraciones se aplicaron desde el SQL Editor / dashboard** y no tienen
+1. **39 migraciones se aplicaron desde el SQL Editor / dashboard / MCP** y no tienen
    archivo: quedaron guardadas en la tabla de historial con sus sentencias, pero
    el repo no las conoce.
 2. **75 archivos no siguen la convención `<14 dígitos>_nombre.sql`**, así que
