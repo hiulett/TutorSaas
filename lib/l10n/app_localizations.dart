@@ -5314,6 +5314,30 @@ abstract class AppLocalizations {
   /// **'PRACTICE'**
   String get progress_practice;
 
+  /// No description provided for @settings_haptics.
+  ///
+  /// In en, this message translates to:
+  /// **'VIBRATION'**
+  String get settings_haptics;
+
+  /// No description provided for @settings_haptics_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrate on goal complete and level up'**
+  String get settings_haptics_desc;
+
+  /// No description provided for @settings_sounds.
+  ///
+  /// In en, this message translates to:
+  /// **'SOUNDS'**
+  String get settings_sounds;
+
+  /// No description provided for @settings_sounds_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'System sound on celebrations'**
+  String get settings_sounds_desc;
+
   /// No description provided for @welcome_back_title.
   ///
   /// In en, this message translates to:

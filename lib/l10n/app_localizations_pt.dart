@@ -2878,6 +2878,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get progress_practice => 'PRATICAR';
 
   @override
+  String get settings_haptics => 'VIBRAÇÃO';
+
+  @override
+  String get settings_haptics_desc =>
+      'Vibra ao cumprir a meta e ao subir de nível';
+
+  @override
+  String get settings_sounds => 'SONS';
+
+  @override
+  String get settings_sounds_desc => 'Som do sistema nas celebrações';
+
+  @override
   String get welcome_back_title => 'BEM-VINDO DE VOLTA';
 
   @override

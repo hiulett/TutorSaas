@@ -2869,6 +2869,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progress_practice => 'PRACTICE';
 
   @override
+  String get settings_haptics => 'VIBRATION';
+
+  @override
+  String get settings_haptics_desc => 'Vibrate on goal complete and level up';
+
+  @override
+  String get settings_sounds => 'SOUNDS';
+
+  @override
+  String get settings_sounds_desc => 'System sound on celebrations';
+
+  @override
   String get welcome_back_title => 'WELCOME BACK';
 
   @override

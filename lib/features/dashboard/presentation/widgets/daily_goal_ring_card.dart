@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/services/sensory_feedback.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/daily_goal_progress.dart';
 import '../providers/dashboard_providers.dart';
@@ -64,7 +64,7 @@ class _DailyGoalRingCardState extends ConsumerState<DailyGoalRingCard>
       return;
     }
     setState(() => _celebratedNow = true);
-    await HapticFeedback.heavyImpact();
+    await ref.read(sensoryFeedbackProvider).fire(SensoryEvent.goalCompleted);
     _celebration.forward(from: 0);
     ref.invalidate(dailyGoalProgressProvider);
   }
