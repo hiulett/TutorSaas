@@ -3260,4 +3260,59 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboarding_english_only =>
       'You will learn English. You can change the interface language in Settings.';
+
+  @override
+  String corrections_chip_label(int count) {
+    return 'FIX $count';
+  }
+
+  @override
+  String get corrections_you_wrote => 'You wrote';
+
+  @override
+  String get corrections_suggested => 'Better';
+
+  @override
+  String get my_errors_title => 'MY ERRORS';
+
+  @override
+  String get my_errors_short => 'ERRORS';
+
+  @override
+  String get my_errors_subtitle =>
+      'Grouped by type and recurrence. Recurrent mistakes feed your reinforcement missions.';
+
+  @override
+  String get my_errors_empty =>
+      'No errors recorded yet. Finish a lesson and your corrections will appear here.';
+
+  @override
+  String get my_errors_error =>
+      'We could not load your errors. Check your connection and retry.';
+
+  @override
+  String get my_errors_retry => 'RETRY';
+
+  @override
+  String my_errors_times(int count) {
+    return '${count}x';
+  }
+
+  @override
+  String get my_errors_recurring_badge => 'RECURRING';
+
+  @override
+  String get correction_type_grammar => 'Grammar';
+
+  @override
+  String get correction_type_vocabulary => 'Vocabulary';
+
+  @override
+  String get correction_type_word_choice => 'Word choice';
+
+  @override
+  String get correction_type_pronunciation_hint => 'Pronunciation';
+
+  @override
+  String get correction_type_typo_stt => 'Transcription';
 }

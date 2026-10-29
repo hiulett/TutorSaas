@@ -1142,5 +1142,35 @@
   "oracle_challenge_title": "ORACLE EVALUATION",
   "oracle_challenge_ready": "The Oracle awaits you. Challenge available!",
   "oracle_challenge_progress": "Complete 80% to challenge the Oracle ({percent}%)",
-  "onboarding_english_only": "You will learn English. You can change the interface language in Settings."
+  "onboarding_english_only": "You will learn English. You can change the interface language in Settings.",
+  "corrections_chip_label": "FIX {count}",
+  "@corrections_chip_label": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "corrections_you_wrote": "You wrote",
+  "corrections_suggested": "Better",
+  "my_errors_title": "MY ERRORS",
+  "my_errors_short": "ERRORS",
+  "my_errors_subtitle": "Grouped by type and recurrence. Recurrent mistakes feed your reinforcement missions.",
+  "my_errors_empty": "No errors recorded yet. Finish a lesson and your corrections will appear here.",
+  "my_errors_error": "We could not load your errors. Check your connection and retry.",
+  "my_errors_retry": "RETRY",
+  "my_errors_times": "{count}x",
+  "@my_errors_times": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "my_errors_recurring_badge": "RECURRING",
+  "correction_type_grammar": "Grammar",
+  "correction_type_vocabulary": "Vocabulary",
+  "correction_type_word_choice": "Word choice",
+  "correction_type_pronunciation_hint": "Pronunciation",
+  "correction_type_typo_stt": "Transcription"
 }

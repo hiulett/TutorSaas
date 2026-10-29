@@ -3267,4 +3267,59 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get onboarding_english_only =>
       'Você aprenderá inglês. Pode alterar o idioma da interface nas Configurações.';
+
+  @override
+  String corrections_chip_label(int count) {
+    return 'CORRIGIR $count';
+  }
+
+  @override
+  String get corrections_you_wrote => 'Escreveste';
+
+  @override
+  String get corrections_suggested => 'Melhor';
+
+  @override
+  String get my_errors_title => 'MEUS ERROS';
+
+  @override
+  String get my_errors_short => 'ERROS';
+
+  @override
+  String get my_errors_subtitle =>
+      'Agrupados por tipo e recorrência. Os erros recorrentes alimentam as tuas missões de reforço.';
+
+  @override
+  String get my_errors_empty =>
+      'Ainda não há erros registados. Termina uma lição e as tuas correções aparecerão aqui.';
+
+  @override
+  String get my_errors_error =>
+      'Não foi possível carregar os teus erros. Verifica a ligação e tenta novamente.';
+
+  @override
+  String get my_errors_retry => 'TENTAR NOVAMENTE';
+
+  @override
+  String my_errors_times(int count) {
+    return '${count}x';
+  }
+
+  @override
+  String get my_errors_recurring_badge => 'RECORRENTE';
+
+  @override
+  String get correction_type_grammar => 'Gramática';
+
+  @override
+  String get correction_type_vocabulary => 'Vocabulário';
+
+  @override
+  String get correction_type_word_choice => 'Escolha de palavra';
+
+  @override
+  String get correction_type_pronunciation_hint => 'Pronúncia';
+
+  @override
+  String get correction_type_typo_stt => 'Transcrição';
 }

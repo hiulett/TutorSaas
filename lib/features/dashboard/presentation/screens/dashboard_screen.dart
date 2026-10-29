@@ -374,6 +374,13 @@ class DashboardScreen extends ConsumerWidget {
                                           color: dailyClaimed ? AppColors.emeraldGreen : AppColors.royalGold,
                                           onTap: () => DailyRewardModal.show(context),
                                         ),
+                                        // P-29: historial de errores propios.
+                                        _buildQuickAccess(
+                                          icon: Icons.spellcheck_rounded,
+                                          label: l10n?.my_errors_short ?? 'ERRORES',
+                                          color: AppColors.emeraldGreen,
+                                          onTap: () => context.push('/my-errors'),
+                                        ),
                                       ],
                                     ),
 

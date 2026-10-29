@@ -903,5 +903,21 @@
   "oracle_challenge_title": "EVALUACIÓN DEL ORÁCULO",
   "oracle_challenge_ready": "El Oráculo te espera. ¡Reto disponible!",
   "oracle_challenge_progress": "Completa el 80% para retar al Oráculo ({percent}%)",
-  "onboarding_english_only": "Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes."
+  "onboarding_english_only": "Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes.",
+  "corrections_chip_label": "CORREGIR {count}",
+  "corrections_you_wrote": "Escribiste",
+  "corrections_suggested": "Mejor",
+  "my_errors_title": "MIS ERRORES",
+  "my_errors_short": "ERRORES",
+  "my_errors_subtitle": "Agrupados por tipo y recurrencia. Los errores recurrentes alimentan tus misiones de refuerzo.",
+  "my_errors_empty": "Todavía no hay errores registrados. Termina una lección y tus correcciones aparecerán aquí.",
+  "my_errors_error": "No pudimos cargar tus errores. Revisa tu conexión y reintenta.",
+  "my_errors_retry": "REINTENTAR",
+  "my_errors_times": "{count}x",
+  "my_errors_recurring_badge": "RECURRENTE",
+  "correction_type_grammar": "Gramática",
+  "correction_type_vocabulary": "Vocabulario",
+  "correction_type_word_choice": "Elección de palabra",
+  "correction_type_pronunciation_hint": "Pronunciación",
+  "correction_type_typo_stt": "Transcripción"
 }

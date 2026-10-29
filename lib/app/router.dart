@@ -13,6 +13,7 @@ import '../features/chat_rooms/presentation/screens/chat_rooms_screen.dart';
 import '../features/economy/presentation/screens/shop_screen.dart';
 import '../features/economy/presentation/screens/inventory_screen.dart';
 import '../features/economy/presentation/screens/dungeon_guardian_screen.dart';
+import '../features/corrections/presentation/screens/my_errors_screen.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
 import 'splash_screen.dart';
 import 'navigation_resolver.dart';
@@ -132,6 +133,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     GoRoute(
       path: '/dungeon-guardian',
       builder: (context, state) => const DungeonGuardianScreen(),
+    ),
+    // P-29: historial de errores agrupado por tipo y recurrencia.
+    GoRoute(
+      path: '/my-errors',
+      builder: (context, state) => const MyErrorsScreen(),
     ),
   ],
   );

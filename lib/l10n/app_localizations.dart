@@ -6027,6 +6027,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will learn English. You can change the interface language in Settings.'**
   String get onboarding_english_only;
+
+  /// No description provided for @corrections_chip_label.
+  ///
+  /// In en, this message translates to:
+  /// **'FIX {count}'**
+  String corrections_chip_label(int count);
+
+  /// No description provided for @corrections_you_wrote.
+  ///
+  /// In en, this message translates to:
+  /// **'You wrote'**
+  String get corrections_you_wrote;
+
+  /// No description provided for @corrections_suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Better'**
+  String get corrections_suggested;
+
+  /// No description provided for @my_errors_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MY ERRORS'**
+  String get my_errors_title;
+
+  /// No description provided for @my_errors_short.
+  ///
+  /// In en, this message translates to:
+  /// **'ERRORS'**
+  String get my_errors_short;
+
+  /// No description provided for @my_errors_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Grouped by type and recurrence. Recurrent mistakes feed your reinforcement missions.'**
+  String get my_errors_subtitle;
+
+  /// No description provided for @my_errors_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No errors recorded yet. Finish a lesson and your corrections will appear here.'**
+  String get my_errors_empty;
+
+  /// No description provided for @my_errors_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not load your errors. Check your connection and retry.'**
+  String get my_errors_error;
+
+  /// No description provided for @my_errors_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get my_errors_retry;
+
+  /// No description provided for @my_errors_times.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}x'**
+  String my_errors_times(int count);
+
+  /// No description provided for @my_errors_recurring_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'RECURRING'**
+  String get my_errors_recurring_badge;
+
+  /// No description provided for @correction_type_grammar.
+  ///
+  /// In en, this message translates to:
+  /// **'Grammar'**
+  String get correction_type_grammar;
+
+  /// No description provided for @correction_type_vocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary'**
+  String get correction_type_vocabulary;
+
+  /// No description provided for @correction_type_word_choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Word choice'**
+  String get correction_type_word_choice;
+
+  /// No description provided for @correction_type_pronunciation_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation'**
+  String get correction_type_pronunciation_hint;
+
+  /// No description provided for @correction_type_typo_stt.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcription'**
+  String get correction_type_typo_stt;
 }
 
 class _AppLocalizationsDelegate
