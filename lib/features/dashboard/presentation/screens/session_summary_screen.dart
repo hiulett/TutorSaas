@@ -8,7 +8,9 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
+import '../../domain/models/remedial_lesson.dart';
 import '../../domain/models/session_learned_summary.dart';
+import '../../domain/services/lesson_generator_service.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../economy/presentation/widgets/session_drop_controller.dart';
 import '../../../notifications/presentation/widgets/notification_permission_prompt.dart';
@@ -231,6 +233,10 @@ class SessionSummaryScreen extends ConsumerWidget {
                             sessionLearnedSummaryProvider(learnedKey),
                           ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // ── Lección de refuerzo (P-42) ────────────────────────────
+                  const _RemedialCard(),
                   const SizedBox(height: 16),
 
                   // ── Recompensas + acciones ────────────────────────────────
@@ -801,6 +807,137 @@ String? _uuidOrNull(Object? value) {
 }
 
 // ── Sub-widgets compactos ─────────────────────────────────────────────────────
+
+/// P-42 (#127): tarjeta de la lección de refuerzo.
+///
+/// Pinta el estado real del intento: jugable (con su coste), sin evidencia,
+/// maná insuficiente o fallo reembolsado (con reintento). Nunca queda en blanco
+/// ni bloquea el botón «LISTO».
+class _RemedialCard extends ConsumerWidget {
+  const _RemedialCard();
+
+  Future<void> _retry(WidgetRef ref) async {
+    final ctx = ref.read(remedialRetryContextProvider);
+    if (ctx == null) return;
+    final result = await LessonGeneratorService.ensureRemedialLesson(
+      plan: ctx.plan,
+      level: ctx.level,
+      parentId: ctx.parentId,
+    );
+    ref.read(remedialLessonProvider.notifier).state = result;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final result = ref.watch(remedialLessonProvider);
+    if (result == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
+
+    final (
+      Color color,
+      IconData icon,
+      String message,
+    ) = switch (result.status) {
+      RemedialLessonStatus.generated => (
+        AppColors.emeraldGreen,
+        Icons.auto_awesome_rounded,
+        l10n.summary_remedial_generated,
+      ),
+      RemedialLessonStatus.reused => (
+        AppColors.manaCyan,
+        Icons.replay_rounded,
+        l10n.summary_remedial_reused,
+      ),
+      RemedialLessonStatus.noEvidence => (
+        AppColors.royalGold,
+        Icons.info_outline_rounded,
+        l10n.summary_remedial_no_evidence,
+      ),
+      RemedialLessonStatus.insufficientMana => (
+        AppColors.royalGold,
+        Icons.bolt_rounded,
+        l10n.summary_remedial_insufficient_mana,
+      ),
+      RemedialLessonStatus.failed => (
+        AppColors.errorRed,
+        Icons.error_outline_rounded,
+        l10n.summary_remedial_failed,
+      ),
+    };
+
+    final scenarioId = result.scenarioId;
+    final scenarioTitle = result.scenarioTitle;
+
+    return GlassCard(
+      blur: 16,
+      opacity: AppColors.glassOpacity,
+      borderColor: color.withValues(alpha: 0.25),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                l10n.summary_remedial_title,
+                style: AppTypography.title(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(message, style: AppTypography.bodyMuted(context)),
+          if (result.isPlayable && scenarioId != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              l10n.summary_remedial_cost(result.cost),
+              style: AppTypography.tiny(context),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.fitness_center_rounded, size: 16),
+              label: Text(l10n.summary_remedial_play),
+              onPressed: () {
+                final title = Uri.encodeComponent(
+                  scenarioTitle ?? l10n.summary_remedial_title,
+                );
+                context.push(
+                  '/conversation?scenarioId=$scenarioId&scenarioTitle=$title',
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: AppColors.voidBg,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                elevation: 3,
+              ),
+            ),
+          ],
+          if (result.isRetryable) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: Text(l10n.summary_remedial_retry),
+              onPressed: () => _retry(ref),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: color,
+                side: BorderSide(color: color.withValues(alpha: 0.35)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
 
 /// Título de sección (icono + texto).
 class _SectionTitle extends StatelessWidget {

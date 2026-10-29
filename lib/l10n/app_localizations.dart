@@ -4192,6 +4192,60 @@ abstract class AppLocalizations {
   /// **'You spoke {count} words with good pacing.'**
   String session_words_spoken(int count);
 
+  /// No description provided for @summary_remedial_title.
+  ///
+  /// In en, this message translates to:
+  /// **'REINFORCEMENT'**
+  String get summary_remedial_title;
+
+  /// No description provided for @summary_remedial_generated.
+  ///
+  /// In en, this message translates to:
+  /// **'We built a lesson from your recurring mistakes and the goals you missed.'**
+  String get summary_remedial_generated;
+
+  /// No description provided for @summary_remedial_reused.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reinforcement lesson is ready.'**
+  String get summary_remedial_reused;
+
+  /// No description provided for @summary_remedial_play.
+  ///
+  /// In en, this message translates to:
+  /// **'PRACTICE MY WEAKNESSES'**
+  String get summary_remedial_play;
+
+  /// No description provided for @summary_remedial_no_evidence.
+  ///
+  /// In en, this message translates to:
+  /// **'No reinforcement lesson yet: we need your recorded mistakes or a missed goal to aim it.'**
+  String get summary_remedial_no_evidence;
+
+  /// No description provided for @summary_remedial_insufficient_mana.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have enough mana for a reinforcement lesson. It will be available once your balance renews.'**
+  String get summary_remedial_insufficient_mana;
+
+  /// No description provided for @summary_remedial_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t create the reinforcement lesson. Your mana was refunded.'**
+  String get summary_remedial_failed;
+
+  /// No description provided for @summary_remedial_cost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost: {cost} mana'**
+  String summary_remedial_cost(int cost);
+
+  /// No description provided for @summary_remedial_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get summary_remedial_retry;
+
   /// No description provided for @session_ready.
   ///
   /// In en, this message translates to:

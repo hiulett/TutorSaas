@@ -23,6 +23,7 @@ import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../dashboard/data/models/hunter_skill_titles.dart';
 import '../../../dashboard/domain/services/lesson_generator_service.dart';
 import '../../../dashboard/domain/models/lesson_unlock_service.dart';
+import '../../../dashboard/domain/models/remedial_lesson.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../onboarding/data/placement_service.dart';
@@ -1589,10 +1590,13 @@ ENDING:
 
     final userId = _userId;
     final turnRef = _correctionTurnRef;
-    if (userId == null || userId.startsWith('guest_') || turnRef == null) return;
+    if (userId == null || userId.startsWith('guest_') || turnRef == null)
+      return;
 
     unawaited(
-      _ref.read(correctionsRepositoryProvider).saveCorrections(
+      _ref
+          .read(correctionsRepositoryProvider)
+          .saveCorrections(
             userId: userId,
             turnRef: turnRef,
             corrections: corrections,
@@ -1753,11 +1757,12 @@ ENDING:
         }
       }
 
-      // Router pedagógico: si la lección NO se superó (<80% de metas), se
-      // genera/reutiliza una SUB MISIÓN de refuerzo para el skill más débil
-      // (vía lesson-generator, que debita 100 maná server-side). El resultado
-      // se inyecta al catálogo para que el mapa la muestre como mazmorra oculta.
+      // P-42 (#127) — Refuerzo con evidencia real. Si la lección no se superó
+      // (<80% de metas) se construye un plan con los errores recurrentes
+      // (P-29) y los objetivos fallados. Sin evidencia no se genera ni se
+      // cobra nada, y la UI lo explica en el resumen de sesión.
       if (scenarioId != null && !state.isOracleEvaluation) {
+        _ref.read(remedialLessonProvider.notifier).state = null;
         try {
           final lesson = LessonCatalog.getLessonById(scenarioId);
           final evaluated = state.goalEvaluationResults.length;
@@ -1768,45 +1773,58 @@ ENDING:
           final ratio = totalGoals > 0 ? completedGoals / totalGoals : 1.0;
           if (evaluated > 0 && ratio < LessonUnlockService.passThreshold) {
             final radar = await _ref.read(skillsRadarProvider.future);
-            final skill = LessonGeneratorService.weakestSkill(radar);
+            // Los errores de esta misma sesión ya están en `corrections`:
+            // se releen para que el refuerzo use la evidencia más reciente.
+            await _loadRecurringErrors();
+            final failedGoals = (lesson?.goals ?? const [])
+                .where((g) => state.goalEvaluationResults[g.id] == false)
+                .map((g) => g.text)
+                .toList();
+            final plan = buildRemedialPlan(
+              radar: radar,
+              recurringErrors: _recurringErrors,
+              failedGoals: failedGoals,
+            );
             final level =
                 (_ref.read(userProgressProvider).value?['level_code']
                     as String?) ??
                 'A1';
-            // Issue #81: la lección de refuerzo se dirige al objetivo que el
-            // alumno NO cumplió, no a una categoría genérica.
-            final failedGoals = (lesson?.goals ?? const [])
-                .where((g) => state.goalEvaluationResults[g.id] == false)
-                .map((g) => g.text)
-                .take(2)
-                .join('; ');
-            // P-29: los errores recurrentes registrados en `corrections` se
-            // añaden al foco de la sub-misión de refuerzo.
-            await _loadRecurringErrors();
-            final recurringFocus = buildMissionFocusFromErrors(_recurringErrors);
-            final weaknessParts = [
-              if (failedGoals.isNotEmpty) failedGoals,
-              if (recurringFocus.isNotEmpty) recurringFocus,
-            ];
-            final sub = await LessonGeneratorService.ensureLessonForWeakness(
-              skillFocus: skill,
-              level: level.toUpperCase(),
-              weakness: weaknessParts.isEmpty
-                  ? skill
-                  : weaknessParts.join('; '),
-              parentId: scenarioId,
-            );
-            if (sub != null) {
-              // Inyecta la sub misión al catálogo local para que el mapa la muestre.
-              LessonCatalog.updateCatalogFromMap(sub);
+
+            final result = plan == null
+                ? const RemedialLessonResult(
+                    status: RemedialLessonStatus.noEvidence,
+                    detail:
+                        'sin evidencia (ni errores recurrentes ni metas falladas)',
+                  )
+                : await LessonGeneratorService.ensureRemedialLesson(
+                    plan: plan,
+                    level: level,
+                    parentId: scenarioId,
+                  );
+
+            _ref.read(remedialLessonProvider.notifier).state = result;
+            _ref
+                .read(remedialRetryContextProvider.notifier)
+                .state = plan == null
+                ? null
+                : (plan: plan, level: level, parentId: scenarioId);
+            if (result.isPlayable) {
               _ref.invalidate(recommendedLessonsProvider);
+              // El maná se cobra server-side: refresca la barra al volver.
+              _ref.invalidate(manaStateProvider);
             }
           }
         } catch (e, st) {
           ErrorTracker.logSilent(
-            'lib/features/conversation/presentation/providers/conversation_providers.dart:1527',
+            'lib/features/conversation/presentation/providers/conversation_providers.dart:remedial',
             e,
             stackTrace: st,
+          );
+          _ref
+              .read(remedialLessonProvider.notifier)
+              .state = RemedialLessonResult(
+            status: RemedialLessonStatus.failed,
+            detail: e.toString(),
           );
         }
       }
@@ -2083,6 +2101,22 @@ final sessionResultProvider =
       SessionRewardNotifier,
       AsyncValue<Map<String, dynamic>?>
     >((ref) => SessionRewardNotifier(ref));
+
+/// P-42 (#127): resultado de la lección de refuerzo de la última sesión.
+///
+/// `null` = aún no se intentó (o la sesión se superó). La pantalla de resumen
+/// lo pinta para que el jugador entre a la lección o entienda por qué no se
+/// generó.
+final remedialLessonProvider = StateProvider<RemedialLessonResult?>(
+  (ref) => null,
+);
+
+/// Contexto del último intento de refuerzo, para reintentar desde el resumen
+/// sin volver a evaluar la conversación.
+final remedialRetryContextProvider =
+    StateProvider<({RemedialPlan plan, String level, String? parentId})?>(
+      (ref) => null,
+    );
 
 /// P-28: "Qué aprendiste" de una sesión, leído de la base de datos.
 ///

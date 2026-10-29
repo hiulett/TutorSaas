@@ -2256,6 +2256,39 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get summary_remedial_title => 'REFUERZO';
+
+  @override
+  String get summary_remedial_generated =>
+      'Creamos una lección con tus errores recurrentes y las metas que no cumpliste.';
+
+  @override
+  String get summary_remedial_reused => 'Tu lección de refuerzo está lista.';
+
+  @override
+  String get summary_remedial_play => 'PRACTICAR MIS DEBILIDADES';
+
+  @override
+  String get summary_remedial_no_evidence =>
+      'Todavía no hay lección de refuerzo: necesitamos errores registrados o una meta fallada para orientarla.';
+
+  @override
+  String get summary_remedial_insufficient_mana =>
+      'No tienes maná suficiente para una lección de refuerzo. Estará disponible cuando renueve tu saldo.';
+
+  @override
+  String get summary_remedial_failed =>
+      'No pudimos crear la lección de refuerzo. Te devolvimos el maná.';
+
+  @override
+  String summary_remedial_cost(int cost) {
+    return 'Coste: $cost de maná';
+  }
+
+  @override
+  String get summary_remedial_retry => 'REINTENTAR';
+
+  @override
   String get session_ready => 'Práctica lista para iniciar.';
 
   @override
