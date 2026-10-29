@@ -34,15 +34,18 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
     setState(() => _isClaiming = true);
     final user = ref.read(currentUserProvider);
     if (user != null) {
-      final reward = await ref.read(economyRepositoryProvider).claimDailyReward(user.id);
+      final reward = await ref
+          .read(economyRepositoryProvider)
+          .claimDailyReward(user.id);
       if (reward.isNotEmpty) {
         ref.invalidate(dailyStateProvider);
         ref.invalidate(streakProvider);
         ref.invalidate(gemBalanceProvider);
-        if (mounted) setState(() {
-          _claimed = true;
-          _claimedReward = reward;
-        });
+        if (mounted)
+          setState(() {
+            _claimed = true;
+            _claimedReward = reward;
+          });
       }
     }
     if (mounted) setState(() => _isClaiming = false);
@@ -54,7 +57,8 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
     final streakAsync = ref.watch(streakProvider);
     final dailyAsync = ref.watch(dailyStateProvider);
     final streak = streakAsync.value?['current_streak'] as int? ?? 0;
-    final alreadyClaimed = (dailyAsync.value?['daily_reward_claimed'] as bool?) ?? false;
+    final alreadyClaimed =
+        (dailyAsync.value?['daily_reward_claimed'] as bool?) ?? false;
 
     final effectiveClaimed = _claimed || alreadyClaimed;
 
@@ -66,14 +70,21 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
       >= 7 => (50, 5),
       _ => (5, 2),
     };
-    final int gems = effectiveClaimed && _claimed ? (_claimedReward['gems'] ?? previewGems) : previewGems;
-    final int pergaminos = effectiveClaimed && _claimed ? (_claimedReward['pergaminos'] ?? previewPergaminos) : previewPergaminos;
+    final int gems = effectiveClaimed && _claimed
+        ? (_claimedReward['gems'] ?? previewGems)
+        : previewGems;
+    final int pergaminos = effectiveClaimed && _claimed
+        ? (_claimedReward['pergaminos'] ?? previewPergaminos)
+        : previewPergaminos;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: SystemWindow(
         title: l10n?.daily_reward_title ?? 'RECOMPENSA DIARIA',
-        subtitle: l10n?.daily_reward_streak(streak) ?? 'RACHA ACTUAL: $streak DÍAS',
+        subtitle:
+            l10n?.daily_reward_streak(streak) ?? 'RACHA ACTUAL: $streak DÍAS',
         icon: Icons.card_giftcard_rounded,
         accentColor: AppColors.royalGold,
         showCloseButton: true,
@@ -87,16 +98,28 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.local_fire_department_rounded, color: AppColors.royalGold, size: 28),
+                const Icon(
+                  Icons.local_fire_department_rounded,
+                  color: AppColors.royalGold,
+                  size: 28,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   '$streak',
-                  style: GoogleFonts.spaceGrotesk(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.onSurface),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.onSurface,
+                  ),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   (l10n?.days ?? 'Days').toUpperCase(),
-                  style: GoogleFonts.jetBrainsMono(fontSize: 11, color: AppColors.onSurfaceVariant, letterSpacing: 1),
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 11,
+                    color: AppColors.onSurfaceVariant,
+                    letterSpacing: 1,
+                  ),
                 ),
               ],
             ),
@@ -106,11 +129,23 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
             Row(
               children: [
                 Expanded(
-                  child: _RewardTile(icon: Icons.diamond_rounded, color: AppColors.manaCyan, value: l10n?.daily_reward_gems(gems) ?? '$gems GEMAS', label: l10n?.daily_reward_by_streak ?? 'POR RACHA'),
+                  child: _RewardTile(
+                    icon: Icons.diamond_rounded,
+                    color: AppColors.manaCyan,
+                    value: l10n?.daily_reward_gems(gems) ?? '$gems GEMAS',
+                    label: l10n?.daily_reward_by_streak ?? 'POR RACHA',
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _RewardTile(icon: Icons.menu_book_rounded, color: AppColors.runeViolet, value: l10n?.daily_reward_parchments(pergaminos) ?? '+$pergaminos PERGAMINOS', label: l10n?.daily_reward_cap ?? 'TETO DIARIO'),
+                  child: _RewardTile(
+                    icon: Icons.menu_book_rounded,
+                    color: AppColors.runeViolet,
+                    value:
+                        l10n?.daily_reward_parchments(pergaminos) ??
+                        '+$pergaminos PERGAMINOS',
+                    label: l10n?.daily_reward_cap ?? 'TETO DIARIO',
+                  ),
                 ),
               ],
             ),
@@ -120,12 +155,15 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
             Text(
               streak < 7
                   ? (l10n?.daily_reward_keep_streak ??
-                      'MANTÉN TU RACHA: A LOS 7 DÍAS GANAS 50 GEMAS Y 5 PERGAMINOS')
+                        'MANTÉN TU RACHA: A LOS 7 DÍAS GANAS 50 GEMAS Y 5 PERGAMINOS')
                   : streak < 14
-                      ? (l10n?.daily_reward_at_14 ?? 'A LOS 14 DÍAS: 100 GEMAS Y 8 PERGAMINOS')
-                      : streak < 30
-                          ? (l10n?.daily_reward_at_30 ?? 'A LOS 30 DÍAS: 300 GEMAS Y 15 PERGAMINOS')
-                          : (l10n?.daily_reward_max_streak ?? '¡RACHA MÁXIMA ALCANZADA!'),
+                  ? (l10n?.daily_reward_at_14 ??
+                        'A LOS 14 DÍAS: 100 GEMAS Y 8 PERGAMINOS')
+                  : streak < 30
+                  ? (l10n?.daily_reward_at_30 ??
+                        'A LOS 30 DÍAS: 300 GEMAS Y 15 PERGAMINOS')
+                  : (l10n?.daily_reward_max_streak ??
+                        '¡RACHA MÁXIMA ALCANZADA!'),
               textAlign: TextAlign.center,
               style: GoogleFonts.jetBrainsMono(
                 fontSize: 9,
@@ -138,19 +176,30 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
             ElevatedButton(
               onPressed: (effectiveClaimed || _isClaiming) ? null : _claim,
               style: ElevatedButton.styleFrom(
-                backgroundColor: effectiveClaimed ? AppColors.onSurface.withValues(alpha: 0.12) : AppColors.royalGold,
-                foregroundColor: effectiveClaimed ? AppColors.onSurface.withValues(alpha: 0.54) : AppColors.voidBg,
+                backgroundColor: effectiveClaimed
+                    ? AppColors.onSurface.withValues(alpha: 0.12)
+                    : AppColors.royalGold,
+                foregroundColor: effectiveClaimed
+                    ? AppColors.onSurface.withValues(alpha: 0.54)
+                    : AppColors.voidBg,
                 minimumSize: const Size(48, 48),
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
               child: Text(
                 _isClaiming
                     ? (l10n?.claiming ?? 'RECLAMANDO…')
                     : effectiveClaimed
-                        ? (l10n?.daily_reward_claimed_today ?? 'RECOMPENSA RECLAMADA HOY')
-                        : (l10n?.daily_reward_claim ?? 'RECLAMAR RECOMPENSA'),
-                style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ? (l10n?.daily_reward_claimed_today ??
+                          'RECOMPENSA RECLAMADA HOY')
+                    : (l10n?.daily_reward_claim ?? 'RECLAMAR RECOMPENSA'),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
             ),
           ],
@@ -166,7 +215,12 @@ class _RewardTile extends StatelessWidget {
   final String value;
   final String label;
 
-  const _RewardTile({required this.icon, required this.color, required this.value, required this.label});
+  const _RewardTile({
+    required this.icon,
+    required this.color,
+    required this.value,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -181,9 +235,23 @@ class _RewardTile extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
-          Text(value, textAlign: TextAlign.center, style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.onSurface,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(label, style: GoogleFonts.jetBrainsMono(fontSize: 9, color: AppColors.onSurfaceVariant)),
+          Text(
+            label,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 9,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );

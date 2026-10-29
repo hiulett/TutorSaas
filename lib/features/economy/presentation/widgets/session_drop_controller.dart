@@ -17,7 +17,8 @@ class SessionDropController extends ConsumerStatefulWidget {
   const SessionDropController({super.key, required this.completedGoals});
 
   @override
-  ConsumerState<SessionDropController> createState() => _SessionDropControllerState();
+  ConsumerState<SessionDropController> createState() =>
+      _SessionDropControllerState();
 }
 
 class _SessionDropControllerState extends ConsumerState<SessionDropController> {

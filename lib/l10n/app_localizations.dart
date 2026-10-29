@@ -5200,6 +5200,60 @@ abstract class AppLocalizations {
   /// **'PRACTICE'**
   String get progress_practice;
 
+  /// No description provided for @mana_cost_per_turn.
+  ///
+  /// In en, this message translates to:
+  /// **'{cost}/turn'**
+  String mana_cost_per_turn(int cost);
+
+  /// No description provided for @mana_low_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} turns left today'**
+  String mana_low_warning(int count);
+
+  /// No description provided for @mana_empty_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'No mana for the next turn'**
+  String get mana_empty_warning;
+
+  /// No description provided for @guardian_alternative_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WHILE YOU WAIT'**
+  String get guardian_alternative_title;
+
+  /// No description provided for @guardian_refill_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Refills in {hours} h {minutes} min'**
+  String guardian_refill_in(int hours, int minutes);
+
+  /// No description provided for @guardian_refill_at.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews on {date}'**
+  String guardian_refill_at(String date);
+
+  /// No description provided for @guardian_review_vocab.
+  ///
+  /// In en, this message translates to:
+  /// **'Review vocabulary (free)'**
+  String get guardian_review_vocab;
+
+  /// No description provided for @guardian_low_cost_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Text chat ({cost} mana)'**
+  String guardian_low_cost_chat(int cost);
+
+  /// No description provided for @guardian_no_due_words.
+  ///
+  /// In en, this message translates to:
+  /// **'No words due for review right now.'**
+  String get guardian_no_due_words;
+
   /// No description provided for @daily_goal_title.
   ///
   /// In en, this message translates to:

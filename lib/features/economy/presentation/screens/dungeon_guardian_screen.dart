@@ -11,6 +11,9 @@ import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/economy_providers.dart';
 import '../widgets/mana_item_inventory.dart';
+import '../../domain/models/mana_budget.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
 
 /// 🏰 GUARDIÁN DE LA MAZMORRA — versión épica.
 ///
@@ -23,7 +26,8 @@ class DungeonGuardianScreen extends ConsumerStatefulWidget {
   const DungeonGuardianScreen({super.key});
 
   @override
-  ConsumerState<DungeonGuardianScreen> createState() => _DungeonGuardianScreenState();
+  ConsumerState<DungeonGuardianScreen> createState() =>
+      _DungeonGuardianScreenState();
 }
 
 class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
@@ -68,18 +72,20 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final manaAsync = ref.watch(manaStateProvider);
-    final mana = manaAsync.value ?? const {
-      'allowance': 3000,
-      'purchased': 0,
-      'used': 0,
-      'remaining': 3000,
-      'expires_at': null,
-      'plan': 'Plan Gratuito',
-      'is_free': true,
-      'daily_limit': 200,
-      'daily_used': 0,
-      'daily_remaining': 200,
-    };
+    final mana =
+        manaAsync.value ??
+        const {
+          'allowance': 3000,
+          'purchased': 0,
+          'used': 0,
+          'remaining': 3000,
+          'expires_at': null,
+          'plan': 'Plan Gratuito',
+          'is_free': true,
+          'daily_limit': 200,
+          'daily_used': 0,
+          'daily_remaining': 200,
+        };
 
     final bool isFree = mana['is_free'] as bool? ?? true;
     final int allowance = mana['allowance'] as int? ?? 3000;
@@ -89,8 +95,16 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
 
     // Qué muestra el contador según el plan (igual que OracleManaBar).
     final int barValue = isFree ? dailyRemaining : remaining;
-    final int barMax = isFree ? (mana['daily_limit'] as int? ?? 200) : allowance + purchased;
-    final double progress = barMax > 0 ? (barValue / barMax).clamp(0.0, 1.0) : 0.0;
+    final int barMax = isFree
+        ? (mana['daily_limit'] as int? ?? 200)
+        : allowance + purchased;
+    final double progress = barMax > 0
+        ? (barValue / barMax).clamp(0.0, 1.0)
+        : 0.0;
+
+    // P-26: cuándo se recarga y qué se puede hacer sin maná.
+    final budget = ManaBudget.fromState(mana);
+    final refill = budget.refillIn(DateTime.now());
 
     return Scaffold(
       body: CyberManhwaBackground(
@@ -101,18 +115,29 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
             Positioned(
               top: -140,
               left: -140,
-              child: _GlowOrb(size: 360, color: AppColors.crimsonRed, controller: _pulseController),
+              child: _GlowOrb(
+                size: 360,
+                color: AppColors.crimsonRed,
+                controller: _pulseController,
+              ),
             ),
             Positioned(
               bottom: -140,
               right: -140,
-              child: _GlowOrb(size: 380, color: AppColors.runeViolet, controller: _pulseController),
+              child: _GlowOrb(
+                size: 380,
+                color: AppColors.runeViolet,
+                controller: _pulseController,
+              ),
             ),
 
             SafeArea(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 12.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -196,6 +221,7 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                       const ManaItemInventory(),
                     ],
 
+                    _buildAlternatives(context, l10n, budget, refill),
                     const SizedBox(height: 14),
 
                     // ── CTA 3: Volver al gremio ──
@@ -204,7 +230,9 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                         if (context.canPop()) Navigator.pop(context);
                         context.go('/home');
                       },
-                      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
                       child: Text(
                         l10n.guardian_go_back,
                         style: GoogleFonts.jetBrainsMono(
@@ -241,7 +269,11 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
               errorBuilder: (_, __, ___) => Container(
                 color: AppColors.surfaceContainerLow,
                 child: const Center(
-                  child: Icon(Icons.no_accounts_rounded, color: AppColors.crimsonRed, size: 80),
+                  child: Icon(
+                    Icons.no_accounts_rounded,
+                    color: AppColors.crimsonRed,
+                    size: 80,
+                  ),
                 ),
               ),
             ),
@@ -290,17 +322,26 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                 builder: (context, child) {
                   final glow = _pulseController.value;
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppColors.crimsonRed.withValues(alpha: 0.75 + glow * 0.2),
+                      color: AppColors.crimsonRed.withValues(
+                        alpha: 0.75 + glow * 0.2,
+                      ),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: AppColors.crimsonRed.withValues(alpha: 0.6 + glow * 0.4),
+                        color: AppColors.crimsonRed.withValues(
+                          alpha: 0.6 + glow * 0.4,
+                        ),
                         width: 1.2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.crimsonRed.withValues(alpha: 0.4 + glow * 0.3),
+                          color: AppColors.crimsonRed.withValues(
+                            alpha: 0.4 + glow * 0.3,
+                          ),
                           blurRadius: 18,
                           spreadRadius: glow * 4,
                         ),
@@ -309,7 +350,11 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.lock_rounded, color: AppColors.onSurface, size: 14),
+                        Icon(
+                          Icons.lock_rounded,
+                          color: AppColors.onSurface,
+                          size: 14,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           l10n.guardian_sealed.toUpperCase(),
@@ -336,10 +381,7 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      '⚠',
-                      style: GoogleFonts.jetBrainsMono(fontSize: 22),
-                    ),
+                    Text('⚠', style: GoogleFonts.jetBrainsMono(fontSize: 22)),
                     const SizedBox(height: 4),
                     Text(
                       l10n.guardian_sealed.toUpperCase(),
@@ -349,7 +391,10 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                         letterSpacing: 2.0,
                         color: AppColors.crimsonRed,
                         shadows: [
-                          Shadow(color: AppColors.crimsonRed.withValues(alpha: 0.7), blurRadius: 20),
+                          Shadow(
+                            color: AppColors.crimsonRed.withValues(alpha: 0.7),
+                            blurRadius: 20,
+                          ),
                         ],
                       ),
                     ),
@@ -386,7 +431,11 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
         children: [
           Row(
             children: [
-              const Icon(Icons.bolt_rounded, color: AppColors.runeViolet, size: 18),
+              const Icon(
+                Icons.bolt_rounded,
+                color: AppColors.runeViolet,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -410,12 +459,7 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
             ],
           ),
           const SizedBox(height: 10),
-          SegmentedBar(
-            value: progress,
-            segments: 20,
-            height: 8,
-            color: color,
-          ),
+          SegmentedBar(value: progress, segments: 20, height: 8, color: color),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -464,7 +508,11 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                   color: AppColors.runeViolet.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Icon(Icons.local_drink_rounded, color: AppColors.runeViolet, size: 24),
+                child: const Icon(
+                  Icons.local_drink_rounded,
+                  color: AppColors.runeViolet,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -482,13 +530,18 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                     const SizedBox(height: 2),
                     Text(
                       l10n.guardian_equip_item_desc,
-                      style: const TextStyle(color: AppColors.runeViolet, fontSize: 12),
+                      style: const TextStyle(
+                        color: AppColors.runeViolet,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
               ),
               Icon(
-                _showInventory ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                _showInventory
+                    ? Icons.expand_less_rounded
+                    : Icons.expand_more_rounded,
                 color: AppColors.runeViolet,
                 size: 20,
               ),
@@ -498,6 +551,99 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
       ),
     );
   }
+
+  /// P-26: mientras no hay mana, ofrecer alternativas reales.
+  Widget _buildAlternatives(
+    BuildContext context,
+    AppLocalizations l10n,
+    ManaBudget budget,
+    Duration? refill,
+  ) {
+    final lowCost = budget.available >= 8;
+    final refillText = refill == null
+        ? null
+        : budget.isFree
+        ? l10n.guardian_refill_in(refill.inHours, refill.inMinutes % 60)
+        : l10n.guardian_refill_at(
+            '${budget.expiresAt?.day.toString().padLeft(2, '0')}/'
+            '${budget.expiresAt?.month.toString().padLeft(2, '0')}',
+          );
+
+    return GlassCard(
+      blur: 6,
+      opacity: 0.95,
+      borderColor: AppColors.runeViolet.withValues(alpha: 0.35),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.guardian_alternative_title,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              color: AppColors.runeViolet,
+            ),
+          ),
+          if (refillText != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              refillText,
+              style: GoogleFonts.inter(
+                fontSize: 11.5,
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _openVocabularyReview(context, l10n),
+            icon: const Icon(Icons.style_rounded, size: 18),
+            label: Text(l10n.guardian_review_vocab),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(48, 44),
+              foregroundColor: AppColors.manaCyan,
+              side: BorderSide(
+                color: AppColors.manaCyan.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+          if (lowCost) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/conversation'),
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+              label: Text(l10n.guardian_low_cost_chat(8)),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(48, 44),
+                foregroundColor: AppColors.runeViolet,
+                side: BorderSide(
+                  color: AppColors.runeViolet.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openVocabularyReview(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final due =
+        ref.read(dueVocabularyProvider).value ?? const <Map<String, dynamic>>[];
+    if (due.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.guardian_no_due_words)));
+      return;
+    }
+    await SrsFlashcardModal.show(context, due.take(10).toList());
+    ref.invalidate(dueVocabularyProvider);
+  }
 }
 
 /// Orbe de resplandor pulsante (decorativo).
@@ -506,7 +652,11 @@ class _GlowOrb extends StatelessWidget {
   final Color color;
   final AnimationController controller;
 
-  const _GlowOrb({required this.size, required this.color, required this.controller});
+  const _GlowOrb({
+    required this.size,
+    required this.color,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -602,7 +752,11 @@ class _RoundIconButton extends StatelessWidget {
           child: const SizedBox(
             width: 40,
             height: 40,
-            child: Icon(Icons.arrow_back_rounded, color: AppColors.onSurface, size: 18),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.onSurface,
+              size: 18,
+            ),
           ),
         ),
       ),

@@ -207,6 +207,23 @@ async function chargeMana(userId: string, actionCode: string): Promise<ChargeRes
   return (data ?? { success: false, reason: 'unknown' }) as ChargeResult;
 }
 
+/// P-26: reclama el turno de gracia diario (una vez por día, service role).
+async function claimManaGrace(userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await admin.rpc('claim_mana_grace', {
+      p_user_id: userId,
+    });
+    if (error) {
+      console.error('claim_mana_grace failed:', error.message);
+      return false;
+    }
+    return data === true;
+  } catch (e) {
+    console.error('claim_mana_grace error:', e);
+    return false;
+  }
+}
+
 /// Devuelve el maná de un intento fallido. Solo aplica a cobros del plan:
 /// `refund_mana` no restaura ítems equipados (fuera de alcance, como P-06).
 async function refundMana(userId: string, actionCode: string): Promise<void> {
@@ -446,25 +463,39 @@ async function handleChat(req: Request, userId: string): Promise<Response> {
     try {
       const result = await chargeMana(userId, actionCode);
       if (!result.success) {
-        void logAiUsage({
-          userId,
-          actionCode,
-          model,
-          conversationId,
-          latencyMs: Math.round(performance.now() - startedAt),
-          status: 'no_mana',
-        });
-        return json(
-          {
-            error: 'no_mana',
-            reason: result.reason ?? 'insufficient_mana',
-            cost: result.cost ?? null,
-            remaining: result.remaining ?? null,
-          },
-          402,
-        );
+        // P-26: turno de gracia diario. Si se agotó el tope diario del plan
+        // gratuito, se permite este turno sin cobro para que el usuario pueda
+        // cerrar el intercambio en curso (una vez por día, server-side).
+        if (result.reason === 'daily_limit_reached' && await claimManaGrace(userId)) {
+          console.info('mana grace turn used', { userId, actionCode });
+          charged = {
+            success: true,
+            source: 'grace',
+            cost: 0,
+            remaining: result.remaining ?? 0,
+          };
+        } else {
+          void logAiUsage({
+            userId,
+            actionCode,
+            model,
+            conversationId,
+            latencyMs: Math.round(performance.now() - startedAt),
+            status: 'no_mana',
+          });
+          return json(
+            {
+              error: 'no_mana',
+              reason: result.reason ?? 'insufficient_mana',
+              cost: result.cost ?? null,
+              remaining: result.remaining ?? null,
+            },
+            402,
+          );
+        }
+      } else {
+        charged = result;
       }
-      charged = result;
     } catch (e) {
       console.error('consume_mana failed:', e);
       void logAiUsage({
