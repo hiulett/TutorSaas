@@ -1,86 +1,66 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Router pedagógico: detecta el skill más débil del radar y decide si
-/// reutiliza una lección existente o genera una nueva (sub misión) vía la
-/// edge function `lesson-generator` (que debita 100 maná server-side).
+import '../../data/models/lesson_catalog.dart';
+import '../models/remedial_lesson.dart';
+
+/// Router pedagógico: convierte la evidencia real del alumno (errores
+/// recurrentes P-29 + objetivos fallados) en una lección de refuerzo jugable.
 ///
-/// Regla de negocio:
-///  - Tras una lección, se lee el skill radar (5 dimensiones).
-///  - Se identifica el skill con menor score.
-///  - Si existe un escenario con ese `skill_focus` y nivel → se reutiliza.
-///  - Si no → se llama a `lesson-generator` (genera + debita 100 maná).
+/// La decisión de qué reforzar vive en [buildRemedialPlan]; el edge function
+/// `lesson-generator` valida nivel/skill, reutiliza si ya existe, cobra el maná
+/// server-side y solo inserta el escenario como borrador privado si genera
+/// contenido con metas. Esta clase solo aporta la E/S.
 class LessonGeneratorService {
   const LessonGeneratorService._();
 
-  /// Identifica el skill más débil del radar (score más bajo).
-  /// Devuelve el código (`fluency`/`vocab`/`phonetics`/`grammar`/`goals`).
-  static String weakestSkill(Map<String, double> radar) {
-    if (radar.isEmpty) return 'grammar'; // default conservador
-    final entries = radar.entries.where((e) => e.key.isNotEmpty).toList();
-    if (entries.isEmpty) return 'grammar';
-    entries.sort((a, b) => a.value.compareTo(b.value));
-    return entries.first.key;
-  }
+  /// Skill más débil del radar, ignorando los ejes sin `skill_focus` aceptado.
+  static String weakestSkill(Map<String, double> radar) =>
+      weakestSkillFromRadar(radar);
 
-  /// Busca una lección existente en `scenarios` con el skill + nivel indicados.
-  /// Si existe, la reutiliza (sin costo de generación).
-  static Future<Map<String, dynamic>?> findExisting({
-    required String skillFocus,
+  /// Genera (o reutiliza) la lección de refuerzo del plan.
+  ///
+  /// Nunca devuelve `null`: cualquier fallo se traduce a un
+  /// [RemedialLessonResult] con un estado que la UI puede explicar.
+  static Future<RemedialLessonResult> ensureRemedialLesson({
+    required RemedialPlan plan,
     required String level,
     String? parentId,
   }) async {
     try {
       final client = Supabase.instance.client;
-      dynamic query = client
-          .from('scenarios')
-          .select('*')
-          .eq('skill_focus', skillFocus)
-          .eq('difficulty_level', level)
-          .eq('is_active', true)
-          .order('created_at', ascending: true)
-          .limit(1);
-      if (parentId != null) query = query.eq('parent_id', parentId);
-      final data = await query.maybeSingle();
-      return data;
-    } catch (_) {
-      return null;
-    }
-  }
+      final res = await client.functions.invoke(
+        'lesson-generator',
+        body: {
+          'skill_focus': plan.skillFocus,
+          'level': level.toUpperCase(),
+          'weakness': plan.weakness,
+          'failed_goals': plan.failedGoals,
+          if (parentId != null) 'parent_id': parentId,
+        },
+      );
 
-  /// Genera (o reutiliza) una lección de refuerzo para el skill débil.
-  /// Devuelve el escenario resultante, o null si la generación falló.
-  static Future<Map<String, dynamic>?> ensureLessonForWeakness({
-    required String skillFocus,
-    required String level,
-    String? weakness,
-    String? parentId,
-  }) async {
-    // 1. Intentar reutilizar una existente (biblioteca compartida).
-    final existing = await findExisting(
-      skillFocus: skillFocus,
-      level: level,
-      parentId: parentId,
-    );
-    if (existing != null) return existing;
+      final raw = res.data;
+      final data = raw is Map ? Map<String, dynamic>.from(raw) : null;
+      final result = RemedialLessonResult.fromResponse(data);
 
-    // 2. Generar vía edge function (debita 100 maná server-side).
-    try {
-      final client = Supabase.instance.client;
-      final res = await client.functions.invoke('lesson-generator', body: {
-        'skill_focus': skillFocus,
-        'level': level,
-        'weakness': weakness ?? skillFocus,
-        if (parentId != null) 'parent_id': parentId,
-      });
-      final data = res.data as Map?;
-      if (data != null && data['success'] == true) {
-        return data['scenario'] as Map<String, dynamic>?;
+      // El escenario generado se inyecta al catálogo para que la sesión pueda
+      // lanzarse sin depender de una recarga del dashboard.
+      final scenario = data?['scenario'];
+      if (result.isPlayable && scenario is Map) {
+        LessonCatalog.updateCatalogFromMap(Map<String, dynamic>.from(scenario));
       }
-      return null;
+      return result;
+    } on FunctionException catch (e) {
+      final details = e.details;
+      final code = details is Map ? details['error']?.toString() : null;
+      debugPrint(
+        'lesson-generator ${e.status}: ${code ?? e.reasonPhrase ?? 'sin detalle'}',
+      );
+      return RemedialLessonResult.fromFailure(status: e.status, code: code);
     } catch (e) {
       debugPrint('lesson-generator invoke error: $e');
-      return null;
+      return RemedialLessonResult.fromFailure(code: e.toString());
     }
   }
 }

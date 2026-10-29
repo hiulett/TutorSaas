@@ -2247,6 +2247,39 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get summary_remedial_title => 'REINFORCEMENT';
+
+  @override
+  String get summary_remedial_generated =>
+      'We built a lesson from your recurring mistakes and the goals you missed.';
+
+  @override
+  String get summary_remedial_reused => 'Your reinforcement lesson is ready.';
+
+  @override
+  String get summary_remedial_play => 'PRACTICE MY WEAKNESSES';
+
+  @override
+  String get summary_remedial_no_evidence =>
+      'No reinforcement lesson yet: we need your recorded mistakes or a missed goal to aim it.';
+
+  @override
+  String get summary_remedial_insufficient_mana =>
+      'You don\'t have enough mana for a reinforcement lesson. It will be available once your balance renews.';
+
+  @override
+  String get summary_remedial_failed =>
+      'We couldn\'t create the reinforcement lesson. Your mana was refunded.';
+
+  @override
+  String summary_remedial_cost(int cost) {
+    return 'Cost: $cost mana';
+  }
+
+  @override
+  String get summary_remedial_retry => 'TRY AGAIN';
+
+  @override
   String get session_ready => 'Practice ready to start.';
 
   @override

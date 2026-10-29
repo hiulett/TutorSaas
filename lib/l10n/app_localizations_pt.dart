@@ -2253,6 +2253,39 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get summary_remedial_title => 'REFORÇO';
+
+  @override
+  String get summary_remedial_generated =>
+      'Criamos uma lição com seus erros recorrentes e as metas que você não cumpriu.';
+
+  @override
+  String get summary_remedial_reused => 'Sua lição de reforço está pronta.';
+
+  @override
+  String get summary_remedial_play => 'PRATICAR MINHAS DIFICULDADES';
+
+  @override
+  String get summary_remedial_no_evidence =>
+      'Ainda não há lição de reforço: precisamos de erros registrados ou uma meta não cumprida para orientá-la.';
+
+  @override
+  String get summary_remedial_insufficient_mana =>
+      'Você não tem mana suficiente para uma lição de reforço. Estará disponível quando seu saldo renovar.';
+
+  @override
+  String get summary_remedial_failed =>
+      'Não foi possível criar a lição de reforço. Devolvemos sua mana.';
+
+  @override
+  String summary_remedial_cost(int cost) {
+    return 'Custo: $cost de mana';
+  }
+
+  @override
+  String get summary_remedial_retry => 'TENTAR DE NOVO';
+
+  @override
   String get session_ready => 'Prática pronta para começar.';
 
   @override
