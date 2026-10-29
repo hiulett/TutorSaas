@@ -1667,6 +1667,91 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String price_gems(String price) {
+    return '$price GEMAS';
+  }
+
+  @override
+  String craft_cost(String cost) {
+    return '$cost FRAGMENTOS';
+  }
+
+  @override
+  String get craft_action => 'CRIAR';
+
+  @override
+  String get craft_success => 'COSMÉTICO CRIADO!';
+
+  @override
+  String get shop_tab_gems => 'GEMAS';
+
+  @override
+  String get shop_tab_gold => 'OURO';
+
+  @override
+  String get shop_tab_fragments => 'FRAGMENTOS';
+
+  @override
+  String get shop_tab_empty => 'Ainda não há itens nesta moeda.';
+
+  @override
+  String get shop_level_locked => 'NÍVEL DE CAÇADOR INSUFICIENTE';
+
+  @override
+  String shop_next_unlock(String name, int level) {
+    return 'PRÓXIMO DESBLOQUEIO: $name · NV. $level';
+  }
+
+  @override
+  String get gems_insufficient => 'GEMAS INSUFICIENTES';
+
+  @override
+  String get purchase_failed => 'NÃO FOI POSSÍVEL COMPLETAR A COMPRA';
+
+  @override
+  String level_label(String level) {
+    return 'NV. $level';
+  }
+
+  @override
+  String level_rewards_pending(int count) {
+    return '$count RECOMPENSAS DE NÍVEL';
+  }
+
+  @override
+  String level_rewards_banner_hint(String level) {
+    return 'NÍVEL $level ALCANÇADO · RESGATE SEU OURO';
+  }
+
+  @override
+  String level_rewards_claim(int count) {
+    return 'RESGATAR $count';
+  }
+
+  @override
+  String level_rewards_claimed_ok(int count) {
+    return '$count RECOMPENSAS DE NÍVEL RESGATADAS!';
+  }
+
+  @override
+  String get level_rewards_none => 'SEM RECOMPENSAS PENDENTES';
+
+  @override
+  String get streak_freeze_title => 'CONGELAMENTO DE SEQUÊNCIA';
+
+  @override
+  String get streak_freeze_desc => 'Protege um dia perdido. Máximo 3.';
+
+  @override
+  String get streak_freeze_cap => 'MÁXIMO DE CONGELAMENTOS ALCANÇADO';
+
+  @override
+  String get streak_freeze_max => 'NO MÁXIMO';
+
+  @override
+  String get streak_freeze_bought => 'CONGELAMENTO DE SEQUÊNCIA ADQUIRIDO!';
+
+  @override
   String get fragments_insufficient => 'FRAGMENTOS INSUFICIENTES ❌';
 
   @override

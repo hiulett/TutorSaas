@@ -3160,6 +3160,144 @@ abstract class AppLocalizations {
   /// **'{price} GOLD'**
   String price_gold(String price);
 
+  /// No description provided for @price_gems.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} GEMS'**
+  String price_gems(String price);
+
+  /// No description provided for @craft_cost.
+  ///
+  /// In en, this message translates to:
+  /// **'{cost} FRAGMENTS'**
+  String craft_cost(String cost);
+
+  /// No description provided for @craft_action.
+  ///
+  /// In en, this message translates to:
+  /// **'CRAFT'**
+  String get craft_action;
+
+  /// No description provided for @craft_success.
+  ///
+  /// In en, this message translates to:
+  /// **'COSMETIC CRAFTED!'**
+  String get craft_success;
+
+  /// No description provided for @shop_tab_gems.
+  ///
+  /// In en, this message translates to:
+  /// **'GEMS'**
+  String get shop_tab_gems;
+
+  /// No description provided for @shop_tab_gold.
+  ///
+  /// In en, this message translates to:
+  /// **'GOLD'**
+  String get shop_tab_gold;
+
+  /// No description provided for @shop_tab_fragments.
+  ///
+  /// In en, this message translates to:
+  /// **'FRAGMENTS'**
+  String get shop_tab_fragments;
+
+  /// No description provided for @shop_tab_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No items in this currency yet.'**
+  String get shop_tab_empty;
+
+  /// No description provided for @shop_level_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER LEVEL TOO LOW'**
+  String get shop_level_locked;
+
+  /// No description provided for @shop_next_unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT UNLOCK: {name} · LV. {level}'**
+  String shop_next_unlock(String name, int level);
+
+  /// No description provided for @gems_insufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'INSUFFICIENT GEMS'**
+  String get gems_insufficient;
+
+  /// No description provided for @purchase_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'PURCHASE FAILED'**
+  String get purchase_failed;
+
+  /// No description provided for @level_label.
+  ///
+  /// In en, this message translates to:
+  /// **'LV. {level}'**
+  String level_label(String level);
+
+  /// No description provided for @level_rewards_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} LEVEL REWARDS'**
+  String level_rewards_pending(int count);
+
+  /// No description provided for @level_rewards_banner_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL {level} REACHED · CLAIM YOUR GOLD'**
+  String level_rewards_banner_hint(String level);
+
+  /// No description provided for @level_rewards_claim.
+  ///
+  /// In en, this message translates to:
+  /// **'CLAIM {count}'**
+  String level_rewards_claim(int count);
+
+  /// No description provided for @level_rewards_claimed_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} LEVEL REWARDS CLAIMED!'**
+  String level_rewards_claimed_ok(int count);
+
+  /// No description provided for @level_rewards_none.
+  ///
+  /// In en, this message translates to:
+  /// **'NO REWARDS TO CLAIM'**
+  String get level_rewards_none;
+
+  /// No description provided for @streak_freeze_title.
+  ///
+  /// In en, this message translates to:
+  /// **'STREAK FREEZE'**
+  String get streak_freeze_title;
+
+  /// No description provided for @streak_freeze_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Protects one missed day. Max 3.'**
+  String get streak_freeze_desc;
+
+  /// No description provided for @streak_freeze_cap.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX FREEZES REACHED'**
+  String get streak_freeze_cap;
+
+  /// No description provided for @streak_freeze_max.
+  ///
+  /// In en, this message translates to:
+  /// **'MAXED'**
+  String get streak_freeze_max;
+
+  /// No description provided for @streak_freeze_bought.
+  ///
+  /// In en, this message translates to:
+  /// **'STREAK FREEZE ACQUIRED!'**
+  String get streak_freeze_bought;
+
   /// No description provided for @fragments_insufficient.
   ///
   /// In en, this message translates to:

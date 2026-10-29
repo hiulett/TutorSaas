@@ -58,8 +58,42 @@ abstract class EconomyRepository {
   /// Get gold balance
   Future<int> getGold(String userId);
 
-  /// Spend gold; returns false if insufficient balance
+  /// Gasta oro por RPC (`spend_currency`). El cliente no escribe saldos:
+  /// `guard_language_profile` descarta cualquier `total_gold` que envíe.
   Future<bool> spendGold(String userId, int amount);
+
+  // ── P-32: economía con propósito ─────────────────────────────────────────
+
+  /// Cartera completa: oro, gemas, fragmentos, nivel, freezes y el flujo
+  /// ganado/gastado por moneda (`get_economy_wallet`).
+  Future<Map<String, dynamic>> getWallet(String userId);
+
+  /// Catálogo completo de la tienda, con `required_level` y
+  /// `craft_cost_fragments`.
+  Future<List<Map<String, dynamic>>> getCatalog();
+
+  /// Compra un cosmético con `currency` (`gold` o `gems`). Devuelve el
+  /// resultado del servidor: `{success, reason, balance, required_level}`.
+  Future<Map<String, dynamic>> buyCosmetic({
+    required String userId,
+    required String itemId,
+    String currency = 'gold',
+  });
+
+  /// Craftea un cosmético con fragmentos (receta del catálogo).
+  Future<Map<String, dynamic>> craftCosmetic(String userId, String itemId);
+
+  /// Compra un freeze de racha por 30 gemas. Idempotente por `refKey`.
+  Future<Map<String, dynamic>> buyStreakFreeze({
+    required String userId,
+    required String refKey,
+  });
+
+  /// Estado de las recompensas de nivel: `{level, rewards: [...]}`.
+  Future<Map<String, dynamic>> getLevelRewards(String userId);
+
+  /// Reclama las recompensas de nivel desbloqueadas: `{success, granted}`.
+  Future<Map<String, dynamic>> claimLevelRewards(String userId);
 
   /// Get fragment balance
   Future<int> getFragments(String userId);

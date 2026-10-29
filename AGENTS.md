@@ -27,7 +27,7 @@ Backend: Supabase (`sipiumfdpvnszthykyog`). Compras: Play Billing + RevenueCat.
 
 ```sh
 flutter analyze     # 0 errores · 0 warnings (127 infos son la línea base)
-flutter test        # 611 pruebas (0 saltadas)
+flutter test        # 637 pruebas (0 saltadas)
 flutter gen-l10n    # obligatorio tras editar cualquier .arb
 dart run build_runner build --delete-conflicting-outputs   # freezed/json
 flutter build appbundle --release
@@ -80,6 +80,11 @@ _(Verificado en producción el 29-oct-2026.)_
 
 - La app **solo lee** `user_subscriptions` y `payments`; las escrituras van por
   RPC `SECURITY DEFINER` o service role.
+- **Monedas (oro, gemas, fragmentos):** el cliente nunca escribe saldos. Todo
+  movimiento pasa por `economy_apply_currency` vía `purchase_cosmetic`,
+  `craft_cosmetic`, `purchase_streak_freeze`, `spend_currency` o
+  `claim_level_rewards`, y queda en `currency_ledger` (idempotente por
+  `(user_id, ref_key)`). Ver `docs/runbooks/ECONOMY_SINKS.md`.
 - El plan y el maná se leen de `user_subscriptions`; RevenueCat es la fuente
   para el entitlement, con reconciliación vía `sync-entitlement`.
 - **No ejecutes `supabase db push`**: el repo no reproduce el esquema (33
@@ -120,7 +125,7 @@ cargues la auditoría completa).
 | Comando | Cuándo |
 |---|---|
 | `/build` | Tras editar código: `flutter analyze` (0 errores) |
-| `/test` | Antes de commit: 611 pruebas |
+| `/test` | Antes de commit: 637 pruebas |
 | `/review` | Antes de commit: revisión read-only del diff |
 | `/db-check` | Si tocas esquema, RLS o RPC |
 | `/ui-check` | Si tocas pantallas, estilos o textos |

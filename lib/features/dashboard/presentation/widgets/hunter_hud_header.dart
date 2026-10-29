@@ -30,8 +30,8 @@ class HunterHudHeader extends ConsumerStatefulWidget {
 }
 
 class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
-  static const int _xpPerLevel = HunterLevel.xpPerLevel;
   int _lastLevel = 0;
+  bool _levelInitialized = false;
   bool _awakeningBannerShown = false;
 
   /// Banner del Sistema la primera vez que el cazador despierta el Aura.
@@ -60,7 +60,11 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.auto_awesome_rounded, color: AppColors.manaCyan, size: 42),
+                const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.manaCyan,
+                  size: 42,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   l10n.aura_awakening_banner_title,
@@ -76,7 +80,10 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                 Text(
                   l10n.aura_awakening_banner_desc,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(fontSize: 12, color: AppColors.onSurfaceVariant),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
@@ -135,11 +142,13 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
 
     final String cefrCode = progress['level_code'] as String? ?? 'A1';
     // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
-    final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
+    final String gameRank =
+        (progress['game_rank'] as String?)?.isNotEmpty == true
         ? (progress['game_rank'] as String)
         : CefrRank.gameRankFromCefr(cefrCode);
     final int xp = progress['xp'] as int? ?? 0;
-    final String languageEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
+    final String languageEmoji =
+        progress['language_emoji'] as String? ?? '🇺🇸';
 
     // Maná (FASE B): única moneda de energía. Saldo = asignación del plan
     // + comprado − usado. Se adquiere con dinero; nunca se gana jugando.
@@ -156,26 +165,34 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
     // Título de habilidad: el de mayor tier ganado gana; si no hay ninguno,
     // se muestra el título legacy equipado (fallback).
     final skillTitle = ref.watch(activeSkillTitleProvider);
-    final String headerTitle = skillTitle?.localizedName(l10n) ?? activeTitle.localizedName(l10n);
+    final String headerTitle =
+        skillTitle?.localizedName(l10n) ?? activeTitle.localizedName(l10n);
 
     // Mana gem: energía de práctica diaria (invocaciones restantes).
 
     // Detección de subida de nivel (AN-E): muestra recompensa flotante.
-    final currentLevel = xp ~/ _xpPerLevel;
-    if (currentLevel > _lastLevel && _lastLevel >= 0) {
+    // P-32: el nivel es el mismo que pinta el chip (`HunterLevel.levelFor`),
+    // antes el banner usaba `xp ~/ 1000` y anunciaba un nivel que no existía.
+    final currentLevel = HunterLevel.levelFor(xp);
+    if (!_levelInitialized) {
+      // Primera build: fija el nivel sin anunciar una subida que no ocurrió.
+      _levelInitialized = true;
+      _lastLevel = currentLevel;
+    } else if (currentLevel > _lastLevel) {
       ref.read(sensoryFeedbackProvider).fire(SensoryEvent.levelUp);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           FloatingReward.show(
             context,
-            l10n?.level_up_banner(currentLevel) ?? '¡SUBIDA DE NIVEL! $currentLevel',
+            l10n?.level_up_banner(currentLevel) ??
+                '¡SUBIDA DE NIVEL! $currentLevel',
             icon: Icons.arrow_upward_rounded,
             color: AppColors.royalGold,
           );
         }
       });
+      _lastLevel = currentLevel;
     }
-    _lastLevel = currentLevel;
 
     return GlassCard(
       borderColor: AppColors.manaCyan.withValues(alpha: 0.35),
@@ -205,11 +222,16 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.manaCyan.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.5)),
+                        border: Border.all(
+                          color: AppColors.manaCyan.withValues(alpha: 0.5),
+                        ),
                       ),
                       child: Text(
                         manaClass.toUpperCase(),
@@ -224,11 +246,16 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.royalGold.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
+                        border: Border.all(
+                          color: AppColors.royalGold.withValues(alpha: 0.5),
+                        ),
                       ),
                       child: Text(
                         'RANGO $gameRank',
@@ -244,11 +271,16 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                     const SizedBox(width: 8),
                     // Issue #28: el XP ahora tiene nivel visible.
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.manaCyan.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.5)),
+                        border: Border.all(
+                          color: AppColors.manaCyan.withValues(alpha: 0.5),
+                        ),
                       ),
                       child: Text(
                         'Nv. ${HunterLevel.levelFor(xp)}',

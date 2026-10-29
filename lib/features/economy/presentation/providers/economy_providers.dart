@@ -5,6 +5,8 @@ import '../../../../core/cache/json_disk_cache.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/repositories/economy_repository_impl.dart';
+import '../../domain/models/economy_wallet.dart';
+import '../../domain/models/shop_offer.dart';
 import '../../domain/repositories/economy_repository.dart';
 
 final economyRepositoryProvider = Provider<EconomyRepository>((ref) {
@@ -252,38 +254,46 @@ final manaGemsProvider =
       );
     });
 
-/// Catálogo de cosméticos vendidos por ORO (Tienda de Oro).
-/// Filtra cosmetic_catalog con price_gold > 0 y tipo cosmético.
-/// Cache TTL 30 min + disco.
-final goldCosmeticsProvider =
-    StateNotifierProvider<
-      CachedFutureController<List<Map<String, dynamic>>>,
-      AsyncValue<List<Map<String, dynamic>>>
-    >((ref) {
-      final client = ref.watch(supabaseClientProvider);
-      return CachedFutureController<List<Map<String, dynamic>>>(
-        ttl: const Duration(minutes: 30),
-        userIdGetter: () => 'catalog',
-        diskLoader: () => JsonDiskCache.readList('cache_gold_cosmetics'),
-        diskWriter: (data) =>
-            JsonDiskCache.writeList('cache_gold_cosmetics', data),
-        fetcher: () async {
-          try {
-            final res = await client
-                .from('cosmetic_catalog')
-                .select(
-                  'id, name, description, category, price_gold, rarity, image_url',
-                )
-                .gt('price_gold', 0)
-                .order('category', ascending: true)
-                .order('price_gold', ascending: true);
-            return List<Map<String, dynamic>>.from(res as List);
-          } catch (_) {
-            return const [];
-          }
-        },
-      );
-    });
+/// Catálogo completo de la tienda (P-32): incluye `required_level` y
+/// `craft_cost_fragments`, y se ordena por nivel y precio.
+final shopCatalogProvider = FutureProvider.autoDispose<List<ShopOffer>>((
+  ref,
+) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const [];
+  final repo = ref.watch(economyRepositoryProvider);
+  final rows = await repo.getCatalog();
+  return ShopOffer.sortForShop(
+    rows.map(ShopOffer.fromMap).where((o) => o.id.isNotEmpty).toList(),
+  );
+});
+
+/// Cartera (P-32): oro, gemas, fragmentos, nivel de cazador y flujo
+/// ganado/gastado. Se invalida tras cualquier compra, crafteo o reclamo.
+final economyWalletProvider = FutureProvider.autoDispose<EconomyWallet>((
+  ref,
+) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const EconomyWallet();
+  final repo = ref.watch(economyRepositoryProvider);
+  return EconomyWallet.fromMap(await repo.getWallet(user.id));
+});
+
+/// Recompensas de nivel (desbloqueadas y pendientes de reclamar).
+final levelRewardsProvider = FutureProvider.autoDispose<List<LevelReward>>((
+  ref,
+) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const [];
+  final repo = ref.watch(economyRepositoryProvider);
+  final res = await repo.getLevelRewards(user.id);
+  final raw = res['rewards'];
+  if (raw is! List) return const [];
+  return raw
+      .whereType<Map>()
+      .map((e) => LevelReward.fromMap(Map<String, dynamic>.from(e)))
+      .toList();
+});
 
 // ── Inventario equipable de maná (elixires/gemas) ───────────────────────────
 
