@@ -25,8 +25,8 @@ Backend: Supabase (`sipiumfdpvnszthykyog`). Compras: Play Billing + RevenueCat.
 ## Comandos
 
 ```sh
-flutter analyze     # 0 errores · 0 warnings (132 infos son la línea base)
-flutter test        # 185 pruebas
+flutter analyze     # 0 errores · 0 warnings (136 infos son la línea base)
+flutter test        # 517 pruebas
 flutter gen-l10n    # obligatorio tras editar cualquier .arb
 dart run build_runner build --delete-conflicting-outputs   # freezed/json
 flutter build appbundle --release
@@ -72,7 +72,7 @@ funciona desde el ancestro.
 
 ## Base de datos
 
-75 tablas, 120 políticas RLS, 52 funciones, 3 jobs de cron.
+84 tablas, 130 políticas RLS, 82 funciones, 13 vistas, 97 migraciones, 3 jobs de cron (verificado en producción el 29-oct-2026).
 
 - La app **solo lee** `user_subscriptions` y `payments`; las escrituras van por
   RPC `SECURITY DEFINER` o service role.
@@ -116,7 +116,7 @@ cargues la auditoría completa).
 | Comando | Cuándo |
 |---|---|
 | `/build` | Tras editar código: `flutter analyze` (0 errores) |
-| `/test` | Antes de commit: 185 pruebas |
+| `/test` | Antes de commit: 517 pruebas |
 | `/review` | Antes de commit: revisión read-only del diff |
 | `/db-check` | Si tocas esquema, RLS o RPC |
 | `/ui-check` | Si tocas pantallas, estilos o textos |

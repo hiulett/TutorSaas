@@ -2,7 +2,7 @@
 
 _Actualizado: 29-oct-2026 (recuento aplicado; el desglose de archivos es del 18-oct)._
 
-> Estado actual verificado: **89 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **97 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
