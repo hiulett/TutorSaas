@@ -334,28 +334,15 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
   @override
   Future<bool> purchaseCosmeticWithGold(String userId, String itemCode) async {
-    try {
-      // Issue #2: compra atómica en servidor (valida saldo, catálogo,
-      // disponibilidad y ownership; entrega el ítem en la misma transacción).
-      final res = await _client.rpc(
-        'purchase_cosmetic',
-        params: {
-          'p_user_id': userId,
-          'p_item_id': itemCode,
-          'p_currency': 'gold',
-        },
-      );
-      final ok = res is Map && res['success'] == true;
-      if (ok) {
-        unawaited(_logEvent(userId, 'purchase_cosmetic_gold'));
-        unawaited(
-          RetentionAnalytics.instance.track(userId, 'purchase_cosmetic_gold'),
-        );
-      }
-      return ok;
-    } catch (_) {
-      return false;
-    }
+    // Issue #2 / P-32: compra atómica en servidor (valida saldo, nivel,
+    // catálogo, disponibilidad y ownership; entrega el ítem y escribe el libro
+    // de moneda en la misma transacción).
+    final res = await buyCosmetic(
+      userId: userId,
+      itemId: itemCode,
+      currency: 'gold',
+    );
+    return res['success'] == true;
   }
 
   @override
@@ -441,32 +428,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
   @override
   Future<bool> purchaseStreakFreeze(String userId) async {
-    try {
-      const freezeCost = 30;
-
-      // Ensure the streak row exists before updating the freeze count
-      await getStreak(userId);
-
-      final current = await getStreakFreezes(userId);
-      await _client
-          .from('player_streaks')
-          .update({'streak_freezes': current + 1})
-          .eq('user_id', userId);
-
-      final spent = await spendGems(userId, freezeCost);
-      if (!spent) {
-        // Roll back the freeze if the gems could not be charged.
-        await _client
-            .from('player_streaks')
-            .update({'streak_freezes': current})
-            .eq('user_id', userId);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      debugPrint('purchaseStreakFreeze error: $e');
-      return false;
-    }
+    // P-32: el cobro y el contador viven en la RPC (idempotente por ref).
+    final ref = 'freeze:$userId:${DateTime.now().microsecondsSinceEpoch}';
+    final res = await buyStreakFreeze(userId: userId, refKey: ref);
+    return res['success'] == true;
   }
 
   @override
@@ -583,22 +548,154 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
   @override
   Future<bool> spendGold(String userId, int amount) async {
+    // P-32: antes esto era un UPDATE directo de `total_gold` que el trigger
+    // `guard_language_profile` descartaba: devolvía true sin cobrar nada.
     try {
-      final profile = await _client
-          .from('user_language_profiles')
-          .select('total_gold')
-          .eq('user_id', userId)
-          .maybeSingle();
-      final gold = (profile?['total_gold'] as num?)?.toInt() ?? 0;
-      if (gold < amount) return false;
-
-      await _client
-          .from('user_language_profiles')
-          .update({'total_gold': gold - amount})
-          .eq('user_id', userId);
-      return true;
-    } catch (_) {
+      final res = await _client.rpc(
+        'spend_currency',
+        params: {
+          'p_user_id': userId,
+          'p_currency': 'gold',
+          'p_amount': amount,
+          'p_reason': 'spend',
+        },
+      );
+      return res is Map && res['ok'] == true;
+    } catch (e) {
+      debugPrint('spendGold error: $e');
       return false;
+    }
+  }
+
+  // ── P-32: economía con propósito ─────────────────────────────────────────
+
+  @override
+  Future<Map<String, dynamic>> getWallet(String userId) async {
+    try {
+      final res = await _client.rpc(
+        'get_economy_wallet',
+        params: {'p_user_id': userId},
+      );
+      if (res is Map) return Map<String, dynamic>.from(res);
+      return const <String, dynamic>{};
+    } catch (e) {
+      debugPrint('getWallet error: $e');
+      return const <String, dynamic>{};
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getCatalog() async {
+    try {
+      final data = await _client
+          .from('cosmetic_catalog')
+          .select(
+            'id, name, description, category, price_gold, price_gems, '
+            'rarity, image_url, required_level, craft_cost_fragments',
+          )
+          .order('required_level', ascending: true)
+          .order('price_gold', ascending: true);
+      return List<Map<String, dynamic>>.from(data);
+    } catch (e) {
+      debugPrint('getCatalog error: $e');
+      return const [];
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> buyCosmetic({
+    required String userId,
+    required String itemId,
+    String currency = 'gold',
+  }) async {
+    try {
+      final res = await _client.rpc(
+        'purchase_cosmetic',
+        params: {
+          'p_user_id': userId,
+          'p_item_id': itemId,
+          'p_currency': currency,
+        },
+      );
+      if (res is! Map) return {'success': false, 'reason': 'bad_response'};
+      final result = Map<String, dynamic>.from(res);
+      if (result['success'] == true) {
+        unawaited(_logEvent(userId, 'purchase_cosmetic_$currency'));
+      }
+      return result;
+    } catch (e) {
+      debugPrint('buyCosmetic error ($itemId/$currency): $e');
+      return {'success': false, 'reason': 'request_failed'};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> craftCosmetic(
+    String userId,
+    String itemId,
+  ) async {
+    try {
+      final res = await _client.rpc(
+        'craft_cosmetic',
+        params: {'p_user_id': userId, 'p_item_id': itemId},
+      );
+      if (res is! Map) return {'success': false, 'reason': 'bad_response'};
+      final result = Map<String, dynamic>.from(res);
+      if (result['success'] == true) {
+        unawaited(_logEvent(userId, 'craft_cosmetic'));
+      }
+      return result;
+    } catch (e) {
+      debugPrint('craftCosmetic error ($itemId): $e');
+      return {'success': false, 'reason': 'request_failed'};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> buyStreakFreeze({
+    required String userId,
+    required String refKey,
+  }) async {
+    try {
+      final res = await _client.rpc(
+        'purchase_streak_freeze',
+        params: {'p_user_id': userId, 'p_ref_key': refKey},
+      );
+      if (res is! Map) return {'success': false, 'reason': 'bad_response'};
+      return Map<String, dynamic>.from(res);
+    } catch (e) {
+      debugPrint('buyStreakFreeze error ($refKey): $e');
+      return {'success': false, 'reason': 'request_failed'};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLevelRewards(String userId) async {
+    try {
+      final res = await _client.rpc(
+        'level_reward_status',
+        params: {'p_user_id': userId},
+      );
+      if (res is Map) return Map<String, dynamic>.from(res);
+      return const <String, dynamic>{};
+    } catch (e) {
+      debugPrint('getLevelRewards error: $e');
+      return const <String, dynamic>{};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> claimLevelRewards(String userId) async {
+    try {
+      final res = await _client.rpc(
+        'claim_level_rewards',
+        params: {'p_user_id': userId},
+      );
+      if (res is! Map) return {'success': false, 'reason': 'bad_response'};
+      return Map<String, dynamic>.from(res);
+    } catch (e) {
+      debugPrint('claimLevelRewards error: $e');
+      return {'success': false, 'reason': 'request_failed'};
     }
   }
 

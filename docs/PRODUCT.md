@@ -34,14 +34,20 @@ evaluadas (issue #43).
 
 ## 3. Monedas
 
-| Recurso | Para qué | Se gana con |
-|---|---|---|
-| **Maná** | Cada acción de IA (turno de Oráculo 15, cierre 30, mazmorra 12) | Plan mensual, recompensas de sesión, pociones |
-| **Oro** | Cosméticos e ítems del inventario | Misiones, rachas |
-| **XP** | Nivel y rango | Sesiones, misiones |
+| Recurso | Para qué | Se gana con | Se gasta en |
+|---|---|---|---|
+| **Maná** | Cada acción de IA (turno de Oráculo 15, cierre 30, mazmorra 12) | Plan mensual, pociones | Turnos de IA (servidor) |
+| **Oro** | Cosméticos del inventario | Cierre de sesión (objetivos), bolsas de nivel | Tienda → ORO |
+| **Gemas** | Cosméticos premium y freeze de racha | Misiones, recompensa diaria | Tienda → GEMAS |
+| **Fragmentos** | Crafteo de cosméticos | Cierre de sesión (objetivos) | Tienda → FRAGMENTOS |
+| **XP** | Nivel y rango | Sesiones, misiones | — |
 
-Gemas y fragmentos se retiraron de la UI (siguen acumulándose en la base, sin
-uso). La venta directa de maná está retirada.
+Gemas y fragmentos volvieron a la UI en P-32 (#117) **con sumidero**: gemas en
+freeze de racha (30, máx. 3) y cosméticos premium; fragmentos en recetas de
+crafteo. El nivel de cazador (`1 + XP/1000`) desbloquea cosméticos del catálogo
+y paga bolsas de oro. Detalle y consultas de medición en
+[runbooks/ECONOMY_SINKS.md](runbooks/ECONOMY_SINKS.md). La venta directa de
+maná sigue retirada y ninguna moneda compra ventajas de aprendizaje.
 
 > Las métricas de fluidez y pronunciación son **estimaciones** del modelo, no
 > mediciones acústicas. Así se presentan en la interfaz.
@@ -80,6 +86,7 @@ sí se usan para filtrar y priorizar escenarios.
 | 2026 | Retirar venta de maná y el tab de MANÁ de la tienda |
 | 2026 | Premium reducido a maná; sin ventajas de juego |
 | 2026 | Retirar gemas y fragmentos de la UI |
+| oct-2026 | **P-32:** gemas y fragmentos vuelven con sumidero (freeze de racha, crafteo); el nivel de cazador desbloquea cosméticos y paga oro |
 | 2026 | Renombrar "Guardián" → "Santuario de Maná" |
 | 2026 | Quitar el badge "Moderated by AI" |
 | 2026 | Onboarding mixto: quitar campos muertos, conectar los útiles |

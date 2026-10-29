@@ -1662,6 +1662,91 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String price_gems(String price) {
+    return '$price GEMS';
+  }
+
+  @override
+  String craft_cost(String cost) {
+    return '$cost FRAGMENTS';
+  }
+
+  @override
+  String get craft_action => 'CRAFT';
+
+  @override
+  String get craft_success => 'COSMETIC CRAFTED!';
+
+  @override
+  String get shop_tab_gems => 'GEMS';
+
+  @override
+  String get shop_tab_gold => 'GOLD';
+
+  @override
+  String get shop_tab_fragments => 'FRAGMENTS';
+
+  @override
+  String get shop_tab_empty => 'No items in this currency yet.';
+
+  @override
+  String get shop_level_locked => 'HUNTER LEVEL TOO LOW';
+
+  @override
+  String shop_next_unlock(String name, int level) {
+    return 'NEXT UNLOCK: $name · LV. $level';
+  }
+
+  @override
+  String get gems_insufficient => 'INSUFFICIENT GEMS';
+
+  @override
+  String get purchase_failed => 'PURCHASE FAILED';
+
+  @override
+  String level_label(String level) {
+    return 'LV. $level';
+  }
+
+  @override
+  String level_rewards_pending(int count) {
+    return '$count LEVEL REWARDS';
+  }
+
+  @override
+  String level_rewards_banner_hint(String level) {
+    return 'LEVEL $level REACHED · CLAIM YOUR GOLD';
+  }
+
+  @override
+  String level_rewards_claim(int count) {
+    return 'CLAIM $count';
+  }
+
+  @override
+  String level_rewards_claimed_ok(int count) {
+    return '$count LEVEL REWARDS CLAIMED!';
+  }
+
+  @override
+  String get level_rewards_none => 'NO REWARDS TO CLAIM';
+
+  @override
+  String get streak_freeze_title => 'STREAK FREEZE';
+
+  @override
+  String get streak_freeze_desc => 'Protects one missed day. Max 3.';
+
+  @override
+  String get streak_freeze_cap => 'MAX FREEZES REACHED';
+
+  @override
+  String get streak_freeze_max => 'MAXED';
+
+  @override
+  String get streak_freeze_bought => 'STREAK FREEZE ACQUIRED!';
+
+  @override
   String get fragments_insufficient => 'INSUFFICIENT FRAGMENTS ❌';
 
   @override

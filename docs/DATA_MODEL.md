@@ -82,8 +82,9 @@ _Medido en producción el 29-oct-2026._
 ### Economía y progresión
 `subscription_plans`, `user_subscriptions`, `payments`, `mana_transactions`,
 `mana_potions`, `mana_gems`, `mana_items`, `player_inventory`,
-`cosmetic_catalog`, `ai_action_costs`, `session_reward_ledger`, `reward_history`,
-`player_streaks`, `aura_session_awards`, `achievements`, `user_achievements`,
+`cosmetic_catalog`, `currency_ledger`, `level_rewards`, `ai_action_costs`,
+`session_reward_ledger`, `reward_history`, `player_streaks`,
+`aura_session_awards`, `achievements`, `user_achievements`,
 `hunter_collection_catalog`, `hunter_collections`, `player_pergaminos`
 
 - `user_subscriptions` es la fuente que lee la app para plan y maná.
@@ -94,6 +95,24 @@ _Medido en producción el 29-oct-2026._
   RevenueCat/Play**, no de esta tabla (se eliminaron las columnas de Stripe).
 - `mana_transactions` es solo lectura para el cliente; se escribe por RPC
   `SECURITY DEFINER`.
+- **P-32 — economía con propósito:** `currency_ledger` es el libro de todo
+  movimiento de oro, gemas y fragmentos (`currency`, `delta`, `reason`,
+  `ref_key`, `balance_after`). Escribe **solo** `economy_apply_currency`, que es
+  interno (`authenticated` no puede ejecutarlo); el cliente solo lo lee, y su
+  `unique (user_id, ref_key)` es la idempotencia de cada compra, crafteo, freeze
+  y recompensa de nivel.
+- `cosmetic_catalog` añade `required_level` (nivel de cazador que desbloquea el
+  objeto, 1–50) y `craft_cost_fragments` (receta de crafteo con fragmentos).
+  El nivel se calcula con `economy_level(xp_points) = 1 + xp/1000`, la misma
+  curva que `HunterLevel` en Dart.
+- `level_rewards` (nivel → bolsa de oro / `item_code`) la reclama
+  `claim_level_rewards`, idempotente por `level_reward:<nivel>`.
+- `player_streaks.streak_freezes` ya **no** se puede subir desde el cliente:
+  el trigger `guard_player_streak_freezes` lo limita a `least(new, old)`
+  (consumir sigue permitido) y comprar pasa por `purchase_streak_freeze`.
+- La métrica de sumideros (oro ganado vs gastado) vive en la vista
+  `v_economy_flow`, sin acceso para la app. Ver
+  [runbooks/ECONOMY_SINKS.md](runbooks/ECONOMY_SINKS.md).
 
 ### Gremio, salas y misiones
 `chat_rooms`, `chat_room_messages`, `chat_room_participants`, `seat_requests`,
@@ -129,6 +148,9 @@ producto lo necesita.
 | `payments` | **SELECT** |
 | `mana_transactions` | SELECT |
 | `user_language_profiles` | `FOR ALL` del dueño *(pendiente: ver abajo)* |
+| `currency_ledger` | **SELECT** del dueño (escribe solo la RPC definer) |
+| `level_rewards` | **SELECT** (catálogo de recompensas) |
+| `v_economy_flow` | **sin acceso** (agregado entre usuarios; solo `service_role`) |
 | Contenido propio (conversaciones, mensajes, vocabulario, stats) | `FOR ALL` del dueño |
 
 Escrituras sensibles van por RPC `SECURITY DEFINER` o **service role**:
@@ -159,7 +181,12 @@ El cliente **no** escribe `cefr_level_id` ni `game_rank`:
 | `get_mana_state(user)` | Saldo, límite y expiración |
 | `renew_mana_cycle(user, allowance, expires)` | Repone el ciclo (conserva el maná comprado) |
 | `sync_entitlement(...)` | Aplica el estado de RevenueCat (idempotente, solo service role) |
-| `purchase_cosmetics(...)` | Compra con oro |
+| `purchase_cosmetic(user, item, currency)` | Compra un cosmético con `gold` o `gems`: valida saldo, `required_level`, disponibilidad y ownership; entrega el ítem y escribe `currency_ledger` en la misma transacción |
+| `craft_cosmetic(user, item)` | Craftea un cosmético pagando `craft_cost_fragments` (idempotente por `craft:<item>`) |
+| `purchase_streak_freeze(user, ref)` | Compra un freeze de racha por 30 gemas (máx. 3, idempotente por `ref`) |
+| `spend_currency(user, currency, amount, reason, ref)` | Gasto genérico por RPC; sustituye el `UPDATE total_gold` del cliente que el guard descartaba |
+| `level_reward_status(user)` / `claim_level_rewards(user)` | Recompensas de nivel: estado y reclamo idempotente |
+| `get_economy_wallet(user)` | Cartera (oro, gemas, fragmentos, nivel, freezes) + `earned`/`spent` por moneda |
 | `session_rewards(...)` | Cierra sesión y acredita XP/maná |
 | `check_ai_audio_quota` / `track_ai_audio_time` | Cuota de audio |
 | `purge_stale_participants(seconds)` | Limpia presencia |

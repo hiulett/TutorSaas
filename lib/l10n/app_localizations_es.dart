@@ -1670,6 +1670,91 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String price_gems(String price) {
+    return '$price GEMAS';
+  }
+
+  @override
+  String craft_cost(String cost) {
+    return '$cost FRAGMENTOS';
+  }
+
+  @override
+  String get craft_action => 'CRAFTEAR';
+
+  @override
+  String get craft_success => '¡COSMÉTICO CRAFTEADO!';
+
+  @override
+  String get shop_tab_gems => 'GEMAS';
+
+  @override
+  String get shop_tab_gold => 'ORO';
+
+  @override
+  String get shop_tab_fragments => 'FRAGMENTOS';
+
+  @override
+  String get shop_tab_empty => 'Aún no hay objetos en esta moneda.';
+
+  @override
+  String get shop_level_locked => 'NIVEL DE CAZADOR INSUFICIENTE';
+
+  @override
+  String shop_next_unlock(String name, int level) {
+    return 'PRÓXIMO DESBLOQUEO: $name · NV. $level';
+  }
+
+  @override
+  String get gems_insufficient => 'GEMAS INSUFICIENTES';
+
+  @override
+  String get purchase_failed => 'NO SE PUDO COMPLETAR LA COMPRA';
+
+  @override
+  String level_label(String level) {
+    return 'NV. $level';
+  }
+
+  @override
+  String level_rewards_pending(int count) {
+    return '$count RECOMPENSAS DE NIVEL';
+  }
+
+  @override
+  String level_rewards_banner_hint(String level) {
+    return 'NIVEL $level ALCANZADO · RECLAMA TU ORO';
+  }
+
+  @override
+  String level_rewards_claim(int count) {
+    return 'RECLAMAR $count';
+  }
+
+  @override
+  String level_rewards_claimed_ok(int count) {
+    return '¡$count RECOMPENSAS DE NIVEL RECLAMADAS!';
+  }
+
+  @override
+  String get level_rewards_none => 'SIN RECOMPENSAS PENDIENTES';
+
+  @override
+  String get streak_freeze_title => 'FREEZE DE RACHA';
+
+  @override
+  String get streak_freeze_desc => 'Protege un día perdido. Máximo 3.';
+
+  @override
+  String get streak_freeze_cap => 'MÁXIMO DE FREEZES ALCANZADO';
+
+  @override
+  String get streak_freeze_max => 'AL MÁXIMO';
+
+  @override
+  String get streak_freeze_bought => '¡FREEZE DE RACHA ADQUIRIDO!';
+
+  @override
   String get fragments_insufficient => 'FRAGMENTOS INSUFICIENTES ❌';
 
   @override
