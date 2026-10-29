@@ -1,7 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:tutorsaas/features/missions/domain/models/mission_claim_result.dart';
 
-/// Issue #109 · P-24: lectura de la respuesta de `claim_mission_reward`.
+/// Issue #109 Â· P-24: lectura de la respuesta de `claim_mission_reward`.
 void main() {
   test('mapea una recompensa nueva con los importes del servidor', () {
     final result = MissionClaimResult.fromRpc({
@@ -54,7 +54,7 @@ void main() {
     expect(result.reason, 'invalid_response');
   });
 
-  test('motivo ausente o vacío se normaliza a unknown', () {
+  test('motivo ausente o vacÃ­o se normaliza a unknown', () {
     expect(MissionClaimResult.fromRpc({'ok': false}).reason, 'unknown');
     expect(
       MissionClaimResult.fromRpc({'ok': false, 'reason': ''}).reason,
@@ -68,4 +68,27 @@ void main() {
     expect(result.reason, 'exception');
     expect(result.hasReward, isFalse);
   });
-}
+  test('acepta la clave canonica success', () {
+    final result = MissionClaimResult.fromRpc({
+      'success': true,
+      'already_claimed': false,
+      'xp': 100,
+      'gems': 20,
+      'reason': null,
+    });
+
+    expect(result.ok, isTrue);
+    expect(result.xp, 100);
+    expect(result.gems, 20);
+    expect(result.hasReward, isTrue);
+  });
+
+  test('success false con motivo no se confunde con exito', () {
+    final result = MissionClaimResult.fromRpc({
+      'success': false,
+      'reason': 'not_completed',
+    });
+
+    expect(result.ok, isFalse);
+    expect(result.reason, 'not_completed');
+  });}

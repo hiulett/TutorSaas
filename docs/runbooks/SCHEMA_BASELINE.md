@@ -16,7 +16,7 @@ entorno de staging o migración futura.
 | Tablas sin RLS | **0** |
 | Triggers | 44 |
 | Jobs de cron | 3 |
-| Migraciones registradas | **87** |
+| Migraciones registradas | **88** |
 | Archivos `.sql` en `supabase/migrations/` (raíz) | 134 (59 con prefijo válido, 75 sin él) |
 | Archivos `.sql` en subcarpetas (`archive/`, `audit/`) | 40 |
 
