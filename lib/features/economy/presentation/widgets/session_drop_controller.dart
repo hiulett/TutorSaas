@@ -37,7 +37,7 @@ class _SessionDropControllerState extends ConsumerState<SessionDropController> {
 
     // El drop vive en servidor: idempotente por session_id. Sin sesion
     // registrada no hay drop (evita farmear reabriendo el resumen).
-    final session = ref.read(sessionResultProvider);
+    final session = ref.read(sessionResultProvider).valueOrNull;
     final sessionId = session?['session_id'] as String?;
     if (sessionId == null || sessionId.isEmpty) return;
 
