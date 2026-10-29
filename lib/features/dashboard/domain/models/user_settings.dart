@@ -6,6 +6,8 @@ class UserSettings {
   final String tutorPersonality;
   final int dailyGoalMinutes;
   final bool notificationsEnabled;
+  final bool hapticsEnabled;
+  final bool soundEnabled;
   final String notificationTime;
 
   /// Dias ISO del recordatorio diario (1 = lunes ... 7 = domingo).
@@ -19,6 +21,8 @@ class UserSettings {
     required this.tutorPersonality,
     required this.dailyGoalMinutes,
     required this.notificationsEnabled,
+    this.hapticsEnabled = true,
+    this.soundEnabled = true,
     required this.notificationTime,
     this.notificationDays = ReminderSettings.everyDay,
     this.interests = const [],
@@ -44,6 +48,8 @@ class UserSettings {
       tutorPersonality: json['tutor_personality'] as String? ?? 'friendly',
       dailyGoalMinutes: json['daily_goal_minutes'] as int? ?? 15,
       notificationsEnabled: json['notifications_enabled'] as bool? ?? false,
+      hapticsEnabled: json['haptics_enabled'] as bool? ?? true,
+      soundEnabled: json['sound_enabled'] as bool? ?? true,
       notificationTime: json['notification_time'] as String? ?? '20:00:00',
       notificationDays: ReminderSettings.normalizeDays(
         json['notification_days'],
@@ -60,6 +66,8 @@ class UserSettings {
       'tutor_personality': tutorPersonality,
       'daily_goal_minutes': dailyGoalMinutes,
       'notifications_enabled': notificationsEnabled,
+      'haptics_enabled': hapticsEnabled,
+      'sound_enabled': soundEnabled,
       'notification_time': notificationTime,
       'notification_days': notificationDays,
       'interests': interests,
@@ -73,6 +81,8 @@ class UserSettings {
     String? tutorPersonality,
     int? dailyGoalMinutes,
     bool? notificationsEnabled,
+    bool? hapticsEnabled,
+    bool? soundEnabled,
     String? notificationTime,
     List<int>? notificationDays,
     List<String>? interests,
@@ -84,6 +94,8 @@ class UserSettings {
       tutorPersonality: tutorPersonality ?? this.tutorPersonality,
       dailyGoalMinutes: dailyGoalMinutes ?? this.dailyGoalMinutes,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
       notificationTime: notificationTime ?? this.notificationTime,
       notificationDays: notificationDays ?? this.notificationDays,
       interests: interests ?? this.interests,

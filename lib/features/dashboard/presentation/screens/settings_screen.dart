@@ -172,6 +172,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         // audio de efectos en runtime. Issue #106: el recordatorio diario ya
                         // existe de verdad (notificacion local), asi que recupera su tarjeta.
                         const ReminderSettingsCard(),
+                        const SizedBox(height: 8),
+                        _buildSensoryTiles(context),
                         const SizedBox(height: 24),
 
                         _SectionHeader(title: l10n?.settings_account ?? 'ACCOUNT'),
@@ -1184,6 +1186,87 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// P-37 (#122): vibracion y sonido de las celebraciones.
+  Widget _buildSensoryTiles(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.watch(userSettingsProvider);
+
+    Widget tile({
+      required IconData icon,
+      required String title,
+      required String subtitle,
+      required bool value,
+      required ValueChanged<bool> onChanged,
+    }) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: GlassCard(
+          blur: 20,
+          opacity: AppColors.glassOpacity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.manaCyan, size: 22),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.spaceGrotesk(
+                        color: AppColors.onSurface,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                        color: AppColors.onSurfaceVariant,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeTrackColor: AppColors.manaCyan.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        tile(
+          icon: Icons.vibration_rounded,
+          title: l10n?.settings_haptics ?? 'VIBRACION',
+          subtitle: l10n?.settings_haptics_desc ??
+              'Vibra al cumplir la meta y al subir de nivel',
+          value: settings.hapticsEnabled,
+          onChanged: (value) => ref
+              .read(userSettingsProvider.notifier)
+              .updateSetting('haptics_enabled', value),
+        ),
+        tile(
+          icon: Icons.volume_up_rounded,
+          title: l10n?.settings_sounds ?? 'SONIDOS',
+          subtitle: l10n?.settings_sounds_desc ??
+              'Sonido del sistema en las celebraciones',
+          value: settings.soundEnabled,
+          onChanged: (value) => ref
+              .read(userSettingsProvider.notifier)
+              .updateSetting('sound_enabled', value),
+        ),
+      ],
+    );
+  }
   Widget _buildDeviceLanguageTile(BuildContext context) {
     final langSettings = ref.watch(userLanguageProvider);
     final deviceLang = ref.watch(deviceLocaleProvider);
