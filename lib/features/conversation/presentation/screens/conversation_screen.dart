@@ -36,6 +36,8 @@ import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../../../corrections/presentation/providers/corrections_providers.dart';
 import '../../../corrections/presentation/widgets/correction_chip.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../boss_exam/domain/models/boss_exam_outcome.dart';
+import '../../../boss_exam/presentation/widgets/boss_exam_health_bar.dart';
 import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -51,6 +53,11 @@ class ConversationScreen extends ConsumerStatefulWidget {
   final String? oracleTargetLanguage;
   final String? oracleNativeLanguage;
 
+  /// P-31 (#116): el examen es el "jefe de mazmorra" (promoción de nivel).
+  /// Solo afecta a la capa visual y a la pantalla de resultado; el nivel lo
+  /// decide el servidor.
+  final bool oraclePromotion;
+
   const ConversationScreen({
     super.key,
     this.scenarioId,
@@ -58,6 +65,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
     this.oracleMode = false,
     this.oracleTargetLanguage,
     this.oracleNativeLanguage,
+    this.oraclePromotion = false,
   });
 
   @override
@@ -155,6 +163,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             .initOracleSession(
               targetLanguage: widget.oracleTargetLanguage,
               nativeLanguage: widget.oracleNativeLanguage,
+              promotion: widget.oraclePromotion,
             );
       } else {
         // ðŸ° GuardiÃ¡n de la Mazmorra: sin manÃ¡ no se puede entrar a una
@@ -1311,6 +1320,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             ],
                             const SizedBox(height: 8),
                           ],
+                          if (isOracle && widget.oraclePromotion) ...[
+                            const SizedBox(height: 6),
+                            BossExamHealthBar(
+                              turns: conversationState.messages
+                                  .where((m) => m.sender == 'user')
+                                  .length,
+                            ),
+                          ],
 
                           // Mana & Mode Controls Bar
                           if (!isOracle)
@@ -1933,8 +1950,26 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   navigate: false,
                                 );
                                 final navigator = Navigator.of(context);
+                                final rawResult =
+                                    conversationState.oracleResult;
+                                // P-31 (#116): en el jefe de mazmorra el
+                                // resultado se explica en su propia pantalla
+                                // (rúbrica, motivo y reintento).
+                                if (rawResult != null &&
+                                    rawResult['mode'] == 'boss') {
+                                  final outcome = BossExamOutcome.fromMap(
+                                    rawResult,
+                                  );
+                                  if (context.mounted) {
+                                    context.push(
+                                      '/boss-result',
+                                      extra: outcome,
+                                    );
+                                  }
+                                  return;
+                                }
                                 if (navigator.canPop()) {
-                                  navigator.pop(conversationState.oracleResult);
+                                  navigator.pop(rawResult);
                                 } else {
                                   context.go('/home');
                                 }

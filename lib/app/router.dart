@@ -15,6 +15,8 @@ import '../features/economy/presentation/screens/shop_screen.dart';
 import '../features/economy/presentation/screens/inventory_screen.dart';
 import '../features/economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../features/corrections/presentation/screens/my_errors_screen.dart';
+import '../features/boss_exam/domain/models/boss_exam_outcome.dart';
+import '../features/boss_exam/presentation/screens/boss_exam_result_screen.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
 import 'splash_screen.dart';
 import 'navigation_resolver.dart';
@@ -38,10 +40,12 @@ final List<RouteBase> appRoutes = <RouteBase>[
       final target = state.uri.queryParameters['target'];
       final native = state.uri.queryParameters['native'];
       // mode=promotion&level=B1 → reto del Oráculo (no baja de nivel).
-      // El notifier detecta promotion por el nivel actual del usuario.
-      // Issue #38: los parámetros de promoción no se usaban en ninguna parte.
+      // P-31 (#116): `mode=promotion` activa la capa de jefe de mazmorra
+      // (barra de vida y pantalla de resultado); el nivel lo decide el servidor.
+      final promotion = state.uri.queryParameters['mode'] == 'promotion';
       return ConversationScreen(
         oracleMode: true,
+        oraclePromotion: promotion,
         oracleTargetLanguage: target ?? 'en',
         oracleNativeLanguage: native,
       );
@@ -87,6 +91,17 @@ final List<RouteBase> appRoutes = <RouteBase>[
   GoRoute(
     path: '/dungeon-guardian',
     builder: (context, state) => const DungeonGuardianScreen(),
+  ),
+
+  // P-31 (#116): resultado del jefe de mazmorra (rúbrica, motivo, reintento).
+  GoRoute(
+    path: '/boss-result',
+    builder: (context, state) {
+      final extra = state.extra;
+      return BossExamResultScreen(
+        outcome: extra is BossExamOutcome ? extra : null,
+      );
+    },
   ),
 
   // P-29: historial de errores agrupado por tipo y recurrencia.

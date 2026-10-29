@@ -3785,4 +3785,141 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notif_reminder_body =>
       'A short raid today keeps the streak alive. Your tutor is ready.';
+
+  @override
+  String get boss_exam_title => 'DUNGEON BOSS: THE ORACLE';
+
+  @override
+  String get boss_exam_state_ready => 'The boss awaits. Challenge available!';
+
+  @override
+  String get boss_exam_state_locked =>
+      'Meet the requirements to challenge the boss.';
+
+  @override
+  String boss_exam_state_locked_progress(int percent) {
+    return 'Complete 80% of the level lessons ($percent%)';
+  }
+
+  @override
+  String boss_exam_state_cooldown(String time) {
+    return 'The boss rests until $time.';
+  }
+
+  @override
+  String get boss_req_level => 'Assigned level';
+
+  @override
+  String get boss_req_practice => 'Practice: goals, streak or minutes';
+
+  @override
+  String get boss_req_cooldown => 'Cooldown between attempts';
+
+  @override
+  String get boss_hud_title => 'BOSS: THE ORACLE';
+
+  @override
+  String boss_hud_turns(int current, int max) {
+    return 'TURN $current/$max';
+  }
+
+  @override
+  String get boss_result_victory => 'BOSS DEFEATED';
+
+  @override
+  String get boss_result_defeat => 'THE BOSS HOLDS';
+
+  @override
+  String get boss_result_initial => 'LEVEL ASSIGNED';
+
+  @override
+  String get boss_result_missing => 'No result available.';
+
+  @override
+  String boss_result_level_up(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String boss_result_level_assigned(String level) {
+    return 'Your level: $level';
+  }
+
+  @override
+  String boss_result_level_kept(String level) {
+    return 'You keep $level';
+  }
+
+  @override
+  String get boss_result_forced =>
+      'The exam reached its limit and was scored with the answers given.';
+
+  @override
+  String get boss_result_rubric => 'RUBRIC (6 DIMENSIONS)';
+
+  @override
+  String boss_result_average(int value, int threshold) {
+    return 'avg $value/100 - pass $threshold';
+  }
+
+  @override
+  String get boss_result_no_scores =>
+      'The Oracle could not score the rubric in this attempt.';
+
+  @override
+  String get boss_result_reason_title => 'WHY NOT YET';
+
+  @override
+  String get boss_result_reason_rubric =>
+      'You were close: the average or one dimension is below the pass threshold.';
+
+  @override
+  String get boss_result_reason_no_improvement =>
+      'Your level is solid, but not yet above your current band.';
+
+  @override
+  String get boss_result_reason_unavailable =>
+      'The Oracle could not score the rubric, so the level is kept.';
+
+  @override
+  String boss_result_retry_at(String time) {
+    return 'Next attempt: $time';
+  }
+
+  @override
+  String get boss_result_focus_title => 'WHAT TO REINFORCE';
+
+  @override
+  String get boss_result_reinforce => 'PRACTISE REINFORCEMENT LESSONS';
+
+  @override
+  String get boss_result_home => 'BACK TO THE PATH';
+
+  @override
+  String get boss_dim_listening => 'Listening';
+
+  @override
+  String get boss_dim_fluency => 'Fluency';
+
+  @override
+  String get boss_dim_grammar => 'Grammar';
+
+  @override
+  String get boss_dim_vocabulary => 'Vocabulary';
+
+  @override
+  String get boss_dim_pronunciation => 'Pronunciation';
+
+  @override
+  String get boss_dim_naturalness => 'Naturalness';
+
+  @override
+  String boss_exam_not_enough(int min) {
+    return 'The Oracle needs at least $min answers to judge the exam. This attempt does not count.';
+  }
+
+  @override
+  String boss_exam_cooldown(String time) {
+    return 'The boss does not accept another challenge until $time.';
+  }
 }

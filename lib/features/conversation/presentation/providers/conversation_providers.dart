@@ -27,6 +27,8 @@ import '../../../dashboard/domain/services/lesson_generator_service.dart';
 import '../../../dashboard/domain/models/remedial_lesson.dart';
 import '../../../dashboard/domain/models/lesson_completion.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../boss_exam/domain/models/boss_exam_rubric.dart';
+import '../../../boss_exam/domain/services/boss_exam_rules.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../onboarding/data/placement_service.dart';
 import '../../../onboarding/domain/models/placement_outcome.dart';
@@ -105,6 +107,15 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   String? _assessmentId;
   int _turnCounter = 0;
   DateTime? _lastOracleQuestionAt;
+
+  // P-31 (#116): reglas del "jefe de mazmorra" (examen de promoción).
+  // Tope duro de turnos y timeout: sin ellos el examen podía quedarse abierto
+  // para siempre si el modelo no emitía el marcador de cierre.
+  int _oracleUserTurns = 0;
+  bool _oraclePromotion = false;
+  DateTime? _oracleStartedAt;
+  Timer? _oracleCloseTimer;
+  bool _oracleFinalizing = false;
 
   /// Idempotencia del cierre de sesión: garantiza que `endSession` se ejecute
   /// una sola vez aunque la salida ocurra por varias vías (pop, back, go, dispose).
@@ -343,6 +354,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   Future<void> initOracleSession({
     String? targetLanguage,
     String? nativeLanguage,
+    bool promotion = false,
   }) async {
     final user = _ref.read(currentUserProvider);
     _userId = user?.id ?? 'guest_user';
@@ -375,6 +387,21 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     _assessmentStart = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     _turnCounter = 0;
     _assessmentId = null;
+
+    // P-31 (#116): el examen es el jefe de mazmorra solo cuando se entra desde
+    // la Ruta (`mode=promotion`). No se deduce del nivel: `handle_new_user()`
+    // crea un perfil con A1 por defecto sin evaluar, así que "tiene nivel" no
+    // distingue placement inicial de promoción.
+    _oraclePromotion = promotion;
+    _oracleUserTurns = 0;
+    _oracleStartedAt = DateTime.now();
+    _oracleFinalizing = false;
+    _oracleCloseTimer?.cancel();
+    if (_oraclePromotion) {
+      _oracleCloseTimer = Timer(BossExamRules.timeLimit, () {
+        unawaited(_forceCloseOracleExam());
+      });
+    }
     _ref.read(activeConversationIdProvider.notifier).state = null;
 
     // P-34c (#119): preferencias de voz antes de la primera pregunta.
@@ -782,6 +809,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     try {
       // 1. Append user message (skip for the opening turn).
       if (userText.isNotEmpty) {
+        _oracleUserTurns++;
         state = state.copyWith(
           messages: [
             ...state.messages.where((m) => m.text.isNotEmpty),
@@ -879,6 +907,18 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           declaredCefr: declaredCefr,
           declaredRank: declaredRank,
         );
+        return;
+      }
+
+      // 5b. P-31 (#116): tope duro de turnos o de tiempo. Al alcanzarlo se
+      // cierra el examen con la evidencia disponible; el servidor decide con
+      // las respuestas que haya (sin depender del marcador del modelo).
+      if (_oraclePromotion &&
+          BossExamRules.shouldForceClose(
+            turns: _oracleUserTurns,
+            elapsed: _oracleElapsed,
+          )) {
+        await _finalizeOracleEvaluation(forced: true);
         return;
       }
 
@@ -1034,9 +1074,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // Nivel actual del usuario (placement previo o asignado en onboarding).
     final currentLevel =
         (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? '';
-    // Promoción = el usuario ya tiene un nivel asignado (re-evaluación para
-    // subir); placement inicial = sin nivel previo.
-    final isPromotion = currentLevel.isNotEmpty;
+    // P-31 (#116): promoción = se entró al jefe desde la Ruta. El perfil
+    // recién creado trae A1 por defecto sin evaluar, así que el nivel solo no
+    // distingue placement inicial de promoción.
+    final isPromotion = _oraclePromotion;
 
     // Contexto del historial para la evaluación contextual (skills + debilidades).
     final radar = _ref.read(skillsRadarProvider).value ?? const {};
@@ -1044,7 +1085,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     final weaknesses = (profile['placement_weaknesses'] as List?) ?? const [];
 
     final startingLine = isPromotion
-        ? 'PROGRESSION RULES:\n- Start at the student CURRENT level ($currentLevel). Assess whether they have IMPROVED enough to move UP one band. If they perform at or below their current level, keep them at $currentLevel (NEVER assign a lower level).'
+        ? 'PROGRESSION RULES:\n- Start at the student CURRENT level ($currentLevel). Assess whether they have IMPROVED enough to move UP one band. If they perform at or below their current level, keep them at $currentLevel (NEVER assign a lower level).\n- This is a BOSS EXAM: you have at most ${BossExamRules.maxTurns} student answers. Aim to close by answer 7. If the limit is reached the exam closes automatically with what was said.\n- The promotion gate is a fixed rubric: average of your 6 scored dimensions (listening, fluency, grammar, vocabulary, pronunciation, naturalness) must be >= ${BossExamRubric.passAverage} and no dimension below ${BossExamRubric.minDimension}. Score honestly against the CEFR band you are testing.'
         : 'PROGRESSION RULES:\n- Start at A1. After each answer, silently assess it.';
 
     final contextLine = isPromotion
@@ -1125,10 +1166,21 @@ ENDING:
   /// El marcador `[RESULT:CEFR=..,RANK=..]` que declaró el Oráculo se envía
   /// solo como pista: el servidor la acepta si está a ±1 banda de su propia
   /// evaluación y nunca permite bajar de nivel en modo promoción.
+  ///
+  /// P-31 (#116): en promoción el cierre puede forzarse por tope de turnos o
+  /// por tiempo ([forced]). La evaluación usa las respuestas disponibles y el
+  /// servidor aplica la rúbrica y el cooldown.
   Future<void> _finalizeOracleEvaluation({
     String? declaredCefr,
     String? declaredRank,
+    bool forced = false,
   }) async {
+    if (_oracleFinalizing || state.oracleFinished) return;
+    _oracleFinalizing = true;
+    _oracleCloseTimer?.cancel();
+    _oracleCloseTimer = null;
+    final mode = _oraclePromotion ? 'boss' : 'placement';
+
     try {
       state = state.copyWith(isProcessing: true, oracleEvaluating: true);
 
@@ -1139,6 +1191,28 @@ ENDING:
           .map((m) => m.text)
           .where((t) => t.trim().isNotEmpty)
           .toList();
+
+      // P-31: sin evidencia mínima no se llama al servidor (no se cobra maná
+      // ni se consume el cooldown). El intento no cuenta.
+      if (mode == 'boss' && !BossExamRules.hasEnoughEvidence(answers.length)) {
+        const message =
+            'El Oráculo necesita al menos ${BossExamRules.minAnswers} '
+            'respuestas para juzgar el examen. Este intento no cuenta.';
+        state = state.copyWith(
+          isProcessing: false,
+          oracleEvaluating: false,
+          oracleFinished: true,
+          errorMessage: message,
+        );
+        _ref
+            .read(conversationErrorProvider.notifier)
+            .state = ConversationErrorState(
+          message: message,
+          kind: AiErrorKind.provider,
+          canRetry: true,
+        );
+        return;
+      }
 
       // #73: el nivel lo calcula y lo persiste el servidor
       // (`evaluate-placement`). El cliente solo envía la transcripción y la
@@ -1153,9 +1227,14 @@ ENDING:
               answers: answers,
               declaredCefr: declaredCefr,
               declaredRank: declaredRank,
+              mode: mode,
+              forced: forced,
             );
       } on PlacementException catch (e) {
         debugPrint('Oracle placement error: ${e.message}');
+        // El examen sigue abierto para poder reintentar el cierre (la ruta
+        // también permite salir sin perder lo dicho).
+        _oracleFinalizing = false;
         state = state.copyWith(
           isProcessing: false,
           oracleEvaluating: false,
@@ -1186,12 +1265,26 @@ ENDING:
       final recommendedFocus = outcome.recommendedFocus;
 
       final result = <String, dynamic>{
-        'cefrLevel': cefrLevel,
-        'gameRank': gameRank,
+        // Claves del contrato con `evaluate-placement` (P-31 / #116).
+        'cefr_level': cefrLevel,
+        'game_rank': gameRank,
+        'previous_cefr_level': outcome.previousCefrLevel,
+        'promoted': outcome.promoted,
+        'decision': outcome.decision,
+        'reason_code': outcome.reasonCode,
+        'rubric': outcome.rubric,
+        'next_attempt_at': outcome.nextAttemptAt?.toIso8601String(),
+        'forced': forced || outcome.forced,
+        'turns': outcome.turns > 0 ? outcome.turns : answers.length,
+        'mode': outcome.mode.isNotEmpty ? outcome.mode : mode,
         'scores': outcome.scores,
         'strengths': strengths,
         'weaknesses': weaknesses,
         'explanation': explanation,
+        'recommended_focus': recommendedFocus,
+        // Compatibilidad con consumidores anteriores del mapa.
+        'cefrLevel': cefrLevel,
+        'gameRank': gameRank,
         'recommendedFocus': recommendedFocus,
         'answers': answers,
       };
@@ -1222,6 +1315,11 @@ ENDING:
       final closing = _buildOracleClosingMessage(
         cefrLevel: cefrLevel,
         gameRank: gameRank,
+        // El "mantienes nivel" solo tiene sentido en el jefe; en el placement
+        // inicial el mensaje es de bienvenida.
+        verdict: _oraclePromotion
+            ? ((result['decision'] as String?) ?? '')
+            : '',
       );
 
       final updatedMessages = [
@@ -1252,15 +1350,42 @@ ENDING:
       _speakTts(closing);
     } catch (e) {
       debugPrint('Oracle evaluation finalize error: $e');
+      _oracleFinalizing = false;
       state = state.copyWith(isProcessing: false, oracleEvaluating: false);
     }
+  }
+
+  /// Tiempo transcurrido desde la apertura del examen (P-31 / #116).
+  Duration get _oracleElapsed {
+    final start = _oracleStartedAt;
+    if (start == null) return Duration.zero;
+    return DateTime.now().difference(start);
+  }
+
+  /// Cierre por tiempo agotado (P-31 / #116).
+  ///
+  /// Usa las respuestas que haya; si no llega al mínimo, el servidor no
+  /// evalúa y la UI lo explica en vez de dejar el examen colgado.
+  Future<void> _forceCloseOracleExam() async {
+    if (!_oraclePromotion || _oracleFinalizing || state.oracleFinished) return;
+    debugPrint(
+      'Oracle boss exam timed out after ${_oracleElapsed.inSeconds}s '
+      '(${_oracleUserTurns} respuestas); se fuerza el cierre.',
+    );
+    await _finalizeOracleEvaluation(forced: true);
   }
 
   /// Construye el mensaje épico y breve de cierre del Oráculo con el resultado.
   String _buildOracleClosingMessage({
     required String cefrLevel,
     required String gameRank,
+    String verdict = '',
   }) {
+    if (verdict == 'maintained') {
+      return 'Your level remains $cefrLevel, Rank $gameRank. '
+          'The dungeon remembers your effort: sharpen your weakest skills '
+          'and return.';
+    }
     // Mensaje corto y directo: nivel + rango, sin extender.
     return 'Excellent. Your communication level is $cefrLevel. '
         'You will begin as a Rank $gameRank Adventurer. '
@@ -2057,8 +2182,7 @@ ENDING:
           // Issue #18: sin evaluación no se puede afirmar que la lección se
           // superó. Antes, una evaluación vacía daba ratio 1.0 => "passed".
           if (evaluated > 0 && totalGoals > 0) {
-            final status =
-                LessonCompletion.isPassed(completedGoals, totalGoals)
+            final status = LessonCompletion.isPassed(completedGoals, totalGoals)
                 ? 'passed'
                 : 'failed';
             await Supabase.instance.client.from('lesson_progress').insert({
@@ -2345,6 +2469,8 @@ ENDING:
 
   @override
   void dispose() {
+    _oracleCloseTimer?.cancel();
+    _oracleCloseTimer = null;
     unawaited(_disposePlugins());
     super.dispose();
   }
