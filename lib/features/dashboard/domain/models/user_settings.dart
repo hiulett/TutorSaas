@@ -5,6 +5,12 @@ class UserSettings {
   final String correctionStyle;
   final String tutorPersonality;
   final int dailyGoalMinutes;
+
+  /// P-34c (#119): multiplicador del TTS del tutor (0.75x / 1x / 1.25x).
+  final double ttsSpeed;
+
+  /// P-34c (#119): nombre de la voz del motor TTS. `null` = voz del sistema.
+  final String? tutorVoiceId;
   final bool notificationsEnabled;
   final bool hapticsEnabled;
   final bool soundEnabled;
@@ -20,6 +26,8 @@ class UserSettings {
     required this.correctionStyle,
     required this.tutorPersonality,
     required this.dailyGoalMinutes,
+    this.ttsSpeed = 1.0,
+    this.tutorVoiceId,
     required this.notificationsEnabled,
     this.hapticsEnabled = true,
     this.soundEnabled = true,
@@ -47,6 +55,8 @@ class UserSettings {
       correctionStyle: json['correction_style'] as String? ?? 'balanced',
       tutorPersonality: json['tutor_personality'] as String? ?? 'friendly',
       dailyGoalMinutes: json['daily_goal_minutes'] as int? ?? 15,
+      ttsSpeed: (json['tts_speed'] as num?)?.toDouble() ?? 1.0,
+      tutorVoiceId: json['tutor_voice_id'] as String?,
       notificationsEnabled: json['notifications_enabled'] as bool? ?? false,
       hapticsEnabled: json['haptics_enabled'] as bool? ?? true,
       soundEnabled: json['sound_enabled'] as bool? ?? true,
@@ -65,6 +75,8 @@ class UserSettings {
       'correction_style': correctionStyle,
       'tutor_personality': tutorPersonality,
       'daily_goal_minutes': dailyGoalMinutes,
+      'tts_speed': ttsSpeed,
+      'tutor_voice_id': tutorVoiceId,
       'notifications_enabled': notificationsEnabled,
       'haptics_enabled': hapticsEnabled,
       'sound_enabled': soundEnabled,
@@ -80,6 +92,8 @@ class UserSettings {
     String? correctionStyle,
     String? tutorPersonality,
     int? dailyGoalMinutes,
+    double? ttsSpeed,
+    String? tutorVoiceId,
     bool? notificationsEnabled,
     bool? hapticsEnabled,
     bool? soundEnabled,
@@ -93,6 +107,8 @@ class UserSettings {
       correctionStyle: correctionStyle ?? this.correctionStyle,
       tutorPersonality: tutorPersonality ?? this.tutorPersonality,
       dailyGoalMinutes: dailyGoalMinutes ?? this.dailyGoalMinutes,
+      ttsSpeed: ttsSpeed ?? this.ttsSpeed,
+      tutorVoiceId: tutorVoiceId ?? this.tutorVoiceId,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       soundEnabled: soundEnabled ?? this.soundEnabled,

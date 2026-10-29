@@ -12,6 +12,7 @@ class ConversationState with _$ConversationState {
     @Default(false) bool isPlaying,
     @Default('') String currentTranscribingText,
     String? errorMessage,
+
     /// Optional scenario context loaded before a roleplay session
     String? activeScenarioId,
     String? activeScenarioName,
@@ -41,13 +42,22 @@ class ConversationState with _$ConversationState {
     /// Non-null once the Oracle finishes the exam; holds the placement result.
     Map<String, dynamic>? oracleResult,
 
+    /// P-34e (#119): el permiso de micrófono fue denegado. La pantalla muestra
+    /// una tarjeta accionable con acceso a los ajustes del sistema.
+    @Default(false) bool micPermissionDenied,
+
+    // ── P-34c (#119): preferencias de voz del tutor ──────────────────────────
+    /// Multiplicador del TTS (0.75x / 1x / 1.25x).
+    @Default(1.0) double ttsSpeed,
+
+    /// Nombre de la voz del motor TTS. `null` = voz del sistema.
+    String? tutorVoiceId,
+
     /// Momento en que arrancó la sesión (para el resumen real de duración).
     /// Se fija en [initSession] y en la sesión del Oráculo.
     DateTime? sessionStartedAt,
   }) = _ConversationState;
 
   /// Returns initial empty state. First message is set by [initSession].
-  factory ConversationState.initial() => const ConversationState(
-        messages: [],
-      );
+  factory ConversationState.initial() => const ConversationState(messages: []);
 }

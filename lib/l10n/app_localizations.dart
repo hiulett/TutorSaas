@@ -5116,6 +5116,108 @@ abstract class AppLocalizations {
   /// **'Analyzing your communication level...'**
   String get convo_analyzing_level;
 
+  /// No description provided for @convo_status_listening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get convo_status_listening;
+
+  /// No description provided for @convo_status_thinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking…'**
+  String get convo_status_thinking;
+
+  /// No description provided for @convo_status_speaking.
+  ///
+  /// In en, this message translates to:
+  /// **'The tutor is speaking'**
+  String get convo_status_speaking;
+
+  /// No description provided for @convo_stop_tutor.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get convo_stop_tutor;
+
+  /// No description provided for @convo_tts_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutor voice'**
+  String get convo_tts_title;
+
+  /// No description provided for @convo_tts_speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get convo_tts_speed;
+
+  /// No description provided for @convo_tts_voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get convo_tts_voice;
+
+  /// No description provided for @convo_tts_default_voice.
+  ///
+  /// In en, this message translates to:
+  /// **'System voice'**
+  String get convo_tts_default_voice;
+
+  /// No description provided for @convo_tts_no_voices.
+  ///
+  /// In en, this message translates to:
+  /// **'No English voices found. Install one in Android Settings > Languages.'**
+  String get convo_tts_no_voices;
+
+  /// No description provided for @convo_mic_denied_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone blocked'**
+  String get convo_mic_denied_title;
+
+  /// No description provided for @convo_mic_denied_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Dungeon of English needs the microphone to hear you. Turn it on in Android settings, then come back.'**
+  String get convo_mic_denied_body;
+
+  /// No description provided for @convo_mic_open_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get convo_mic_open_settings;
+
+  /// No description provided for @convo_mic_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get convo_mic_retry;
+
+  /// No description provided for @convo_mic_manual_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings > Apps > Dungeon of English > Permissions > Microphone.'**
+  String get convo_mic_manual_hint;
+
+  /// No description provided for @convo_help_title.
+  ///
+  /// In en, this message translates to:
+  /// **'I need help'**
+  String get convo_help_title;
+
+  /// No description provided for @convo_help_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a phrase to send it as your answer.'**
+  String get convo_help_hint;
+
+  /// No description provided for @convo_help_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'This scenario has no help phrases yet. Write your answer or change the topic.'**
+  String get convo_help_empty;
+
   /// No description provided for @settings_system_config.
   ///
   /// In en, this message translates to:

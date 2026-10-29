@@ -37,6 +37,16 @@ abstract final class AnalyticsEvent {
   static const notificationSent = 'notification_sent';
   static const notificationOpened = 'notification_opened';
 
+  // P-34 (#119): experiencia de conversación.
+  static const ttsStopped = 'tts_stopped';
+  static const ttsSpeedChanged = 'tts_speed_changed';
+  static const ttsVoiceChanged = 'tts_voice_changed';
+  static const micPermissionDenied = 'mic_permission_denied';
+  static const micSettingsOpened = 'mic_settings_opened';
+  static const helpPhrasesShown = 'help_phrases_shown';
+  static const helpPhraseUsed = 'help_phrase_used';
+  static const conversationTurnLatency = 'conversation_turn_latency';
+
   static const all = <String>{
     appOpen,
     onboardingStarted,
@@ -59,6 +69,14 @@ abstract final class AnalyticsEvent {
     notificationPermission,
     notificationSent,
     notificationOpened,
+    ttsStopped,
+    ttsSpeedChanged,
+    ttsVoiceChanged,
+    micPermissionDenied,
+    micSettingsOpened,
+    helpPhrasesShown,
+    helpPhraseUsed,
+    conversationTurnLatency,
   };
 }
 

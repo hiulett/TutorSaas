@@ -11,6 +11,7 @@ import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/goal_evaluation_parser.dart';
 import '../../domain/models/goal_evaluation_result.dart';
+import '../../domain/models/help_phrase.dart';
 import '../../domain/repositories/conversation_repository.dart';
 
 class ConversationRepositoryImpl implements ConversationRepository {
@@ -142,7 +143,8 @@ class ConversationRepositoryImpl implements ConversationRepository {
           ),
         );
 
-        final Stream<List<int>> byteStream = (response.data.stream as Stream).cast<List<int>>();
+        final Stream<List<int>> byteStream = (response.data.stream as Stream)
+            .cast<List<int>>();
         final lineStream = byteStream
             .transform(utf8.decoder)
             .transform(const LineSplitter());
@@ -155,22 +157,32 @@ class ConversationRepositoryImpl implements ConversationRepository {
           if (decoder.isDone) break;
         }
         unawaited(_logEvent(currentUserId, 'invoke_llm'));
-        unawaited(RetentionAnalytics.instance.track(currentUserId, 'invoke_llm'));
+        unawaited(
+          RetentionAnalytics.instance.track(currentUserId, 'invoke_llm'),
+        );
         return;
       } catch (e) {
         final status = e is DioException ? e.response?.statusCode : null;
         final dioType = e is DioException ? e.type : null;
-        final isTimeout = dioType == DioExceptionType.connectionTimeout ||
+        final isTimeout =
+            dioType == DioExceptionType.connectionTimeout ||
             dioType == DioExceptionType.receiveTimeout ||
             dioType == DioExceptionType.sendTimeout;
-        final retryable = e is DioException &&
-            (status == 429 || status == 500 || status == 502 || status == 503 ||
-                isTimeout || dioType == DioExceptionType.connectionError);
+        final retryable =
+            e is DioException &&
+            (status == 429 ||
+                status == 500 ||
+                status == 502 ||
+                status == 503 ||
+                isTimeout ||
+                dioType == DioExceptionType.connectionError);
 
         debugPrint('llm-proxy error (attempt $attempt/$maxRetries): $e');
 
         if (retryable && attempt < maxRetries) {
-          await Future.delayed(Duration(milliseconds: 500 * (1 << (attempt - 1))));
+          await Future.delayed(
+            Duration(milliseconds: 500 * (1 << (attempt - 1))),
+          );
           continue;
         }
 
@@ -181,28 +193,29 @@ class ConversationRepositoryImpl implements ConversationRepository {
         final kind = noMana
             ? AiErrorKind.quota
             : status == 429
-                ? AiErrorKind.quota
-                : (status == 401 || status == 403)
-                    ? AiErrorKind.auth
-                    : isTimeout
-                        ? AiErrorKind.timeout
-                        : dioType == DioExceptionType.connectionError
-                            ? AiErrorKind.network
-                            : AiErrorKind.provider;
+            ? AiErrorKind.quota
+            : (status == 401 || status == 403)
+            ? AiErrorKind.auth
+            : isTimeout
+            ? AiErrorKind.timeout
+            : dioType == DioExceptionType.connectionError
+            ? AiErrorKind.network
+            : AiErrorKind.provider;
 
         final message = noMana
             ? 'Te quedaste sin maná. Recarga o espera la renovación de tu plan.'
             : switch (kind) {
-          AiErrorKind.quota =>
-            'El tutor alcanz\u00f3 el l\u00edmite de uso. Espera un momento y reintenta.',
-          AiErrorKind.auth =>
-            'Tu sesi\u00f3n con el tutor expir\u00f3. Vuelve a iniciar sesi\u00f3n.',
-          AiErrorKind.timeout =>
-            'El tutor tard\u00f3 demasiado en responder. Reintenta.',
-          AiErrorKind.network =>
-            'Sin conexi\u00f3n con el servidor. Revisa tu red y reintenta.',
-          _ => 'El tutor no est\u00e1 disponible en este momento. Reintenta en unos segundos.',
-        };
+                AiErrorKind.quota =>
+                  'El tutor alcanz\u00f3 el l\u00edmite de uso. Espera un momento y reintenta.',
+                AiErrorKind.auth =>
+                  'Tu sesi\u00f3n con el tutor expir\u00f3. Vuelve a iniciar sesi\u00f3n.',
+                AiErrorKind.timeout =>
+                  'El tutor tard\u00f3 demasiado en responder. Reintenta.',
+                AiErrorKind.network =>
+                  'Sin conexi\u00f3n con el servidor. Revisa tu red y reintenta.',
+                _ =>
+                  'El tutor no est\u00e1 disponible en este momento. Reintenta en unos segundos.',
+              };
 
         throw AiStreamException(kind, message, retries: attempt - 1);
       }
@@ -324,7 +337,9 @@ No markdown, no explanation, no code blocks.
   @override
   Future<int> evaluateCarismaScore(List<String> userTexts) async {
     try {
-      final transcript = userTexts.asMap().entries
+      final transcript = userTexts
+          .asMap()
+          .entries
           .map((e) => 'Respuesta ${e.key + 1}: "${e.value}"')
           .join('\n');
       final url = '${ApiConstants.llmProxyBaseUrl}/chat';
@@ -384,7 +399,10 @@ No markdown, no explanation, no code blocks.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   @override
-  Future<Map<String, dynamic>> getOrCreateConversation(String userId, {String? scenarioId}) async {
+  Future<Map<String, dynamic>> getOrCreateConversation(
+    String userId, {
+    String? scenarioId,
+  }) async {
     try {
       if (scenarioId != null && scenarioId.isNotEmpty) {
         // Fetch existing active conversation for this user and scenario
@@ -409,13 +427,19 @@ No markdown, no explanation, no code blocks.
           .maybeSingle();
       final langId = profile?['language_id'] as int? ?? 1;
 
-      final insertRes = await _client.from('conversations').insert({
-        'user_id': userId,
-        'language_id': langId,
-        'scenario_id': (scenarioId != null && scenarioId.isNotEmpty) ? scenarioId : null,
-        'started_at': DateTime.now().toIso8601String(),
-        'status': 'active',
-      }).select().single();
+      final insertRes = await _client
+          .from('conversations')
+          .insert({
+            'user_id': userId,
+            'language_id': langId,
+            'scenario_id': (scenarioId != null && scenarioId.isNotEmpty)
+                ? scenarioId
+                : null,
+            'started_at': DateTime.now().toIso8601String(),
+            'status': 'active',
+          })
+          .select()
+          .single();
 
       return Map<String, dynamic>.from(insertRes);
     } catch (e) {
@@ -428,7 +452,9 @@ No markdown, no explanation, no code blocks.
   }
 
   @override
-  Future<List<ConversationMessage>> loadConversationMessages(String conversationId) async {
+  Future<List<ConversationMessage>> loadConversationMessages(
+    String conversationId,
+  ) async {
     if (conversationId.startsWith('local_')) return [];
     try {
       final res = await _client
@@ -440,8 +466,10 @@ No markdown, no explanation, no code blocks.
       return (res as List).map((row) {
         // Esquema vivo: `sender_role` + `text`. Fallback al esquema antiguo
         // (`role` + `content_text`) por compatibilidad con migraciones previas.
-        final role = row['sender_role'] as String? ?? row['role'] as String? ?? 'user';
-        final contentText = row['text'] as String? ?? row['content_text'] as String? ?? '';
+        final role =
+            row['sender_role'] as String? ?? row['role'] as String? ?? 'user';
+        final contentText =
+            row['text'] as String? ?? row['content_text'] as String? ?? '';
         return ConversationMessage(
           sender: role == 'user' ? 'user' : 'tutor',
           text: contentText,
@@ -454,7 +482,11 @@ No markdown, no explanation, no code blocks.
   }
 
   @override
-  Future<void> saveMessage(String conversationId, String senderRole, String text) async {
+  Future<void> saveMessage(
+    String conversationId,
+    String senderRole,
+    String text,
+  ) async {
     if (conversationId.startsWith('local_') || text.trim().isEmpty) return;
     try {
       // P-19: el trigger `trg_message_sequence` asigna el numero en el
@@ -756,25 +788,28 @@ $transcript
     String goalText,
   ) async {
     try {
-      await _client.from('user_scenario_goals').upsert(
-        {
-          'user_id': userId,
-          'scenario_id': scenarioId,
-          'conversation_id': (conversationId != null && !conversationId.startsWith('local_')) ? conversationId : null,
-          'goal_id': goalId,
-          'goal_text': goalText,
-          'is_completed': true,
-          'completed_at': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'user_id, scenario_id, goal_id',
-      );
+      await _client.from('user_scenario_goals').upsert({
+        'user_id': userId,
+        'scenario_id': scenarioId,
+        'conversation_id':
+            (conversationId != null && !conversationId.startsWith('local_'))
+            ? conversationId
+            : null,
+        'goal_id': goalId,
+        'goal_text': goalText,
+        'is_completed': true,
+        'completed_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'user_id, scenario_id, goal_id');
     } catch (e) {
       debugPrint('Error saving completed goal: $e');
     }
   }
 
   @override
-  Future<Map<String, bool>> loadCompletedGoals(String userId, String scenarioId) async {
+  Future<Map<String, bool>> loadCompletedGoals(
+    String userId,
+    String scenarioId,
+  ) async {
     try {
       final res = await _client
           .from('user_scenario_goals')
@@ -806,26 +841,29 @@ $transcript
     int accuracy = 95,
   }) async {
     try {
-      await _client.from('user_scenario_phrases').upsert(
-        {
-          'user_id': userId,
-          'scenario_id': scenarioId,
-          'conversation_id': (conversationId != null && !conversationId.startsWith('local_')) ? conversationId : null,
-          'phrase_id': phraseId,
-          'phrase_text': phraseText,
-          'phonetic_accuracy_score': accuracy,
-          'is_completed': true,
-          'completed_at': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'user_id, scenario_id, phrase_id',
-      );
+      await _client.from('user_scenario_phrases').upsert({
+        'user_id': userId,
+        'scenario_id': scenarioId,
+        'conversation_id':
+            (conversationId != null && !conversationId.startsWith('local_'))
+            ? conversationId
+            : null,
+        'phrase_id': phraseId,
+        'phrase_text': phraseText,
+        'phonetic_accuracy_score': accuracy,
+        'is_completed': true,
+        'completed_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'user_id, scenario_id, phrase_id');
     } catch (e) {
       debugPrint('Error saving completed phrase: $e');
     }
   }
 
   @override
-  Future<Map<String, bool>> loadCompletedPhrases(String userId, String scenarioId) async {
+  Future<Map<String, bool>> loadCompletedPhrases(
+    String userId,
+    String scenarioId,
+  ) async {
     try {
       final res = await _client
           .from('user_scenario_phrases')
@@ -848,6 +886,46 @@ $transcript
   }
 
   @override
+  Future<List<HelpPhrase>> loadScenarioPhrases(
+    String scenarioId, {
+    int limit = 3,
+  }) async {
+    // P-34b (#119): fuente con datos reales del escenario. Si la tabla está
+    // vacía (hoy: 0 filas en producción) o el id no es UUID, la UI muestra un
+    // estado vacío honesto en lugar de frases inventadas.
+    if (scenarioId.isEmpty) return const [];
+    final isUuid = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    ).hasMatch(scenarioId);
+    if (!isUuid) return const [];
+    try {
+      final res = await _client
+          .from('scenario_phrases')
+          .select('id, phrase, translation')
+          .eq('scenario_id', scenarioId)
+          .order('order_index', ascending: true)
+          .limit(limit);
+      return (res as List)
+          .map((row) {
+            final map = Map<String, dynamic>.from(row as Map);
+            final phrase = (map['phrase'] as String?)?.trim() ?? '';
+            if (phrase.isEmpty) return null;
+            return HelpPhrase(
+              id: (map['id'] as String?) ?? phrase,
+              text: phrase,
+              translation: (map['translation'] as String?)?.trim(),
+              origin: HelpPhraseOrigin.scenario,
+            );
+          })
+          .whereType<HelpPhrase>()
+          .toList(growable: false);
+    } catch (e) {
+      debugPrint('No se pudieron cargar las frases del escenario: $e');
+      return const [];
+    }
+  }
+
+  @override
   Future<void> logFluencyMetrics(
     String userId,
     String? scenarioId,
@@ -856,13 +934,18 @@ $transcript
   ) async {
     try {
       final todayStr = DateTime.now().toIso8601String().split('T').first;
-      
+
       // Calculate fluency score (0-100)
       // Latency target: <= 1.5s = 100%, 5.0s = 50%
-      final latencyScore = (100 - ((latencySeconds - 1.5).clamp(0.0, 10.0) * 12)).clamp(40.0, 100.0);
+      final latencyScore =
+          (100 - ((latencySeconds - 1.5).clamp(0.0, 10.0) * 12)).clamp(
+            40.0,
+            100.0,
+          );
       // WPM target: 120 WPM = 100%
       final wpmScore = (speakingWpm / 1.2).clamp(40.0, 100.0);
-      final int overallFluency = ((latencyScore * 0.5) + (wpmScore * 0.5)).round();
+      final int overallFluency = ((latencyScore * 0.5) + (wpmScore * 0.5))
+          .round();
 
       // 1. Update daily_fluency_stats
       final existingDaily = await _client
@@ -874,20 +957,29 @@ $transcript
 
       if (existingDaily != null) {
         final int turns = existingDaily['total_turns_count'] as int? ?? 1;
-        final double prevLat = (existingDaily['avg_response_latency_seconds'] as num? ?? 2.5).toDouble();
+        final double prevLat =
+            (existingDaily['avg_response_latency_seconds'] as num? ?? 2.5)
+                .toDouble();
         final int prevWpm = existingDaily['avg_speaking_wpm'] as int? ?? 110;
 
         final newLat = ((prevLat * turns) + latencySeconds) / (turns + 1);
-        final newWpm = (((prevWpm * turns) + speakingWpm) / (turns + 1)).round();
-        final newFluency = ((overallFluency + (existingDaily['fluency_score'] as int? ?? 75)) / 2).round();
+        final newWpm = (((prevWpm * turns) + speakingWpm) / (turns + 1))
+            .round();
+        final newFluency =
+            ((overallFluency + (existingDaily['fluency_score'] as int? ?? 75)) /
+                    2)
+                .round();
 
-        await _client.from('daily_fluency_stats').update({
-          'avg_response_latency_seconds': newLat,
-          'avg_speaking_wpm': newWpm,
-          'fluency_score': newFluency,
-          'total_turns_count': turns + 1,
-          'updated_at': DateTime.now().toIso8601String(),
-        }).eq('id', existingDaily['id']);
+        await _client
+            .from('daily_fluency_stats')
+            .update({
+              'avg_response_latency_seconds': newLat,
+              'avg_speaking_wpm': newWpm,
+              'fluency_score': newFluency,
+              'total_turns_count': turns + 1,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', existingDaily['id']);
       } else {
         await _client.from('daily_fluency_stats').insert({
           'user_id': userId,
@@ -900,18 +992,17 @@ $transcript
       }
 
       // 2. Update user_scenario_fluency if scenarioId is present
-      if (scenarioId != null && scenarioId.isNotEmpty && !scenarioId.startsWith('local_')) {
-        await _client.from('user_scenario_fluency').upsert(
-          {
-            'user_id': userId,
-            'scenario_id': scenarioId,
-            'best_response_latency_seconds': latencySeconds,
-            'avg_speaking_wpm': speakingWpm,
-            'fluency_score': overallFluency,
-            'updated_at': DateTime.now().toIso8601String(),
-          },
-          onConflict: 'user_id, scenario_id',
-        );
+      if (scenarioId != null &&
+          scenarioId.isNotEmpty &&
+          !scenarioId.startsWith('local_')) {
+        await _client.from('user_scenario_fluency').upsert({
+          'user_id': userId,
+          'scenario_id': scenarioId,
+          'best_response_latency_seconds': latencySeconds,
+          'avg_speaking_wpm': speakingWpm,
+          'fluency_score': overallFluency,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'user_id, scenario_id');
       }
     } catch (e) {
       debugPrint('Error logging fluency metrics: $e');
@@ -921,7 +1012,10 @@ $transcript
   @override
   Future<Map<String, dynamic>> checkAiAudioQuota(String userId) async {
     try {
-      final res = await _client.rpc('check_ai_audio_quota', params: {'p_user_id': userId});
+      final res = await _client.rpc(
+        'check_ai_audio_quota',
+        params: {'p_user_id': userId},
+      );
       return Map<String, dynamic>.from(res as Map);
     } catch (e) {
       debugPrint('Error checking AI audio quota: $e');
@@ -930,12 +1024,15 @@ $transcript
   }
 
   @override
-  Future<Map<String, dynamic>> trackAiAudioTime(String userId, int durationSeconds) async {
+  Future<Map<String, dynamic>> trackAiAudioTime(
+    String userId,
+    int durationSeconds,
+  ) async {
     try {
-      final res = await _client.rpc('track_ai_audio_time', params: {
-        'p_user_id': userId,
-        'p_duration_seconds': durationSeconds,
-      });
+      final res = await _client.rpc(
+        'track_ai_audio_time',
+        params: {'p_user_id': userId, 'p_duration_seconds': durationSeconds},
+      );
       return Map<String, dynamic>.from(res as Map);
     } catch (e) {
       debugPrint('Error tracking AI audio time: $e');
@@ -957,9 +1054,7 @@ $transcript
 
   /// Headers con la sesiÃ³n del usuario + anon key para el llm-proxy.
   Future<Map<String, dynamic>> _proxyHeaders(String token) async {
-    final headers = <String, dynamic>{
-      'Content-Type': 'application/json',
-    };
+    final headers = <String, dynamic>{'Content-Type': 'application/json'};
     if (token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
     }
