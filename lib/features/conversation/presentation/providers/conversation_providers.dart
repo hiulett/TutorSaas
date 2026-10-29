@@ -1557,29 +1557,12 @@ ENDING:
       try {
         final economyRepo = _ref.read(economyRepositoryProvider);
         final completedGoals = state.goalEvaluationResults.values.where((v) => v).length;
-        if (completedGoals > 0) {
-          // Bonus por nivel: A1=0, A2=1, B1=2, B2=3, C1=4, C2=5
-          final levelCode = (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? 'A1';
-          final levelBonus = switch (levelCode.toUpperCase()) {
-            'A2' => 1,
-            'B1' => 2,
-            'B2' => 3,
-            'C1' => 4,
-            'C2' => 5,
-            _ => 0,
-          };
-          final sessionId = _conversationId ??
-              '${state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
+        final sessionId = _conversationId;
+        if (sessionId != null) {
           rewardSessionId = sessionId;
-          // Issue #3/#4: importes calculados y aplicados en servidor
-          // (idempotente por sessionId). El cliente ya no elige cuánto gana.
-          rewards = await economyRepo.applySessionRewards(
-            userId: _userId!,
-            sessionId: sessionId,
-            objectives: completedGoals,
-            minutes: practiceMinutes,
-            levelCode: levelCode,
-          );
+          // #4: el servidor calcula objetivos y minutos desde la conversación
+          // y el ledger de metas; el cliente ya no envía importes.
+          rewards = await economyRepo.closeSession(sessionId);
           _ref.invalidate(fragmentBalanceProvider);
           _ref.invalidate(goldBalanceProvider);
 
@@ -1587,6 +1570,16 @@ ENDING:
           // pondera la ganancia pero nunca topa el total) e idempotencia por sesión.
           try {
             final radar = await _ref.read(skillsRadarProvider.future);
+            final levelCode =
+                (_ref.read(userProgressProvider).value?['level_code'] as String?) ?? 'A1';
+            final levelBonus = switch (levelCode.toUpperCase()) {
+              'A2' => 1,
+              'B1' => 2,
+              'B2' => 3,
+              'C1' => 4,
+              'C2' => 5,
+              _ => 0,
+            };
             await economyRepo.addAuraXp(
                 _userId!, sessionId, radar, completedGoals, levelBonus);
             _ref.invalidate(auraXpProvider);
