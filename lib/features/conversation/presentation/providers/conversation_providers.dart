@@ -1510,10 +1510,7 @@ ENDING:
   ///
   /// P-29: la misma respuesta trae las correcciones del turno
   /// (`GoalEvaluationResult.corrections`); no hay ninguna llamada extra.
-  Future<void> _evaluateGoalsWithAi(
-    List<ScenarioGoalItem> goals, {
-    String? userText,
-  }) async {
+  Future<void> _evaluateGoalsWithAi(List<ScenarioGoalItem> goals) async {
     try {
       final uncompleted = goals
           .where((g) => state.goalEvaluationResults[g.id] != true)
@@ -1540,7 +1537,7 @@ ENDING:
       );
 
       // P-29: correcciones del turno (chip + registro en `corrections`).
-      _handleTurnCorrections(evaluation.corrections, messageText: userText);
+      _handleTurnCorrections(evaluation.corrections);
 
       final results = evaluation.goals;
       if (results.isNotEmpty) {
@@ -1581,12 +1578,9 @@ ENDING:
 
   /// P-29: pinta el chip bajo la burbuja del último mensaje y registra las
   /// correcciones en `public.corrections` (best-effort, sin bloquear el turno).
-  void _handleTurnCorrections(
-    List<TurnCorrection> corrections, {
-    String? messageText,
-  }) {
+  void _handleTurnCorrections(List<TurnCorrection> corrections) {
     if (corrections.isEmpty) return;
-    final target = messageText ?? _lastUserText;
+    final target = _lastUserText;
     if (target == null || target.isEmpty) return;
 
     _ref
