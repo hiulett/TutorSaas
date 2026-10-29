@@ -534,6 +534,13 @@
 
 ### H-40 · Sin adaptación dentro del nivel
 - **Evidencia:** escenarios con `difficulty_level = CEFR` exacto; no hay ajuste por desempeño; sin mezcla nuevo/conocido; el perfil de IA (`user_ai_profiles`) se escribe y nunca se lee en los prompts.
+- **Estado (29-oct-2026, P-40 · #125): remediado en código.** El prompt del
+  turno se compone con `TutorPromptBuilder` e incluye `tutor_prompt_instructions`,
+  `focus_areas`/`interests`, `motivation`, estilo/personalidad, errores
+  recurrentes, metas pendientes, `main_objective`, frases útiles, repaso cada 3
+  lecciones y el ajuste simplificar/subir por rachas. La selección de lecciones
+  une `user_settings.interests` con `user_ai_profiles.focus_areas`. Detalle y
+  límites: `docs/runbooks/P40_PERSONALIZACION.md`.
 
 **P-40 · Adaptación y personalización** (P2, esfuerzo L)
 - **Criterios:**

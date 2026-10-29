@@ -4,6 +4,7 @@ import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/models/title_evaluator.dart';
 import '../../domain/models/lesson_completion.dart';
+import '../../domain/services/lesson_relevance.dart';
 import '../models/lesson_catalog.dart';
 import '../models/hunter_skill_titles.dart';
 
@@ -21,7 +22,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
   Future<Map<String, dynamic>> _dashboardState(String userId) async {
     final cached = _stateCache;
     final at = _stateAt;
-    if (cached != null && at != null && DateTime.now().difference(at) < _stateTtl) {
+    if (cached != null &&
+        at != null &&
+        DateTime.now().difference(at) < _stateTtl) {
       return cached;
     }
     final res = await _supabaseClient.rpc(
@@ -46,7 +49,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getRecommendedLessons(String userId) async {
+  Future<List<Map<String, dynamic>>> getRecommendedLessons(
+    String userId,
+  ) async {
     try {
       // 1. Fetch user language profile to get language_id and difficulty level
       final profileResponse = await _supabaseClient
@@ -70,15 +75,29 @@ class DashboardRepositoryImpl implements DashboardRepository {
           .eq('user_id', userId)
           .maybeSingle();
 
-      final List<String> userInterests = List<String>.from(settingsResponse?['interests'] ?? []);
-      final int dailyGoalMinutes = settingsResponse?['daily_goal_minutes'] as int? ?? 15;
+      final List<String> settingsInterests = List<String>.from(
+        settingsResponse?['interests'] ?? [],
+      );
+      final int dailyGoalMinutes =
+          settingsResponse?['daily_goal_minutes'] as int? ?? 15;
+
+      // P-40 (#125): el onboarding también guarda los intereses en el perfil
+      // pedagógico (`user_ai_profiles.focus_areas`). Se unen ambos orígenes:
+      // antes solo se leía `user_settings.interests`, que en producción está
+      // vacío, así que la selección por intereses nunca se aplicaba.
+      final List<String> userInterests = await _loadInterests(
+        userId,
+        settingsInterests,
+      );
 
       // 3. Query Supabase public.scenarios matching language_id and difficulty_level
       List<Map<String, dynamic>> scenarios = [];
       try {
         final query = _supabaseClient
             .from('scenarios')
-            .select('id, title, description, difficulty_level, category, estimated_minutes, main_objective, assistant_role, user_role, initial_assistant_message, goals, useful_phrases, language_id')
+            .select(
+              'id, title, description, difficulty_level, category, estimated_minutes, main_objective, assistant_role, user_role, initial_assistant_message, goals, useful_phrases, language_id',
+            )
             .eq('difficulty_level', levelCode)
             .eq('language_id', languageId)
             .eq('is_active', true);
@@ -89,28 +108,22 @@ class DashboardRepositoryImpl implements DashboardRepository {
           LessonCatalog.updateCatalogFromMap(sc);
         }
       } catch (e, st) {
-        ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:117', e, stackTrace: st);
+        ErrorTracker.logSilent(
+          'lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:117',
+          e,
+          stackTrace: st,
+        );
       }
 
-      // Filter and prioritize scenarios matching user's onboarding interests & daily goal
+      // P-40 (#125): prioriza las lecciones que tocan los intereses del alumno
+      // (categoría, título o descripción) y, a igualdad, las que se acercan a su
+      // meta diaria. Sin intereses el orden es solo por duración.
       if (scenarios.isNotEmpty) {
-        if (userInterests.isNotEmpty) {
-          scenarios.sort((a, b) {
-            final aCat = (a['category'] as String? ?? '').toLowerCase();
-            final bCat = (b['category'] as String? ?? '').toLowerCase();
-            final aMatches = userInterests.any((i) => aCat == i.toLowerCase() || aCat.contains(i.toLowerCase()));
-            final bMatches = userInterests.any((i) => bCat == i.toLowerCase() || bCat.contains(i.toLowerCase()));
-            if (aMatches && !bMatches) return -1;
-            if (!aMatches && bMatches) return 1;
-
-            // Secondary sorting by estimated minutes proximity to daily goal
-            final aMins = a['estimated_minutes'] as int? ?? 15;
-            final bMins = b['estimated_minutes'] as int? ?? 15;
-            final aDiff = (aMins - dailyGoalMinutes).abs();
-            final bDiff = (bMins - dailyGoalMinutes).abs();
-            return aDiff.compareTo(bDiff);
-          });
-        }
+        LessonRelevance.sortForUser(
+          scenarios,
+          interests: userInterests,
+          dailyGoalMinutes: dailyGoalMinutes,
+        );
       }
 
       // 4. Query completed goals & phrases from DB to calculate real progress and 1-3 Stars mastery
@@ -156,7 +169,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
           final totalPhrases = rawPhrases.isNotEmpty ? rawPhrases.length : 4;
 
           final goalsDone = sid != null ? (completedGoalsCount[sid] ?? 0) : 0;
-          final phrasesDone = sid != null ? (completedPhrasesCount[sid] ?? 0) : 0;
+          final phrasesDone = sid != null
+              ? (completedPhrasesCount[sid] ?? 0)
+              : 0;
 
           final bool isCompleted = LessonCompletion.isPassed(
             goalsDone,
@@ -202,24 +217,71 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Fallback if no DB scenarios are present
       final targetLangCode = _getLanguageCodeFromId(languageId);
       final filteredCatalog = LessonCatalog.catalog.where((l) {
-        if (targetLangCode != null && l.targetLanguageCode != targetLangCode) return false;
+        if (targetLangCode != null && l.targetLanguageCode != targetLangCode) {
+          return false;
+        }
         return l.level == levelCode;
       }).toList();
 
-      return filteredCatalog.take(15).map((l) => {
-        'id': l.id,
-        'title': l.title,
-        'description': l.description,
-        'difficulty_level': l.level,
-        'category': l.category,
-        'progress': 0.0,
-        'is_completed': false,
-        'stars': 0,
-        'icon_key': l.iconKey,
-      }).toList();
+      return filteredCatalog
+          .take(15)
+          .map(
+            (l) => {
+              'id': l.id,
+              'title': l.title,
+              'description': l.description,
+              'difficulty_level': l.level,
+              'category': l.category,
+              'progress': 0.0,
+              'is_completed': false,
+              'stars': 0,
+              'icon_key': l.iconKey,
+            },
+          )
+          .toList();
     } catch (_) {
       return [];
     }
+  }
+
+  /// P-40 (#125): intereses del alumno desde `user_settings` **y**
+  /// `user_ai_profiles.focus_areas` (el onboarding escribe ambos; en producción
+  /// `user_settings.interests` está vacío, así que sin esta unión la selección
+  /// por intereses nunca se aplicaba).
+  Future<List<String>> _loadInterests(
+    String userId,
+    List<String> settingsInterests,
+  ) async {
+    final seen = <String>{};
+    final result = <String>[];
+    void add(String? raw) {
+      final value = raw?.trim() ?? '';
+      if (value.isEmpty) return;
+      if (!seen.add(value.toLowerCase())) return;
+      result.add(value);
+    }
+
+    for (final interest in settingsInterests) {
+      add(interest);
+    }
+
+    try {
+      final profile = await _supabaseClient
+          .from('user_ai_profiles')
+          .select('focus_areas')
+          .eq('user_id', userId)
+          .maybeSingle();
+      final focusAreas = profile?['focus_areas'];
+      if (focusAreas is List) {
+        for (final area in focusAreas) {
+          if (area is String) add(area);
+        }
+      }
+    } catch (e) {
+      debugPrint('No se pudieron leer los intereses del perfil de IA: $e');
+    }
+
+    return result;
   }
 
   @override
@@ -235,7 +297,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
       }
       return [];
     } catch (e, st) {
-      ErrorTracker.logSilent('dashboard.getUserAchievements', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'dashboard.getUserAchievements',
+        e,
+        stackTrace: st,
+      );
       return [];
     }
   }
@@ -271,7 +337,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       final now = DateTime.now();
       final sevenDaysAgo = now.subtract(const Duration(days: 7));
-      
+
       final response = await _supabaseClient
           .from('daily_stats')
           .select('date, minutes_practiced')
@@ -279,7 +345,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
           .gte('date', sevenDaysAgo.toIso8601String().split('T').first)
           .lte('date', now.toIso8601String().split('T').first);
 
-      final List<Map<String, dynamic>> rawData = List<Map<String, dynamic>>.from(response);
+      final List<Map<String, dynamic>> rawData =
+          List<Map<String, dynamic>>.from(response);
 
       // Create map of date to minutes
       final Map<String, int> minutesByDate = {};
@@ -293,7 +360,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final List<Map<String, dynamic>> results = [];
       final List<String> weekdayNames = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
-      int maxMinutes = 15; // default minimum max value to calculate height factor
+      int maxMinutes =
+          15; // default minimum max value to calculate height factor
       for (int i = 6; i >= 0; i--) {
         final day = now.subtract(Duration(days: i));
         final dateStr = day.toIso8601String().split('T').first;
@@ -309,7 +377,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         final minutes = minutesByDate[dateStr] ?? 0;
         // Day index in Dart starts at 1 for Monday, 7 for Sunday
         final weekdayIndex = day.weekday - 1;
-        
+
         results.add({
           'day': weekdayNames[weekdayIndex],
           'minutes': minutes,
@@ -337,7 +405,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       final response = await _supabaseClient
           .from('user_vocabulary')
-          .select('times_seen, vocabulary_items(word, translation, part_of_speech)')
+          .select(
+            'times_seen, vocabulary_items(word, translation, part_of_speech)',
+          )
           .eq('user_id', userId)
           .order('last_seen_at', ascending: false);
 
@@ -373,18 +443,18 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<void> updateUserSettings(String userId, Map<String, dynamic> settings) async {
+  Future<void> updateUserSettings(
+    String userId,
+    Map<String, dynamic> settings,
+  ) async {
     // Remove fields that don't belong in the user_settings table
     final cleanSettings = Map<String, dynamic>.from(settings);
     cleanSettings.remove('id');
 
-    await _supabaseClient.from('user_settings').upsert(
-      {
-        'user_id': userId,
-        ...cleanSettings,
-      },
-      onConflict: 'user_id',
-    );
+    await _supabaseClient.from('user_settings').upsert({
+      'user_id': userId,
+      ...cleanSettings,
+    }, onConflict: 'user_id');
   }
 
   @override
@@ -418,17 +488,15 @@ class DashboardRepositoryImpl implements DashboardRepository {
             })
             .eq('id', existing['id']);
       } else {
-        await _supabaseClient
-            .from('daily_stats')
-            .insert({
-              'user_id': userId,
-              'language_id': langId,
-              'date': todayStr,
-              'minutes_practiced': minutes,
-              'conversations_count': 1,
-              'words_learned': 0,
-              'xp_earned': minutes * 10,
-            });
+        await _supabaseClient.from('daily_stats').insert({
+          'user_id': userId,
+          'language_id': langId,
+          'date': todayStr,
+          'minutes_practiced': minutes,
+          'conversations_count': 1,
+          'words_learned': 0,
+          'xp_earned': minutes * 10,
+        });
       }
 
       // La racha y los minutos los aplica la RPC register_practice (servidor):
@@ -439,7 +507,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<void> saveVocabularyFromSession(String userId, List<String> userTexts) async {
+  Future<void> saveVocabularyFromSession(
+    String userId,
+    List<String> userTexts,
+  ) async {
     try {
       final Set<String> words = {};
       final RegExp wordRegExp = RegExp(r'\b[a-zA-Z]{4,15}\b');
@@ -452,7 +523,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
           }
         }
       }
-      
+
       if (words.isEmpty) return;
 
       final profile = await _supabaseClient
@@ -518,7 +589,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
                 'language_id': langId,
                 'word': word,
                 'translation': translation,
-                'part_of_speech': word.endsWith('ly') ? 'Adverbio' : (word.endsWith('ing') || word.endsWith('ed') ? 'Verbo' : 'Sustantivo'),
+                'part_of_speech': word.endsWith('ly')
+                    ? 'Adverbio'
+                    : (word.endsWith('ing') || word.endsWith('ed')
+                          ? 'Verbo'
+                          : 'Sustantivo'),
                 'native_language': 'es',
                 'difficulty_level': 'A2',
               })
@@ -544,15 +619,20 @@ class DashboardRepositoryImpl implements DashboardRepository {
             'times_correct': 1,
             'ease_factor': 2.5,
             'interval_days': 1,
-            'next_review_at': DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+            'next_review_at': DateTime.now()
+                .add(const Duration(days: 1))
+                .toIso8601String(),
             'last_seen_at': DateTime.now().toIso8601String(),
           });
         } else {
           final currentSeen = existingUserVocab['times_seen'] as int? ?? 0;
-          await _supabaseClient.from('user_vocabulary').update({
-            'times_seen': currentSeen + 1,
-            'last_seen_at': DateTime.now().toIso8601String(),
-          }).eq('id', existingUserVocab['id']);
+          await _supabaseClient
+              .from('user_vocabulary')
+              .update({
+                'times_seen': currentSeen + 1,
+                'last_seen_at': DateTime.now().toIso8601String(),
+              })
+              .eq('id', existingUserVocab['id']);
         }
       }
     } catch (_) {
@@ -561,48 +641,65 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore,
-      {String cardType = 'recognition'}) async {
+  Future<void> updateVocabularySrsScore(
+    String userId,
+    String vocabularyId,
+    double qualityScore, {
+    String cardType = 'recognition',
+  }) async {
     // Issue #74: el SM-2 y el registro del repaso se calculan en servidor
     // (record_vocabulary_review) para que la evidencia de retención no dependa
     // de lo que el cliente afirme. La RPC valida la identidad con auth.uid().
     // Issue #78: `cardType` distingue reconocimiento de producción; solo la
     // producción cuenta para `mastered`.
     try {
-      await _supabaseClient.rpc('record_vocabulary_review', params: {
-        'p_vocabulary_id': vocabularyId,
-        'p_quality': qualityScore,
-        'p_card_type': cardType,
-      });
+      await _supabaseClient.rpc(
+        'record_vocabulary_review',
+        params: {
+          'p_vocabulary_id': vocabularyId,
+          'p_quality': qualityScore,
+          'p_card_type': cardType,
+        },
+      );
     } catch (e) {
       debugPrint('record_vocabulary_review failed: $e');
     }
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getDueVocabulary(String userId, {int limit = 10}) async {
+  Future<List<Map<String, dynamic>>> getDueVocabulary(
+    String userId, {
+    int limit = 10,
+  }) async {
     try {
       final nowIso = DateTime.now().toUtc().toIso8601String();
       // Issue #24: antes `next_review_at` solo se escribía; nunca se consultaba.
       final res = await _supabaseClient
           .from('user_vocabulary')
-          .select('id, vocabulary_id, next_review_at, interval_days, vocabulary_items:vocabulary_id(word, translation)')
+          .select(
+            'id, vocabulary_id, next_review_at, interval_days, vocabulary_items:vocabulary_id(word, translation)',
+          )
           .eq('user_id', userId)
           .or('next_review_at.is.null,next_review_at.lte.$nowIso')
           .order('next_review_at', ascending: true, nullsFirst: true)
           .limit(limit);
 
-      return (res as List).map((row) {
-        final map = Map<String, dynamic>.from(row as Map);
-        final vocab = (map['vocabulary_items'] as Map?)?.cast<String, dynamic>() ?? const {};
-        return <String, dynamic>{
-          'id': map['id'],
-          'vocabulary_id': map['vocabulary_id'],
-          'word': vocab['word'] ?? '',
-          'translation': vocab['translation'] ?? '',
-          'interval_days': map['interval_days'] ?? 1,
-        };
-      }).where((m) => (m['word'] as String).isNotEmpty).toList();
+      return (res as List)
+          .map((row) {
+            final map = Map<String, dynamic>.from(row as Map);
+            final vocab =
+                (map['vocabulary_items'] as Map?)?.cast<String, dynamic>() ??
+                const {};
+            return <String, dynamic>{
+              'id': map['id'],
+              'vocabulary_id': map['vocabulary_id'],
+              'word': vocab['word'] ?? '',
+              'translation': vocab['translation'] ?? '',
+              'interval_days': map['interval_days'] ?? 1,
+            };
+          })
+          .where((m) => (m['word'] as String).isNotEmpty)
+          .toList();
     } catch (e) {
       debugPrint('getDueVocabulary error: $e');
       return const [];
@@ -666,7 +763,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       return await _fetchConversationMetrics(userId);
     } catch (_) {
-      return {'fluency': 0.0, 'phonetics': 0.0, 'vocab': 0, 'precision': 0.0, 'streak': 0};
+      return {
+        'fluency': 0.0,
+        'phonetics': 0.0,
+        'vocab': 0,
+        'precision': 0.0,
+        'streak': 0,
+      };
     }
   }
 
@@ -709,15 +812,30 @@ class DashboardRepositoryImpl implements DashboardRepository {
         .select('cefr_levels(code)')
         .eq('user_id', userId)
         .maybeSingle();
-    final cefr = (profileRes?['cefr_levels'] as Map<String, dynamic>?)?['code'] as String?;
+    final cefr =
+        (profileRes?['cefr_levels'] as Map<String, dynamic>?)?['code']
+            as String?;
     switch ((cefr ?? 'A1').toUpperCase()) {
-      case 'PRE-A1': precision = 30; break;
-      case 'A2': precision = 55; break;
-      case 'B1': precision = 70; break;
-      case 'B2': precision = 82; break;
-      case 'C1': precision = 90; break;
-      case 'C2': precision = 96; break;
-      default: precision = 40; // A1
+      case 'PRE-A1':
+        precision = 30;
+        break;
+      case 'A2':
+        precision = 55;
+        break;
+      case 'B1':
+        precision = 70;
+        break;
+      case 'B2':
+        precision = 82;
+        break;
+      case 'C1':
+        precision = 90;
+        break;
+      case 'C2':
+        precision = 96;
+        break;
+      default:
+        precision = 40; // A1
     }
 
     int streak = 0;
@@ -729,7 +847,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
     if (streakRes != null) {
       streak = (streakRes['current_streak'] as num?)?.toInt() ?? 0;
     }
-    final double carisma = (streakRes?['carisma_score'] as num?)?.toDouble() ?? 0;
+    final double carisma =
+        (streakRes?['carisma_score'] as num?)?.toDouble() ?? 0;
 
     return {
       'fluency': fluency,
@@ -742,7 +861,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<String>> syncEarnedTitles(String userId, {double carisma = 0}) async {
+  Future<List<String>> syncEarnedTitles(
+    String userId, {
+    double carisma = 0,
+  }) async {
     final newlyEarned = <String>[];
     try {
       final metrics = await _fetchConversationMetrics(userId);
@@ -755,7 +877,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
               .update({'carisma_score': carisma})
               .eq('user_id', userId);
         } catch (e, st) {
-          ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:881', e, stackTrace: st);
+          ErrorTracker.logSilent(
+            'lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:881',
+            e,
+            stackTrace: st,
+          );
         }
       }
 
@@ -772,8 +898,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
           .from('user_titles')
           .select('title_code')
           .eq('user_id', userId);
-      final existing =
-          (existingRes as List).map((r) => r['title_code'] as String).toSet();
+      final existing = (existingRes as List)
+          .map((r) => r['title_code'] as String)
+          .toSet();
 
       for (final code in codes) {
         if (existing.contains(code)) continue;
@@ -788,11 +915,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
           });
           newlyEarned.add(code);
         } catch (e, st) {
-          ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:912', e, stackTrace: st);
+          ErrorTracker.logSilent(
+            'lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:912',
+            e,
+            stackTrace: st,
+          );
         }
       }
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:914', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:914',
+        e,
+        stackTrace: st,
+      );
     }
     return newlyEarned;
   }
