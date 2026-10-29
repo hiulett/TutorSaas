@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "description": "Golden set P-39: conversaciones de referencia con metas y resultado esperado. Se evalúa en CI con GoalEvaluationBaseline (determinista, sin modelo).",
+  "cases": [
+    {
+      "id": "prea1_hello_complete",
+      "lessonId": "prea1_hello_hello",
+      "level": "PRE-A1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Say hello",
+          "keywords": ["hello", "hi"],
+          "examplePhrase": "Hello"
+        },
+        {
+          "id": "g2",
+          "text": "Say your name",
+          "keywords": ["name"],
+          "examplePhrase": "My name is..."
+        },
+        {
+          "id": "g3",
+          "text": "Say nice to meet you",
+          "keywords": ["meet"],
+          "examplePhrase": "Nice to meet you"
+        }
+      ],
+      "turns": [
+        {"speaker": "tutor", "text": "Hello!"},
+        {"speaker": "user", "text": "Hello"},
+        {"speaker": "user", "text": "My name is Ana"},
+        {"speaker": "user", "text": "Nice to meet you"}
+      ],
+      "expected": {"g1": true, "g2": true, "g3": true}
+    },
+    {
+      "id": "prea1_only_greeting",
+      "lessonId": "prea1_hello_hello",
+      "level": "PRE-A1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Say hello",
+          "keywords": ["hello", "hi"],
+          "examplePhrase": "Hello"
+        },
+        {
+          "id": "g2",
+          "text": "Say your name",
+          "keywords": ["name"],
+          "examplePhrase": "My name is..."
+        },
+        {
+          "id": "g3",
+          "text": "Say nice to meet you",
+          "keywords": ["meet"],
+          "examplePhrase": "Nice to meet you"
+        }
+      ],
+      "turns": [
+        {"speaker": "tutor", "text": "Hello! What is your name?"},
+        {"speaker": "user", "text": "Hi"}
+      ],
+      "expected": {"g1": true, "g2": false, "g3": false}
+    },
+    {
+      "id": "a1_coffee_complete",
+      "lessonId": "a1_ordering_coffee_at_a_cafe",
+      "level": "A1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Order a coffee drink",
+          "keywords": ["order", "coffee", "drink"],
+          "examplePhrase": "Order a coffee drink"
+        },
+        {
+          "id": "g2",
+          "text": "Specify milk or sugar preferences",
+          "keywords": ["specify", "milk", "sugar", "preferences"],
+          "examplePhrase": "Specify milk or sugar preferences"
+        },
+        {
+          "id": "g3",
+          "text": "Order a pastry",
+          "keywords": ["order", "pastry"],
+          "examplePhrase": "Order a pastry"
+        },
+        {
+          "id": "g4",
+          "text": "Ask for total price",
+          "keywords": ["ask", "total", "price"],
+          "examplePhrase": "Ask for total price"
+        }
+      ],
+      "turns": [
+        {"speaker": "tutor", "text": "Welcome to Metro Cafe. What can I get you?"},
+        {"speaker": "user", "text": "I would like a coffee please"},
+        {"speaker": "tutor", "text": "Of course. Any milk or sugar?"},
+        {"speaker": "user", "text": "Can I have oat milk?"},
+        {"speaker": "user", "text": "I would like a pastry too"},
+        {"speaker": "user", "text": "What is the total price?"}
+      ],
+      "expected": {"g1": true, "g2": true, "g3": true, "g4": true}
+    },
+    {
+      "id": "a1_coffee_keyword_only_no_evidence",
+      "lessonId": "a1_ordering_coffee_at_a_cafe",
+      "level": "A1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Order a coffee drink",
+          "keywords": ["order", "coffee", "drink"],
+          "examplePhrase": "Order a coffee drink"
+        },
+        {
+          "id": "g2",
+          "text": "Specify milk or sugar preferences",
+          "keywords": ["specify", "milk", "sugar", "preferences"],
+          "examplePhrase": "Specify milk or sugar preferences"
+        },
+        {
+          "id": "g3",
+          "text": "Order a pastry",
+          "keywords": ["order", "pastry"],
+          "examplePhrase": "Order a pastry"
+        },
+        {
+          "id": "g4",
+          "text": "Ask for total price",
+          "keywords": ["ask", "total", "price"],
+          "examplePhrase": "Ask for total price"
+        }
+      ],
+      "turns": [
+        {"speaker": "tutor", "text": "What would you like?"},
+        {"speaker": "user", "text": "coffee"},
+        {"speaker": "user", "text": "milk"}
+      ],
+      "expected": {"g1": false, "g2": false, "g3": false, "g4": false}
+    },
+    {
+      "id": "a1_tutor_only_evidence",
+      "lessonId": "a1_ordering_coffee_at_a_cafe",
+      "level": "A1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Order a coffee drink",
+          "keywords": ["order", "coffee", "drink"],
+          "examplePhrase": "Order a coffee drink"
+        },
+        {
+          "id": "g2",
+          "text": "Specify milk or sugar preferences",
+          "keywords": ["specify", "milk", "sugar", "preferences"],
+          "examplePhrase": "Specify milk or sugar preferences"
+        },
+        {
+          "id": "g3",
+          "text": "Order a pastry",
+          "keywords": ["order", "pastry"],
+          "examplePhrase": "Order a pastry"
+        },
+        {
+          "id": "g4",
+          "text": "Ask for total price",
+          "keywords": ["ask", "total", "price"],
+          "examplePhrase": "Ask for total price"
+        }
+      ],
+      "turns": [
+        {
+          "speaker": "tutor",
+          "text": "Please order a coffee with milk and ask for the total price."
+        },
+        {"speaker": "user", "text": "Okay."}
+      ],
+      "expected": {"g1": false, "g2": false, "g3": false, "g4": false}
+    },
+    {
+      "id": "a1_coffee_partial",
+      "lessonId": "a1_ordering_coffee_at_a_cafe",
+      "level": "A1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Order a coffee drink",
+          "keywords": ["order", "coffee", "drink"],
+          "examplePhrase": "Order a coffee drink"
+        },
+        {
+          "id": "g2",
+          "text": "Specify milk or sugar preferences",
+          "keywords": ["specify", "milk", "sugar", "preferences"],
+          "examplePhrase": "Specify milk or sugar preferences"
+        },
+        {
+          "id": "g3",
+          "text": "Order a pastry",
+          "keywords": ["order", "pastry"],
+          "examplePhrase": "Order a pastry"
+        },
+        {
+          "id": "g4",
+          "text": "Ask for total price",
+          "keywords": ["ask", "total", "price"],
+          "examplePhrase": "Ask for total price"
+        }
+      ],
+      "turns": [
+        {"speaker": "user", "text": "I would like a coffee please"},
+        {"speaker": "tutor", "text": "Anything else?"},
+        {"speaker": "user", "text": "Thank you"}
+      ],
+      "expected": {"g1": true, "g2": false, "g3": false, "g4": false}
+    },
+    {
+      "id": "b1_interview_partial",
+      "lessonId": "b1_job_interview_strengths_weaknesses",
+      "level": "B1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Highlight core professional strength",
+          "keywords": ["highlight", "core", "professional", "strength"],
+          "examplePhrase": "Highlight core professional strength"
+        },
+        {
+          "id": "g2",
+          "text": "Explain weakness with improvement step",
+          "keywords": ["explain", "weakness", "improvement", "step"],
+          "examplePhrase": "Explain weakness with improvement step"
+        },
+        {
+          "id": "g3",
+          "text": "Provide past work accomplishment",
+          "keywords": ["provide", "past", "work", "accomplishment"],
+          "examplePhrase": "Provide past work accomplishment"
+        },
+        {
+          "id": "g4",
+          "text": "Express enthusiasm for role",
+          "keywords": ["express", "enthusiasm", "role"],
+          "examplePhrase": "Express enthusiasm for role"
+        }
+      ],
+      "turns": [
+        {
+          "speaker": "user",
+          "text": "My greatest strength is solving complex problems under pressure."
+        },
+        {
+          "speaker": "user",
+          "text": "My main weakness is delegation, and I am taking a course to improve it."
+        }
+      ],
+      "expected": {"g1": true, "g2": true, "g3": false, "g4": false}
+    },
+    {
+      "id": "b1_interview_complete",
+      "lessonId": "b1_job_interview_strengths_weaknesses",
+      "level": "B1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Highlight core professional strength",
+          "keywords": ["highlight", "core", "professional", "strength"],
+          "examplePhrase": "Highlight core professional strength"
+        },
+        {
+          "id": "g2",
+          "text": "Explain weakness with improvement step",
+          "keywords": ["explain", "weakness", "improvement", "step"],
+          "examplePhrase": "Explain weakness with improvement step"
+        },
+        {
+          "id": "g3",
+          "text": "Provide past work accomplishment",
+          "keywords": ["provide", "past", "work", "accomplishment"],
+          "examplePhrase": "Provide past work accomplishment"
+        },
+        {
+          "id": "g4",
+          "text": "Express enthusiasm for role",
+          "keywords": ["express", "enthusiasm", "role"],
+          "examplePhrase": "Express enthusiasm for role"
+        }
+      ],
+      "turns": [
+        {
+          "speaker": "user",
+          "text": "My greatest strength is solving complex problems under pressure."
+        },
+        {
+          "speaker": "user",
+          "text": "My main weakness is delegation, and I am taking a course to improve it."
+        },
+        {
+          "speaker": "user",
+          "text": "In my past work, I delivered a migration that cut costs by thirty percent."
+        },
+        {
+          "speaker": "user",
+          "text": "I am very excited about this role and the team."
+        }
+      ],
+      "expected": {"g1": true, "g2": true, "g3": true, "g4": true}
+    },
+    {
+      "id": "b1_weakness_without_improvement",
+      "lessonId": "b1_job_interview_strengths_weaknesses",
+      "level": "B1",
+      "goals": [
+        {
+          "id": "g1",
+          "text": "Highlight core professional strength",
+          "keywords": ["highlight", "core", "professional", "strength"],
+          "examplePhrase": "Highlight core professional strength"
+        },
+        {
+          "id": "g2",
+          "text": "Explain weakness with improvement step",
+          "keywords": ["explain", "weakness", "improvement", "step"],
+          "examplePhrase": "Explain weakness with improvement step"
+        },
+        {
+          "id": "g3",
+          "text": "Provide past work accomplishment",
+          "keywords": ["provide", "past", "work", "accomplishment"],
+          "examplePhrase": "Provide past work accomplishment"
+        },
+        {
+          "id": "g4",
+          "text": "Express enthusiasm for role",
+          "keywords": ["express", "enthusiasm", "role"],
+          "examplePhrase": "Express enthusiasm for role"
+        }
+      ],
+      "turns": [
+        {"speaker": "user", "text": "My main weakness is delegation."}
+      ],
+      "expected": {"g1": false, "g2": false, "g3": false, "g4": false}
+    },
+    {
+      "id": "a1_price_statement_is_not_a_question",
+      "lessonId": "a1_ordering_coffee_at_a_cafe",
+      "level": "A1",
+      "goals": [
+        {
+          "id": "g4",
+          "text": "Ask for total price",
+          "keywords": ["ask", "total", "price"],
+          "examplePhrase": "Ask for total price"
+        }
+      ],
+      "turns": [
+        {"speaker": "user", "text": "I would like to know the total price."}
+      ],
+      "expected": {"g4": false}
+    }
+  ]
+}
