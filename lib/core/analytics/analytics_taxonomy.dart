@@ -32,6 +32,11 @@ abstract final class AnalyticsEvent {
   static const purchaseItem = 'purchase_item';
   static const purchaseCosmeticGold = 'purchase_cosmetic_gold';
 
+  // P-21 (#106): canal de retorno (recordatorio diario local / push).
+  static const notificationPermission = 'notification_permission';
+  static const notificationSent = 'notification_sent';
+  static const notificationOpened = 'notification_opened';
+
   static const all = <String>{
     appOpen,
     onboardingStarted,
@@ -51,6 +56,9 @@ abstract final class AnalyticsEvent {
     claimDaily,
     purchaseItem,
     purchaseCosmeticGold,
+    notificationPermission,
+    notificationSent,
+    notificationOpened,
   };
 }
 

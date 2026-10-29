@@ -16,6 +16,7 @@ import '../../domain/models/user_settings.dart';
 import '../providers/dashboard_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../onboarding/presentation/providers/onboarding_providers.dart';
+import '../../../notifications/presentation/widgets/reminder_settings_card.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -167,8 +168,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                         _SectionHeader(title: l10n?.settings_audio_comms ?? 'AUDIO & COMMUNICATIONS'),
                         const SizedBox(height: 12),
-                        // Issue #39: los controles de SFX y notificaciones se retiraron;
-                // ninguna de las dos cosas existía en tiempo de ejecución.
+                        // Issue #39: los controles de SFX siguen retirados porque no hay
+                        // audio de efectos en runtime. Issue #106: el recordatorio diario ya
+                        // existe de verdad (notificacion local), asi que recupera su tarjeta.
+                        const ReminderSettingsCard(),
                         const SizedBox(height: 24),
 
                         _SectionHeader(title: l10n?.settings_account ?? 'ACCOUNT'),
@@ -224,9 +227,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               : () async {
                   setState(() => _isSaving = true);
                   try {
+                    // El recordatorio diario se guarda al instante desde su propia
+                    // tarjeta (Issue #106): se mezcla el estado vivo para que este boton
+                    // no lo pise con la copia local.
+                    final liveSettings = ref.read(userSettingsProvider);
+                    final toSave = currentSettings.copyWith(
+                        notificationsEnabled: liveSettings.notificationsEnabled,
+                        notificationTime: liveSettings.notificationTime,
+                        notificationDays: liveSettings.notificationDays,
+                    );
                     await ref
                         .read(userSettingsProvider.notifier)
-                        .updateAllSettings(currentSettings);
+                        .updateAllSettings(toSave);
 
                     final user = ref.read(currentUserProvider);
                     if (user != null) {

@@ -11,6 +11,7 @@ import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/session_learned_summary.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../economy/presentation/widgets/session_drop_controller.dart';
+import '../../../notifications/presentation/widgets/notification_permission_prompt.dart';
 import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
 import '../providers/dashboard_providers.dart';
 
@@ -118,6 +119,10 @@ class SessionSummaryScreen extends ConsumerWidget {
 
           // Drop sorpresa de fin de sesión (aplica XP + notificación épica).
           SessionDropController(completedGoals: view.goalsCompleted),
+
+          // Issue #106: tras la primera lecciÃ³n completada se ofrece el
+          // recordatorio diario (pantalla previa del permiso Android 13+).
+          const NotificationPermissionPrompt(),
 
           SafeArea(
             child: SingleChildScrollView(

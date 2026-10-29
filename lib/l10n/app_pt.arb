@@ -1153,5 +1153,22 @@
   "settings_system_config": "CONFIGURAÇÃO DO SISTEMA",
   "settings_target_cefr": "IDIOMA ALVO E NÍVEL CEFR",
   "settings_target_language": "IDIOMA ALVO",
-  "settings_tutor_personality": "PERSONALIDADE DO TUTOR"
+  "settings_tutor_personality": "PERSONALIDADE DO TUTOR",
+  "notif_settings_title": "LEMBRETE DIÁRIO",
+  "notif_settings_desc": "Um lembrete por dia, na hora que você escolher. Nunca à noite.",
+  "notif_time_label": "HORA DO LEMBRETE",
+  "notif_days_label": "DIAS ATIVOS",
+  "notif_quiet_hours": "O silêncio noturno vai das 22:00 às 08:00, então o lembrete mudou para as 08:00.",
+  "notif_time_updated": "Lembrete definido para as {time}.",
+  "@notif_time_updated": {"placeholders": {"time": {"type": "String"}}},
+  "notif_permission_denied": "As notificações estão bloqueadas. Ative-as em Configurações do Android > Apps > Dungeon of English > Notificações.",
+  "notif_permission_open_settings": "ABRIR CONFIGURAÇÕES DO ANDROID",
+  "notif_prompt_title": "NÃO PERCA SUA SEQUÊNCIA",
+  "notif_prompt_body": "Ative um lembrete diário e avisaremos na hora que você escolher. Você pode mudar ou desativar em Configurações.",
+  "notif_prompt_accept": "ATIVAR",
+  "notif_prompt_later": "AGORA NÃO",
+  "notif_enabled_ok": "Lembrete diário ativado.",
+  "notif_save_error": "Não foi possível salvar o lembrete. Verifique sua conexão e tente de novo.",
+  "notif_reminder_title": "Sua sequência espera",
+  "notif_reminder_body": "Uma incursão curta hoje mantém a sequência viva. Seu tutor está pronto."
 }

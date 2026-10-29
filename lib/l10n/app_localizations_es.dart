@@ -3524,4 +3524,60 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get onboarding_english_only =>
       'Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes.';
+
+  @override
+  String get notif_settings_title => 'RECORDATORIO DIARIO';
+
+  @override
+  String get notif_settings_desc =>
+      'Un recordatorio al día, a la hora que elijas. Nunca de noche.';
+
+  @override
+  String get notif_time_label => 'HORA DEL RECORDATORIO';
+
+  @override
+  String get notif_days_label => 'DÍAS ACTIVOS';
+
+  @override
+  String get notif_quiet_hours =>
+      'El silencio nocturno va de 22:00 a 08:00, así que el recordatorio se movió a las 08:00.';
+
+  @override
+  String notif_time_updated(String time) {
+    return 'Recordatorio fijado a las $time.';
+  }
+
+  @override
+  String get notif_permission_denied =>
+      'Las notificaciones están bloqueadas. Actívalas en Ajustes de Android > Aplicaciones > Dungeon of English > Notificaciones.';
+
+  @override
+  String get notif_permission_open_settings => 'ABRIR AJUSTES DE ANDROID';
+
+  @override
+  String get notif_prompt_title => 'NO PIERDAS TU RACHA';
+
+  @override
+  String get notif_prompt_body =>
+      'Activa un recordatorio diario y te avisaremos a la hora que elijas. Puedes cambiarlo o desactivarlo en Ajustes.';
+
+  @override
+  String get notif_prompt_accept => 'ACTIVARLO';
+
+  @override
+  String get notif_prompt_later => 'AHORA NO';
+
+  @override
+  String get notif_enabled_ok => 'Recordatorio diario activado.';
+
+  @override
+  String get notif_save_error =>
+      'No se pudo guardar el recordatorio. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get notif_reminder_title => 'Tu racha te espera';
+
+  @override
+  String get notif_reminder_body =>
+      'Una incursión corta hoy mantiene la racha viva. Tu tutor está listo.';
 }

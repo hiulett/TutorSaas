@@ -1154,5 +1154,22 @@
   "settings_system_config": "CONFIGURACIÓN DEL SISTEMA",
   "settings_target_cefr": "IDIOMA OBJETIVO Y NIVEL CEFR",
   "settings_target_language": "IDIOMA OBJETIVO",
-  "settings_tutor_personality": "PERSONALIDAD DEL TUTOR"
+  "settings_tutor_personality": "PERSONALIDAD DEL TUTOR",
+  "notif_settings_title": "RECORDATORIO DIARIO",
+  "notif_settings_desc": "Un recordatorio al día, a la hora que elijas. Nunca de noche.",
+  "notif_time_label": "HORA DEL RECORDATORIO",
+  "notif_days_label": "DÍAS ACTIVOS",
+  "notif_quiet_hours": "El silencio nocturno va de 22:00 a 08:00, así que el recordatorio se movió a las 08:00.",
+  "notif_time_updated": "Recordatorio fijado a las {time}.",
+  "@notif_time_updated": {"placeholders": {"time": {"type": "String"}}},
+  "notif_permission_denied": "Las notificaciones están bloqueadas. Actívalas en Ajustes de Android > Aplicaciones > Dungeon of English > Notificaciones.",
+  "notif_permission_open_settings": "ABRIR AJUSTES DE ANDROID",
+  "notif_prompt_title": "NO PIERDAS TU RACHA",
+  "notif_prompt_body": "Activa un recordatorio diario y te avisaremos a la hora que elijas. Puedes cambiarlo o desactivarlo en Ajustes.",
+  "notif_prompt_accept": "ACTIVARLO",
+  "notif_prompt_later": "AHORA NO",
+  "notif_enabled_ok": "Recordatorio diario activado.",
+  "notif_save_error": "No se pudo guardar el recordatorio. Revisa tu conexión e inténtalo de nuevo.",
+  "notif_reminder_title": "Tu racha te espera",
+  "notif_reminder_body": "Una incursión corta hoy mantiene la racha viva. Tu tutor está listo."
 }

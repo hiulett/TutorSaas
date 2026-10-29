@@ -3516,4 +3516,60 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get onboarding_english_only =>
       'Você aprenderá inglês. Pode alterar o idioma da interface nas Configurações.';
+
+  @override
+  String get notif_settings_title => 'LEMBRETE DIÁRIO';
+
+  @override
+  String get notif_settings_desc =>
+      'Um lembrete por dia, na hora que você escolher. Nunca à noite.';
+
+  @override
+  String get notif_time_label => 'HORA DO LEMBRETE';
+
+  @override
+  String get notif_days_label => 'DIAS ATIVOS';
+
+  @override
+  String get notif_quiet_hours =>
+      'O silêncio noturno vai das 22:00 às 08:00, então o lembrete mudou para as 08:00.';
+
+  @override
+  String notif_time_updated(String time) {
+    return 'Lembrete definido para as $time.';
+  }
+
+  @override
+  String get notif_permission_denied =>
+      'As notificações estão bloqueadas. Ative-as em Configurações do Android > Apps > Dungeon of English > Notificações.';
+
+  @override
+  String get notif_permission_open_settings => 'ABRIR CONFIGURAÇÕES DO ANDROID';
+
+  @override
+  String get notif_prompt_title => 'NÃO PERCA SUA SEQUÊNCIA';
+
+  @override
+  String get notif_prompt_body =>
+      'Ative um lembrete diário e avisaremos na hora que você escolher. Você pode mudar ou desativar em Configurações.';
+
+  @override
+  String get notif_prompt_accept => 'ATIVAR';
+
+  @override
+  String get notif_prompt_later => 'AGORA NÃO';
+
+  @override
+  String get notif_enabled_ok => 'Lembrete diário ativado.';
+
+  @override
+  String get notif_save_error =>
+      'Não foi possível salvar o lembrete. Verifique sua conexão e tente de novo.';
+
+  @override
+  String get notif_reminder_title => 'Sua sequência espera';
+
+  @override
+  String get notif_reminder_body =>
+      'Uma incursão curta hoje mantém a sequência viva. Seu tutor está pronto.';
 }

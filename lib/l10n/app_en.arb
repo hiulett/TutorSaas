@@ -1232,5 +1232,22 @@
   "oracle_challenge_title": "ORACLE EVALUATION",
   "oracle_challenge_ready": "The Oracle awaits you. Challenge available!",
   "oracle_challenge_progress": "Complete 80% to challenge the Oracle ({percent}%)",
-  "onboarding_english_only": "You will learn English. You can change the interface language in Settings."
+  "onboarding_english_only": "You will learn English. You can change the interface language in Settings.",
+  "notif_settings_title": "DAILY REMINDER",
+  "notif_settings_desc": "One reminder a day, at the time you choose. Never at night.",
+  "notif_time_label": "REMINDER TIME",
+  "notif_days_label": "ACTIVE DAYS",
+  "notif_quiet_hours": "Quiet hours are 22:00-08:00, so the reminder moved to 08:00.",
+  "notif_time_updated": "Reminder set for {time}.",
+  "@notif_time_updated": {"placeholders": {"time": {"type": "String"}}},
+  "notif_permission_denied": "Notifications are blocked. Allow them in Android settings > Apps > Dungeon of English > Notifications.",
+  "notif_permission_open_settings": "OPEN ANDROID SETTINGS",
+  "notif_prompt_title": "DON'T LOSE YOUR STREAK",
+  "notif_prompt_body": "Turn on one daily reminder and we will nudge you at the time you choose. You can change it or turn it off in Settings.",
+  "notif_prompt_accept": "TURN IT ON",
+  "notif_prompt_later": "NOT NOW",
+  "notif_enabled_ok": "Daily reminder armed.",
+  "notif_save_error": "Could not save the reminder. Check your connection and try again.",
+  "notif_reminder_title": "Your streak awaits",
+  "notif_reminder_body": "A short raid today keeps the streak alive. Your tutor is ready."
 }
