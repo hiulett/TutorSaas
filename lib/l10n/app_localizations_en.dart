@@ -2803,6 +2803,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progress_practice => 'PRACTICE';
 
   @override
+  String get welcome_back_title => 'WELCOME BACK';
+
+  @override
+  String welcome_back_days(int days) {
+    return '$days days away';
+  }
+
+  @override
+  String welcome_back_lesson(String lesson) {
+    return 'You left off at $lesson';
+  }
+
+  @override
+  String welcome_back_goals(int count) {
+    return '$count goals to go';
+  }
+
+  @override
+  String get welcome_back_completed =>
+      'You finished it. Replay it or pick the next one.';
+
+  @override
+  String get welcome_back_streak_reset => 'Let\'s start a new streak today.';
+
+  @override
+  String get welcome_back_continue => 'CONTINUE';
+
+  @override
+  String get welcome_back_later => 'Not now';
+
+  @override
   String get radar_estimated_tooltip => 'Estimate based on your conversation';
 
   @override
