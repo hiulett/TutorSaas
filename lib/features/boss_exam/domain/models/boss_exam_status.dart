@@ -1,3 +1,5 @@
+import '../services/level_checkpoint.dart';
+
 /// P-31 (#116) — Requisitos de entrada al "Jefe de mazmorra" (examen de
 /// promoción del Oráculo).
 ///
@@ -67,6 +69,9 @@ class BossExamStatus {
     this.currentStreak = 0,
     this.streakTarget = 2,
     this.lessonsPassed = 0,
+    this.lessonsSinceLastCheck = 0,
+    this.checkInterval = 10,
+    this.checkDue = false,
     this.cooldownUntil,
     this.serverTime,
   });
@@ -85,6 +90,17 @@ class BossExamStatus {
 
   /// Lecciones superadas del nivel actual (dato informativo del servidor).
   final int lessonsPassed;
+
+  /// P-43 (#128): lecciones superadas desde el último reto del jefe (o desde el
+  /// placement inicial si nunca se retó).
+  final int lessonsSinceLastCheck;
+
+  /// Cada cuántas lecciones el servidor propone revisar el nivel.
+  final int checkInterval;
+
+  /// `true` cuando toca proponer el examen del jefe. El servidor solo avisa:
+  /// el nivel lo decide `evaluate-placement`.
+  final bool checkDue;
 
   final DateTime? cooldownUntil;
 
@@ -133,6 +149,17 @@ class BossExamStatus {
       currentStreak: _int(map['current_streak']),
       streakTarget: _int(map['streak_target'], fallback: 2),
       lessonsPassed: _int(map['lessons_passed']),
+      // Sin las claves de P-43 se cae al dato anterior: el servidor viejo no
+      // rompe la pantalla y el aviso simplemente no aparece.
+      lessonsSinceLastCheck: _int(
+        map['lessons_since_last_check'],
+        fallback: _int(map['lessons_passed']),
+      ),
+      checkInterval: _int(
+        map['check_interval'],
+        fallback: LevelCheckpoint.interval,
+      ),
+      checkDue: map['check_due'] == true,
       cooldownUntil: _date(map['cooldown_until']),
       serverTime: _date(map['server_time']),
     );

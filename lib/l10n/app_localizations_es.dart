@@ -4022,6 +4022,92 @@ class AppLocalizationsEs extends AppLocalizations {
   String get boss_dim_naturalness => 'Naturalidad';
 
   @override
+  String get weekly_title => 'INFORME SEMANAL';
+
+  @override
+  String get weekly_subtitle =>
+      'Datos calculados en el servidor. Una semana sin actividad lo dice en vez de mostrar ceros.';
+
+  @override
+  String get weekly_empty => 'Esta semana no hay actividad registrada.';
+
+  @override
+  String get weekly_empty_hint =>
+      'Practica una conversación o una lección y el informe se rellena.';
+
+  @override
+  String get weekly_new_words => 'Palabras nuevas';
+
+  @override
+  String get weekly_words_reviewed => 'Palabras repasadas';
+
+  @override
+  String get weekly_words_mastered => 'Palabras dominadas';
+
+  @override
+  String get weekly_corrections => 'Errores corregidos';
+
+  @override
+  String get weekly_top_error => 'Error más frecuente';
+
+  @override
+  String get weekly_lessons => 'Lecciones superadas';
+
+  @override
+  String get weekly_minutes => 'Minutos';
+
+  @override
+  String get weekly_practice_days => 'Días practicados';
+
+  @override
+  String get weekly_per_day => 'Media por día practicado';
+
+  @override
+  String get weekly_level => 'Nivel estimado';
+
+  @override
+  String get weekly_level_unknown => 'Sin evaluar todavía';
+
+  @override
+  String get weekly_this_week => 'Esta semana';
+
+  @override
+  String get weekly_previous_week => 'Semana anterior';
+
+  @override
+  String get weekly_next_week => 'Semana siguiente';
+
+  @override
+  String weekly_range(String start, String end) {
+    return '$start a $end';
+  }
+
+  @override
+  String get weekly_error => 'No pudimos cargar tu informe semanal.';
+
+  @override
+  String get weekly_retry => 'REINTENTAR';
+
+  @override
+  String get weekly_open => 'VER INFORME';
+
+  @override
+  String get checkpoint_title => 'CHEQUEO DE NIVEL';
+
+  @override
+  String checkpoint_body(int count) {
+    return 'Has completado $count lecciones desde tu último reto con el Oráculo.';
+  }
+
+  @override
+  String get checkpoint_action => 'RETAR AL ORÁCULO';
+
+  @override
+  String checkpoint_remaining(int count) {
+    return '$count lecciones para el próximo chequeo de nivel';
+  }
+
+  @override
   String boss_exam_not_enough(int min) {
     return 'El Oráculo necesita al menos $min respuestas para juzgar el examen. Este intento no cuenta.';
   }

@@ -7294,6 +7294,162 @@ abstract class AppLocalizations {
   /// **'Naturalness'**
   String get boss_dim_naturalness;
 
+  /// No description provided for @weekly_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WEEKLY REPORT'**
+  String get weekly_title;
+
+  /// No description provided for @weekly_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data calculated on the server. A week without activity says so instead of showing zeros.'**
+  String get weekly_subtitle;
+
+  /// No description provided for @weekly_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded activity this week.'**
+  String get weekly_empty;
+
+  /// No description provided for @weekly_empty_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise a conversation or a lesson and your report fills in.'**
+  String get weekly_empty_hint;
+
+  /// No description provided for @weekly_new_words.
+  ///
+  /// In en, this message translates to:
+  /// **'New words'**
+  String get weekly_new_words;
+
+  /// No description provided for @weekly_words_reviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Words reviewed'**
+  String get weekly_words_reviewed;
+
+  /// No description provided for @weekly_words_mastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Words mastered'**
+  String get weekly_words_mastered;
+
+  /// No description provided for @weekly_corrections.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors corrected'**
+  String get weekly_corrections;
+
+  /// No description provided for @weekly_top_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Most frequent error'**
+  String get weekly_top_error;
+
+  /// No description provided for @weekly_lessons.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons passed'**
+  String get weekly_lessons;
+
+  /// No description provided for @weekly_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get weekly_minutes;
+
+  /// No description provided for @weekly_practice_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Days practised'**
+  String get weekly_practice_days;
+
+  /// No description provided for @weekly_per_day.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per practice day'**
+  String get weekly_per_day;
+
+  /// No description provided for @weekly_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated level'**
+  String get weekly_level;
+
+  /// No description provided for @weekly_level_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assessed yet'**
+  String get weekly_level_unknown;
+
+  /// No description provided for @weekly_this_week.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get weekly_this_week;
+
+  /// No description provided for @weekly_previous_week.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous week'**
+  String get weekly_previous_week;
+
+  /// No description provided for @weekly_next_week.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get weekly_next_week;
+
+  /// No description provided for @weekly_range.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String weekly_range(String start, String end);
+
+  /// No description provided for @weekly_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not load your weekly report.'**
+  String get weekly_error;
+
+  /// No description provided for @weekly_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get weekly_retry;
+
+  /// No description provided for @weekly_open.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW REPORT'**
+  String get weekly_open;
+
+  /// No description provided for @checkpoint_title.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL CHECK'**
+  String get checkpoint_title;
+
+  /// No description provided for @checkpoint_body.
+  ///
+  /// In en, this message translates to:
+  /// **'You completed {count} lessons since your last challenge with the Oracle.'**
+  String checkpoint_body(int count);
+
+  /// No description provided for @checkpoint_action.
+  ///
+  /// In en, this message translates to:
+  /// **'CHALLENGE THE ORACLE'**
+  String get checkpoint_action;
+
+  /// No description provided for @checkpoint_remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lessons to the next level check'**
+  String checkpoint_remaining(int count);
+
   /// No description provided for @boss_exam_not_enough.
   ///
   /// In en, this message translates to:

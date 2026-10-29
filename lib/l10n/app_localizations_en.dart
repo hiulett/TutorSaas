@@ -4001,6 +4001,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get boss_dim_naturalness => 'Naturalness';
 
   @override
+  String get weekly_title => 'WEEKLY REPORT';
+
+  @override
+  String get weekly_subtitle =>
+      'Data calculated on the server. A week without activity says so instead of showing zeros.';
+
+  @override
+  String get weekly_empty => 'No recorded activity this week.';
+
+  @override
+  String get weekly_empty_hint =>
+      'Practise a conversation or a lesson and your report fills in.';
+
+  @override
+  String get weekly_new_words => 'New words';
+
+  @override
+  String get weekly_words_reviewed => 'Words reviewed';
+
+  @override
+  String get weekly_words_mastered => 'Words mastered';
+
+  @override
+  String get weekly_corrections => 'Errors corrected';
+
+  @override
+  String get weekly_top_error => 'Most frequent error';
+
+  @override
+  String get weekly_lessons => 'Lessons passed';
+
+  @override
+  String get weekly_minutes => 'Minutes';
+
+  @override
+  String get weekly_practice_days => 'Days practised';
+
+  @override
+  String get weekly_per_day => 'Average per practice day';
+
+  @override
+  String get weekly_level => 'Estimated level';
+
+  @override
+  String get weekly_level_unknown => 'Not assessed yet';
+
+  @override
+  String get weekly_this_week => 'This week';
+
+  @override
+  String get weekly_previous_week => 'Previous week';
+
+  @override
+  String get weekly_next_week => 'Next week';
+
+  @override
+  String weekly_range(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get weekly_error => 'We could not load your weekly report.';
+
+  @override
+  String get weekly_retry => 'RETRY';
+
+  @override
+  String get weekly_open => 'VIEW REPORT';
+
+  @override
+  String get checkpoint_title => 'LEVEL CHECK';
+
+  @override
+  String checkpoint_body(int count) {
+    return 'You completed $count lessons since your last challenge with the Oracle.';
+  }
+
+  @override
+  String get checkpoint_action => 'CHALLENGE THE ORACLE';
+
+  @override
+  String checkpoint_remaining(int count) {
+    return '$count lessons to the next level check';
+  }
+
+  @override
   String boss_exam_not_enough(int min) {
     return 'The Oracle needs at least $min answers to judge the exam. This attempt does not count.';
   }

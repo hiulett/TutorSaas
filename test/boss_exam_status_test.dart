@@ -101,6 +101,41 @@ void main() {
       expect(status.requirements, isEmpty);
       expect(status.objectivesCompleted, 7);
     });
+
+    test('P-43: mini-chequeo cada 10 lecciones desde el ultimo reto', () {
+      final due = BossExamStatus.fromMap(const {
+        'current_level': 'B1',
+        'state': 'ready',
+        'ready': true,
+        'lessons_since_last_check': 10,
+        'check_interval': 10,
+        'check_due': true,
+      });
+
+      expect(due.lessonsSinceLastCheck, 10);
+      expect(due.checkInterval, 10);
+      expect(due.checkDue, isTrue);
+
+      final notDue = BossExamStatus.fromMap(const {
+        'current_level': 'B1',
+        'state': 'ready',
+        'lessons_since_last_check': 4,
+      });
+
+      expect(notDue.checkDue, isFalse);
+      expect(notDue.lessonsSinceLastCheck, 4);
+    });
+
+    test('P-43: sin las claves nuevas usa el valor por defecto', () {
+      final status = BossExamStatus.fromMap(const {
+        'current_level': 'A2',
+        'lessons_passed': 6,
+      });
+
+      expect(status.checkDue, isFalse);
+      expect(status.checkInterval, 10);
+      expect(status.lessonsSinceLastCheck, 6);
+    });
   });
 
   group('BossExamOutcome', () {

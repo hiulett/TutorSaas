@@ -16,8 +16,8 @@ entorno de staging o migración futura.
 | Tablas sin RLS | **0** |
 | Triggers | 44 |
 | Jobs de cron | 3 |
-| Migraciones registradas | **97** |
-| Archivos `.sql` en `supabase/migrations/` (raíz) | 134 (59 con prefijo válido, 75 sin él) |
+| Migraciones registradas | **98** |
+| Archivos `.sql` en `supabase/migrations/` (raíz) | 164 (89 con prefijo válido, 75 sin él) |
 | Archivos `.sql` en subcarpetas (`archive/`, `audit/`) | 40 |
 
 ## Por qué el repo no reproduce el esquema
