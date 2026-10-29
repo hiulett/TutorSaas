@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:async';
 import '../core/analytics/analytics_taxonomy.dart';
 import '../core/i18n/language_settings.dart';
 import '../core/services/retention_analytics.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
+import '../features/home_widget/presentation/providers/home_widget_providers.dart';
 import '../features/notifications/presentation/providers/notification_providers.dart';
 import '../features/presence/presentation/providers/presence_providers.dart';
 import '../l10n/app_localizations.dart';
@@ -27,6 +29,16 @@ class TutorSaaSApp extends ConsumerWidget {
     if (user != null) {
       ref.watch(reminderStartupSyncProvider);
     }
+
+    // P-36 (#121): mantiene el widget de inicio al día. Se engancha siempre:
+    // sin sesión publica el estado vacío honesto en vez de números viejos.
+    ref.watch(homeWidgetSyncProvider);
+    ref.watch(homeWidgetTapSyncProvider);
+    ref.listen<String?>(homeWidgetTapRouteProvider, (previous, next) {
+      if (next == null || next.isEmpty) return;
+      ref.read(homeWidgetTapRouteProvider.notifier).state = null;
+      _openFromWidget(router, next);
+    });
 
     // Abre el destino cuando el usuario toca la notificacion.
     ref.listen<String?>(notificationTapRouteProvider, (previous, next) {
@@ -62,4 +74,23 @@ class TutorSaaSApp extends ConsumerWidget {
           : const Locale('es'),
     );
   }
+}
+
+/// P-36 (#121): abre la ruta que pidió el widget.
+///
+/// En un arranque en frío desde el widget el `SplashScreen` sigue pendiente y
+/// su `go('/')` posterior pisaría el destino, así que se espera a que el router
+/// salga de `/splash` (tope ~4 s; el splash navega como máximo a los 3 s).
+void _openFromWidget(GoRouter router, String route, [int attempt = 0]) {
+  final path = router.routerDelegate.currentConfiguration.uri.path;
+  if (path == '/splash' && attempt < 12) {
+    unawaited(
+      Future<void>.delayed(
+        const Duration(milliseconds: 350),
+        () => _openFromWidget(router, route, attempt + 1),
+      ),
+    );
+    return;
+  }
+  router.go(route);
 }

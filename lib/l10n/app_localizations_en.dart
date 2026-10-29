@@ -3753,6 +3753,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get widget_streak_label => 'STREAK';
+
+  @override
+  String get widget_minutes_label => 'TODAY';
+
+  @override
+  String get widget_minutes_unit => 'min';
+
+  @override
+  String get widget_practice => 'PRACTICE';
+
+  @override
+  String get widget_empty_title => 'Open the app to start';
+
+  @override
+  String get widget_empty_body =>
+      'Your streak and today\'s minutes appear here once you open the app.';
+
+  @override
   String get notif_permission_denied =>
       'Notifications are blocked. Allow them in Android settings > Apps > Dungeon of English > Notifications.';
 

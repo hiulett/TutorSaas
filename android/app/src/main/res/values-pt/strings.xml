@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_brand">Dungeon of English</string>
+    <string name="widget_label">Dungeon of English</string>
+    <string name="widget_description">Sequência, minutos de hoje e um atalho para praticar.</string>
+    <string name="widget_streak_label">SEQUÊNCIA</string>
+    <string name="widget_minutes_label">HOJE</string>
+    <string name="widget_practice">PRATICAR</string>
+    <string name="widget_empty_title">Abra o app para começar</string>
+    <string name="widget_empty_body">Sua sequência e os minutos de hoje aparecem aqui ao abrir o app.</string>
+</resources>

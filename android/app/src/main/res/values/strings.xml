@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P-36 (#121): textos de respaldo del widget. La app envía los suyos en el
+     idioma elegido en la app; estos solo se usan antes del primer guardado. -->
+<resources>
+    <string name="widget_brand">Dungeon of English</string>
+    <string name="widget_label">Dungeon of English</string>
+    <string name="widget_description">Streak, today\'s minutes and a shortcut to practice.</string>
+    <string name="widget_streak_label">STREAK</string>
+    <string name="widget_minutes_label">TODAY</string>
+    <string name="widget_practice">PRACTICE</string>
+    <string name="widget_empty_title">Open the app to start</string>
+    <string name="widget_empty_body">Your streak and today\'s minutes appear here once you open the app.</string>
+</resources>
