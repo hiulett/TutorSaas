@@ -623,21 +623,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> applySessionRewards({
-    required String userId,
-    required String sessionId,
-    required int objectives,
-    required int minutes,
-    required String levelCode,
-    int languageId = 1,
-  }) async {
-    final res = await _client.rpc('apply_session_rewards', params: {
-      'p_user_id': userId,
+  Future<Map<String, dynamic>> closeSession(String sessionId) async {
+    final res = await _client.rpc('close_session', params: {
       'p_session_id': sessionId,
-      'p_objectives': objectives,
-      'p_minutes': minutes,
-      'p_level_code': levelCode,
-      'p_language_id': languageId,
     });
     if (res is Map) return Map<String, dynamic>.from(res);
     return const <String, dynamic>{};

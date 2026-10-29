@@ -79,16 +79,9 @@ abstract class EconomyRepository {
   /// Issue #3 / #4: aplica las recompensas de una sesión en servidor.
   ///
   /// El cliente ya no calcula importes ni llama a `add_xp`/`add_gold`/
-  /// `add_fragments`: el RPC valida rangos, calcula y es idempotente por
-  /// [sessionId].
-  Future<Map<String, dynamic>> applySessionRewards({
-    required String userId,
-    required String sessionId,
-    required int objectives,
-    required int minutes,
-    required String levelCode,
-    int languageId = 1,
-  });
+  /// Cierra la sesión y aplica las recompensas calculadas en servidor
+  /// (idempotente por conversación). El cliente ya no envía importes.
+  Future<Map<String, dynamic>> closeSession(String sessionId);
 
   Future<Map<String, dynamic>> getManaState(String userId);
 
