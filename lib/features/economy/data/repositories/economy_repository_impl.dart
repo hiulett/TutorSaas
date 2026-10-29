@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../subscription/domain/premium_status.dart';
+import '../../domain/models/refund_result.dart';
 import '../../domain/repositories/economy_repository.dart';
 
 class EconomyRepositoryImpl implements EconomyRepository {
@@ -756,7 +757,7 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> refundFailedTurn({
+  Future<RefundResult> refundFailedTurn({
     required String turnRef,
     required String actionCode,
   }) async {
@@ -765,11 +766,17 @@ class EconomyRepositoryImpl implements EconomyRepository {
         'refund_failed_turn',
         params: {'p_turn_ref': turnRef, 'p_action_code': actionCode},
       );
-      if (res is Map) return Map<String, dynamic>.from(res);
-      return const <String, dynamic>{};
-    } catch (e) {
-      debugPrint('refundFailedTurn error: $e');
-      return const <String, dynamic>{};
+      if (res is Map) {
+        return RefundResult.fromMap(Map<String, dynamic>.from(res));
+      }
+      return RefundResult.requestFailed();
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:refundFailedTurn',
+        e,
+        stackTrace: st,
+      );
+      return RefundResult.requestFailed();
     }
   }
 

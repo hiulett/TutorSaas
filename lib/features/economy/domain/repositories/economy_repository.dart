@@ -1,3 +1,5 @@
+import '../models/refund_result.dart';
+
 abstract class EconomyRepository {
   /// Get or create today's daily state for the user
   Future<Map<String, dynamic>> getDailyState(String userId);
@@ -109,7 +111,7 @@ abstract class EconomyRepository {
   });
 
   /// Devuelve el maná de un turno fallido (idempotente por `turnRef`).
-  Future<Map<String, dynamic>> refundFailedTurn({
+  Future<RefundResult> refundFailedTurn({
     required String turnRef,
     required String actionCode,
   });
