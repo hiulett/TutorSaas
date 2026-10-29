@@ -140,6 +140,27 @@ El cliente **no** escribe `cefr_level_id` ni `game_rank`:
 | `get_dashboard_state(user)` | Progreso + logros del dashboard en una llamada (P-19b) |
 | `refund_mana(user, action)` | Devuelve plan y `daily_used` tras un turno fallido (solo service role) |
 | `refund_failed_turn(turn_ref, action)` | Reembolso idempotente desde el cliente (P-06) |
+
+### Contrato de compensaciones (normalizado)
+
+`refund_failed_turn` y `refund_mana` devuelven **la misma forma**:
+
+```json
+{ "success": true, "refunded": 12, "already_refunded": false, "reason": null }
+```
+
+| Campo | Tipo | Significado |
+|---|---|---|
+| `success` | bool | La operación se procesó (no implica devolver maná) |
+| `refunded` | int | Maná devuelto; `0` si no había nada que devolver |
+| `already_refunded` | bool | Ya existía un `refund` con ese `turn_ref` |
+| `reason` | string \| null | `invalid_turn`, `invalid_action`, `no_recent_charge`, o `null` |
+
+Reglas: idempotencia por `mana_transactions.ref_id` (solo `refund_failed_turn`),
+ventana de **5 minutos** sobre el último cargo del mismo `action_code`, y no se
+restauran ítems equipados. El cliente interpreta el resultado con
+`RefundResult` (`lib/features/economy/domain/models/refund_result.dart`).
+
 | `apply_self_declared_level(code)` | Nivel autodeclarado del onboarding, una sola vez (#73) |
 | `apply_placement_as(user, …)` | Resultado del Oráculo; solo `service_role` (#73) |
 | `get_daily_goal_progress(tz)` | Minutos de hoy, meta, racha y si ya se celebró (P-23) |
