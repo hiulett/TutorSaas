@@ -33,12 +33,32 @@ flutter build apk --release               # instalación directa
 ```
 
 Firma: `android/key.properties` apunta a `upload-keystore.jks` (alias `upload`).
-El SHA-1 de esa clave es el que debe estar registrado en Google Cloud para
-Google Sign-In:
 
+### Google Sign-In (SHA-1)
+
+El cliente OAuth de Android se identifica por **package name + SHA-1**:
+
+| Dato | Valor |
+|---|---|
+| Package | `com.tutorsaas.tutorsaas` |
+| SHA-1 de la upload key | `14:13:F7:29:2E:C0:EA:F4:7B:A0:8F:B4:0A:2A:DB:C0:29:C1:1F:4C` |
+| SHA-256 de la upload key | `1B:76:97:18:6A:AB:F5:1D:76:52:32:F1:50:57:4E:D9:CE:CF:21:68:52:C0:8C:45:1A:00:F9:71:F5:C8:E3:E8` |
+
+En **Google Cloud → APIs & Services → Credentials** debe existir un cliente
+OAuth de tipo **Android** con ese package y el SHA-1 de la upload key. Para
+probar en local, anade tambien el SHA-1 de la debug key:
+
+```sh
+keytool -list -v -alias androiddebugkey -keystore %USERPROFILE%\.android\debug.keystore -storepass android
 ```
-14:13:F7:29:2E:C0:EA:F4:7B:A0:8F:B4:0A:2A:DB:C0:29:C1:1F:4C
-```
+
+El `serverClientId` del codigo (`auth_repository_impl.dart`) es el cliente
+**Web** `879543775149-f9fqcrpbgq9qbk16i2rkbi78spo9jceo.apps.googleusercontent.com`;
+no se cambia al rotar la firma.
+
+Sintoma si falta el SHA-1: `ApiException: 10` (DEVELOPER_ERROR) al pulsar el
+boton de Google en una build firmada. La app ahora muestra un mensaje
+explicito en ese caso.
 
 ## 2.1 CI/CD
 
