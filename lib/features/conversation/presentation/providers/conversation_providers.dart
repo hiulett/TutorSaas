@@ -104,6 +104,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   DateTime? _sessionStartedAt;
   String? _lastUserText;
   bool _goalsEvaluatedForLastTurn = false;
+
+  /// P-39: si `goal_eval` falló (red, HTTP o respuesta ilegible), el siguiente
+  /// turno reintenta aunque el mensaje no pase el gate de coste.
+  bool _goalEvaluationPendingRetry = false;
   String? _lastActionCode;
 
   /// P-29: `turn_ref` del turno en curso, para deduplicar correcciones.
@@ -125,6 +129,8 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     _userId = user?.id ?? 'guest_user';
     _sessionFinalized = false; // nueva sesión → se permite cerrar de nuevo
     _sessionStartedAt = DateTime.now();
+    _goalsEvaluatedForLastTurn = false;
+    _goalEvaluationPendingRetry = false;
 
     // Reset completo del estado: nunca debe heredar flags de una sesión previa
     // (p.ej. isOracleEvaluation=true de la Evaluación del Oráculo del onboarding).
@@ -1463,17 +1469,32 @@ ENDING:
       // en `endSession` → `curateSessionVocabulary`.
 
       if (lesson != null && lesson.goals.isNotEmpty) {
-        // P-41: una llamada de IA solo si la respuesta aporta senal.
-        final lastUser = state.messages.lastWhere(
-          (m) => m.sender == 'user',
-          orElse: () => ConversationMessage(sender: 'user', text: ''),
-        );
-        _goalsEvaluatedForLastTurn = GoalEvaluationGate.shouldEvaluate(
-          lastUserMessage: lastUser.text,
-          goalTexts: lesson.goals.map((g) => g.text).toList(),
-        );
-        if (_goalsEvaluatedForLastTurn) {
-          _evaluateGoalsWithAi(lesson.goals);
+        // P-39: solo las metas pendientes pueden activar la evaluación. Si ya
+        // están todas, no se gasta una llamada al cerrar ni en el turno.
+        final pendingGoals = lesson.goals
+            .where((g) => state.goalEvaluationResults[g.id] != true)
+            .toList();
+        if (pendingGoals.isEmpty) {
+          _goalsEvaluatedForLastTurn = true;
+          _goalEvaluationPendingRetry = false;
+        } else {
+          // P-41: una llamada de IA solo si la respuesta aporta senal. P-39:
+          // un fallo previo fuerza el reintento con el historial acumulado.
+          final lastUser = state.messages.lastWhere(
+            (m) => m.sender == 'user',
+            orElse: () => ConversationMessage(sender: 'user', text: ''),
+          );
+          final hasSignal = GoalEvaluationGate.shouldEvaluate(
+            lastUserMessage: lastUser.text,
+            goalTexts: pendingGoals.map((g) => g.text).toList(),
+            goalKeywords: pendingGoals.expand((g) => g.keywords).toList(),
+          );
+          _goalsEvaluatedForLastTurn = _goalEvaluationPendingRetry || hasSignal;
+          if (_goalsEvaluatedForLastTurn) {
+            final succeeded = await _evaluateGoalsWithAi(lesson.goals);
+            _goalsEvaluatedForLastTurn = succeeded;
+            _goalEvaluationPendingRetry = !succeeded;
+          }
         }
       }
     } catch (e) {
@@ -1510,12 +1531,16 @@ ENDING:
   ///
   /// P-29: la misma respuesta trae las correcciones del turno
   /// (`GoalEvaluationResult.corrections`); no hay ninguna llamada extra.
-  Future<void> _evaluateGoalsWithAi(List<ScenarioGoalItem> goals) async {
+  ///
+  /// P-39: devuelve `true` solo si la evaluación se completó. Un `false` deja
+  /// `_goalEvaluationPendingRetry` activo para reintentar en el turno
+  /// siguiente y en el cierre de sesión.
+  Future<bool> _evaluateGoalsWithAi(List<ScenarioGoalItem> goals) async {
     try {
       final uncompleted = goals
           .where((g) => state.goalEvaluationResults[g.id] != true)
           .toList();
-      if (uncompleted.isEmpty) return;
+      if (uncompleted.isEmpty) return true;
 
       // Ventana móvil (IA-03): evaluar solo la porción más reciente de la
       // conversación para acotar el costo de tokens.
@@ -1539,31 +1564,35 @@ ENDING:
       // P-29: correcciones del turno (chip + registro en `corrections`).
       _handleTurnCorrections(evaluation.corrections);
 
-      final results = evaluation.goals;
+      if (!evaluation.succeeded) {
+        debugPrint(
+          'Goal evaluation failed: el proxy no devolvió un JSON legible; '
+          'se reintentará en el siguiente turno.',
+        );
+        return false;
+      }
+
+      // P-39: doble defensa del catálogo. El repositorio ya filtró los ids,
+      // pero nunca se marca una meta si el id no está en `goals`.
+      final knownGoalIds = goals.map((g) => g.id).toSet();
+      final results = evaluation.goalsForCatalog(knownGoalIds);
       if (results.isNotEmpty) {
         final merged = Map<String, bool>.from(state.goalEvaluationResults);
         int newlyCompleted = 0;
         for (final e in results.entries) {
-          if (e.value) {
-            if (merged[e.key] != true) newlyCompleted++;
-            merged[e.key] = true;
-            if (_userId != null && state.activeScenarioId != null) {
-              final goalObj = goals.firstWhere(
-                (g) => g.id == e.key,
-                orElse: () => ScenarioGoalItem(
-                  id: e.key,
-                  text: 'Meta ${e.key}',
-                  keywords: [],
-                ),
-              );
-              _repository.saveCompletedGoal(
-                _userId!,
-                state.activeScenarioId!,
-                _conversationId,
-                e.key,
-                goalObj.text,
-              );
-            }
+          if (!e.value) continue;
+          final goalIndex = goals.indexWhere((g) => g.id == e.key);
+          if (goalIndex < 0) continue;
+          if (merged[e.key] != true) newlyCompleted++;
+          merged[e.key] = true;
+          if (_userId != null && state.activeScenarioId != null) {
+            _repository.saveCompletedGoal(
+              _userId!,
+              state.activeScenarioId!,
+              _conversationId,
+              e.key,
+              goals[goalIndex].text,
+            );
           }
         }
         state = state.copyWith(
@@ -1571,8 +1600,10 @@ ENDING:
           newGoalsCompleted: state.newGoalsCompleted + newlyCompleted,
         );
       }
+      return true;
     } catch (e) {
       debugPrint('Goal evaluation failed (non-blocking): $e');
+      return false;
     }
   }
 
@@ -1646,9 +1677,14 @@ ENDING:
             ? null
             : LessonCatalog.getLessonById(scenarioId);
         if (lesson != null && lesson.goals.isNotEmpty) {
-          await _evaluateGoalsWithAi(
-            lesson.goals,
-          ).timeout(const Duration(seconds: 12));
+          final pendingGoals = lesson.goals
+              .where((g) => state.goalEvaluationResults[g.id] != true)
+              .toList();
+          if (pendingGoals.isNotEmpty) {
+            await _evaluateGoalsWithAi(
+              lesson.goals,
+            ).timeout(const Duration(seconds: 12));
+          }
         }
       } catch (e, st) {
         ErrorTracker.logSilent(

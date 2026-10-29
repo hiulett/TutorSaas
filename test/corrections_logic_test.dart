@@ -121,12 +121,12 @@ void main() {
       expect(result.corrections.single.type, CorrectionType.typoStt);
     });
 
-    test('ignora valores de meta que no son booleanos', () {
+    test('acepta booleanos como texto y descarta tipos no booleanos', () {
       final result = parseGoalEvaluation(
-        '{"g1": "true", "g2": 1, "g3": false}',
+        '{"g1": "true", "g2": "FALSE", "g3": 1, "g4": null}',
       );
 
-      expect(result.goals, {'g3': false});
+      expect(result.goals, {'g1': true, 'g2': false});
     });
 
     test('JSON inválido devuelve resultado vacío sin lanzar', () {

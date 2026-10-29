@@ -46,6 +46,47 @@ void main() {
     );
   });
 
+  test('las keywords cortas del catálogo también activan (P-39)', () {
+    expect(
+      GoalEvaluationGate.shouldEvaluate(
+        lastUserMessage: 'milk',
+        goalTexts: const ['Specify preferences'],
+        goalKeywords: const ['milk', 'sugar'],
+      ),
+      isTrue,
+    );
+    expect(
+      GoalEvaluationGate.shouldEvaluate(
+        lastUserMessage: 'tea',
+        goalTexts: const ['Order a drink'],
+        goalKeywords: const ['tea'],
+      ),
+      isTrue,
+    );
+  });
+
+  test('una keyword corta no activa por estar dentro de otra palabra', () {
+    expect(
+      GoalEvaluationGate.shouldEvaluate(
+        lastUserMessage: 'this is fine',
+        goalTexts: const [],
+        goalKeywords: const ['hi'],
+      ),
+      isFalse,
+    );
+  });
+
+  test('el plural de una keyword del catálogo activa', () {
+    expect(
+      GoalEvaluationGate.shouldEvaluate(
+        lastUserMessage: 'coffees',
+        goalTexts: const [],
+        goalKeywords: const ['coffee'],
+      ),
+      isTrue,
+    );
+  });
+
   test('palabras cortas no cuentan como clave', () {
     expect(
       GoalEvaluationGate.keywordsOf('the price of a tea'),

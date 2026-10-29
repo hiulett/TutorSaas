@@ -256,6 +256,8 @@ Guidelines for evaluation (BE EXTREMELY STRICT):
 4. For goals related to introducing, concluding, or resolving a scenario, the student must have actually done so. For example, "Resolve scenario and conclude" is only true if the conversation is at the end and the scenario has been successfully completed.
 5. If the conversation has just started (e.g., only 1 or 2 student messages), most advanced or middle goals (like resolving, asking multiple questions, using many keywords) must be false.
 6. Do not assume or extrapolate. If it's not explicitly in the student's messages, it is false.
+7. Per-goal rubric: for EACH goal, ask "did the student produce the specific action described by this goal, in a complete and comprehensible sentence?". Producing a keyword, a fragment, or a copy of the tutor's sentence is NOT enough. PRE-A1 goals that explicitly ask for one word (e.g. "Say hello") are the only exception.
+8. Return every id listed below exactly once, with true or false. Never invent ids.
 
 Guidelines for corrections (only the STUDENT's messages, maximum 3):
 - type MUST be one of: grammar, vocabulary, word_choice, pronunciation_hint, typo_stt.
@@ -299,11 +301,14 @@ No markdown, no explanation, no code blocks.
           final content = choices[0]?['message']?['content'] as String? ?? '';
           debugPrint('Goal evaluation raw response: ${content.trim()}');
           final evaluation = parseGoalEvaluation(content);
-          // P-20: se descartan ids inventados y las metas no devueltas son false.
+          // P-20 / P-39: una meta solo se marca si el modelo devolvió `true`
+          // Y el id pertenece al catálogo de la lección. Los ids inventados se
+          // descartan; las metas no devueltas quedan en false.
           return GoalEvaluationResult(
-            goals: {for (final id in goalIds) id: evaluation.goals[id] == true},
+            goals: evaluation.goalsForCatalog(goalIds),
             corrections: evaluation.corrections,
             discardedCorrections: evaluation.discardedCorrections,
+            succeeded: evaluation.succeeded,
           );
         }
       }
