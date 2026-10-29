@@ -26,6 +26,12 @@ void main() {
     expect(router.contains('weekly_report_screen.dart'), isTrue);
   });
 
+  test('P-30: /listening está registrada y apunta a ListeningQuizScreen', () {
+    expect(router.contains("path: '/listening'"), isTrue);
+    expect(router.contains('ListeningQuizScreen('), isTrue);
+    expect(router.contains('listening_quiz_screen.dart'), isTrue);
+  });
+
   test('las rutas documentadas siguen presentes', () {
     for (final path in [
       '/splash',
@@ -43,6 +49,7 @@ void main() {
       '/inventory',
       '/dungeon-guardian',
       '/boss-result',
+      '/listening',
     ]) {
       expect(
         router.contains("path: '$path'"),

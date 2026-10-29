@@ -9,6 +9,7 @@ import '../../../../core/widgets/quest_card.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../boss_exam/presentation/widgets/boss_exam_card.dart';
+import '../../../listening/presentation/widgets/listening_path_card.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
 import '../../domain/models/lesson_completion.dart';
@@ -29,7 +30,8 @@ class LearningPathRoadmap extends ConsumerStatefulWidget {
   static const Color accentGreen = AppColors.accentGreen;
 
   @override
-  ConsumerState<LearningPathRoadmap> createState() => _LearningPathRoadmapState();
+  ConsumerState<LearningPathRoadmap> createState() =>
+      _LearningPathRoadmapState();
 }
 
 class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
@@ -136,7 +138,8 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                AppLocalizations.of(context)?.path_roadmap_title ?? 'Ruta por Etapas (CEFR)',
+                AppLocalizations.of(context)?.path_roadmap_title ??
+                    'Ruta por Etapas (CEFR)',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.onSurface,
@@ -164,7 +167,8 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
           child: Row(
             children: _levels.map((lvl) {
               final isSelected = lvl == _selectedLevel;
-              final isUserCurrentLevel = lvl == widget.activeUserLevel.toUpperCase();
+              final isUserCurrentLevel =
+                  lvl == widget.activeUserLevel.toUpperCase();
 
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
@@ -176,20 +180,23 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.runeViolet
                           : isUserCurrentLevel
-                              ? AppColors.runeViolet.withValues(alpha: 0.15)
-                              : AppColors.onSurface.withValues(alpha: 0.04),
+                          ? AppColors.runeViolet.withValues(alpha: 0.15)
+                          : AppColors.onSurface.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.runeViolet
                             : isUserCurrentLevel
-                                ? AppColors.manaCyan
-                                : AppColors.onSurface.withValues(alpha: 0.08),
+                            ? AppColors.manaCyan
+                            : AppColors.onSurface.withValues(alpha: 0.08),
                         width: isSelected || isUserCurrentLevel ? 1.5 : 1.0,
                       ),
                     ),
@@ -200,7 +207,9 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
-                            color: isSelected ? AppColors.onSurface : AppColors.onSurface.withValues(alpha: 0.7),
+                            color: isSelected
+                                ? AppColors.onSurface
+                                : AppColors.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                         if (isUserCurrentLevel) ...[
@@ -244,7 +253,8 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
             padding: const EdgeInsets.all(20),
             child: Center(
               child: Text(
-                AppLocalizations.of(context)?.path_stage_empty ?? 'No hay lecciones registradas para esta etapa aún.',
+                AppLocalizations.of(context)?.path_stage_empty ??
+                    'No hay lecciones registradas para esta etapa aún.',
                 style: const TextStyle(color: AppColors.onSurfaceVariant),
               ),
             ),
@@ -270,90 +280,107 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                     final lesson = stageLessons[index];
                     final state = LessonUnlockService.classify(
                       lesson: lesson,
-                  userCefr: widget.activeUserLevel,
-                  goalRows: completedGoalRows,
-                  catalog: LessonCatalog.catalog,
-                );
-                final isCompleted = state == LessonUnlockState.completedByPlayer;
-                final isNextLesson = state == LessonUnlockState.nextAvailable;
-                final isUnlockedByOracle = state == LessonUnlockState.unlockedByOracle;
-                final isLocked = state == LessonUnlockState.locked;
+                      userCefr: widget.activeUserLevel,
+                      goalRows: completedGoalRows,
+                      catalog: LessonCatalog.catalog,
+                    );
+                    final isCompleted =
+                        state == LessonUnlockState.completedByPlayer;
+                    final isNextLesson =
+                        state == LessonUnlockState.nextAvailable;
+                    final isUnlockedByOracle =
+                        state == LessonUnlockState.unlockedByOracle;
+                    final isLocked = state == LessonUnlockState.locked;
 
-                final lessonCompletedGoals = MissionProgressService
-                    .completedGoalsForScenario(completedGoalRows, lesson.id);
-                final lessonTotalGoals = lesson.goals.length;
-                final lessonProgress = MissionProgressService.lessonProgress(
-                  completedGoals: lessonCompletedGoals,
-                  totalGoals: lessonTotalGoals,
-                );
-                final isMastered = LessonCompletion.isMastered(
-                  lessonCompletedGoals,
-                  lessonTotalGoals,
-                );
-                final iconData = _getIconData(lesson.iconKey);
+                    final lessonCompletedGoals =
+                        MissionProgressService.completedGoalsForScenario(
+                          completedGoalRows,
+                          lesson.id,
+                        );
+                    final lessonTotalGoals = lesson.goals.length;
+                    final lessonProgress =
+                        MissionProgressService.lessonProgress(
+                          completedGoals: lessonCompletedGoals,
+                          totalGoals: lessonTotalGoals,
+                        );
+                    final isMastered = LessonCompletion.isMastered(
+                      lessonCompletedGoals,
+                      lessonTotalGoals,
+                    );
+                    final iconData = _getIconData(lesson.iconKey);
 
-                // Sub misiones de esta lección (mazmorras ocultas desbloqueadas):
-                // lecciones generadas cuyo skill_focus coincide o que son de la
-                // misma "misión" (se resuelven por el id de padre en la BD).
-                final submisions = LessonCatalog.catalog
-                    .where((l) =>
-                        l.level == lesson.level &&
-                        l.id != lesson.id &&
-                        (l.id.contains(lesson.id) || _isSubMissionOf(l, lesson)))
-                    .take(3)
-                    .toList();
+                    // Sub misiones de esta lección (mazmorras ocultas desbloqueadas):
+                    // lecciones generadas cuyo skill_focus coincide o que son de la
+                    // misma "misión" (se resuelven por el id de padre en la BD).
+                    final submisions = LessonCatalog.catalog
+                        .where(
+                          (l) =>
+                              l.level == lesson.level &&
+                              l.id != lesson.id &&
+                              (l.id.contains(lesson.id) ||
+                                  _isSubMissionOf(l, lesson)),
+                        )
+                        .take(3)
+                        .toList();
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _RoadmapNodeTile(
-                      lesson: lesson,
-                      index: index + 1,
-                      total: stageLessons.length,
-                      isCompleted: isCompleted,
-                      isNextLesson: isNextLesson,
-                      isUnlockedByOracle: isUnlockedByOracle,
-                      isLocked: isLocked,
-                      isMastered: isMastered,
-                      haloColor: LessonHalo.colorForCounts(
-                        lessonCompletedGoals,
-                        lessonTotalGoals,
-                      ),
-                      haloAlpha: LessonHalo.intensityForCounts(
-                        lessonCompletedGoals,
-                        lessonTotalGoals,
-                      ),
-                      haloBlur: LessonHalo.blurForCounts(
-                        lessonCompletedGoals,
-                        lessonTotalGoals,
-                      ),
-                      progress: lessonProgress,
-                      progressSegments: lessonTotalGoals <= 0 ? 1 : lessonTotalGoals,
-                      iconData: iconData,
-                      isLast: false,
-                    ),
-                    // Sub misiones indentadas (solo las desbloqueadas).
-                    ...submisions.map((sm) => _SubMissionTile(lesson: sm)),
-                  ],
-                );
-              },
-            ),
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _RoadmapNodeTile(
+                          lesson: lesson,
+                          index: index + 1,
+                          total: stageLessons.length,
+                          isCompleted: isCompleted,
+                          isNextLesson: isNextLesson,
+                          isUnlockedByOracle: isUnlockedByOracle,
+                          isLocked: isLocked,
+                          isMastered: isMastered,
+                          haloColor: LessonHalo.colorForCounts(
+                            lessonCompletedGoals,
+                            lessonTotalGoals,
+                          ),
+                          haloAlpha: LessonHalo.intensityForCounts(
+                            lessonCompletedGoals,
+                            lessonTotalGoals,
+                          ),
+                          haloBlur: LessonHalo.blurForCounts(
+                            lessonCompletedGoals,
+                            lessonTotalGoals,
+                          ),
+                          progress: lessonProgress,
+                          progressSegments: lessonTotalGoals <= 0
+                              ? 1
+                              : lessonTotalGoals,
+                          iconData: iconData,
+                          isLast: false,
+                        ),
+                        // Sub misiones indentadas (solo las desbloqueadas).
+                        ...submisions.map((sm) => _SubMissionTile(lesson: sm)),
+                      ],
+                    );
+                  },
+                ),
               );
             },
           ),
         const SizedBox(height: 14),
+        // P-30 (#115): comprensión auditiva del nivel (audio TTS, sin coste IA).
+        ListeningPathCard(level: _selectedLevel),
         // P-31 (#116): tarjeta del Jefe de mazmorra (examen de promoción).
         // Los requisitos los calcula boss_exam_status en el servidor.
         BossExamCard(
           level: _selectedLevel,
           completedLessons: stageLessons
-              .where((l) => LessonUnlockService.classify(
-                    lesson: l,
-                    userCefr: widget.activeUserLevel,
-                    goalRows: completedGoalRows,
-                    catalog: LessonCatalog.catalog,
-                  ) ==
-                  LessonUnlockState.completedByPlayer)
+              .where(
+                (l) =>
+                    LessonUnlockService.classify(
+                      lesson: l,
+                      userCefr: widget.activeUserLevel,
+                      goalRows: completedGoalRows,
+                      catalog: LessonCatalog.catalog,
+                    ) ==
+                    LessonUnlockState.completedByPlayer,
+              )
               .length,
           totalLessons: stageLessons.length,
         ),
@@ -483,12 +510,24 @@ class _RoadmapNodeTileState extends State<_RoadmapNodeTile>
       );
     }
     if (widget.isNextLesson) {
-      return const Icon(Icons.play_arrow_rounded, color: AppColors.onSurface, size: 24);
+      return const Icon(
+        Icons.play_arrow_rounded,
+        color: AppColors.onSurface,
+        size: 24,
+      );
     }
     if (widget.isUnlockedByOracle) {
-      return const Icon(Icons.auto_awesome_rounded, color: AppColors.runeViolet, size: 18);
+      return const Icon(
+        Icons.auto_awesome_rounded,
+        color: AppColors.runeViolet,
+        size: 18,
+      );
     }
-    return Icon(Icons.lock_rounded, color: AppColors.onSurface.withValues(alpha: 0.38), size: 18);
+    return Icon(
+      Icons.lock_rounded,
+      color: AppColors.onSurface.withValues(alpha: 0.38),
+      size: 18,
+    );
   }
 
   @override
@@ -538,11 +577,11 @@ class _RoadmapNodeTileState extends State<_RoadmapNodeTile>
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     color: widget.isCompleted
                         ? (widget.isMastered
-                            ? AppColors.royalGold.withValues(alpha: 0.6)
-                            : accentGreen.withValues(alpha: 0.5))
+                              ? AppColors.royalGold.withValues(alpha: 0.6)
+                              : accentGreen.withValues(alpha: 0.5))
                         : widget.isUnlockedByOracle
-                            ? AppColors.runeViolet.withValues(alpha: 0.3)
-                            : AppColors.onSurface.withValues(alpha: 0.08),
+                        ? AppColors.runeViolet.withValues(alpha: 0.3)
+                        : AppColors.onSurface.withValues(alpha: 0.08),
                   ),
                 ),
             ],
@@ -558,18 +597,26 @@ class _RoadmapNodeTileState extends State<_RoadmapNodeTile>
                 description: widget.lesson.description,
                 rank: widget.isCompleted
                     ? 'S'
-                    : (widget.isNextLesson ? 'B' : (widget.isUnlockedByOracle ? 'O' : 'D')),
+                    : (widget.isNextLesson
+                          ? 'B'
+                          : (widget.isUnlockedByOracle ? 'O' : 'D')),
                 gemReward: widget.isCompleted ? 0 : 15,
                 xpReward: widget.isCompleted ? 0 : 100,
                 progress: widget.progress,
                 progressSegments: widget.progressSegments,
-                onTap: widget.isLocked ? () {
-                  SystemSnack.show(context, '🔒 MAZMORRA BLOQUEADA: Completa los desafíos previos.', type: SystemSnackType.error);
-                } : () {
-                  context.push(
-                    '/conversation?scenarioId=${widget.lesson.id}&scenarioTitle=${Uri.encodeComponent(widget.lesson.title)}',
-                  );
-                },
+                onTap: widget.isLocked
+                    ? () {
+                        SystemSnack.show(
+                          context,
+                          '🔒 MAZMORRA BLOQUEADA: Completa los desafíos previos.',
+                          type: SystemSnackType.error,
+                        );
+                      }
+                    : () {
+                        context.push(
+                          '/conversation?scenarioId=${widget.lesson.id}&scenarioTitle=${Uri.encodeComponent(widget.lesson.title)}',
+                        );
+                      },
               ),
             ),
           ),
@@ -609,7 +656,9 @@ class _SubMissionTile extends ConsumerWidget {
           ),
           const SizedBox(width: 10),
           Icon(
-            isMastered ? Icons.check_circle_rounded : Icons.auto_awesome_rounded,
+            isMastered
+                ? Icons.check_circle_rounded
+                : Icons.auto_awesome_rounded,
             color: isMastered ? AppColors.emeraldGreen : AppColors.manaCyan,
             size: 16,
           ),
@@ -630,7 +679,9 @@ class _SubMissionTile extends ConsumerWidget {
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: isMastered ? AppColors.onSurfaceVariant : AppColors.onSurface,
+                      color: isMastered
+                          ? AppColors.onSurfaceVariant
+                          : AppColors.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),

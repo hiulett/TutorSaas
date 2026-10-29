@@ -4,12 +4,15 @@ _Medido en producción el 29-oct-2026._
 
 | Objeto | Cantidad |
 |---|---|
-| Tablas en `public` | **84** |
-| Políticas RLS | **130** sobre 80 tablas |
-| Funciones (`public`) | **82** |
+| Tablas en `public` | **88** |
+| Políticas RLS | **134** sobre 84 tablas |
+| Funciones (`public`) | **92** |
 | Trabajos `pg_cron` | 3 |
 | Buckets de Storage | 1 |
-| Vistas | 0 |
+| Vistas | 14 |
+
+> Los recuentos se miden con `information_schema` / `pg_policies`; cambian con
+> cada PR que aplica una migración.
 
 ---
 
@@ -33,7 +36,7 @@ _Medido en producción el 29-oct-2026._
 `pronunciation_assessments`, `lesson_progress`, `vocabulary_items`,
 `user_vocabulary`, `daily_stats`, `weekly_stats`, `daily_fluency_stats`,
 `speech_dna_metrics`, `user_scenario_fluency`, `user_scenario_goals`,
-`user_scenario_phrases`
+`user_scenario_phrases`, `listening_exercises`, `listening_attempts`
 
 - `conversations.scenario_id` es **`varchar`**, no UUID: guarda tanto UUIDs de
   escenario como claves del catálogo Dart (`a1_ordering_coffee_at_a_cafe`) y el
@@ -52,6 +55,29 @@ _Medido en producción el 29-oct-2026._
   día) desde P-23; antes nadie lo alimentaba y el gráfico semanal salía vacío.
   La meta diaria se calcula sobre `practice_sessions` (el libro idempotente de
   P-03), no sobre `daily_stats`.
+
+### Comprensión auditiva (P-30 / #115)
+
+- `listening_exercises` es el banco de ítems **precomputado**: `slug` estable,
+  `level` (PRE-A1…C2), `lines` (jsonb: `[{speaker,text}]`) y `questions`
+  (jsonb: `[{id,prompt,options,correct,explanation}]`). Solo lectura desde el
+  cliente (`listening_exercises_read_active` para `anon` y `authenticated`).
+- `listening_attempts` guarda cada intento (`score`, `total`, `passed`,
+  `answers`). El cliente solo puede leer los suyos; **no hay política de
+  INSERT**: escribe `submit_listening_attempt` (`SECURITY DEFINER`).
+- `submit_listening_attempt(exercise, answers, minutes, tz_offset)` es la única
+  fuente de puntuación: corrige contra `questions[].correct`, inserta el intento,
+  escribe `lesson_progress` con `lesson_id = 'listening:<slug>'` y
+  `skill_focus = 'listening'`, avanza la misión `listening_items` (una unidad
+  por respuesta acertada) y llama a `register_practice` con los minutos reales
+  medidos en el cliente (la clave es `listening:<slug>:<YYYYMMDD>`, así que
+  repetir el mismo ejercicio el mismo día no vuelve a sumar minutos).
+- El audio **no** usa IA: lo sintetiza `flutter_tts` en el dispositivo. No hay
+  `action_code` ni consumo de maná.
+- `get_weekly_report` cuenta estos intentos como `lessons_completed` porque
+  `lesson_progress.status` usa el mismo criterio que las lecciones habladas
+  (`lesson_completion_passed`). `boss_exam_status` los ignora: filtra por
+  prefijo CEFR (`a1_%`, `b1_%`…).
 
 ### Economía y progresión
 `subscription_plans`, `user_subscriptions`, `payments`, `mana_transactions`,
@@ -140,6 +166,7 @@ El cliente **no** escribe `cefr_level_id` ni `game_rank`:
 | `get_dashboard_state(user)` | Progreso + logros del dashboard en una llamada (P-19b) |
 | `refund_mana(user, action)` | Devuelve plan y `daily_used` tras un turno fallido (solo service role) |
 | `refund_failed_turn(turn_ref, action)` | Reembolso idempotente desde el cliente (P-06) |
+| `submit_listening_attempt(exercise, answers, minutes, tz_offset)` | Corrige y guarda un ejercicio de comprensión auditiva (P-30) |
 
 ### Contrato de compensaciones (normalizado)
 
@@ -205,6 +232,7 @@ La foto verificada del esquema (recuentos y consulta para regenerarla) está en
 | `get_dashboard_state(uuid)` | Progreso + logros en una RPC | P-19b #163 |
 | Trigger `trg_message_sequence` | `sequence_number` sin carrera | P-19 #104 |
 | `refund_mana` actualizado | Restaura también `daily_used` | P-07 #92 |
+| `listening_exercises`, `listening_attempts`, `submit_listening_attempt`, misión `listening_items` | Comprensión auditiva jugable (audio TTS, corrección en servidor) | P-30 #115 |
 
 Procedimiento de baseline (requiere Docker + contraseña de BD) y detalle
 completo en [runbooks/MIGRATION_STATUS.md](runbooks/MIGRATION_STATUS.md).

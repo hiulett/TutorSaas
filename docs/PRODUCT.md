@@ -8,8 +8,9 @@ _Actualizado: 18-oct-2026._
 
 Práctica de **inglés oral** conversacional. El usuario habla con NPCs con IA
 (Oráculo, tutor de misión, Maestre de Mesa) y la app mide progreso con lógica de
-RPG. El alcance evaluado es **conversación oral**: no hay lectura, escritura ni
-comprensión auditiva formal (issue #43).
+RPG. Desde P-30 (#115) también hay **comprensión auditiva** jugable (diálogo por
+TTS + preguntas corregidas en servidor). Siguen sin existir lectura ni escritura
+evaluadas (issue #43).
 
 ---
 

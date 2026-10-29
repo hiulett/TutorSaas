@@ -17,6 +17,7 @@ import '../features/economy/presentation/screens/inventory_screen.dart';
 import '../features/economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../features/corrections/presentation/screens/my_errors_screen.dart';
 import '../features/weekly_report/presentation/screens/weekly_report_screen.dart';
+import '../features/listening/presentation/screens/listening_quiz_screen.dart';
 import '../features/boss_exam/domain/models/boss_exam_outcome.dart';
 import '../features/boss_exam/presentation/screens/boss_exam_result_screen.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
@@ -122,6 +123,15 @@ final List<RouteBase> appRoutes = <RouteBase>[
   GoRoute(
     path: '/weekly-report',
     builder: (context, state) => const WeeklyReportScreen(),
+  ),
+
+  // P-30 (#115): comprensión auditiva (audio por TTS, corrección en servidor).
+  GoRoute(
+    path: '/listening',
+    builder: (context, state) {
+      final exerciseId = state.uri.queryParameters['exerciseId'] ?? '';
+      return ListeningQuizScreen(exerciseId: exerciseId);
+    },
   ),
   GoRoute(
     path: '/missions',

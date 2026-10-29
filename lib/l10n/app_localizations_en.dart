@@ -4095,4 +4095,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String boss_exam_cooldown(String time) {
     return 'The boss does not accept another challenge until $time.';
   }
+
+  @override
+  String get listening_path_title => 'LISTENING';
+
+  @override
+  String listening_path_next(String title) {
+    return 'Next: $title';
+  }
+
+  @override
+  String listening_path_progress(int done, int total) {
+    return '$done/$total passed';
+  }
+
+  @override
+  String get listening_empty => 'No listening exercises for this level yet.';
+
+  @override
+  String get listening_play => 'PLAY DIALOGUE';
+
+  @override
+  String get listening_stop => 'STOP';
+
+  @override
+  String get listening_play_again => 'LISTEN AGAIN';
+
+  @override
+  String get listening_transcript_show => 'SHOW TRANSCRIPT';
+
+  @override
+  String get listening_transcript_hide => 'HIDE TRANSCRIPT';
+
+  @override
+  String listening_question_counter(int current, int total) {
+    return 'QUESTION $current OF $total';
+  }
+
+  @override
+  String get listening_next => 'NEXT';
+
+  @override
+  String get listening_previous => 'BACK';
+
+  @override
+  String get listening_submit => 'CHECK ANSWERS';
+
+  @override
+  String get listening_submitting => 'CHECKING...';
+
+  @override
+  String get listening_result_passed => 'EXERCISE PASSED';
+
+  @override
+  String get listening_result_failed => 'NOT YET';
+
+  @override
+  String listening_result_score(int score, int total) {
+    return '$score of $total correct';
+  }
+
+  @override
+  String listening_result_missions(int count) {
+    return '+$count mission progress';
+  }
+
+  @override
+  String listening_result_practice(int minutes) {
+    return '$minutes min of practice registered';
+  }
+
+  @override
+  String get listening_result_retry => 'REPEAT';
+
+  @override
+  String get listening_back_path => 'BACK TO THE PATH';
+
+  @override
+  String get listening_error_load =>
+      'We could not load this exercise. Check your connection and try again.';
+
+  @override
+  String get listening_retry_send => 'RETRY SEND';
+
+  @override
+  String listening_explanation(String answer) {
+    return 'Correct answer: $answer';
+  }
 }

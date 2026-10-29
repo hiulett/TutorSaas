@@ -319,3 +319,83 @@ hosting estático.
 - [Pruebas de compra (Play + RevenueCat)](runbooks/PURCHASE_TESTING.md)
 - [Estado de las migraciones](runbooks/MIGRATION_STATUS.md)
 - [Email de reactivación](runbooks/REACTIVATION_EMAIL.md)
+
+---
+
+## 9. Contenido de comprensión auditiva (P-30 / #115)
+
+El audio de los ejercicios lo sintetiza `flutter_tts` en el dispositivo: **no
+hay Edge Function, ni `action_code`, ni coste de IA**. Lo único que se escribe
+en servidor son los intentos y el progreso.
+
+### Añadir un ejercicio
+
+Insertar una fila en `public.listening_exercises` (SQL Editor o MCP). No hace
+falta desplegar la app: el cliente lee el banco al abrir la Ruta.
+
+```sql
+insert into public.listening_exercises (slug, level, title, context, lines, questions, sort_order)
+values (
+  'b2_airport_announcement',          -- slug estable (va en la URL y en lesson_id)
+  'B2',                               -- PRE-A1 | A1 | A2 | B1 | B2 | C1 | C2
+  'Airport announcement',
+  'You are waiting at the gate.',
+  '[
+    {"speaker": "Announcer", "text": "Flight BA two four nine is now boarding at gate twelve."},
+    {"speaker": "Passenger", "text": "Did they say gate twelve or gate twenty?"}
+  ]'::jsonb,
+  '[
+    {
+      "id": "q1",
+      "prompt": "Which flight is boarding?",
+      "options": [
+        {"id": "a", "text": "BA 249"},
+        {"id": "b", "text": "BA 429"},
+        {"id": "c", "text": "BA 2490"}
+      ],
+      "correct": "a",
+      "explanation": "The announcement says flight BA two four nine."
+    }
+  ]'::jsonb,
+  20                                  -- orden dentro del nivel
+)
+on conflict (slug) do update
+  set level = excluded.level,
+      title = excluded.title,
+      context = excluded.context,
+      lines = excluded.lines,
+      questions = excluded.questions,
+      sort_order = excluded.sort_order,
+      is_active = true;
+```
+
+Reglas de contenido (las valida un `check` y el cliente):
+
+- `lines`: 1–8 intervenciones, cada una con `speaker` y `text`.
+- `questions`: 1–8, con al menos 2 opciones y `correct` apuntando a una de
+  ellas. Un ítem mal formado se descarta al cargar (y el ejercicio no se ofrece).
+- `slug` no se cambia después de publicar: es el `lesson_id` del progreso
+  (`listening:<slug>`) y la clave de la URL `/listening?exerciseId=<slug>`.
+
+### Retirar o corregir un ejercicio
+
+- Corrección de texto: `update` de la fila (los intentos ya guardados no se
+  recalculan).
+- Retirada: `update public.listening_exercises set is_active = false`.
+
+### Verificar
+
+```sql
+select slug, level, jsonb_array_length(questions) as preguntas
+  from public.listening_exercises
+ where is_active
+ order by level, sort_order;
+
+select user_id, score, total, passed, created_at
+  from public.listening_attempts
+ order by created_at desc
+ limit 20;
+```
+
+Los minutos de práctica y la racha asociados se consultan en `practice_sessions`
+(`session_id like 'listening:%'`).

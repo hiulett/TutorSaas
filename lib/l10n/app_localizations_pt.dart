@@ -4109,4 +4109,92 @@ class AppLocalizationsPt extends AppLocalizations {
   String boss_exam_cooldown(String time) {
     return 'O chefe não aceita outro desafio até $time.';
   }
+
+  @override
+  String get listening_path_title => 'COMPREENSÃO AUDITIVA';
+
+  @override
+  String listening_path_next(String title) {
+    return 'Próximo: $title';
+  }
+
+  @override
+  String listening_path_progress(int done, int total) {
+    return '$done/$total superados';
+  }
+
+  @override
+  String get listening_empty =>
+      'Ainda não há exercícios de escuta para este nível.';
+
+  @override
+  String get listening_play => 'OUVIR DIÁLOGO';
+
+  @override
+  String get listening_stop => 'PARAR';
+
+  @override
+  String get listening_play_again => 'OUVIR NOVAMENTE';
+
+  @override
+  String get listening_transcript_show => 'MOSTRAR TRANSCRIÇÃO';
+
+  @override
+  String get listening_transcript_hide => 'OCULTAR TRANSCRIÇÃO';
+
+  @override
+  String listening_question_counter(int current, int total) {
+    return 'PERGUNTA $current DE $total';
+  }
+
+  @override
+  String get listening_next => 'PRÓXIMO';
+
+  @override
+  String get listening_previous => 'ANTERIOR';
+
+  @override
+  String get listening_submit => 'VERIFICAR RESPOSTAS';
+
+  @override
+  String get listening_submitting => 'CORRIGINDO...';
+
+  @override
+  String get listening_result_passed => 'EXERCÍCIO CONCLUÍDO';
+
+  @override
+  String get listening_result_failed => 'AINDA NÃO';
+
+  @override
+  String listening_result_score(int score, int total) {
+    return '$score de $total corretas';
+  }
+
+  @override
+  String listening_result_missions(int count) {
+    return '+$count de progresso nas missões';
+  }
+
+  @override
+  String listening_result_practice(int minutes) {
+    return '$minutes min de prática registrados';
+  }
+
+  @override
+  String get listening_result_retry => 'REPETIR';
+
+  @override
+  String get listening_back_path => 'VOLTAR À ROTA';
+
+  @override
+  String get listening_error_load =>
+      'Não foi possível carregar este exercício. Verifique sua conexão e tente novamente.';
+
+  @override
+  String get listening_retry_send => 'TENTAR ENVIAR DE NOVO';
+
+  @override
+  String listening_explanation(String answer) {
+    return 'Resposta correta: $answer';
+  }
 }
