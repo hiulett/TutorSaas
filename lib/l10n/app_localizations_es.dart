@@ -3774,6 +3774,25 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get widget_streak_label => 'RACHA';
+
+  @override
+  String get widget_minutes_label => 'HOY';
+
+  @override
+  String get widget_minutes_unit => 'min';
+
+  @override
+  String get widget_practice => 'PRACTICAR';
+
+  @override
+  String get widget_empty_title => 'Abre la app para empezar';
+
+  @override
+  String get widget_empty_body =>
+      'Tu racha y los minutos de hoy aparecen aquí al abrir la app.';
+
+  @override
   String get notif_permission_denied =>
       'Las notificaciones están bloqueadas. Actívalas en Ajustes de Android > Aplicaciones > Dungeon of English > Notificaciones.';
 

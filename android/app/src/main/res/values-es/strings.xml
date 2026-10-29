@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_brand">Dungeon of English</string>
+    <string name="widget_label">Dungeon of English</string>
+    <string name="widget_description">Racha, minutos de hoy y un atajo para practicar.</string>
+    <string name="widget_streak_label">RACHA</string>
+    <string name="widget_minutes_label">HOY</string>
+    <string name="widget_practice">PRACTICAR</string>
+    <string name="widget_empty_title">Abre la app para empezar</string>
+    <string name="widget_empty_body">Tu racha y los minutos de hoy aparecen aquí al abrir la app.</string>
+</resources>

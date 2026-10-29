@@ -6868,6 +6868,42 @@ abstract class AppLocalizations {
   /// **'Reminder set for {time}.'**
   String notif_time_updated(String time);
 
+  /// No description provided for @widget_streak_label.
+  ///
+  /// In en, this message translates to:
+  /// **'STREAK'**
+  String get widget_streak_label;
+
+  /// No description provided for @widget_minutes_label.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY'**
+  String get widget_minutes_label;
+
+  /// No description provided for @widget_minutes_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get widget_minutes_unit;
+
+  /// No description provided for @widget_practice.
+  ///
+  /// In en, this message translates to:
+  /// **'PRACTICE'**
+  String get widget_practice;
+
+  /// No description provided for @widget_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the app to start'**
+  String get widget_empty_title;
+
+  /// No description provided for @widget_empty_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak and today\'s minutes appear here once you open the app.'**
+  String get widget_empty_body;
+
   /// No description provided for @notif_permission_denied.
   ///
   /// In en, this message translates to:
