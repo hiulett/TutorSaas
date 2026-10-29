@@ -7083,6 +7083,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A short raid today keeps the streak alive. Your tutor is ready.'**
   String get notif_reminder_body;
+
+  /// No description provided for @boss_exam_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DUNGEON BOSS: THE ORACLE'**
+  String get boss_exam_title;
+
+  /// No description provided for @boss_exam_state_ready.
+  ///
+  /// In en, this message translates to:
+  /// **'The boss awaits. Challenge available!'**
+  String get boss_exam_state_ready;
+
+  /// No description provided for @boss_exam_state_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet the requirements to challenge the boss.'**
+  String get boss_exam_state_locked;
+
+  /// No description provided for @boss_exam_state_locked_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete 80% of the level lessons ({percent}%)'**
+  String boss_exam_state_locked_progress(int percent);
+
+  /// No description provided for @boss_exam_state_cooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'The boss rests until {time}.'**
+  String boss_exam_state_cooldown(String time);
+
+  /// No description provided for @boss_req_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned level'**
+  String get boss_req_level;
+
+  /// No description provided for @boss_req_practice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice: goals, streak or minutes'**
+  String get boss_req_practice;
+
+  /// No description provided for @boss_req_cooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooldown between attempts'**
+  String get boss_req_cooldown;
+
+  /// No description provided for @boss_hud_title.
+  ///
+  /// In en, this message translates to:
+  /// **'BOSS: THE ORACLE'**
+  String get boss_hud_title;
+
+  /// No description provided for @boss_hud_turns.
+  ///
+  /// In en, this message translates to:
+  /// **'TURN {current}/{max}'**
+  String boss_hud_turns(int current, int max);
+
+  /// No description provided for @boss_result_victory.
+  ///
+  /// In en, this message translates to:
+  /// **'BOSS DEFEATED'**
+  String get boss_result_victory;
+
+  /// No description provided for @boss_result_defeat.
+  ///
+  /// In en, this message translates to:
+  /// **'THE BOSS HOLDS'**
+  String get boss_result_defeat;
+
+  /// No description provided for @boss_result_initial.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL ASSIGNED'**
+  String get boss_result_initial;
+
+  /// No description provided for @boss_result_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'No result available.'**
+  String get boss_result_missing;
+
+  /// No description provided for @boss_result_level_up.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String boss_result_level_up(String from, String to);
+
+  /// No description provided for @boss_result_level_assigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Your level: {level}'**
+  String boss_result_level_assigned(String level);
+
+  /// No description provided for @boss_result_level_kept.
+  ///
+  /// In en, this message translates to:
+  /// **'You keep {level}'**
+  String boss_result_level_kept(String level);
+
+  /// No description provided for @boss_result_forced.
+  ///
+  /// In en, this message translates to:
+  /// **'The exam reached its limit and was scored with the answers given.'**
+  String get boss_result_forced;
+
+  /// No description provided for @boss_result_rubric.
+  ///
+  /// In en, this message translates to:
+  /// **'RUBRIC (6 DIMENSIONS)'**
+  String get boss_result_rubric;
+
+  /// No description provided for @boss_result_average.
+  ///
+  /// In en, this message translates to:
+  /// **'avg {value}/100 - pass {threshold}'**
+  String boss_result_average(int value, int threshold);
+
+  /// No description provided for @boss_result_no_scores.
+  ///
+  /// In en, this message translates to:
+  /// **'The Oracle could not score the rubric in this attempt.'**
+  String get boss_result_no_scores;
+
+  /// No description provided for @boss_result_reason_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WHY NOT YET'**
+  String get boss_result_reason_title;
+
+  /// No description provided for @boss_result_reason_rubric.
+  ///
+  /// In en, this message translates to:
+  /// **'You were close: the average or one dimension is below the pass threshold.'**
+  String get boss_result_reason_rubric;
+
+  /// No description provided for @boss_result_reason_no_improvement.
+  ///
+  /// In en, this message translates to:
+  /// **'Your level is solid, but not yet above your current band.'**
+  String get boss_result_reason_no_improvement;
+
+  /// No description provided for @boss_result_reason_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The Oracle could not score the rubric, so the level is kept.'**
+  String get boss_result_reason_unavailable;
+
+  /// No description provided for @boss_result_retry_at.
+  ///
+  /// In en, this message translates to:
+  /// **'Next attempt: {time}'**
+  String boss_result_retry_at(String time);
+
+  /// No description provided for @boss_result_focus_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT TO REINFORCE'**
+  String get boss_result_focus_title;
+
+  /// No description provided for @boss_result_reinforce.
+  ///
+  /// In en, this message translates to:
+  /// **'PRACTISE REINFORCEMENT LESSONS'**
+  String get boss_result_reinforce;
+
+  /// No description provided for @boss_result_home.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK TO THE PATH'**
+  String get boss_result_home;
+
+  /// No description provided for @boss_dim_listening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening'**
+  String get boss_dim_listening;
+
+  /// No description provided for @boss_dim_fluency.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluency'**
+  String get boss_dim_fluency;
+
+  /// No description provided for @boss_dim_grammar.
+  ///
+  /// In en, this message translates to:
+  /// **'Grammar'**
+  String get boss_dim_grammar;
+
+  /// No description provided for @boss_dim_vocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocabulary'**
+  String get boss_dim_vocabulary;
+
+  /// No description provided for @boss_dim_pronunciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation'**
+  String get boss_dim_pronunciation;
+
+  /// No description provided for @boss_dim_naturalness.
+  ///
+  /// In en, this message translates to:
+  /// **'Naturalness'**
+  String get boss_dim_naturalness;
+
+  /// No description provided for @boss_exam_not_enough.
+  ///
+  /// In en, this message translates to:
+  /// **'The Oracle needs at least {min} answers to judge the exam. This attempt does not count.'**
+  String boss_exam_not_enough(int min);
+
+  /// No description provided for @boss_exam_cooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'The boss does not accept another challenge until {time}.'**
+  String boss_exam_cooldown(String time);
 }
 
 class _AppLocalizationsDelegate

@@ -12,6 +12,16 @@
 // - Modo promoción: el nivel nunca baja (solo sube o se mantiene).
 // - La pista declarada por el Oráculo en la conversación se acepta solo si
 //   está a ±1 banda de la evaluación del servidor.
+//
+// P-31 (#116) — el examen de promoción es un jefe con reglas verificables en
+// el servidor, no una cadena de texto del modelo:
+// - Se exige evidencia mínima (respuestas y palabras) antes de evaluar.
+// - Rúbrica fija de 6 dimensiones y umbral explícito: para ASCENDER hace falta
+//   media >= 65 y ninguna dimensión < 45. Si no se cumple, el nivel se mantiene
+//   y se devuelve el motivo.
+// - Cooldown de 12 h tras un intento que no ascendió.
+// - Cada intento se registra en `boss_exam_attempts` (service role); el cliente
+//   no puede escribirlo.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -47,6 +57,21 @@ const SCORE_KEYS = [
 const MAX_ANSWERS = 40;
 const MAX_ANSWER_CHARS = 2000;
 const MAX_TOTAL_CHARS = 20000;
+
+// P-31 (#116): reglas del jefe de mazmorra.
+const MIN_BOSS_ANSWERS = 5;
+const MIN_BOSS_WORDS = 25;
+const BOSS_COOLDOWN_HOURS = 12;
+const RUBRIC_DIMENSIONS = [
+  'listening',
+  'fluency',
+  'grammar',
+  'vocabulary',
+  'pronunciation',
+  'naturalness',
+] as const;
+const RUBRIC_PASS_AVERAGE = 65;
+const RUBRIC_MIN_DIMENSION = 45;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -198,6 +223,47 @@ function buildTranscript(answers: string[]): string {
   return `Student conversation transcripts:\n${numbered}`;
 }
 
+function countWords(answers: string[]): number {
+  return answers.reduce(
+    (sum, answer) => sum + answer.trim().split(/\s+/).filter(Boolean).length,
+    0,
+  );
+}
+
+type Rubric = {
+  complete: boolean;
+  average: number;
+  passed: boolean;
+  lowest_dimension: string;
+  threshold_average: number;
+  threshold_min_dimension: number;
+};
+
+/** Rúbrica fija del jefe: media y suelo por dimensión, calculados aquí. */
+function computeRubric(scores: Record<string, number>): Rubric {
+  const values = RUBRIC_DIMENSIONS
+    .map((dimension) => scores[dimension])
+    .filter((value): value is number => typeof value === 'number');
+  const average = values.length > 0
+    ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+    : 0;
+  const lowest = [...RUBRIC_DIMENSIONS].sort(
+    (a, b) => (scores[a] ?? 0) - (scores[b] ?? 0),
+  )[0] ?? '';
+  const complete = values.length === RUBRIC_DIMENSIONS.length;
+  return {
+    complete,
+    average,
+    passed:
+      complete &&
+      average >= RUBRIC_PASS_AVERAGE &&
+      values.every((value) => value >= RUBRIC_MIN_DIMENSION),
+    lowest_dimension: lowest,
+    threshold_average: RUBRIC_PASS_AVERAGE,
+    threshold_min_dimension: RUBRIC_MIN_DIMENSION,
+  };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
@@ -229,6 +295,85 @@ Deno.serve(async (req: Request) => {
     : 1;
   const declaredCefr = normalizeCefr(body.declared_cefr);
   const declaredRank = normalizeRank(body.declared_rank);
+  // `mode` solo etiqueta el intento: el nivel y la decisión siguen siendo del
+  // servidor. Las reglas de jefe (evidencia, rúbrica, cooldown) se aplican por
+  // el estado del servidor (nivel ya evaluado), no por lo que diga el cliente.
+  const mode: 'placement' | 'boss' = body.mode === 'boss' ? 'boss' : 'placement';
+  const forced = body.forced === true;
+
+  // ── Estado actual: modo promoción (nunca baja) ────────────────────────────
+  let previousCefr = '';
+  let previousRank = '';
+  let previousAssessed = false;
+  try {
+    const { data: profile } = await admin
+      .from('user_language_profiles')
+      .select('cefr_level_id, game_rank, placement_assessed_at')
+      .eq('user_id', user.id)
+      .eq('language_id', languageId)
+      .maybeSingle();
+
+    if (profile?.cefr_level_id != null) {
+      const { data: level } = await admin
+        .from('cefr_levels')
+        .select('code')
+        .eq('id', profile.cefr_level_id)
+        .maybeSingle();
+      previousCefr = normalizeCefr(level?.code);
+      previousRank = normalizeRank(profile.game_rank);
+      // Un perfil recién creado tiene un CEFR por defecto sin evaluar: eso es
+      // placement inicial, no promoción.
+      previousAssessed = profile.placement_assessed_at != null;
+    }
+  } catch (e) {
+    console.error('profile lookup failed:', e);
+  }
+
+  const bossRules = Boolean(previousCefr && previousAssessed);
+
+  // P-31 (#116): evidencia mínima. Un timeout del cliente puede cerrar el
+  // examen con pocas respuestas; en ese caso el intento no cuenta.
+  const words = countWords(answers);
+  if (bossRules && (answers.length < MIN_BOSS_ANSWERS || words < MIN_BOSS_WORDS)) {
+    return json({
+      error: 'insufficient_evidence',
+      min_answers: MIN_BOSS_ANSWERS,
+      min_words: MIN_BOSS_WORDS,
+      answers: answers.length,
+      words,
+    }, 400);
+  }
+
+  // Cooldown ANTES de llamar al modelo: no se cobra maná por un intento
+  // bloqueado por la regla de reintento.
+  if (bossRules) {
+    try {
+      const { data: lastFailure } = await admin
+        .from('boss_exam_attempts')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .eq('language_id', languageId)
+        .eq('decision', 'maintained')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastFailure?.created_at) {
+        const nextAttempt = new Date(
+          new Date(lastFailure.created_at).getTime() + BOSS_COOLDOWN_HOURS * 3600 * 1000,
+        );
+        if (nextAttempt.getTime() > Date.now()) {
+          return json({
+            error: 'cooldown',
+            cooldown_hours: BOSS_COOLDOWN_HOURS,
+            next_attempt_at: nextAttempt.toISOString(),
+          }, 429);
+        }
+      }
+    } catch (e) {
+      console.error('boss cooldown lookup failed:', e);
+    }
+  }
 
   // ── Evaluación del modelo (cobra maná en el proxy) ────────────────────────
   let evaluation: Record<string, unknown> | null = null;
@@ -294,36 +439,45 @@ Deno.serve(async (req: Request) => {
     rank = declaredRank;
   }
 
-  // ── Estado actual: modo promoción (nunca baja) ────────────────────────────
-  let previousCefr = '';
-  let previousRank = '';
-  try {
-    const { data: profile } = await admin
-      .from('user_language_profiles')
-      .select('cefr_level_id, game_rank')
-      .eq('user_id', user.id)
-      .eq('language_id', languageId)
-      .maybeSingle();
+  const scores = normalizeScores(evaluation?.scores);
+  const strengths = normalizeStringList(evaluation?.strengths);
+  const weaknesses = normalizeStringList(evaluation?.weaknesses);
+  const rubric = computeRubric(scores);
 
-    if (profile?.cefr_level_id != null) {
-      const { data: level } = await admin
-        .from('cefr_levels')
-        .select('code')
-        .eq('id', profile.cefr_level_id)
-        .maybeSingle();
-      previousCefr = normalizeCefr(level?.code);
-      previousRank = normalizeRank(profile.game_rank);
-    }
-  } catch (e) {
-    console.error('profile lookup failed:', e);
-  }
+  // ── Decisión del jefe (servidor) ──────────────────────────────────────────
+  // En promoción real (nivel ya evaluado) el ascenso exige además la rúbrica
+  // aprobada. Si falta cualquier condición, el nivel se mantiene y se explica
+  // el motivo; nunca se baja (modo promoción).
+  let decision: 'promoted' | 'maintained' | 'initial' = 'initial';
+  let reasonCode: string | null = null;
 
   if (previousCefr) {
     const previousIdx = CEFR_SCALE.indexOf(previousCefr);
-    if (previousIdx > CEFR_SCALE.indexOf(cefr)) {
+    const candidateIdx = CEFR_SCALE.indexOf(cefr);
+
+    if (candidateIdx > previousIdx && (!bossRules || rubric.passed)) {
+      decision = 'promoted';
+    } else {
       cefr = previousCefr;
+      decision = 'maintained';
+      reasonCode = candidateIdx > previousIdx
+        ? (rubric.complete ? 'rubric_below_threshold' : 'rubric_unavailable')
+        : 'no_improvement';
     }
   }
+
+  if (previousCefr && reasonCode === 'rubric_below_threshold' && rubric.lowest_dimension) {
+    const weakest = `${rubric.lowest_dimension} ${scores[rubric.lowest_dimension] ?? 0}/${RUBRIC_MIN_DIMENSION}`;
+    if (!weaknesses.includes(weakest)) weaknesses.unshift(weakest);
+    weaknesses.splice(4);
+  }
+
+  if (previousCefr && reasonCode === 'rubric_below_threshold' && rubric.lowest_dimension) {
+    const weakest = `${rubric.lowest_dimension} ${scores[rubric.lowest_dimension] ?? 0}/${RUBRIC_MIN_DIMENSION}`;
+    if (!weaknesses.includes(weakest)) weaknesses.unshift(weakest);
+    weaknesses.splice(4);
+  }
+
   if (!rank) rank = RANK_BY_CEFR[cefr] ?? 'F';
   if (previousCefr === cefr && previousRank) rank = previousRank;
 
@@ -333,10 +487,6 @@ Deno.serve(async (req: Request) => {
   const recommendedFocus = typeof evaluation?.recommended_focus === 'string'
     ? evaluation.recommended_focus.trim().slice(0, 200)
     : 'Mantener conversación y ampliar las respuestas';
-
-  const scores = normalizeScores(evaluation?.scores);
-  const strengths = normalizeStringList(evaluation?.strengths);
-  const weaknesses = normalizeStringList(evaluation?.weaknesses);
 
   // ── Persistencia (service role; el cliente no puede escribir el nivel) ────
   const { error: applyErr } = await admin.rpc('apply_placement_as', {
@@ -356,6 +506,34 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'db_error', detail: applyErr.message }, 500);
   }
 
+  // P-31 (#116): registrar el intento del jefe con service role. Solo los
+  // intentos de promoción (usuario ya evaluado) entran en la tabla: el
+  // placement inicial no es un reto del jefe ni debe abrir cooldown.
+  // El cliente no puede escribirla, así que el histórico es fiable.
+  const nextAttemptAt = bossRules && decision === 'maintained'
+    ? new Date(Date.now() + BOSS_COOLDOWN_HOURS * 3600 * 1000).toISOString()
+    : null;
+
+  if (bossRules) {
+    const { error: attemptErr } = await admin.from('boss_exam_attempts').insert({
+      user_id: user.id,
+      language_id: languageId,
+      from_cefr: previousCefr || null,
+      to_cefr: cefr,
+      decision,
+      reason_code: reasonCode,
+      average_score: rubric.average || null,
+      scores,
+      turns: answers.length,
+      forced,
+    });
+
+    if (attemptErr) {
+      // No bloquea el resultado: el nivel ya está persistido y validado.
+      console.error('boss_exam_attempts insert failed:', attemptErr.message);
+    }
+  }
+
   return json({
     cefr_level: cefr,
     game_rank: rank,
@@ -365,7 +543,21 @@ Deno.serve(async (req: Request) => {
     explanation,
     recommended_focus: recommendedFocus,
     previous_cefr_level: previousCefr || null,
-    promoted: Boolean(previousCefr && CEFR_SCALE.indexOf(cefr) > CEFR_SCALE.indexOf(previousCefr)),
+    promoted: decision === 'promoted',
+    decision,
+    reason_code: reasonCode,
+    mode,
+    forced,
+    turns: answers.length,
+    rubric: {
+      ...rubric,
+      dimensions: RUBRIC_DIMENSIONS.reduce<Record<string, number>>((acc, dimension) => {
+        const value = scores[dimension];
+        if (typeof value === 'number') acc[dimension] = value;
+        return acc;
+      }, {}),
+    },
+    next_attempt_at: nextAttemptAt,
     source,
   });
 });

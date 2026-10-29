@@ -8,6 +8,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/quest_card.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../boss_exam/presentation/widgets/boss_exam_card.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
 import '../../domain/models/lesson_completion.dart';
@@ -341,8 +342,9 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
             },
           ),
         const SizedBox(height: 14),
-        // Tarjeta "Evaluación del Oráculo" — reto de promoción del nivel.
-        _OracleChallengeCard(
+        // P-31 (#116): tarjeta del Jefe de mazmorra (examen de promoción).
+        // Los requisitos los calcula boss_exam_status en el servidor.
+        BossExamCard(
           level: _selectedLevel,
           completedLessons: stageLessons
               .where((l) => LessonUnlockService.classify(
@@ -643,99 +645,6 @@ class _SubMissionTile extends ConsumerWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Tarjeta "Evaluación del Oráculo" — gate de promoción del nivel.
-/// Se desbloquea al completar ≥80% de las lecciones del nivel; permite retar
-/// al Oráculo para subir de nivel (nunca baja).
-class _OracleChallengeCard extends ConsumerWidget {
-  final String level;
-  final int completedLessons;
-  final int totalLessons;
-
-  const _OracleChallengeCard({
-    required this.level,
-    required this.completedLessons,
-    required this.totalLessons,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final ratio = totalLessons > 0 ? completedLessons / totalLessons : 0.0;
-    final unlocked = ratio >= 0.80;
-    final pct = (ratio * 100).round();
-
-    return GlassCard(
-      blur: 20,
-      opacity: AppColors.glassOpacity,
-      border: Border.all(
-        color: unlocked ? AppColors.royalGold : AppColors.onSurface.withValues(alpha: 0.1),
-        width: unlocked ? 1.5 : 1,
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: (unlocked ? AppColors.royalGold : AppColors.runeViolet).withValues(alpha: 0.2),
-              border: Border.all(color: unlocked ? AppColors.royalGold : AppColors.runeViolet),
-            ),
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              color: unlocked ? AppColors.royalGold : AppColors.runeViolet,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n?.oracle_challenge_title ?? 'EVALUACIÓN DEL ORÁCULO',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  unlocked
-                      ? (l10n?.oracle_challenge_ready ?? 'El Oráculo te espera. ¡Reto disponible!')
-                      : (l10n != null
-                          ? l10n.oracle_challenge_progress(pct)
-                          : 'Completa el 80% para retar al Oráculo ($pct%)'),
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (unlocked)
-            IconButton(
-              icon: const Icon(Icons.arrow_forward_rounded, color: AppColors.royalGold),
-              onPressed: () => context.push(
-                '/oracle-test?mode=promotion&level=$level',
-              ),
-            )
-          else
-            Icon(
-              Icons.lock_rounded,
-              color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
-              size: 18,
-            ),
         ],
       ),
     );

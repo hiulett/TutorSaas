@@ -16,6 +16,13 @@ class PlacementOutcome {
     this.previousCefrLevel = '',
     this.promoted = false,
     this.fromHeuristic = false,
+    this.decision = '',
+    this.reasonCode = '',
+    this.rubric = const {},
+    this.nextAttemptAt,
+    this.forced = false,
+    this.turns = 0,
+    this.mode = '',
   });
 
   factory PlacementOutcome.fromMap(Map<String, dynamic> map) {
@@ -32,6 +39,15 @@ class PlacementOutcome {
       previousCefrLevel: _text(map['previous_cefr_level']).toUpperCase(),
       promoted: map['promoted'] == true,
       fromHeuristic: _text(map['source']) == 'heuristic',
+      decision: _text(map['decision']),
+      reasonCode: _text(map['reason_code']),
+      rubric: map['rubric'] is Map
+          ? Map<String, dynamic>.from(map['rubric'] as Map)
+          : const {},
+      nextAttemptAt: _date(map['next_attempt_at']),
+      forced: map['forced'] == true,
+      turns: map['turns'] is num ? (map['turns'] as num).toInt() : 0,
+      mode: _text(map['mode']),
     );
   }
 
@@ -56,6 +72,35 @@ class PlacementOutcome {
   /// `true` si el modelo no devolvió JSON válido y el servidor usó la
   /// heurística de longitud de respuesta.
   final bool fromHeuristic;
+
+  /// P-31 (#116): veredicto del servidor (`promoted` | `maintained` |
+  /// `initial`). Vacío en respuestas antiguas.
+  final String decision;
+
+  /// Motivo cuando no asciende: `rubric_below_threshold`, `no_improvement`,
+  /// `rubric_unavailable`.
+  final String reasonCode;
+
+  /// Rúbrica de 6 dimensiones devuelta por el servidor (media, umbrales y
+  /// puntuación por dimensión).
+  final Map<String, dynamic> rubric;
+
+  /// Reintento disponible tras un intento que no ascendió.
+  final DateTime? nextAttemptAt;
+
+  /// `true` si el examen se cerró por tope de turnos o por tiempo.
+  final bool forced;
+
+  /// Respuestas evaluadas (contadas por el servidor).
+  final int turns;
+
+  /// `boss` | `placement`.
+  final String mode;
+
+  static DateTime? _date(Object? value) {
+    if (value is! String || value.trim().isEmpty) return null;
+    return DateTime.tryParse(value)?.toLocal();
+  }
 
   static String _text(Object? value) =>
       value is String ? value.trim() : (value == null ? '' : '$value'.trim());

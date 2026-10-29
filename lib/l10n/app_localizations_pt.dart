@@ -3885,4 +3885,142 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get notif_reminder_body =>
       'Uma incursão curta hoje mantém a sequência viva. Seu tutor está pronto.';
+
+  @override
+  String get boss_exam_title => 'CHEFE DA MASMORRA: O ORÁCULO';
+
+  @override
+  String get boss_exam_state_ready =>
+      'O chefe espera por você. Desafio disponível!';
+
+  @override
+  String get boss_exam_state_locked =>
+      'Cumpra os requisitos para desafiar o chefe.';
+
+  @override
+  String boss_exam_state_locked_progress(int percent) {
+    return 'Complete 80% das lições do nível ($percent%)';
+  }
+
+  @override
+  String boss_exam_state_cooldown(String time) {
+    return 'O chefe descansa até $time.';
+  }
+
+  @override
+  String get boss_req_level => 'Nível atribuído';
+
+  @override
+  String get boss_req_practice => 'Prática: metas, sequência ou minutos';
+
+  @override
+  String get boss_req_cooldown => 'Espera entre tentativas';
+
+  @override
+  String get boss_hud_title => 'CHEFE: O ORÁCULO';
+
+  @override
+  String boss_hud_turns(int current, int max) {
+    return 'TURNO $current/$max';
+  }
+
+  @override
+  String get boss_result_victory => 'CHEFE DERROTADO';
+
+  @override
+  String get boss_result_defeat => 'O CHEFE RESISTE';
+
+  @override
+  String get boss_result_initial => 'NÍVEL ATRIBUÍDO';
+
+  @override
+  String get boss_result_missing => 'Nenhum resultado disponível.';
+
+  @override
+  String boss_result_level_up(String from, String to) {
+    return '$from para $to';
+  }
+
+  @override
+  String boss_result_level_assigned(String level) {
+    return 'Seu nível: $level';
+  }
+
+  @override
+  String boss_result_level_kept(String level) {
+    return 'Você mantém $level';
+  }
+
+  @override
+  String get boss_result_forced =>
+      'O exame atingiu o limite e foi avaliado com as respostas dadas.';
+
+  @override
+  String get boss_result_rubric => 'RÚBRICA (6 DIMENSÕES)';
+
+  @override
+  String boss_result_average(int value, int threshold) {
+    return 'média $value/100 - aprova $threshold';
+  }
+
+  @override
+  String get boss_result_no_scores =>
+      'O Oráculo não conseguiu pontuar a rúbrica nesta tentativa.';
+
+  @override
+  String get boss_result_reason_title => 'POR QUE AINDA NÃO';
+
+  @override
+  String get boss_result_reason_rubric =>
+      'Foi perto: a média ou alguma dimensão fica abaixo do limite.';
+
+  @override
+  String get boss_result_reason_no_improvement =>
+      'Seu nível é sólido, mas ainda não supera sua faixa atual.';
+
+  @override
+  String get boss_result_reason_unavailable =>
+      'O Oráculo não conseguiu pontuar a rúbrica, então o nível é mantido.';
+
+  @override
+  String boss_result_retry_at(String time) {
+    return 'Próxima tentativa: $time';
+  }
+
+  @override
+  String get boss_result_focus_title => 'O QUE REFORÇAR';
+
+  @override
+  String get boss_result_reinforce => 'PRATICAR LIÇÕES DE REFORÇO';
+
+  @override
+  String get boss_result_home => 'VOLTAR À ROTA';
+
+  @override
+  String get boss_dim_listening => 'Compreensão';
+
+  @override
+  String get boss_dim_fluency => 'Fluência';
+
+  @override
+  String get boss_dim_grammar => 'Gramática';
+
+  @override
+  String get boss_dim_vocabulary => 'Vocabulário';
+
+  @override
+  String get boss_dim_pronunciation => 'Pronúncia';
+
+  @override
+  String get boss_dim_naturalness => 'Naturalidade';
+
+  @override
+  String boss_exam_not_enough(int min) {
+    return 'O Oráculo precisa de pelo menos $min respostas para julgar o exame. Esta tentativa não conta.';
+  }
+
+  @override
+  String boss_exam_cooldown(String time) {
+    return 'O chefe não aceita outro desafio até $time.';
+  }
 }

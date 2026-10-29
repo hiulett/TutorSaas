@@ -14,6 +14,12 @@ void main() {
     expect(router.contains('my_errors_screen.dart'), isTrue);
   });
 
+  test('P-31: /boss-result está registrada y apunta al resultado del jefe', () {
+    expect(router.contains("path: '/boss-result'"), isTrue);
+    expect(router.contains('BossExamResultScreen('), isTrue);
+    expect(router.contains('boss_exam_result_screen.dart'), isTrue);
+  });
+
   test('las rutas documentadas siguen presentes', () {
     for (final path in [
       '/splash',
@@ -30,6 +36,7 @@ void main() {
       '/shop',
       '/inventory',
       '/dungeon-guardian',
+      '/boss-result',
     ]) {
       expect(
         router.contains("path: '$path'"),
