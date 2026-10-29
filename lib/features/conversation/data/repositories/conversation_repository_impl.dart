@@ -9,6 +9,8 @@ import '../../../../core/services/retention_analytics.dart';
 import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../domain/models/ai_stream_exception.dart';
 import '../../domain/models/conversation_message.dart';
+import '../../domain/models/goal_evaluation_parser.dart';
+import '../../domain/models/goal_evaluation_result.dart';
 import '../../domain/repositories/conversation_repository.dart';
 
 class ConversationRepositoryImpl implements ConversationRepository {
@@ -210,10 +212,11 @@ class ConversationRepositoryImpl implements ConversationRepository {
   @override
   Future<String> generateTtsAudio(String text) async => '';
 
-  /// Sends the conversation + goals to DeepSeek (via llm-proxy) for AI-based
-  /// goal evaluation. Returns a map of goalId â†’ achieved (true/false).
+  /// Envía la conversación + metas a DeepSeek (vía llm-proxy) para evaluar las
+  /// metas cumplidas. P-29: la MISMA llamada devuelve también las correcciones
+  /// del turno, sin añadir una petición por turno.
   @override
-  Future<Map<String, bool>> evaluateGoals(
+  Future<GoalEvaluationResult> evaluateGoals(
     String conversationJson,
     List<Map<String, dynamic>> goalItems,
   ) async {
@@ -230,10 +233,11 @@ class ConversationRepositoryImpl implements ConversationRepository {
           .replaceAll('<conversation>', '')
           .replaceAll('</conversation>', '');
 
-      final systemPrompt = '''
+      final systemPrompt =
+          '''
 You are a strict and objective evaluator of language learning conversations.
 
-Your task is to analyze the conversation and determine which lesson goals the STUDENT has successfully achieved.
+Your task is to analyze the conversation and (a) determine which lesson goals the STUDENT has successfully achieved, and (b) list the most important mistakes the STUDENT made in their own messages.
 
 Lesson goals to evaluate:
 ${goalItems.asMap().entries.map((e) => '${e.key + 1}. [id: ${e.value['id']}] ${e.value['text']}').join('\n')}
@@ -253,8 +257,18 @@ Guidelines for evaluation (BE EXTREMELY STRICT):
 5. If the conversation has just started (e.g., only 1 or 2 student messages), most advanced or middle goals (like resolving, asking multiple questions, using many keywords) must be false.
 6. Do not assume or extrapolate. If it's not explicitly in the student's messages, it is false.
 
-Return ONLY a valid JSON object using exactly these ids: ${goalIds.join(', ')}.
-Values must be true or false.
+Guidelines for corrections (only the STUDENT's messages, maximum 3):
+- type MUST be one of: grammar, vocabulary, word_choice, pronunciation_hint, typo_stt.
+- Use "typo_stt" for likely speech-to-text artifacts (missing words, homophones, garbled words) instead of blaming grammar.
+- "original" is the exact fragment the student produced (keep it short, only the wrong part).
+- "corrected" is the fixed fragment.
+- "explanation" is ONE short sentence, in English, no grammar lecture.
+- If the student made no real mistake, return an empty list. Never invent mistakes.
+- Do not repeat a correction that already appears in the conversation.
+
+Return ONLY a valid JSON object with this exact shape:
+{"goals": {"<goal id>": true}, "corrections": [{"original": "I go yesterday", "corrected": "I went yesterday", "type": "grammar", "explanation": "Use the past simple for finished actions."}]}
+Use exactly these ids inside "goals": ${goalIds.join(', ')}. Values must be true or false.
 No markdown, no explanation, no code blocks.
 ''';
 
@@ -267,7 +281,7 @@ No markdown, no explanation, no code blocks.
           ],
           'stream': false,
           'temperature': 0.3,
-          'max_tokens': 400,
+          'max_tokens': 600,
           'action_code': 'goal_eval',
           'client_capabilities': const ['server_mana'],
         },
@@ -283,19 +297,20 @@ No markdown, no explanation, no code blocks.
         final choices = data['choices'] as List?;
         if (choices != null && choices.isNotEmpty) {
           final content = choices[0]?['message']?['content'] as String? ?? '';
-          final cleaned = content.trim();
-          debugPrint('Goal evaluation raw response: $cleaned');
-          final parsed = jsonDecode(cleaned) as Map<String, dynamic>;
+          debugPrint('Goal evaluation raw response: ${content.trim()}');
+          final evaluation = parseGoalEvaluation(content);
           // P-20: se descartan ids inventados y las metas no devueltas son false.
-          return {
-            for (final id in goalIds) id: parsed[id] == true,
-          };
+          return GoalEvaluationResult(
+            goals: {for (final id in goalIds) id: evaluation.goals[id] == true},
+            corrections: evaluation.corrections,
+            discardedCorrections: evaluation.discardedCorrections,
+          );
         }
       }
-      return {};
+      return GoalEvaluationResult.empty;
     } catch (e) {
       debugPrint('Error evaluating goals: $e');
-      return {};
+      return GoalEvaluationResult.empty;
     }
   }
 

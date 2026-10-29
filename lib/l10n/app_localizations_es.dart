@@ -3608,6 +3608,61 @@ class AppLocalizationsEs extends AppLocalizations {
       'Aprenderás inglés. El idioma de la interfaz puedes cambiarlo en Ajustes.';
 
   @override
+  String corrections_chip_label(int count) {
+    return 'CORREGIR $count';
+  }
+
+  @override
+  String get corrections_you_wrote => 'Escribiste';
+
+  @override
+  String get corrections_suggested => 'Mejor';
+
+  @override
+  String get my_errors_title => 'MIS ERRORES';
+
+  @override
+  String get my_errors_short => 'ERRORES';
+
+  @override
+  String get my_errors_subtitle =>
+      'Agrupados por tipo y recurrencia. Los errores recurrentes alimentan tus misiones de refuerzo.';
+
+  @override
+  String get my_errors_empty =>
+      'Todavía no hay errores registrados. Termina una lección y tus correcciones aparecerán aquí.';
+
+  @override
+  String get my_errors_error =>
+      'No pudimos cargar tus errores. Revisa tu conexión y reintenta.';
+
+  @override
+  String get my_errors_retry => 'REINTENTAR';
+
+  @override
+  String my_errors_times(int count) {
+    return '${count}x';
+  }
+
+  @override
+  String get my_errors_recurring_badge => 'RECURRENTE';
+
+  @override
+  String get correction_type_grammar => 'Gramática';
+
+  @override
+  String get correction_type_vocabulary => 'Vocabulario';
+
+  @override
+  String get correction_type_word_choice => 'Elección de palabra';
+
+  @override
+  String get correction_type_pronunciation_hint => 'Pronunciación';
+
+  @override
+  String get correction_type_typo_stt => 'Transcripción';
+
+  @override
   String get notif_settings_title => 'RECORDATORIO DIARIO';
 
   @override

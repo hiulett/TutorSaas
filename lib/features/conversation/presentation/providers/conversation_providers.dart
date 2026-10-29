@@ -14,6 +14,8 @@ import '../../domain/models/goal_evaluation_gate.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
+import '../../../corrections/domain/models/turn_correction.dart';
+import '../../../corrections/presentation/providers/corrections_providers.dart';
 import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/domain/models/session_learned_summary.dart';
@@ -104,6 +106,13 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   bool _goalsEvaluatedForLastTurn = false;
   String? _lastActionCode;
 
+  /// P-29: `turn_ref` del turno en curso, para deduplicar correcciones.
+  String? _correctionTurnRef;
+
+  /// Errores recurrentes del alumno (vista `user_recurring_errors`).
+  /// Alimentan el prompt del tutor y la misión de refuerzo.
+  List<CorrectionGroup> _recurringErrors = const [];
+
   ConversationNotifier(this._repository, this._ref)
     : super(ConversationState.initial()) {
     _initTts();
@@ -122,6 +131,12 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     state = ConversationState.initial();
     // Nueva sesión → se permite narrar de nuevo (se cancela la supresión previa).
     _ttsSuppressed = false;
+    // P-29: los chips de corrección de la sesión anterior no se heredan y el
+    // contexto de errores recurrentes se refresca al abrir la conversación.
+    _correctionTurnRef = null;
+    _recurringErrors = const [];
+    _ref.read(sessionCorrectionsProvider.notifier).clear();
+    unawaited(_loadRecurringErrors());
 
     // Fetch latest scenario fields from Supabase DB to sync any edits saved from web_admin.
     // Issue #1: las lecciones usan claves del catálogo Dart (texto) contra
@@ -1176,6 +1191,9 @@ ENDING:
     if (_hasProcessedThisTurn) return;
     _hasProcessedThisTurn = true;
     _lastUserText = userText;
+    // P-29: identificador del turno para deduplicar correcciones en servidor.
+    _correctionTurnRef =
+        '${_conversationId ?? state.activeScenarioId ?? 'session'}_${DateTime.now().millisecondsSinceEpoch}';
 
     // P-07 (#92): el cobro de maná vive en el servidor (llm-proxy). Aquí solo
     // se calcula el código de acción para el registro de uso y el cobro remoto.
@@ -1271,6 +1289,10 @@ ENDING:
                 'IMPORTANT: You MUST ALWAYS respond in English. Never use Spanish or any other language. '
                 'Converse naturally in English. ';
 
+      // P-29: los errores recurrentes del alumno entran en el prompt del tutor
+      // (una sola consulta cacheada al abrir la sesión).
+      final recurringHint = buildTutorRecurringErrorsHint(_recurringErrors);
+
       final List<Map<String, String>> historyList = [
         {
           'role': 'system',
@@ -1278,7 +1300,8 @@ ENDING:
               '$roleContext'
               'Analyze the user message, point out any grammar or vocabulary mistakes adhering to: $correctionInstructions. '
               'If the user writes in Spanish, gently remind them to use English and help them translate. '
-              'Ask a natural follow-up question to continue the conversation.',
+              'Ask a natural follow-up question to continue the conversation.'
+              '${recurringHint.isEmpty ? '' : ' $recurringHint'}',
         },
         ..._chatWindow().map(
           (m) => {
@@ -1484,6 +1507,9 @@ ENDING:
 
   /// Sends only uncompleted goals to DeepSeek for evaluation.
   /// Merges results cumulatively — once achieved, never unmarked.
+  ///
+  /// P-29: la misma respuesta trae las correcciones del turno
+  /// (`GoalEvaluationResult.corrections`); no hay ninguna llamada extra.
   Future<void> _evaluateGoalsWithAi(List<ScenarioGoalItem> goals) async {
     try {
       final uncompleted = goals
@@ -1505,11 +1531,15 @@ ENDING:
           .map((g) => {'id': g.id, 'text': g.text})
           .toList();
 
-      final results = await _repository.evaluateGoals(
+      final evaluation = await _repository.evaluateGoals(
         conversationText,
         goalItems,
       );
 
+      // P-29: correcciones del turno (chip + registro en `corrections`).
+      _handleTurnCorrections(evaluation.corrections);
+
+      final results = evaluation.goals;
       if (results.isNotEmpty) {
         final merged = Map<String, bool>.from(state.goalEvaluationResults);
         int newlyCompleted = 0;
@@ -1543,6 +1573,45 @@ ENDING:
       }
     } catch (e) {
       debugPrint('Goal evaluation failed (non-blocking): $e');
+    }
+  }
+
+  /// P-29: pinta el chip bajo la burbuja del último mensaje y registra las
+  /// correcciones en `public.corrections` (best-effort, sin bloquear el turno).
+  void _handleTurnCorrections(List<TurnCorrection> corrections) {
+    if (corrections.isEmpty) return;
+    final target = _lastUserText;
+    if (target == null || target.isEmpty) return;
+
+    _ref
+        .read(sessionCorrectionsProvider.notifier)
+        .addForMessage(target, corrections);
+
+    final userId = _userId;
+    final turnRef = _correctionTurnRef;
+    if (userId == null || userId.startsWith('guest_') || turnRef == null) return;
+
+    unawaited(
+      _ref.read(correctionsRepositoryProvider).saveCorrections(
+            userId: userId,
+            turnRef: turnRef,
+            corrections: corrections,
+            conversationId: _conversationId,
+          ),
+    );
+  }
+
+  /// Carga los errores recurrentes del alumno (vista `user_recurring_errors`).
+  /// Alimentan el prompt del tutor y la misión de refuerzo.
+  Future<void> _loadRecurringErrors() async {
+    final userId = _userId;
+    if (userId == null || userId.startsWith('guest_')) return;
+    try {
+      _recurringErrors = await _ref
+          .read(correctionsRepositoryProvider)
+          .loadRecurringErrors(limit: 3);
+    } catch (e) {
+      debugPrint('No se pudieron cargar los errores recurrentes: $e');
     }
   }
 
@@ -1711,10 +1780,20 @@ ENDING:
                 .map((g) => g.text)
                 .take(2)
                 .join('; ');
+            // P-29: los errores recurrentes registrados en `corrections` se
+            // añaden al foco de la sub-misión de refuerzo.
+            await _loadRecurringErrors();
+            final recurringFocus = buildMissionFocusFromErrors(_recurringErrors);
+            final weaknessParts = [
+              if (failedGoals.isNotEmpty) failedGoals,
+              if (recurringFocus.isNotEmpty) recurringFocus,
+            ];
             final sub = await LessonGeneratorService.ensureLessonForWeakness(
               skillFocus: skill,
               level: level.toUpperCase(),
-              weakness: failedGoals.isNotEmpty ? failedGoals : skill,
+              weakness: weaknessParts.isEmpty
+                  ? skill
+                  : weaknessParts.join('; '),
               parentId: scenarioId,
             );
             if (sub != null) {

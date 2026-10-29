@@ -26,6 +26,8 @@ import '../../../dashboard/data/models/hunter_catalog.dart';
 import '../../../economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
+import '../../../corrections/presentation/providers/corrections_providers.dart';
+import '../../../corrections/presentation/widgets/correction_chip.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -1942,6 +1944,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
   // User Bubble
   Widget _buildUserBubble(BuildContext context, ConversationMessage message) {
+    // P-29: chips de corrección anclados al texto del mensaje.
+    final sessionCorrections = ref.watch(sessionCorrectionsProvider);
+    final messageCorrections = sessionCorrections
+        .where((c) => c.messageText == message.text)
+        .toList(growable: false);
+    final correctionLevel = ref.watch(correctionLevelProvider);
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -1965,6 +1974,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               height: 1.4,
             ),
           ),
+          // P-29: chip discreto con la corrección real del turno.
+          if (messageCorrections.isNotEmpty)
+            CorrectionChip(
+              corrections: messageCorrections,
+              level: correctionLevel,
+            ),
           if (message.correctionExplanation != null) ...[
             const SizedBox(height: 10),
             Container(
