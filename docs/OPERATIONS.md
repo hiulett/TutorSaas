@@ -28,6 +28,7 @@ de prueba (`test*@mailinator.com`).
 | `lesson-generator` | Genera lecciones con IA | ✅ |
 | `revenuecat-webhook` | Procesa eventos de compra; valida un Bearer propio | ❌ |
 | `missions-cron` | Rota misiones diarias; protegida por `CRON_SECRET` | ❌ |
+| `reactivation-email` | Email de reactivación + baja sin login; `dry_run` por defecto | ❌ |
 
 ```sh
 supabase functions deploy <nombre> --project-ref sipiumfdpvnszthykyog --use-api
@@ -59,6 +60,7 @@ supabase secrets set NOMBRE=valor --project-ref ...
 | `CRON_SECRET` | `missions-cron` |
 | `AI_PRICE_INPUT_PER_1M`, `AI_PRICE_OUTPUT_PER_1M`, `AI_PRICE_STT_PER_MINUTE` | `llm-proxy` (estimación de coste; opcionales) |
 | `MANA_CHARGE_MODE` | `llm-proxy` (cobro de maná: `all` por defecto, `capability`, `off`) |
+| `RESEND_API_KEY`, `RESEND_FROM` | `reactivation-email` (opcional `REACTIVATION_CTA_URL`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Todas |
 
 ⚠️ `config.json` y `web_admin/.env` no se commitean. Las claves de IA nunca van
@@ -161,6 +163,7 @@ declarar estos eventos agregados (no se envia texto de conversacion).
 | `rotate-daily-missions` | `5 0 * * *` | Rota el tablón de misiones (00:05 UTC) |
 | `clean-old-logs` | `15 3 * * *` | Poda logs antiguos |
 | `purge-stale-participants` | `* * * * *` | Borra participantes sin latido (>180 s) |
+| `reactivation-email-daily` | `0 10 * * *` | **No activo**: email de reactivación (3 y 7 días). Ver [runbook](runbooks/REACTIVATION_EMAIL.md) |
 
 ```sql
 select jobname, schedule, active from cron.job;
@@ -221,3 +224,4 @@ hosting estático.
 
 - [Pruebas de compra (Play + RevenueCat)](runbooks/PURCHASE_TESTING.md)
 - [Estado de las migraciones](runbooks/MIGRATION_STATUS.md)
+- [Email de reactivación](runbooks/REACTIVATION_EMAIL.md)
