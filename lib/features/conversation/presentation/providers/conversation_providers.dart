@@ -14,6 +14,7 @@ import '../../domain/models/goal_evaluation_gate.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
+import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../dashboard/domain/models/session_learned_summary.dart';
 import '../../../dashboard/data/models/lesson_catalog.dart';
@@ -1434,14 +1435,9 @@ ENDING:
         }
       }
 
-      if (userId != null && conversationId != null) {
-        await _repository.analyzeAndSaveSessionProgress(
-          userId,
-          conversationId,
-          state.messages,
-          scenarioId: state.activeScenarioId,
-        );
-      }
+      // P-33 (#118): el vocabulario ya NO se extrae por turno (el regex metía
+      // basura de STT 6 veces por sesión). Se cura UNA vez al cerrar la sesión
+      // en `endSession` → `curateSessionVocabulary`.
 
       if (lesson != null && lesson.goals.isNotEmpty) {
         // P-41: una llamada de IA solo si la respuesta aporta senal.
@@ -1567,6 +1563,7 @@ ENDING:
     }
     Map<String, dynamic>? rewards;
     String? rewardSessionId;
+    var newWords = <CuratedVocabularyItem>[];
     _sessionFinalized = true;
     // P-41: si el ultimo turno se salto por el gate de coste, evaluar las
     // metas al cerrar para no perder objetivos.
@@ -1599,6 +1596,33 @@ ENDING:
       } catch (e, st) {
         ErrorTracker.logSilent(
           'lib/features/conversation/presentation/providers/conversation_providers.dart:1443',
+          e,
+          stackTrace: st,
+        );
+      }
+
+      // P-33 (#118): curaduría de vocabulario UNA vez por sesión (no por
+      // turno). El modelo propone ≤8 palabras y el RPC valida, deduplica y
+      // programa el primer repaso. Un fallo no bloquea el cierre.
+      try {
+        final convId = _conversationId;
+        if (convId != null &&
+            !_userId!.startsWith('guest_') &&
+            !state.isOracleEvaluation &&
+            state.messages.any((m) => m.sender == 'user')) {
+          newWords = await _repository.curateSessionVocabulary(
+            _userId!,
+            convId,
+            state.messages,
+          );
+          if (newWords.isNotEmpty) {
+            _ref.invalidate(learnedVocabularyProvider);
+            _ref.invalidate(dueVocabularyProvider);
+          }
+        }
+      } catch (e, st) {
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:1604',
           e,
           stackTrace: st,
         );
@@ -1880,6 +1904,8 @@ ENDING:
       'scenario_id': state.activeScenarioId,
       'session_id': rewardSessionId,
       'started_at': _sessionStartedAt?.toUtc().toIso8601String(),
+      // P-33 (#118): palabras nuevas validadas y programadas para repaso.
+      'new_words': newWords.map((item) => item.toDisplayJson()).toList(),
     };
     _lastSessionResult = result;
     return result;
