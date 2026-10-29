@@ -2812,6 +2812,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get progress_practice => 'PRATICAR';
 
   @override
+  String get radar_estimated_tooltip => 'Estimativa baseada na sua conversa';
+
+  @override
+  String get radar_estimated_note => 'Estimativa baseada na sua conversa';
+
+  @override
+  String get radar_pronunciation_unmeasured =>
+      'Pronúncia: ainda sem medição real';
+
+  @override
+  String get band_low => 'Baixo';
+
+  @override
+  String get band_medium => 'Médio';
+
+  @override
+  String get band_high => 'Alto';
+
+  @override
   String mana_cost_per_turn(int cost) {
     return '$cost/turno';
   }
