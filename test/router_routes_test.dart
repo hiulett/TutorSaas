@@ -14,6 +14,7 @@ void main() {
         '/splash',
         '/',
         '/onboarding',
+        '/mini-conversation',
         '/oracle-test',
         '/home',
         '/voice-room',

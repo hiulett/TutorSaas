@@ -6898,6 +6898,126 @@ abstract class AppLocalizations {
   /// **'TURN IT ON'**
   String get notif_prompt_accept;
 
+  /// No description provided for @mini_conv_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'60-SECOND TRIAL'**
+  String get mini_conv_badge;
+
+  /// No description provided for @mini_conv_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Order a coffee'**
+  String get mini_conv_title;
+
+  /// No description provided for @mini_conv_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk to Mira, the innkeeper. One or two answers, no exam and no mana spent.'**
+  String get mini_conv_subtitle;
+
+  /// No description provided for @mini_conv_turn_counter.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply {current} of {total}'**
+  String mini_conv_turn_counter(int current, int total);
+
+  /// No description provided for @mini_conv_your_turn.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR TURN'**
+  String get mini_conv_your_turn;
+
+  /// No description provided for @mini_conv_input_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your answer in English...'**
+  String get mini_conv_input_hint;
+
+  /// No description provided for @mini_conv_send.
+  ///
+  /// In en, this message translates to:
+  /// **'SEND'**
+  String get mini_conv_send;
+
+  /// No description provided for @mini_conv_record.
+  ///
+  /// In en, this message translates to:
+  /// **'ANSWER WITH YOUR VOICE'**
+  String get mini_conv_record;
+
+  /// No description provided for @mini_conv_recording.
+  ///
+  /// In en, this message translates to:
+  /// **'RECORDING... TAP TO STOP'**
+  String get mini_conv_recording;
+
+  /// No description provided for @mini_conv_transcribing.
+  ///
+  /// In en, this message translates to:
+  /// **'TRANSCRIBING...'**
+  String get mini_conv_transcribing;
+
+  /// No description provided for @mini_conv_skip.
+  ///
+  /// In en, this message translates to:
+  /// **'SKIP FOR NOW'**
+  String get mini_conv_skip;
+
+  /// No description provided for @mini_conv_mic_denied.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not use the microphone. You can still type your answer.'**
+  String get mini_conv_mic_denied;
+
+  /// No description provided for @mini_conv_voice_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'We did not hear any speech. Try again or type your answer.'**
+  String get mini_conv_voice_empty;
+
+  /// No description provided for @mini_conv_voice_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not transcribe your audio. Try again or type your answer.'**
+  String get mini_conv_voice_failed;
+
+  /// No description provided for @mini_conv_unlocked_label.
+  ///
+  /// In en, this message translates to:
+  /// **'PHRASE UNLOCKED'**
+  String get mini_conv_unlocked_label;
+
+  /// No description provided for @mini_conv_unlocked_translation.
+  ///
+  /// In en, this message translates to:
+  /// **'A flat white to take away, please.'**
+  String get mini_conv_unlocked_translation;
+
+  /// No description provided for @mini_conv_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'START MY ADVENTURE'**
+  String get mini_conv_cta;
+
+  /// No description provided for @mini_conv_unavailable_title.
+  ///
+  /// In en, this message translates to:
+  /// **'MIRA IS NOT AVAILABLE'**
+  String get mini_conv_unavailable_title;
+
+  /// No description provided for @mini_conv_unavailable_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your adventure starts anyway. Nothing was charged: this trial is on us.'**
+  String get mini_conv_unavailable_body;
+
+  /// No description provided for @mini_conv_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get mini_conv_continue;
+
   /// No description provided for @notif_prompt_later.
   ///
   /// In en, this message translates to:

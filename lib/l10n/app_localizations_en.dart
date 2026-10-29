@@ -3770,6 +3770,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notif_prompt_accept => 'TURN IT ON';
 
   @override
+  String get mini_conv_badge => '60-SECOND TRIAL';
+
+  @override
+  String get mini_conv_title => 'Order a coffee';
+
+  @override
+  String get mini_conv_subtitle =>
+      'Talk to Mira, the innkeeper. One or two answers, no exam and no mana spent.';
+
+  @override
+  String mini_conv_turn_counter(int current, int total) {
+    return 'Reply $current of $total';
+  }
+
+  @override
+  String get mini_conv_your_turn => 'YOUR TURN';
+
+  @override
+  String get mini_conv_input_hint => 'Type your answer in English...';
+
+  @override
+  String get mini_conv_send => 'SEND';
+
+  @override
+  String get mini_conv_record => 'ANSWER WITH YOUR VOICE';
+
+  @override
+  String get mini_conv_recording => 'RECORDING... TAP TO STOP';
+
+  @override
+  String get mini_conv_transcribing => 'TRANSCRIBING...';
+
+  @override
+  String get mini_conv_skip => 'SKIP FOR NOW';
+
+  @override
+  String get mini_conv_mic_denied =>
+      'We could not use the microphone. You can still type your answer.';
+
+  @override
+  String get mini_conv_voice_empty =>
+      'We did not hear any speech. Try again or type your answer.';
+
+  @override
+  String get mini_conv_voice_failed =>
+      'We could not transcribe your audio. Try again or type your answer.';
+
+  @override
+  String get mini_conv_unlocked_label => 'PHRASE UNLOCKED';
+
+  @override
+  String get mini_conv_unlocked_translation =>
+      'A flat white to take away, please.';
+
+  @override
+  String get mini_conv_cta => 'START MY ADVENTURE';
+
+  @override
+  String get mini_conv_unavailable_title => 'MIRA IS NOT AVAILABLE';
+
+  @override
+  String get mini_conv_unavailable_body =>
+      'Your adventure starts anyway. Nothing was charged: this trial is on us.';
+
+  @override
+  String get mini_conv_continue => 'CONTINUE';
+
+  @override
   String get notif_prompt_later => 'NOT NOW';
 
   @override

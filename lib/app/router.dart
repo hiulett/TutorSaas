@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../features/onboarding/presentation/screens/mini_conversation_screen.dart';
 import '../features/conversation/presentation/screens/conversation_screen.dart';
 import '../features/dashboard/presentation/screens/session_summary_screen.dart';
 import '../features/subscription/presentation/screens/paywall_screen.dart';
@@ -31,6 +32,12 @@ final List<RouteBase> appRoutes = <RouteBase>[
   GoRoute(
     path: '/onboarding',
     builder: (context, state) => const OnboardingScreen(),
+  ),
+
+  // P-25 (#110): prueba de valor de 60 s tras crear el personaje.
+  GoRoute(
+    path: '/mini-conversation',
+    builder: (context, state) => const MiniConversationScreen(),
   ),
   GoRoute(
     path: '/oracle-test',
