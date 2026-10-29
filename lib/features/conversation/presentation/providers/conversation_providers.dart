@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../data/repositories/conversation_repository_impl.dart';
 import '../../domain/models/ai_stream_exception.dart';
+import '../../domain/models/goal_evaluation_gate.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
@@ -93,6 +94,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   bool _sessionFinalized = false;
   Map<String, dynamic>? _lastSessionResult;
   String? _lastUserText;
+  bool _goalsEvaluatedForLastTurn = false;
   String? _lastActionCode;
 
   ConversationNotifier(this._repository, this._ref)
@@ -1118,12 +1120,29 @@ ENDING:
   /// historial completo hacía crecer el coste y la latencia en cada turno.
   static const int maxChatContextMessages = 24;
 
+  /// P-41: presupuesto de contexto por caracteres (ademas del tope de
+  /// mensajes). 24 mensajes largos cuestan mas que 24 cortos; recortar por
+  /// longitud reduce tokens de entrada sin tocar el resto del flujo.
+  static const int maxChatContextChars = 6000;
+
   List<ConversationMessage> _chatWindow() {
-    final withText = state.messages
-        .where((m) => m.text.trim().isNotEmpty)
-        .toList();
+    final withText =
+        state.messages.where((m) => m.text.trim().isNotEmpty).toList();
     if (withText.length <= maxChatContextMessages) return withText;
-    return withText.sublist(withText.length - maxChatContextMessages);
+
+    final selected = <ConversationMessage>[];
+    var totalChars = 0;
+    for (final message in withText.reversed) {
+      if (selected.length >= maxChatContextMessages) break;
+      final length = message.text.length;
+      // Conserva siempre los ultimos 4 mensajes (contexto inmediato).
+      if (selected.length >= 4 && totalChars + length > maxChatContextChars) {
+        break;
+      }
+      totalChars += length;
+      selected.add(message);
+    }
+    return selected.reversed.toList();
   }
 
   /// Issue #14: evita que el alumno inyecte el marcador de control del examen
@@ -1434,7 +1453,18 @@ ENDING:
       }
 
       if (lesson != null && lesson.goals.isNotEmpty) {
-        _evaluateGoalsWithAi(lesson.goals);
+        // P-41: una llamada de IA solo si la respuesta aporta senal.
+        final lastUser = state.messages.lastWhere(
+          (m) => m.sender == 'user',
+          orElse: () => ConversationMessage(sender: 'user', text: ''),
+        );
+        _goalsEvaluatedForLastTurn = GoalEvaluationGate.shouldEvaluate(
+          lastUserMessage: lastUser.text,
+          goalTexts: lesson.goals.map((g) => g.text).toList(),
+        );
+        if (_goalsEvaluatedForLastTurn) {
+          _evaluateGoalsWithAi(lesson.goals);
+        }
       }
     } catch (e) {
       debugPrint('Background DB persistence error: $e');
@@ -1547,6 +1577,28 @@ ENDING:
     Map<String, dynamic>? rewards;
     String? rewardSessionId;
     _sessionFinalized = true;
+    // P-41: si el ultimo turno se salto por el gate de coste, evaluar las
+    // metas al cerrar para no perder objetivos.
+    if (!_goalsEvaluatedForLastTurn &&
+        !state.isOracleEvaluation &&
+        _userId != null &&
+        !_userId!.startsWith('guest_')) {
+      try {
+        final scenarioId = state.activeScenarioId;
+        final lesson =
+            scenarioId == null ? null : LessonCatalog.getLessonById(scenarioId);
+        if (lesson != null && lesson.goals.isNotEmpty) {
+          await _evaluateGoalsWithAi(lesson.goals)
+              .timeout(const Duration(seconds: 12));
+        }
+      } catch (e, st) {
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:goal_eval_close',
+          e,
+          stackTrace: st,
+        );
+      }
+    }
     if (_userId != null) {
       try {
         final repo = _ref.read(dashboardRepositoryProvider);
