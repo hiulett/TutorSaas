@@ -22,6 +22,7 @@ de prueba (`test*@mailinator.com`).
 | Función | Propósito | `verify_jwt` |
 |---|---|---|
 | `llm-proxy` | Proxy de DeepSeek (chat SSE) y Groq (STT). Las claves viven aquí | ✅ |
+| `evaluate-placement` | Evalúa el examen del Oráculo y persiste el nivel CEFR (llama a `llm-proxy` con `oracle_eval`) | ✅ |
 | `sync-entitlement` | Reconcilia RevenueCat con `user_subscriptions` a petición del usuario | ✅ |
 | `livekit-token` | Emite tokens de sala de voz | ✅ |
 | `lesson-generator` | Genera lecciones con IA | ✅ |
@@ -34,6 +35,10 @@ supabase functions list --project-ref sipiumfdpvnszthykyog
 ```
 
 `--use-api` evita necesitar Docker para desplegar.
+
+Topes de salida de `llm-proxy`: 200 tokens por defecto y 600 como máximo; la
+evaluación del Oráculo (`action_code = oracle_eval`) tiene 1200 porque devuelve
+un JSON con 10 métricas y con 600 se truncaba (#73).
 
 ---
 
