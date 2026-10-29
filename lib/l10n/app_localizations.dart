@@ -5200,6 +5200,42 @@ abstract class AppLocalizations {
   /// **'PRACTICE'**
   String get progress_practice;
 
+  /// No description provided for @radar_estimated_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate based on your conversation'**
+  String get radar_estimated_tooltip;
+
+  /// No description provided for @radar_estimated_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate based on your conversation'**
+  String get radar_estimated_note;
+
+  /// No description provided for @radar_pronunciation_unmeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation: no real measurement yet'**
+  String get radar_pronunciation_unmeasured;
+
+  /// No description provided for @band_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get band_low;
+
+  /// No description provided for @band_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get band_medium;
+
+  /// No description provided for @band_high.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get band_high;
+
   /// No description provided for @mana_cost_per_turn.
   ///
   /// In en, this message translates to:
