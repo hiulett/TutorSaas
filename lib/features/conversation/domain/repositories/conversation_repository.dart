@@ -1,3 +1,4 @@
+import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../domain/models/conversation_message.dart';
 
 abstract class ConversationRepository {
@@ -15,7 +16,10 @@ abstract class ConversationRepository {
   Future<Map<String, dynamic>> getOrCreateConversation(String userId, {String? scenarioId});
   Future<List<ConversationMessage>> loadConversationMessages(String conversationId);
   Future<void> saveMessage(String conversationId, String senderRole, String text);
-  Future<void> analyzeAndSaveSessionProgress(String userId, String conversationId, List<ConversationMessage> messages, {String? scenarioId});
+  /// P-33 (#118): extrae hasta 8 palabras nuevas de la sesión con el LLM y las
+  /// persiste vía RPC (validación + dedupe + primer repaso en servidor).
+  /// Devuelve las palabras realmente insertadas (puede ser vacío).
+  Future<List<CuratedVocabularyItem>> curateSessionVocabulary(String userId, String conversationId, List<ConversationMessage> messages);
 
   /// Ask DeepSeek to evaluate which lesson goals the student has achieved
   /// based on the full conversation history. Returns map of goalId → achieved.
