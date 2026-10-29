@@ -51,6 +51,13 @@ abstract final class AnalyticsEvent {
   static const helpPhraseUsed = 'help_phrase_used';
   static const conversationTurnLatency = 'conversation_turn_latency';
 
+  // P-25 (#110): mini-conversación de valor tras el onboarding.
+  // `turn` lleva el número de turno; `input` = text | voice.
+  static const miniConversationStarted = 'mini_conversation_started';
+  static const miniConversationTurn = 'mini_conversation_turn';
+  static const miniConversationCompleted = 'mini_conversation_completed';
+  static const miniConversationSkipped = 'mini_conversation_skipped';
+
   static const all = <String>{
     appOpen,
     onboardingStarted,
@@ -82,6 +89,10 @@ abstract final class AnalyticsEvent {
     helpPhrasesShown,
     helpPhraseUsed,
     conversationTurnLatency,
+    miniConversationStarted,
+    miniConversationTurn,
+    miniConversationCompleted,
+    miniConversationSkipped,
   };
 }
 

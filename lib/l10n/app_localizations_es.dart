@@ -3791,6 +3791,74 @@ class AppLocalizationsEs extends AppLocalizations {
   String get notif_prompt_accept => 'ACTIVARLO';
 
   @override
+  String get mini_conv_badge => 'PRUEBA DE 60 SEGUNDOS';
+
+  @override
+  String get mini_conv_title => 'Pide un café';
+
+  @override
+  String get mini_conv_subtitle =>
+      'Habla con Mira, la posadera. Una o dos respuestas, sin examen y sin gastar maná.';
+
+  @override
+  String mini_conv_turn_counter(int current, int total) {
+    return 'Respuesta $current de $total';
+  }
+
+  @override
+  String get mini_conv_your_turn => 'TU TURNO';
+
+  @override
+  String get mini_conv_input_hint => 'Escribe tu respuesta en inglés...';
+
+  @override
+  String get mini_conv_send => 'ENVIAR';
+
+  @override
+  String get mini_conv_record => 'RESPONDER CON LA VOZ';
+
+  @override
+  String get mini_conv_recording => 'GRABANDO... TOCA PARA PARAR';
+
+  @override
+  String get mini_conv_transcribing => 'TRANSCRIBIENDO...';
+
+  @override
+  String get mini_conv_skip => 'SALTAR POR AHORA';
+
+  @override
+  String get mini_conv_mic_denied =>
+      'No pudimos usar el micrófono. Aún puedes escribir tu respuesta.';
+
+  @override
+  String get mini_conv_voice_empty =>
+      'No oímos ninguna voz. Reintenta o escribe tu respuesta.';
+
+  @override
+  String get mini_conv_voice_failed =>
+      'No pudimos transcribir tu audio. Reintenta o escribe tu respuesta.';
+
+  @override
+  String get mini_conv_unlocked_label => 'FRASE DESBLOQUEADA';
+
+  @override
+  String get mini_conv_unlocked_translation =>
+      'Un café con leche para llevar, por favor.';
+
+  @override
+  String get mini_conv_cta => 'EMPEZAR MI AVENTURA';
+
+  @override
+  String get mini_conv_unavailable_title => 'MIRA NO ESTÁ DISPONIBLE';
+
+  @override
+  String get mini_conv_unavailable_body =>
+      'Tu aventura empieza igualmente. No se ha gastado maná: esta prueba invita la casa.';
+
+  @override
+  String get mini_conv_continue => 'CONTINUAR';
+
+  @override
   String get notif_prompt_later => 'AHORA NO';
 
   @override

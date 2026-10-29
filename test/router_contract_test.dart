@@ -18,6 +18,7 @@ void main() {
     for (final path in [
       '/splash',
       '/onboarding',
+      '/mini-conversation',
       '/oracle-test',
       '/home',
       '/voice-room',

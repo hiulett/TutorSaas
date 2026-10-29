@@ -3783,6 +3783,74 @@ class AppLocalizationsPt extends AppLocalizations {
   String get notif_prompt_accept => 'ATIVAR';
 
   @override
+  String get mini_conv_badge => 'TESTE DE 60 SEGUNDOS';
+
+  @override
+  String get mini_conv_title => 'Peça um café';
+
+  @override
+  String get mini_conv_subtitle =>
+      'Fale com Mira, a taberneira. Uma ou duas respostas, sem prova e sem gastar mana.';
+
+  @override
+  String mini_conv_turn_counter(int current, int total) {
+    return 'Resposta $current de $total';
+  }
+
+  @override
+  String get mini_conv_your_turn => 'SUA VEZ';
+
+  @override
+  String get mini_conv_input_hint => 'Escreva sua resposta em inglês...';
+
+  @override
+  String get mini_conv_send => 'ENVIAR';
+
+  @override
+  String get mini_conv_record => 'RESPONDER COM A VOZ';
+
+  @override
+  String get mini_conv_recording => 'GRAVANDO... TOQUE PARA PARAR';
+
+  @override
+  String get mini_conv_transcribing => 'TRANSCREVENDO...';
+
+  @override
+  String get mini_conv_skip => 'PULAR POR ENQUANTO';
+
+  @override
+  String get mini_conv_mic_denied =>
+      'Não foi possível usar o microfone. Você ainda pode escrever sua resposta.';
+
+  @override
+  String get mini_conv_voice_empty =>
+      'Não ouvimos nenhuma voz. Tente de novo ou escreva sua resposta.';
+
+  @override
+  String get mini_conv_voice_failed =>
+      'Não foi possível transcrever seu áudio. Tente de novo ou escreva sua resposta.';
+
+  @override
+  String get mini_conv_unlocked_label => 'FRASE DESBLOQUEADA';
+
+  @override
+  String get mini_conv_unlocked_translation =>
+      'Um café com leite para levar, por favor.';
+
+  @override
+  String get mini_conv_cta => 'COMEÇAR MINHA AVENTURA';
+
+  @override
+  String get mini_conv_unavailable_title => 'MIRA NÃO ESTÁ DISPONÍVEL';
+
+  @override
+  String get mini_conv_unavailable_body =>
+      'Sua aventura começa de qualquer forma. Nenhum mana foi gasto: esta prova é por nossa conta.';
+
+  @override
+  String get mini_conv_continue => 'CONTINUAR';
+
+  @override
   String get notif_prompt_later => 'AGORA NÃO';
 
   @override

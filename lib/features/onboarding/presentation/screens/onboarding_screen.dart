@@ -13,6 +13,7 @@ import '../../../../core/widgets/system_snack.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../providers/onboarding_providers.dart';
+import '../providers/mini_conversation_providers.dart';
 import '../widgets/character_creation_wizard.dart';
 import '../../domain/models/cefr_rank.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -380,6 +381,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         );
       }
     }
+  }
+
+  /// P-25 (#110): antes de entrar al reino, la primera vez, una prueba de valor
+  /// de 60 s («pide un café»). La marca vive en SharedPreferences, así que no
+  /// se repite en cada arranque ni entre cuentas del mismo dispositivo.
+  Future<void> _enterRealm() async {
+    final userId = ref.read(currentUserProvider)?.id ?? '';
+    final seen = await ref.read(miniConversationStoreProvider).wasSeen(userId);
+    if (!mounted) return;
+    context.go(seen ? '/home' : '/mini-conversation');
   }
 
   CyberBgMode _getOnboardingBgMode() {
@@ -876,7 +887,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 icon: Icons.door_front_door_rounded,
                                 backgroundColor: AppColors.royalGold,
                                 foregroundColor: AppColors.voidBg,
-                                onPressed: () => context.go('/home'),
+                                onPressed: () => _enterRealm(),
                               ),
                             ],
                           ),
