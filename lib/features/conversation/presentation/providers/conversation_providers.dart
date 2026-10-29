@@ -14,7 +14,7 @@ import '../../domain/models/goal_evaluation_gate.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/repositories/conversation_repository.dart';
-import '../../../corrections/domain/models/session_correction.dart';
+import '../../../corrections/domain/models/turn_correction.dart';
 import '../../../corrections/presentation/providers/corrections_providers.dart';
 import '../../../vocabulary/domain/models/curated_vocabulary.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';

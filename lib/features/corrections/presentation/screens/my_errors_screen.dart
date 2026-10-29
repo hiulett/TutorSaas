@@ -9,7 +9,7 @@ import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/corrections_repository.dart';
-import '../../domain/models/session_correction.dart';
+import '../../domain/models/turn_correction.dart';
 import '../providers/corrections_providers.dart';
 
 /// P-29 — Pantalla «Mis errores».

@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/models/session_correction.dart';
+import '../../domain/models/turn_correction.dart';
 
 /// Chip discreto bajo la burbuja del usuario (P-29).
 ///

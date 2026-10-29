@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import '../../../corrections/domain/models/session_correction.dart';
+import '../../../corrections/domain/models/turn_correction.dart';
 import 'goal_evaluation_result.dart';
 
 /// Parser tolerante de la respuesta de `goal_eval` (lógica pura, testeable).

@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/corrections_repository.dart';
-import '../../domain/models/session_correction.dart';
+import '../../domain/models/turn_correction.dart';
 
 /// P-29 — Repositorio de correcciones (única puerta a `public.corrections`).
 final correctionsRepositoryProvider = Provider<CorrectionsRepository>((ref) {

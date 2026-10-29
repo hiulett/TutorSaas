@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tutorsaas/features/corrections/domain/models/session_correction.dart';
+import 'package:tutorsaas/features/corrections/domain/models/turn_correction.dart';
 import 'package:tutorsaas/features/corrections/presentation/widgets/correction_chip.dart';
 
 /// P-29 — El chip es discreto: solo se despliega al tocarlo y respeta

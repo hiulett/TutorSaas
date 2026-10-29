@@ -1,4 +1,4 @@
-import '../../../corrections/domain/models/session_correction.dart';
+import '../../../corrections/domain/models/turn_correction.dart';
 
 /// Resultado de la llamada existente `goal_eval` (P-29).
 ///

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../domain/models/session_correction.dart';
+import '../domain/models/turn_correction.dart';
 
 /// Error de lectura con mensaje accionable (la UI lo muestra tal cual).
 class CorrectionsException implements Exception {

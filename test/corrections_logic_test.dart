@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tutorsaas/features/conversation/domain/models/goal_evaluation_parser.dart';
-import 'package:tutorsaas/features/corrections/domain/models/session_correction.dart';
+import 'package:tutorsaas/features/corrections/domain/models/turn_correction.dart';
 
 /// P-29 — Tests de la lógica pura de correcciones:
 /// validación de tipos, dedupe, política por nivel y agrupación/recurrencia.
