@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../domain/models/session_drop_result.dart';
 import '../../domain/models/drop_loot.dart';
 import '../providers/economy_providers.dart';
 import '../widgets/drop_notification.dart';
@@ -49,9 +50,11 @@ class _SessionDropControllerState extends ConsumerState<SessionDropController> {
       sessionId: sessionId,
       completedGoals: widget.completedGoals,
     );
-    if (res['ok'] != true) return;
+    // Contrato normalizado (#210): `success` con `ok` como alias legacy.
+    final drop = SessionDropResult.fromMap(res);
+    if (!drop.success) return;
 
-    if (res['already_claimed'] != true) {
+    if (!drop.alreadyClaimed) {
       ref.invalidate(userProgressProvider);
       ref.invalidate(goldBalanceProvider);
     }

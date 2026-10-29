@@ -296,4 +296,18 @@ En la segunda llamada devuelve los mismos importes con `duplicated: true`.
 su `EXECUTE` está revocado a `authenticated`, así que nadie puede llamarla
 (se conserva solo por historial).
 
+### Drop de fin de sesión
+
+`claim_session_drop(session_id, completed_goals)` sortea rareza (común, raro,
+épico, legendario) con `(15, 10) × multiplicador` y es idempotente por
+`session_drops(user_id, session_id)`.
+
+```json
+{ "success": true, "ok": true, "already_claimed": false, "rarity": "epico", "xp": 30, "gold": 20, "reason": null }
+```
+
+Motivos: `invalid_session`, `no_goals`. El cliente lo lee con
+`SessionDropResult` (acepta `ok` como alias legacy).
+
+
 
