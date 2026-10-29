@@ -27,7 +27,7 @@ Backend: Supabase (`sipiumfdpvnszthykyog`). Compras: Play Billing + RevenueCat.
 
 ```sh
 flutter analyze     # 0 errores · 0 warnings (127 infos son la línea base)
-flutter test        # 569 pruebas (0 saltadas)
+flutter test        # 611 pruebas (0 saltadas)
 flutter gen-l10n    # obligatorio tras editar cualquier .arb
 dart run build_runner build --delete-conflicting-outputs   # freezed/json
 flutter build appbundle --release
@@ -52,11 +52,11 @@ flutter build appbundle --release
 
 - **Estado:** `flutter_riverpod` (`StateNotifierProvider`, `FutureProvider`,
   `StateProvider`). Sin BLoC, Redux ni GetX.
-- **Rutas:** `go_router`, 19 rutas registradas en `lib/app/router.dart`.
+- **Rutas:** `go_router`, 20 rutas registradas en `lib/app/router.dart`.
   Toda pantalla nueva debe registrarse ahí.
 - **Features:** `auth`, `onboarding`, `conversation`, `chat_rooms`, `dashboard`,
   `economy`, `missions`, `presence`, `subscription`, `vocabulary`,
-  `boss_exam`, `weekly_report`.
+  `boss_exam`, `weekly_report`, `corrections`, `listening`.
 - **Tema:** solo oscuro, radios de 4 px, paleta en `app_colors.dart`
   (`voidBg`, `manaCyan`, `royalGold`, `runeViolet`, `emeraldGreen`).
 - **Tipografía:** empaquetada en `assets/google_fonts/` (Space Grotesk, Inter,
@@ -74,8 +74,8 @@ funciona desde el ancestro.
 
 ## Base de datos
 
-84 tablas, 130 políticas RLS (sobre 80 tablas), 82 funciones, 13 vistas,
-98 migraciones, 3 jobs de cron.
+88 tablas, 134 políticas RLS (sobre 84 tablas), 92 funciones, 14 vistas,
+101 migraciones, 3 jobs de cron.
 _(Verificado en producción el 29-oct-2026.)_
 
 - La app **solo lee** `user_subscriptions` y `payments`; las escrituras van por
@@ -120,7 +120,7 @@ cargues la auditoría completa).
 | Comando | Cuándo |
 |---|---|
 | `/build` | Tras editar código: `flutter analyze` (0 errores) |
-| `/test` | Antes de commit: 569 pruebas |
+| `/test` | Antes de commit: 611 pruebas |
 | `/review` | Antes de commit: revisión read-only del diff |
 | `/db-check` | Si tocas esquema, RLS o RPC |
 | `/ui-check` | Si tocas pantallas, estilos o textos |

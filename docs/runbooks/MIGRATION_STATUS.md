@@ -2,21 +2,25 @@
 
 _Actualizado: 29-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
 
-> Estado actual verificado: **98 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **101 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | **164** |
-| De ellos, con prefijo de 14 dígitos válido | 89 |
+| Archivos `.sql` en `supabase/migrations/` | **165** |
+| De ellos, con prefijo de 14 dígitos válido | 90 |
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **98** |
+| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **101** |
 | Aplicadas **con** archivo correspondiente | 59 |
 | Aplicadas **sin** archivo en el repo | **39** |
 | Archivos con prefijo que **no** están aplicados | 30 |
+
+> Recuento de archivos y de migraciones aplicadas reverificado por MCP el
+> 29-oct-2026 (tras P-30 / #115). Las filas de correspondencia
+> archivo↔historial (59/39/30) son del desglose anterior y no se recontaron.
 
 ## Por qué el repo no reproduce el esquema
 

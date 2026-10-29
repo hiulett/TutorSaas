@@ -7461,6 +7461,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The boss does not accept another challenge until {time}.'**
   String boss_exam_cooldown(String time);
+
+  /// No description provided for @listening_path_title.
+  ///
+  /// In en, this message translates to:
+  /// **'LISTENING'**
+  String get listening_path_title;
+
+  /// No description provided for @listening_path_next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {title}'**
+  String listening_path_next(String title);
+
+  /// No description provided for @listening_path_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} passed'**
+  String listening_path_progress(int done, int total);
+
+  /// No description provided for @listening_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No listening exercises for this level yet.'**
+  String get listening_empty;
+
+  /// No description provided for @listening_play.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAY DIALOGUE'**
+  String get listening_play;
+
+  /// No description provided for @listening_stop.
+  ///
+  /// In en, this message translates to:
+  /// **'STOP'**
+  String get listening_stop;
+
+  /// No description provided for @listening_play_again.
+  ///
+  /// In en, this message translates to:
+  /// **'LISTEN AGAIN'**
+  String get listening_play_again;
+
+  /// No description provided for @listening_transcript_show.
+  ///
+  /// In en, this message translates to:
+  /// **'SHOW TRANSCRIPT'**
+  String get listening_transcript_show;
+
+  /// No description provided for @listening_transcript_hide.
+  ///
+  /// In en, this message translates to:
+  /// **'HIDE TRANSCRIPT'**
+  String get listening_transcript_hide;
+
+  /// No description provided for @listening_question_counter.
+  ///
+  /// In en, this message translates to:
+  /// **'QUESTION {current} OF {total}'**
+  String listening_question_counter(int current, int total);
+
+  /// No description provided for @listening_next.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT'**
+  String get listening_next;
+
+  /// No description provided for @listening_previous.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK'**
+  String get listening_previous;
+
+  /// No description provided for @listening_submit.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECK ANSWERS'**
+  String get listening_submit;
+
+  /// No description provided for @listening_submitting.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKING...'**
+  String get listening_submitting;
+
+  /// No description provided for @listening_result_passed.
+  ///
+  /// In en, this message translates to:
+  /// **'EXERCISE PASSED'**
+  String get listening_result_passed;
+
+  /// No description provided for @listening_result_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT YET'**
+  String get listening_result_failed;
+
+  /// No description provided for @listening_result_score.
+  ///
+  /// In en, this message translates to:
+  /// **'{score} of {total} correct'**
+  String listening_result_score(int score, int total);
+
+  /// No description provided for @listening_result_missions.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} mission progress'**
+  String listening_result_missions(int count);
+
+  /// No description provided for @listening_result_practice.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min of practice registered'**
+  String listening_result_practice(int minutes);
+
+  /// No description provided for @listening_result_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'REPEAT'**
+  String get listening_result_retry;
+
+  /// No description provided for @listening_back_path.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK TO THE PATH'**
+  String get listening_back_path;
+
+  /// No description provided for @listening_error_load.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not load this exercise. Check your connection and try again.'**
+  String get listening_error_load;
+
+  /// No description provided for @listening_retry_send.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY SEND'**
+  String get listening_retry_send;
+
+  /// No description provided for @listening_explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct answer: {answer}'**
+  String listening_explanation(String answer);
 }
 
 class _AppLocalizationsDelegate

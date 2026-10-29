@@ -19,7 +19,7 @@ lib/
 │   ├── services/   RevenueCat, analítica, error tracker
 │   ├── theme/      colores, tipografía, radios, motion
 │   └── widgets/    GlassCard, SegmentedBar, RpgAvatar, CyberManhwaBackground…
-├── features/       10 features (abajo)
+├── features/       16 features (abajo)
 └── l10n/           ARB + generados (es/en/pt)
 ```
 
@@ -28,15 +28,21 @@ lib/
 | Feature | Responsabilidad |
 |---|---|
 | `auth` | Sesión Supabase, perfil, Google Sign-In |
-| `onboarding` | Wizard de 4 pasos, test del Oráculo, placement |
-| `conversation` | Pipeline de voz, chat con tutor/Oráculo, evaluación |
+| `boss_exam` | Examen de promoción (jefe de nivel), rúbrica y cooldown |
 | `chat_rooms` | Salas de voz (LiveKit) y gremio, Maestre de Mesa |
+| `conversation` | Pipeline de voz, chat con tutor/Oráculo, evaluación |
+| `corrections` | Correcciones por turno y pantalla «Mis errores» |
 | `dashboard` | Home, progreso, perfil, ajustes, radar de habilidades |
 | `economy` | Maná, oro, inventario, tienda, recompensas |
+| `home_widget` | Widget de pantalla de inicio |
+| `listening` | Comprensión auditiva: audio TTS + quiz corregido en servidor |
 | `missions` | Motor de misiones diarias/semanales |
+| `notifications` | Recordatorios locales |
+| `onboarding` | Wizard de 4 pasos, test del Oráculo, placement |
 | `presence` | Presencia de usuarios en salas (heartbeat + purga) |
 | `subscription` | Paywall, RevenueCat, estado premium |
 | `vocabulary` | Repaso SM-2 (tarjetas) |
+| `weekly_report` | Informe semanal calculado en servidor |
 
 ---
 
@@ -48,8 +54,10 @@ lib/
 | `/splash` | Splash con resolución de sesión |
 | `/home` | Dashboard con 4 pestañas |
 | `/onboarding` | Wizard |
-| `/oracle-test` | Evaluación oral del Oráculo |
+| `/mini-conversation` | Prueba de valor de 60 s |
+| `/oracle-test` | Evaluación oral del Oráculo (y `mode=promotion`) |
 | `/conversation` | Conversación con el tutor |
+| `/listening` | Comprensión auditiva (`exerciseId=<slug>`) |
 | `/chat-rooms` | Salón del gremio |
 | `/voice-room` | Sala de voz |
 | `/dungeon-guardian` | Santuario de Maná (mazmorra) |
@@ -58,6 +66,10 @@ lib/
 | `/paywall` | Suscripciones |
 | `/profile-edit` | Edición de perfil |
 | `/summary` | Resumen de sesión |
+| `/boss-result` | Resultado del jefe de nivel |
+| `/my-errors` | Errores agrupados por tipo |
+| `/weekly-report` | Informe semanal |
+| `/missions` | Misiones |
 
 El dashboard tiene 4 pestañas: **Mazmorras (0)**, **Gremio (1 → embebe
 `ChatRoomsScreen` en modo tab)**, **Estado (2)**, **Config (3)**.
