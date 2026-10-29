@@ -41,7 +41,19 @@ jobs:
         run: flutter analyze --no-fatal-infos
 
       - name: Test
-        run: flutter test
+        run: flutter test --coverage
+
+      # P-18 (#103): cobertura medida y publicada en el resumen del run.
+      - name: Coverage summary
+        run: |
+          awk -F: '/^LF:/{lf+=$2} /^LH:/{lh+=$2} END {printf "Cobertura de líneas: **%.1f%%** (%d/%d)\n", (lf?lh*100/lf:0), lh, lf}' coverage/lcov.info >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: error
 
       # Si un pixel-golden falla, `flutter_test` deja los diffs al lado del PNG.
       - name: Upload golden failures
@@ -85,6 +97,28 @@ jobs:
           path: test/golden/goldens/
           if-no-files-found: error
 
+  edge-functions:
+    name: Edge Functions (deno check + test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # P-18 (#103): valida tipos de las funciones (antes `deno check` fallaba)
+      # y corre las pruebas puras (validación de entrada y de maná).
+      - name: Type check
+        run: |
+          deno check supabase/functions/llm-proxy/index.ts
+          deno check supabase/functions/lesson-generator/index.ts
+
+      - name: Test
+        run: deno test supabase/functions
+
   web-admin:
     name: Web admin (lint + test + build)
     runs-on: ubuntu-latest
@@ -116,8 +150,8 @@ jobs:
 
   summary:
     name: Pipeline summary
-    needs: [flutter, web-admin]
+    needs: [flutter, edge-functions, web-admin]
     runs-on: ubuntu-latest
     steps:
       - name: Echo status
-        run: echo "Flutter (0 warnings) y web_admin en verde."
+        run: echo "Flutter (0 warnings), Edge Functions y web_admin en verde."

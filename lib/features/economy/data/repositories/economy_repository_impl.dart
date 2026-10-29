@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/services/retention_analytics.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../subscription/domain/premium_status.dart';
 import '../../domain/models/refund_result.dart';
 import '../../domain/repositories/economy_repository.dart';
@@ -234,7 +235,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
           .eq('date', today);
 
       unawaited(_logEvent(userId, 'claim_daily'));
-      unawaited(RetentionAnalytics.instance.track(userId, 'claim_daily'));
+      unawaited(
+        RetentionAnalytics.instance.track(userId, AnalyticsEvent.claimDaily),
+      );
       return {'gems': gems, 'pergaminos': pergaminos};
     } catch (_) {
       return const {};
@@ -325,7 +328,9 @@ class EconomyRepositoryImpl implements EconomyRepository {
       }
 
       unawaited(_logEvent(userId, 'purchase_item'));
-      unawaited(RetentionAnalytics.instance.track(userId, 'purchase_item'));
+      unawaited(
+        RetentionAnalytics.instance.track(userId, AnalyticsEvent.purchaseItem),
+      );
       return true;
     } catch (_) {
       return false;
@@ -334,15 +339,25 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
   @override
   Future<bool> purchaseCosmeticWithGold(String userId, String itemCode) async {
-    // Issue #2 / P-32: compra atómica en servidor (valida saldo, nivel,
-    // catálogo, disponibilidad y ownership; entrega el ítem y escribe el libro
-    // de moneda en la misma transacción).
+    // Issue #2 / P-32: compra atomica en servidor (valida saldo, nivel,
+    // catalogo, disponibilidad y ownership; entrega el item y escribe el
+    // libro de moneda en la misma transaccion).
     final res = await buyCosmetic(
       userId: userId,
       itemId: itemCode,
       currency: 'gold',
     );
-    return res['success'] == true;
+    final ok = res['success'] == true;
+    if (ok) {
+      unawaited(_logEvent(userId, 'purchase_cosmetic_gold'));
+      unawaited(
+        RetentionAnalytics.instance.track(
+          userId,
+          AnalyticsEvent.purchaseCosmeticGold,
+        ),
+      );
+    }
+    return ok;
   }
 
   @override

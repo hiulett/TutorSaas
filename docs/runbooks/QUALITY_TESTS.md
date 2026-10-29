@@ -1,10 +1,10 @@
 # Runbook — tests de calidad y red de regresión visual
 
-> Verificado el 29-oct-2026 sobre `master` `f595fcf` (Flutter 3.41.9 local,
+> Verificado el 29-oct-2026 sobre `master` `7f440d1` (Flutter 3.41.9 local,
 > `ubuntu-latest` + stable en CI).
-> Números medidos, no heredados: `flutter test` → **530 pruebas en verde, 0
+> Números medidos, no heredados: `flutter test` → **592 pruebas en verde, 0
 > saltadas**; `flutter analyze --no-fatal-infos` → **0 errores, 0 warnings, 127
-> infos**.
+> infos**; `flutter test --coverage` → **29,3 % de líneas** (6781/23130).
 
 ---
 
@@ -16,7 +16,7 @@
 | Estructura de widgets | `test/golden/glass_card_test.dart` | 6 | Vidrio de `GlassCard`: color, alfa, blur, borde, radio, sombra, padding, tamaño, animación de prensado, `onTap`, semántica, esquinas rúnicas |
 | Estructura de widgets | `test/golden/rpg_chips_test.dart` | 4 | Chips del HUD: color de borde por token, tamaño, separación, estilo de texto |
 | Pixel-golden | `test/golden/segmented_bar_test.dart` | 1 | Píxeles reales de `SegmentedBar` (`test/golden/goldens/segmented_bar.png`) |
-| Resto del producto | `test/*.dart` | 514 | Lógica, pantallas, i18n, overflow, fuentes… |
+| Resto del producto | `test/*.dart` | 576 | Lógica, pantallas, i18n, overflow, fuentes… |
 
 `flutter test test/golden` ejecuta las 16 pruebas de esta carpeta en cualquier SO.
 
@@ -123,3 +123,38 @@ Añadir un token es un cambio de una línea en `app_colors.dart` /
    cambio de valor se ve en el diff.
 3. Si de verdad necesitas pixel-golden, el widget tiene que ser texto-libre y
    blur-libre, y el PNG se genera con el camino del apartado 3.
+
+## 6. Cobertura (P-18 / #103)
+
+El CI corre `flutter test --coverage` y publica:
+
+- el porcentaje de líneas en el **resumen del run** (job `Flutter`);
+- `coverage/lcov.info` como artefacto `coverage-lcov`.
+
+Local:
+
+```sh
+flutter test --coverage
+genhtml coverage/lcov.info -o coverage/html   # opcional, requiere lcov
+```
+
+Hoy **no hay umbral que rompa el build**: se mide para ver la tendencia. La
+cobertura incluye los archivos generados (`*.g.dart`, `*.freezed.dart`), así que
+el número absoluto es conservador.
+
+## 7. Tests de Edge Functions (Deno)
+
+`supabase/functions/llm-proxy/validation.ts` y
+`supabase/functions/reactivation-email/templates.ts` son módulos puros (sin
+Supabase ni `Deno.env` en top-level) precisamente para poder probarlos sin red.
+
+```sh
+deno check supabase/functions/llm-proxy/index.ts
+deno check supabase/functions/lesson-generator/index.ts
+deno test supabase/functions
+```
+
+El job `Edge Functions (deno check + test)` del CI ejecuta esos tres comandos.
+`deno check` importa el módulo real, así que un error de tipos en `index.ts` o
+un import roto rompe el build (antes no se comprobaba: `corsAllowedOrigin`
+`.isNotEmpty` —Dart— pasaba inadvertido).

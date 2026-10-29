@@ -147,7 +147,7 @@
   "btn_continue": "Continuar",
   "onboarding_start_eval": "INICIAR AVALIAÇÃO",
 "privacy_title": "PRIVACIDADE",
-"privacy_body": "Para corrigir sua conversa, o app envia à IA o áudio transcrito, seu nível CEFR e seu idioma nativo. Seu e-mail, nome e foto não são enviados. Você pode exportar ou excluir seus dados em Ajustes.",
+"privacy_body": "Para corrigir sua conversa, o app envia à IA o áudio transcrito, seu nível CEFR e seu idioma nativo. Seu e-mail, nome e foto não são enviados. Você pode exportar ou excluir seus dados em Ajustes. Também guardamos métricas de uso agregadas (progresso, retenção e erros) sem texto de conversa nem dados pessoais.",
 "privacy_accept": "ENTENDIDO",
 "onboarding_privacy_link": "PRIVACIDADE",
   "register_confirm_email": "Verifique seu e-mail e confirme a conta para continuar.",

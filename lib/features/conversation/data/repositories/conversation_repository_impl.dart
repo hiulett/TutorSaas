@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 import 'package:tutorsaas/core/ai/sse_chat_decoder.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../corrections/domain/models/correction_prompt.dart';
@@ -36,6 +37,18 @@ class ConversationRepositoryImpl implements ConversationRepository {
       debugPrint('api_request_logs event logged: $eventType');
     } catch (e) {
       debugPrint('Error logging api_request_logs event ($eventType): $e');
+    }
+  }
+
+  /// Best-effort analytics. La analítica nunca puede tumbar un turno de
+  /// conversación: si el cliente de Supabase no está disponible (tests,
+  /// invitados) se descarta el evento.
+  void _trackAnalytics(String userId, String event) {
+    if (userId.isEmpty) return;
+    try {
+      unawaited(RetentionAnalytics.instance.track(userId, event));
+    } catch (e) {
+      debugPrint('Analytics ($event) no disponible: $e');
     }
   }
 
@@ -159,9 +172,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
           if (decoder.isDone) break;
         }
         unawaited(_logEvent(currentUserId, 'invoke_llm'));
-        unawaited(
-          RetentionAnalytics.instance.track(currentUserId, 'invoke_llm'),
-        );
+        _trackAnalytics(currentUserId, AnalyticsEvent.invokeLlm);
         return;
       } catch (e) {
         final status = e is DioException ? e.response?.statusCode : null;

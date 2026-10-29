@@ -27,6 +27,13 @@ import {
   normalizeUuid,
   type ChatUsage,
 } from './usage.ts';
+import {
+  FREE_ACTIONS,
+  normalizeCapabilities,
+  normalizeManaChargeMode,
+  shouldCharge,
+  validateMessages,
+} from './validation.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -62,18 +69,13 @@ const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 // chunk final de DeepSeek es pequeño; 32 KB cubren de sobra un final partido.
 const SSE_USAGE_BUFFER_LIMIT = 32 * 1024;
 
-// P-07: límites de entrada (tokens de prompt bajo control del servidor).
-const MAX_MESSAGES = 40;
-const MAX_CHARS_PER_MESSAGE = 4000;
-const MAX_TOTAL_CHARS = 24000;
-
-// P-07: acciones que NO se cobran (evaluaciones internas y chat de gremio).
-const FREE_ACTIONS = new Set(['goal_eval', 'carisma_eval', 'guild_chat', 'stt_transcribe']);
+// P-07: los topes de entrada (tokens del prompt bajo control del servidor) y
+// su validación viven en `validation.ts`, probado con `deno test`.
 
 // P-07: modo de cobro. `capability` (defecto de transicion) solo cobra si el
 // cliente declara `server_mana`; `all` cobra siempre; `off` no cobra (rollback).
 // Pasar a `all` cuando la app que ya no cobra en cliente este publicada.
-const MANA_CHARGE_MODE = (Deno.env.get('MANA_CHARGE_MODE') ?? 'capability').trim().toLowerCase();
+const MANA_CHARGE_MODE = normalizeManaChargeMode(Deno.env.get('MANA_CHARGE_MODE'));
 
 // P-07: copia de respaldo si `ai_action_costs` no responde (evita que un fallo
 // de lectura convierta acciones de pago en gratuitas).
@@ -96,7 +98,7 @@ const corsAllowedOrigin = Deno.env.get('CORS_ALLOWED_ORIGIN') ?? '';
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-  ...(corsAllowedOrigin.isNotEmpty
+  ...(corsAllowedOrigin.length > 0
     ? { 'Access-Control-Allow-Origin': corsAllowedOrigin, 'Vary': 'Origin' }
     : {}),
 };
@@ -193,10 +195,8 @@ async function paidActionCodes(): Promise<Set<string>> {
   }
 }
 
-function shouldCharge(capabilities: string[]): boolean {
-  if (MANA_CHARGE_MODE === 'off') return false;
-  if (MANA_CHARGE_MODE === 'capability') return capabilities.includes('server_mana');
-  return true;
+function shouldChargeTurn(capabilities: string[]): boolean {
+  return shouldCharge(capabilities, MANA_CHARGE_MODE);
 }
 
 /// Cobra en nombre del usuario con service role. Lanza si la RPC falla.
@@ -238,30 +238,6 @@ async function refundMana(userId: string, actionCode: string): Promise<void> {
   } catch (e) {
     console.error('refund_mana error:', e);
   }
-}
-
-function normalizeCapabilities(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((item): item is string => typeof item === 'string' && item.length <= 40)
-    .slice(0, 10);
-}
-
-/// Devuelve un mensaje de error si el prompt excede los topes de P-07.
-function validateMessages(messages: unknown[]): string | null {
-  if (messages.length === 0) return 'messages array is empty';
-  if (messages.length > MAX_MESSAGES) return `too many messages (max ${MAX_MESSAGES})`;
-  let total = 0;
-  for (const message of messages) {
-    const content = (message as { content?: unknown })?.content;
-    if (typeof content !== 'string') return 'each message content must be a string';
-    if (content.length > MAX_CHARS_PER_MESSAGE) {
-      return `message too long (max ${MAX_CHARS_PER_MESSAGE} chars)`;
-    }
-    total += content.length;
-  }
-  if (total > MAX_TOTAL_CHARS) return `conversation too long (max ${MAX_TOTAL_CHARS} chars)`;
-  return null;
 }
 
 // ── Registro de uso de IA (P-14 / #99) ───────────────────────────────────────
@@ -461,7 +437,7 @@ async function handleChat(req: Request, userId: string): Promise<Response> {
 
   // P-07: cobra ANTES de llamar al modelo. Sin saldo no se gasta IA.
   let charged: ChargeResult | null = null;
-  if (isPaid && shouldCharge(capabilities)) {
+  if (isPaid && shouldChargeTurn(capabilities)) {
     try {
       const result = await chargeMana(userId, actionCode);
       if (!result.success) {
