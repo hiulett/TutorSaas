@@ -10,6 +10,7 @@ import '../../../../core/widgets/system_snack.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
+import '../../domain/models/lesson_completion.dart';
 import '../../domain/models/lesson_halo.dart';
 import '../../domain/models/mission_progress_service.dart';
 import '../providers/dashboard_providers.dart';
@@ -284,7 +285,10 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                   completedGoals: lessonCompletedGoals,
                   totalGoals: lessonTotalGoals,
                 );
-                final isMastered = lessonProgress >= 1.0;
+                final isMastered = LessonCompletion.isMastered(
+                  lessonCompletedGoals,
+                  lessonTotalGoals,
+                );
                 final iconData = _getIconData(lesson.iconKey);
 
                 // Sub misiones de esta lección (mazmorras ocultas desbloqueadas):
@@ -310,9 +314,18 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                       isUnlockedByOracle: isUnlockedByOracle,
                       isLocked: isLocked,
                       isMastered: isMastered,
-                      haloColor: LessonHalo.colorFor(lessonProgress),
-                      haloAlpha: LessonHalo.intensityFor(lessonProgress),
-                      haloBlur: LessonHalo.blurFor(lessonProgress),
+                      haloColor: LessonHalo.colorForCounts(
+                        lessonCompletedGoals,
+                        lessonTotalGoals,
+                      ),
+                      haloAlpha: LessonHalo.intensityForCounts(
+                        lessonCompletedGoals,
+                        lessonTotalGoals,
+                      ),
+                      haloBlur: LessonHalo.blurForCounts(
+                        lessonCompletedGoals,
+                        lessonTotalGoals,
+                      ),
                       progress: lessonProgress,
                       progressSegments: lessonTotalGoals <= 0 ? 1 : lessonTotalGoals,
                       iconData: iconData,
