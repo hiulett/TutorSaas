@@ -5200,6 +5200,60 @@ abstract class AppLocalizations {
   /// **'PRACTICE'**
   String get progress_practice;
 
+  /// No description provided for @evidence_title.
+  ///
+  /// In en, this message translates to:
+  /// **'LEARNING EVIDENCE'**
+  String get evidence_title;
+
+  /// No description provided for @evidence_disclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence, not a grade.'**
+  String get evidence_disclaimer;
+
+  /// No description provided for @evidence_retention.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day retention'**
+  String get evidence_retention;
+
+  /// No description provided for @evidence_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparable progress'**
+  String get evidence_progress;
+
+  /// No description provided for @evidence_transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get evidence_transfer;
+
+  /// No description provided for @evidence_no_data.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get evidence_no_data;
+
+  /// No description provided for @evidence_needs_weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'You need 4 weeks'**
+  String get evidence_needs_weeks;
+
+  /// No description provided for @evidence_progress_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} → {last} missions/week'**
+  String evidence_progress_value(int first, int last);
+
+  /// No description provided for @evidence_transfer_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{types} mission types'**
+  String evidence_transfer_value(int types);
+
   /// No description provided for @progress_streak_at_risk.
   ///
   /// In en, this message translates to:

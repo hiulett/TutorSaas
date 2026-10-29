@@ -2812,6 +2812,37 @@ class AppLocalizationsPt extends AppLocalizations {
   String get progress_practice => 'PRATICAR';
 
   @override
+  String get evidence_title => 'EVIDÊNCIA DE APRENDIZAGEM';
+
+  @override
+  String get evidence_disclaimer => 'Evidência, não uma nota.';
+
+  @override
+  String get evidence_retention => 'Retenção em 7 dias';
+
+  @override
+  String get evidence_progress => 'Progresso comparável';
+
+  @override
+  String get evidence_transfer => 'Transferência';
+
+  @override
+  String get evidence_no_data => 'Ainda sem dados';
+
+  @override
+  String get evidence_needs_weeks => 'Você precisa de 4 semanas';
+
+  @override
+  String evidence_progress_value(int first, int last) {
+    return '$first → $last missões/semana';
+  }
+
+  @override
+  String evidence_transfer_value(int types) {
+    return '$types tipos de missão';
+  }
+
+  @override
   String get progress_streak_at_risk => 'SEQUÊNCIA EM RISCO!';
 
   @override
