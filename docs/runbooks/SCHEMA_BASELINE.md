@@ -11,12 +11,12 @@ entorno de staging o migración futura.
 |---|---|
 | Tablas (`public`) | **80** |
 | Vistas | 6 |
-| Funciones | 70 |
+| Funciones | 71 |
 | Políticas RLS | 126 |
 | Tablas sin RLS | **0** |
 | Triggers | 44 |
 | Jobs de cron | 3 |
-| Migraciones registradas | **74** |
+| Migraciones registradas | **75** |
 | Archivos `.sql` en `supabase/migrations/` (raíz) | 134 (59 con prefijo válido, 75 sin él) |
 | Archivos `.sql` en subcarpetas (`archive/`, `audit/`) | 40 |
 

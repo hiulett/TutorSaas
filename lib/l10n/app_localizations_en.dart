@@ -2803,6 +2803,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progress_practice => 'PRACTICE';
 
   @override
+  String mana_cost_per_turn(int cost) {
+    return '$cost/turn';
+  }
+
+  @override
+  String mana_low_warning(int count) {
+    return '$count turns left today';
+  }
+
+  @override
+  String get mana_empty_warning => 'No mana for the next turn';
+
+  @override
+  String get guardian_alternative_title => 'WHILE YOU WAIT';
+
+  @override
+  String guardian_refill_in(int hours, int minutes) {
+    return 'Refills in $hours h $minutes min';
+  }
+
+  @override
+  String guardian_refill_at(String date) {
+    return 'Renews on $date';
+  }
+
+  @override
+  String get guardian_review_vocab => 'Review vocabulary (free)';
+
+  @override
+  String guardian_low_cost_chat(int cost) {
+    return 'Text chat ($cost mana)';
+  }
+
+  @override
+  String get guardian_no_due_words => 'No words due for review right now.';
+
+  @override
   String get daily_goal_title => 'DAILY GOAL';
 
   @override

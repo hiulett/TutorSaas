@@ -44,16 +44,20 @@ class EconomyRepositoryImpl implements EconomyRepository {
       final streakDays = (streak['current_streak'] as int?) ?? 0;
       final bonus = (streakDays ~/ 7) * 5; // +5 invocations per 7-day streak
 
-      final created = await _client.from('player_daily_state').insert({
-        'user_id': userId,
-        'date': today,
-        'invocations_used': 0,
-        'invocations_max': 20 + bonus,
-        'pergaminos_used': 0,
-        'pergaminos_max': 5,
-        'daily_reward_claimed': false,
-        'bonus_invocations': bonus,
-      }).select().single();
+      final created = await _client
+          .from('player_daily_state')
+          .insert({
+            'user_id': userId,
+            'date': today,
+            'invocations_used': 0,
+            'invocations_max': 20 + bonus,
+            'pergaminos_used': 0,
+            'pergaminos_max': 5,
+            'daily_reward_claimed': false,
+            'bonus_invocations': bonus,
+          })
+          .select()
+          .single();
 
       return Map<String, dynamic>.from(created);
     } catch (_) {
@@ -110,12 +114,19 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
       if (existing != null) return Map<String, dynamic>.from(existing);
 
-      final created = await _client.from('player_streaks').insert({
-        'user_id': userId,
-        'current_streak': 0,
-        'longest_streak': 0,
-        'last_active_date': DateTime.now().toIso8601String().split('T').first,
-      }).select().single();
+      final created = await _client
+          .from('player_streaks')
+          .insert({
+            'user_id': userId,
+            'current_streak': 0,
+            'longest_streak': 0,
+            'last_active_date': DateTime.now()
+                .toIso8601String()
+                .split('T')
+                .first,
+          })
+          .select()
+          .single();
 
       return Map<String, dynamic>.from(created);
     } catch (_) {
@@ -192,19 +203,28 @@ class EconomyRepositoryImpl implements EconomyRepository {
       // Calculate reward based on streak (fuente única de la recompensa).
       int gems = 5;
       int pergaminos = 2;
-      if (days >= 7) { gems = 50; pergaminos = 5; }
-      if (days >= 14) { gems = 100; pergaminos = 8; }
-      if (days >= 30) { gems = 300; pergaminos = 15; }
+      if (days >= 7) {
+        gems = 50;
+        pergaminos = 5;
+      }
+      if (days >= 14) {
+        gems = 100;
+        pergaminos = 8;
+      }
+      if (days >= 30) {
+        gems = 300;
+        pergaminos = 15;
+      }
 
-      await _client.rpc('add_gems', params: {
-        'p_user_id': userId,
-        'p_amount': gems,
-      });
+      await _client.rpc(
+        'add_gems',
+        params: {'p_user_id': userId, 'p_amount': gems},
+      );
 
-      await _client.rpc('increment_pergaminos_max', params: {
-        'p_user_id': userId,
-        'p_amount': pergaminos,
-      });
+      await _client.rpc(
+        'increment_pergaminos_max',
+        params: {'p_user_id': userId, 'p_amount': pergaminos},
+      );
 
       await _client
           .from('player_daily_state')
@@ -283,16 +303,16 @@ class EconomyRepositoryImpl implements EconomyRepository {
               .eq('date', today);
         } else if (itemCode == 'consumible_pergamino10') {
           // +10 pergaminos de repaso al máximo diario.
-          await _client.rpc('increment_pergaminos_max', params: {
-            'p_user_id': userId,
-            'p_amount': 10,
-          });
+          await _client.rpc(
+            'increment_pergaminos_max',
+            params: {'p_user_id': userId, 'p_amount': 10},
+          );
         } else if (itemCode == 'consumible_pergamino50') {
           // +50 pergaminos de repaso al máximo diario.
-          await _client.rpc('increment_pergaminos_max', params: {
-            'p_user_id': userId,
-            'p_amount': 50,
-          });
+          await _client.rpc(
+            'increment_pergaminos_max',
+            params: {'p_user_id': userId, 'p_amount': 50},
+          );
         }
       } else {
         await _client.from('player_inventory').insert({
@@ -316,15 +336,20 @@ class EconomyRepositoryImpl implements EconomyRepository {
     try {
       // Issue #2: compra atómica en servidor (valida saldo, catálogo,
       // disponibilidad y ownership; entrega el ítem en la misma transacción).
-      final res = await _client.rpc('purchase_cosmetic', params: {
-        'p_user_id': userId,
-        'p_item_id': itemCode,
-        'p_currency': 'gold',
-      });
+      final res = await _client.rpc(
+        'purchase_cosmetic',
+        params: {
+          'p_user_id': userId,
+          'p_item_id': itemCode,
+          'p_currency': 'gold',
+        },
+      );
       final ok = res is Map && res['success'] == true;
       if (ok) {
         unawaited(_logEvent(userId, 'purchase_cosmetic_gold'));
-        unawaited(RetentionAnalytics.instance.track(userId, 'purchase_cosmetic_gold'));
+        unawaited(
+          RetentionAnalytics.instance.track(userId, 'purchase_cosmetic_gold'),
+        );
       }
       return ok;
     } catch (_) {
@@ -345,25 +370,36 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
       // Issue #2: el equipado también pasa por RPC; la tabla sigue sin INSERT
       // ni UPDATE directo para que un cliente no pueda autoentregarse ítems.
-      await _client.rpc('equip_cosmetic', params: {
-        'p_user_id': userId,
-        'p_item_id': itemCode,
-        'p_equip': item['is_equipped'] != true,
-      });
+      await _client.rpc(
+        'equip_cosmetic',
+        params: {
+          'p_user_id': userId,
+          'p_item_id': itemCode,
+          'p_equip': item['is_equipped'] != true,
+        },
+      );
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:352', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:352',
+        e,
+        stackTrace: st,
+      );
     }
   }
 
   @override
   Future<void> addGems(String userId, int amount) async {
     try {
-      await _client.rpc('add_gems', params: {
-        'p_user_id': userId,
-        'p_amount': amount,
-      });
+      await _client.rpc(
+        'add_gems',
+        params: {'p_user_id': userId, 'p_amount': amount},
+      );
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:362', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:362',
+        e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -378,10 +414,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
       final gems = (profile?['total_gems'] as int?) ?? 0;
       if (gems < amount) return false;
 
-      await _client.rpc('spend_gems', params: {
-        'p_user_id': userId,
-        'p_amount': amount,
-      });
+      await _client.rpc(
+        'spend_gems',
+        params: {'p_user_id': userId, 'p_amount': amount},
+      );
       return true;
     } catch (_) {
       return false;
@@ -480,7 +516,11 @@ class EconomyRepositoryImpl implements EconomyRepository {
         });
       }
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:477', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:477',
+        e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -499,18 +539,28 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
       if (existing != null) return Map<String, dynamic>.from(existing);
 
-      final created = await _client.from('guild_battle_pass').insert({
-        'user_id': userId,
+      final created = await _client
+          .from('guild_battle_pass')
+          .insert({
+            'user_id': userId,
+            'season': season,
+            'level': 1,
+            'xp_progress': 0,
+            'is_premium': false,
+            'claimed_rewards': const <String>[],
+          })
+          .select()
+          .single();
+
+      return Map<String, dynamic>.from(created);
+    } catch (_) {
+      return {
         'season': season,
         'level': 1,
         'xp_progress': 0,
         'is_premium': false,
-        'claimed_rewards': const <String>[],
-      }).select().single();
-
-      return Map<String, dynamic>.from(created);
-    } catch (_) {
-      return {'season': season, 'level': 1, 'xp_progress': 0, 'is_premium': false, 'claimed_rewards': <String>[]};
+        'claimed_rewards': <String>[],
+      };
     }
   }
 
@@ -568,12 +618,16 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<void> addFragments(String userId, int amount) async {
     try {
-      await _client.rpc('add_fragments', params: {
-        'p_user_id': userId,
-        'p_amount': amount,
-      });
+      await _client.rpc(
+        'add_fragments',
+        params: {'p_user_id': userId, 'p_amount': amount},
+      );
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/economy/data/repositories/economy_repository_impl.dart:568', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:568',
+        e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -597,7 +651,8 @@ class EconomyRepositoryImpl implements EconomyRepository {
           .select('monthly_audio_minutes_limit')
           .eq('id', planId)
           .maybeSingle();
-      final minutes = (plan?['monthly_audio_minutes_limit'] as num?)?.toInt() ?? 0;
+      final minutes =
+          (plan?['monthly_audio_minutes_limit'] as num?)?.toInt() ?? 0;
       if (minutes >= 1200) return 40;
       if (minutes >= 300) return 20;
       return 0;
@@ -609,12 +664,15 @@ class EconomyRepositoryImpl implements EconomyRepository {
   // ── FASE B: Maná monetizado + Aura sin tope ──────────────────────────────
 
   @override
-  Future<Map<String, dynamic>> consumeMana(String userId, String actionCode) async {
+  Future<Map<String, dynamic>> consumeMana(
+    String userId,
+    String actionCode,
+  ) async {
     try {
-      final res = await _client.rpc('consume_mana', params: {
-        'p_user_id': userId,
-        'p_action_code': actionCode,
-      });
+      final res = await _client.rpc(
+        'consume_mana',
+        params: {'p_user_id': userId, 'p_action_code': actionCode},
+      );
       return Map<String, dynamic>.from(res as Map);
     } catch (e) {
       debugPrint('consumeMana error: $e');
@@ -624,9 +682,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
 
   @override
   Future<Map<String, dynamic>> closeSession(String sessionId) async {
-    final res = await _client.rpc('close_session', params: {
-      'p_session_id': sessionId,
-    });
+    final res = await _client.rpc(
+      'close_session',
+      params: {'p_session_id': sessionId},
+    );
     if (res is Map) return Map<String, dynamic>.from(res);
     return const <String, dynamic>{};
   }
@@ -634,14 +693,27 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<Map<String, dynamic>> getManaState(String userId) async {
     try {
-      final res = await _client.rpc('get_mana_state', params: {'p_user_id': userId});
+      final res = await _client.rpc(
+        'get_mana_state',
+        params: {'p_user_id': userId},
+      );
       return Map<String, dynamic>.from(res as Map);
     } catch (e) {
       debugPrint('getManaState error: $e');
       // Fallback sin inventar saldo: 0 en lugar de un valor falso (1800).
-      return {'allowance': 0, 'purchased': 0, 'used': 0, 'remaining': 0,
-              'expires_at': null, 'plan': 'Plan Gratuito', 'class': 'plebeyo',
-              'is_free': true, 'daily_limit': 200, 'daily_used': 0, 'daily_remaining': 0};
+      return {
+        'allowance': 0,
+        'purchased': 0,
+        'used': 0,
+        'remaining': 0,
+        'expires_at': null,
+        'plan': 'Plan Gratuito',
+        'class': 'plebeyo',
+        'is_free': true,
+        'daily_limit': 200,
+        'daily_used': 0,
+        'daily_remaining': 0,
+      };
     }
   }
 
@@ -654,13 +726,16 @@ class EconomyRepositoryImpl implements EconomyRepository {
     int bonusNivel,
   ) async {
     try {
-      final res = await _client.rpc('add_aura_xp', params: {
-        'p_user_id': userId,
-        'p_session_id': sessionId,
-        'p_radar': radar,
-        'p_metas': metas,
-        'p_bonus_nivel': bonusNivel,
-      });
+      final res = await _client.rpc(
+        'add_aura_xp',
+        params: {
+          'p_user_id': userId,
+          'p_session_id': sessionId,
+          'p_radar': radar,
+          'p_metas': metas,
+          'p_bonus_nivel': bonusNivel,
+        },
+      );
       return Map<String, dynamic>.from(res as Map);
     } catch (e) {
       debugPrint('addAuraXp error: $e');
@@ -671,10 +746,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<void> addGold(String userId, int amount) async {
     try {
-      await _client.rpc('add_gold', params: {
-        'p_user_id': userId,
-        'p_amount': amount,
-      });
+      await _client.rpc(
+        'add_gold',
+        params: {'p_user_id': userId, 'p_amount': amount},
+      );
     } catch (e) {
       debugPrint('addGold error: $e');
     }
@@ -686,10 +761,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
     required String actionCode,
   }) async {
     try {
-      final res = await _client.rpc('refund_failed_turn', params: {
-        'p_turn_ref': turnRef,
-        'p_action_code': actionCode,
-      });
+      final res = await _client.rpc(
+        'refund_failed_turn',
+        params: {'p_turn_ref': turnRef, 'p_action_code': actionCode},
+      );
       if (res is Map) return Map<String, dynamic>.from(res);
       return const <String, dynamic>{};
     } catch (e) {
@@ -706,12 +781,15 @@ class EconomyRepositoryImpl implements EconomyRepository {
     int tzOffsetMinutes = 0,
   }) async {
     try {
-      final res = await _client.rpc('register_practice', params: {
-        'p_session_id': sessionId,
-        'p_minutes': minutes,
-        'p_objectives': objectives,
-        'p_tz_offset_minutes': tzOffsetMinutes,
-      });
+      final res = await _client.rpc(
+        'register_practice',
+        params: {
+          'p_session_id': sessionId,
+          'p_minutes': minutes,
+          'p_objectives': objectives,
+          'p_tz_offset_minutes': tzOffsetMinutes,
+        },
+      );
       if (res is Map) return Map<String, dynamic>.from(res);
       return const <String, dynamic>{};
     } catch (e) {
@@ -726,10 +804,13 @@ class EconomyRepositoryImpl implements EconomyRepository {
     required int completedGoals,
   }) async {
     try {
-      final res = await _client.rpc('claim_session_drop', params: {
-        'p_session_id': sessionId,
-        'p_completed_goals': completedGoals,
-      });
+      final res = await _client.rpc(
+        'claim_session_drop',
+        params: {
+          'p_session_id': sessionId,
+          'p_completed_goals': completedGoals,
+        },
+      );
       if (res is Map) return Map<String, dynamic>.from(res);
       return const <String, dynamic>{};
     } catch (e) {
@@ -741,10 +822,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<void> addXp(String userId, int amount) async {
     try {
-      await _client.rpc('add_xp', params: {
-        'p_user_id': userId,
-        'p_amount': amount,
-      });
+      await _client.rpc(
+        'add_xp',
+        params: {'p_user_id': userId, 'p_amount': amount},
+      );
     } catch (e) {
       debugPrint('addXp error: $e');
     }
@@ -753,7 +834,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<Map<String, dynamic>> getPrestigeTitle(String userId) async {
     try {
-      final res = await _client.rpc('get_prestige_title', params: {'p_user_id': userId});
+      final res = await _client.rpc(
+        'get_prestige_title',
+        params: {'p_user_id': userId},
+      );
       return Map<String, dynamic>.from(res as Map);
     } catch (e) {
       debugPrint('getPrestigeTitle error: $e');
@@ -781,10 +865,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<bool> equipManaItem(String userId, String itemId) async {
     try {
-      final res = await _client.rpc('equip_mana_item', params: {
-        'p_user_id': userId,
-        'p_item_id': itemId,
-      });
+      final res = await _client.rpc(
+        'equip_mana_item',
+        params: {'p_user_id': userId, 'p_item_id': itemId},
+      );
       return res == true;
     } catch (e) {
       debugPrint('equipManaItem error: $e');
@@ -795,10 +879,10 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<bool> desequipManaItem(String userId, String itemId) async {
     try {
-      final res = await _client.rpc('desequip_mana_item', params: {
-        'p_user_id': userId,
-        'p_item_id': itemId,
-      });
+      final res = await _client.rpc(
+        'desequip_mana_item',
+        params: {'p_user_id': userId, 'p_item_id': itemId},
+      );
       return res == true;
     } catch (e) {
       debugPrint('desequipManaItem error: $e');

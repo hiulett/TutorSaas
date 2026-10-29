@@ -33,7 +33,11 @@ class ManaItemInventory extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.local_drink_rounded, color: AppColors.manaCyan, size: 20),
+              const Icon(
+                Icons.local_drink_rounded,
+                color: AppColors.manaCyan,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 l10n.mana_inventory_title,
@@ -60,8 +64,12 @@ class ManaItemInventory extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(
                 child: SizedBox(
-                  width: 20, height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.runeViolet),
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.runeViolet,
+                  ),
                 ),
               ),
             ),
@@ -69,19 +77,29 @@ class ManaItemInventory extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 l10n.mana_inventory_empty,
-                style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                style: const TextStyle(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: 12,
+                ),
               ),
             ),
             data: (items) {
-              final inBag = items.where((i) => i['status'] == 'inventory').toList();
+              final inBag = items
+                  .where((i) => i['status'] == 'inventory')
+                  .toList();
               if (inBag.isEmpty) {
                 return Text(
                   l10n.mana_inventory_empty,
-                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                  style: const TextStyle(
+                    color: AppColors.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 );
               }
               return Column(
-                children: inBag.map((item) => _buildInventoryRow(context, ref, item)).toList(),
+                children: inBag
+                    .map((item) => _buildInventoryRow(context, ref, item))
+                    .toList(),
               );
             },
           ),
@@ -123,14 +141,20 @@ class ManaItemInventory extends ConsumerWidget {
                 Text(
                   '${isGema ? l10n.mana_gem_label : l10n.mana_elixir_label} · $mana ⚡',
                   style: GoogleFonts.spaceGrotesk(
-                    fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.onSurface,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
                   ),
                 ),
                 if (expiry != null)
                   Text(
-                    l10n.mana_expiry_countdown(expiry.inHours, expiry.inMinutes % 60),
+                    l10n.mana_expiry_countdown(
+                      expiry.inHours,
+                      expiry.inMinutes % 60,
+                    ),
                     style: GoogleFonts.jetBrainsMono(
-                      fontSize: 10, color: AppColors.royalGold,
+                      fontSize: 10,
+                      color: AppColors.royalGold,
                     ),
                   ),
               ],
@@ -141,7 +165,11 @@ class ManaItemInventory extends ConsumerWidget {
     );
   }
 
-  Widget _buildInventoryRow(BuildContext context, WidgetRef ref, Map<String, dynamic> item) {
+  Widget _buildInventoryRow(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> item,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final user = ref.read(currentUserProvider);
     final id = item['id']?.toString() ?? '';
@@ -162,12 +190,17 @@ class ManaItemInventory extends ConsumerWidget {
           Expanded(
             child: Text(
               '${isGema ? l10n.mana_gem_label : l10n.mana_elixir_label} · $mana ⚡',
-              style: GoogleFonts.spaceGrotesk(fontSize: 12, color: AppColors.onSurface),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 12,
+                color: AppColors.onSurface,
+              ),
             ),
           ),
           TextButton(
             onPressed: () async {
-              final ok = await ref.read(economyRepositoryProvider).equipManaItem(user?.id ?? '', id);
+              final ok = await ref
+                  .read(economyRepositoryProvider)
+                  .equipManaItem(user?.id ?? '', id);
               if (ok) {
                 ref.invalidate(manaItemsProvider);
                 ref.invalidate(manaStateProvider);
@@ -182,7 +215,11 @@ class ManaItemInventory extends ConsumerWidget {
             },
             child: Text(
               l10n.mana_equip,
-              style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.manaCyan),
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: AppColors.manaCyan,
+              ),
             ),
           ),
         ],

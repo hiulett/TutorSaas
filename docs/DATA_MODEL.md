@@ -136,6 +136,7 @@ El cliente **no** escribe `cefr_level_id` ni `game_rank`:
 | `apply_placement_as(user, …)` | Resultado del Oráculo; solo `service_role` (#73) |
 | `get_daily_goal_progress(tz)` | Minutos de hoy, meta, racha y si ya se celebró (P-23) |
 | `claim_daily_goal_celebration(tz)` | Celebración de la meta, una vez por día (P-23) |
+| `claim_mana_grace(user)` | Turno de gracia diario del maná; solo `service_role` (P-26) |
 
 ---
 
