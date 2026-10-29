@@ -5575,7 +5575,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacy_body.
   ///
   /// In en, this message translates to:
-  /// **'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings.'**
+  /// **'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings. We also keep aggregated usage metrics (progress, retention and errors) with no conversation text and no personal data.'**
   String get privacy_body;
 
   /// No description provided for @privacy_accept.

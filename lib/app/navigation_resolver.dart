@@ -33,6 +33,10 @@ class NavigationDecisionEngine {
 
   static String _cacheKey(String userId) => 'nav_has_profile_$userId';
 
+  /// Sondeo de perfil inyectable (solo tests). Por defecto consulta Supabase.
+  @visibleForTesting
+  static Future<bool> Function(String userId)? profileProbe;
+
   /// Invalida la caché (p. ej. tras completar el onboarding).
   static void invalidateProfile(String userId) {
     _profileCache.remove(userId);
@@ -75,7 +79,7 @@ class NavigationDecisionEngine {
     if (_profileCache.containsKey(user.id)) {
       hasProfile = _profileCache[user.id]!;
     } else {
-      hasProfile = await _hasProfile(user.id);
+      hasProfile = await _resolveProfile(user.id);
       _profileCache[user.id] = hasProfile;
     }
 
@@ -88,34 +92,51 @@ class NavigationDecisionEngine {
     return NavDestination.home;
   }
 
-  static Future<bool> _hasProfile(String userId) async {
+  /// Resuelve «¿tiene perfil?» sin poder colgar el arranque: si la consulta
+  /// falla o expira, decide con la última decisión persistida.
+  static Future<bool> _resolveProfile(String userId) async {
     try {
-      final res = await Supabase.instance.client
-          .from('user_language_profiles')
-          .select('id')
-          .eq('user_id', userId)
-          .maybeSingle()
-          .timeout(_profileTimeout);
-      final has = res != null;
-      // Persiste la decisión para cold starts sin red (fail-fast del redirect).
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool(_cacheKey(userId), has);
-      } catch (e, st) {
-        ErrorTracker.logSilent('lib/app/navigation_resolver.dart:99', e, stackTrace: st);
-      }
+      final has = await (profileProbe ?? _hasProfile)(userId);
+      await _persistProfile(userId, has);
       return has;
     } catch (e) {
-      debugPrint('[Nav] Error/timeout verificando perfil ($e) → decisión persistida.');
+      debugPrint(
+        '[Nav] Error/timeout verificando perfil ($e) → decisión persistida.',
+      );
       // Nunca bloquea: sin caché persistida se va a onboarding (seguro para
       // usuarios nuevos). Un usuario recurrente ya tiene su flag guardado.
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        return prefs.getBool(_cacheKey(userId)) ?? false;
-      } catch (_) {
-        return false;
-      }
+      return await _persistedProfile(userId) ?? false;
     }
+  }
+
+  /// Persiste la decisión para cold starts sin red (fail-fast del redirect).
+  static Future<void> _persistProfile(String userId, bool has) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_cacheKey(userId), has);
+    } catch (e, st) {
+      ErrorTracker.logSilent('lib/app/navigation_resolver.dart:99', e, stackTrace: st);
+    }
+  }
+
+  /// Última decisión persistida, o `null` si no hay ninguna.
+  static Future<bool?> _persistedProfile(String userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_cacheKey(userId));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<bool> _hasProfile(String userId) async {
+    final res = await Supabase.instance.client
+        .from('user_language_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle()
+        .timeout(_profileTimeout);
+    return res != null;
   }
 }
 

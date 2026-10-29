@@ -19,6 +19,7 @@ import '../../domain/models/cefr_rank.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../../core/i18n/language_settings.dart';
 import '../../../../core/services/retention_analytics.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/hunter_class.dart';
 import '../../../../app/navigation_resolver.dart';
@@ -72,7 +73,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.initState();
     // Issue #54: medir el embudo del onboarding. Sin esto no hay forma de saber
     // en qué paso se pierde el ~23 % que nunca crea perfil.
-    _trackOnboarding('onboarding_started', {'step': 0});
+    _trackOnboarding(AnalyticsEvent.onboardingStarted, {'step': 0});
     // Primer inicio: si la interfaz sigue al dispositivo, pre-selecciona el
     // idioma nativo según el locale del dispositivo (si está soportado).
     final settings = ref.read(userLanguageProvider);
@@ -102,7 +103,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _nextPage() {
     final l10n = AppLocalizations.of(context)!;
     // Issue #54: cada paso superado queda registrado con su índice.
-    _trackOnboarding('onboarding_step', {'step': _currentPage});
+    _trackOnboarding(AnalyticsEvent.onboardingStep, {'step': _currentPage});
     // Onboarding de 4 pasos: nativo → objetivo → clasificación IA → personaje.
     if (_currentPage == 0 && _selectedNativeLanguageCode.isEmpty) {
       SystemSnack.show(
@@ -359,7 +360,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _isSaving = false;
           _showHeroWelcome = true;
         });
-        _trackOnboarding('onboarding_completed', {
+        _trackOnboarding(AnalyticsEvent.onboardingCompleted, {
           'cefr': _selectedCefrCode,
           'native': _selectedNativeLanguageCode,
           'target': _selectedLanguageCode,
@@ -369,7 +370,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       }
     } catch (e) {
       debugPrint('Onboarding save failed: $e');
-      _trackOnboarding('onboarding_failed', {'error': e.toString()});
+      _trackOnboarding(AnalyticsEvent.onboardingFailed, {
+        'error': e.toString(),
+      });
       if (mounted) {
         setState(() => _isSaving = false);
         // Issue #55: antes se redirigía a /home en silencio y el router

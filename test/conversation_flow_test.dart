@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/features/auth/presentation/providers/auth_providers.dart';
 import 'package:tutorsaas/features/conversation/data/repositories/tutor_personalization_repository.dart';
+import 'package:tutorsaas/features/conversation/domain/models/ai_stream_exception.dart';
 import 'package:tutorsaas/features/conversation/domain/models/tutor_personalization.dart';
 import 'package:tutorsaas/features/conversation/domain/repositories/conversation_repository.dart';
 import 'package:tutorsaas/features/conversation/presentation/providers/conversation_providers.dart';
@@ -79,6 +80,36 @@ void main() {
     expect(container.read(conversationStateProvider).messages, isEmpty);
   });
 
+  // P-18: fallo a mitad del stream. Lo ya narrado se conserva, el error se
+  // expone y la UI vuelve a estar lista (no se queda "pensando").
+  test('un error a mitad del stream conserva el texto parcial', () async {
+    final repo = _FailingStreamRepository();
+    final container = ProviderContainer(
+      overrides: [
+        conversationRepositoryProvider.overrideWithValue(repo),
+        currentUserProvider.overrideWithValue(null),
+        correctionLevelProvider.overrideWithValue('moderate'),
+      ],
+    );
+
+    final notifier = container.read(conversationStateProvider.notifier);
+    await notifier.sendTextMessage('Hi');
+
+    final state = container.read(conversationStateProvider);
+    expect(state.isProcessing, isFalse);
+    expect(state.errorMessage, isNotNull);
+
+    final tutor = state.messages.where((m) => m.sender == 'tutor').toList();
+    expect(tutor, hasLength(1));
+    expect(tutor.single.text, 'Hello');
+
+    final error = container.read(conversationErrorProvider);
+    expect(error, isNotNull);
+    expect(error!.kind, AiErrorKind.timeout);
+    expect(error.message, 'El tutor tardó demasiado en responder. Reintenta.');
+    expect(error.canRetry, isTrue);
+  });
+
   // P-40 (#125): el perfil del alumno llega de verdad al system prompt del
   // turno que consume DeepSeek (no solo se guarda en la BD).
   test('el system prompt incluye el perfil personalizado del alumno', () async {
@@ -133,6 +164,23 @@ void main() {
     expect(system, contains('CUMULATIVE REVIEW'));
     expect(system, contains('Could I have the bill, please?'));
   });
+}
+
+/// Emite un delta y después falla (corte de red a mitad de stream).
+class _FailingStreamRepository extends _FakeConversationRepository {
+  @override
+  Stream<String> getTutorResponseStream(
+    List<Map<String, String>> history, {
+    String actionCode = 'free_chat_turn',
+    String? conversationId,
+  }) async* {
+    yield 'Hello';
+    throw const AiStreamException(
+      AiErrorKind.timeout,
+      'El tutor tardó demasiado en responder. Reintenta.',
+      retries: 3,
+    );
+  }
 }
 
 /// Devuelve el `history` completo para poder inspeccionar el system prompt.

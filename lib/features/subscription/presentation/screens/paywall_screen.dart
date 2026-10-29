@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../../core/services/retention_analytics.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
@@ -52,7 +53,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     if (user != null) {
       RetentionAnalytics.instance.track(
         user.id,
-        'paywall_viewed',
+        AnalyticsEvent.paywallViewed,
         properties: const {'source': 'paywall_screen'},
       );
     }
@@ -82,11 +83,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       if (service.resultGrantsPro(info)) {
         ref.read(isPremiumProvider.notifier).setPremium(true);
         _refreshAfterPurchase();
-        _track('restore_result', const {'result': 'granted'});
+        _track(AnalyticsEvent.restoreResult, const {'result': 'granted'});
         SystemSnack.show(context, l10n.paywall_restored,
             type: SystemSnackType.success);
       } else {
-        _track('restore_result', const {'result': 'nothing'});
+        _track(AnalyticsEvent.restoreResult, const {'result': 'nothing'});
         SystemSnack.show(
           context,
           l10n.paywall_nothing_to_restore,
@@ -95,7 +96,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       }
     } catch (e) {
       debugPrint('Restore purchases failed: $e');
-      _track('restore_result', {'result': 'error', 'error': e.toString()});
+      _track(AnalyticsEvent.restoreResult, {'result': 'error', 'error': e.toString()});
       if (mounted) {
         SystemSnack.show(context, l10n.paywall_load_error,
             type: SystemSnackType.error);
@@ -112,7 +113,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       _paywallError = null;
     });
     final l10n = AppLocalizations.of(context)!;
-    _track('purchase_started');
+    _track(AnalyticsEvent.purchaseStarted);
     try {
       // Issue #64: el SDK debe estar configurado antes de presentar el paywall;
       // si no, `presentPaywall` falla con configurationError.
@@ -126,7 +127,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         case PaywallResult.purchased:
           ref.read(isPremiumProvider.notifier).setPremium(true);
           _refreshAfterPurchase();
-          _track('purchase_succeeded');
+          _track(AnalyticsEvent.purchaseSucceeded);
           SystemSnack.show(
             context,
             l10n.paywall_success,
@@ -135,7 +136,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           break;
         case PaywallResult.restored:
           _refreshAfterPurchase();
-          _track('purchase_succeeded', const {'via': 'restore'});
+          _track(AnalyticsEvent.purchaseSucceeded, const {'via': 'restore'});
           SystemSnack.show(context, l10n.paywall_restored,
               type: SystemSnackType.success);
           break;
@@ -143,17 +144,17 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         // sin acción adicional.
         case PaywallResult.cancelled:
         case PaywallResult.notPresented:
-          _track('purchase_cancelled', {'result': result.name});
+          _track(AnalyticsEvent.purchaseCancelled, {'result': result.name});
           break;
         case PaywallResult.error:
-          _track('purchase_failed', const {'error': 'paywall_result_error'});
+          _track(AnalyticsEvent.purchaseFailed, const {'error': 'paywall_result_error'});
           if (mounted) setState(() => _paywallError = l10n.paywall_load_error);
           break;
       }
     } catch (e) {
       debugPrint('Paywall failed: $e');
       // Issue #72: además del snackbar, dejar un estado con reintento.
-      _track('purchase_failed', {'error': e.toString()});
+      _track(AnalyticsEvent.purchaseFailed, {'error': e.toString()});
       if (mounted) {
         setState(() => _paywallError = l10n.paywall_load_error);
         SystemSnack.show(

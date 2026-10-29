@@ -74,5 +74,37 @@ void main() {
 
       expect(buffer.toString(), 'Hello, brave!');
     });
+
+    // P-18: el decoder recibe líneas ya separadas por `LineSplitter`, pero un
+    // corte de red puede dejar un JSON incompleto. Debe descartarlo sin perder
+    // el fragmento siguiente.
+    test('fragmento partido (JSON incompleto) no rompe el stream', () {
+      final decoder = SseChatDecoder();
+      expect(decoder.addLine('data: {"choices":[{"delta":{"content":"Hel'), '');
+      expect(
+        decoder.addLine('data: {"choices":[{"delta":{"content":"lo"}}]}'),
+        'lo',
+      );
+      expect(decoder.isDone, isFalse);
+    });
+
+    test('un payload de error del proveedor no se narra como texto', () {
+      final decoder = SseChatDecoder();
+      expect(
+        decoder.addLine(
+          'data: {"error":{"message":"rate limited","code":429}}',
+        ),
+        '',
+      );
+      expect(decoder.isDone, isFalse);
+    });
+
+    test('tolera CR final y espacios alrededor de data:', () {
+      final decoder = SseChatDecoder();
+      expect(
+        decoder.addLine('   data:{"choices":[{"delta":{"content":"ok"}}]}\r'),
+        'ok',
+      );
+    });
   });
 }

@@ -247,8 +247,10 @@ Vistas (RLS: el dueno ve lo suyo; `app_metadata.role = 'admin'` ve todo):
 
 Panel: `web_admin` -> pestana "Retencion y Embudo".
 
-Pendiente legal: actualizar el aviso de privacidad de la ficha de Play para
-declarar estos eventos agregados (no se envia texto de conversacion).
+Privacidad: el aviso in-app del onboarding (`privacy_body` en los tres `.arb`)
+declara que se guardan metricas de uso agregadas sin texto de conversacion ni
+datos personales. Queda como tarea de operaciones (fuera del repo) reflejar lo
+mismo en el formulario **Data Safety** de la ficha de Play.
 
 ## 4. Cron
 

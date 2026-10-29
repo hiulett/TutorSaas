@@ -3031,7 +3031,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get privacy_body =>
-      'Para corrigir sua conversa, o app envia à IA o áudio transcrito, seu nível CEFR e seu idioma nativo. Seu e-mail, nome e foto não são enviados. Você pode exportar ou excluir seus dados em Ajustes.';
+      'Para corrigir sua conversa, o app envia à IA o áudio transcrito, seu nível CEFR e seu idioma nativo. Seu e-mail, nome e foto não são enviados. Você pode exportar ou excluir seus dados em Ajustes. Também guardamos métricas de uso agregadas (progresso, retenção e erros) sem texto de conversa nem dados pessoais.';
 
   @override
   String get privacy_accept => 'ENTENDIDO';

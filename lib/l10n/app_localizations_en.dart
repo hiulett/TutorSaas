@@ -3022,7 +3022,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacy_body =>
-      'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings.';
+      'To correct your conversation, the app sends the AI your transcribed audio, your CEFR level and your native language. Your email, name and photo are not sent. You can export or delete your data from Settings. We also keep aggregated usage metrics (progress, retention and errors) with no conversation text and no personal data.';
 
   @override
   String get privacy_accept => 'GOT IT';

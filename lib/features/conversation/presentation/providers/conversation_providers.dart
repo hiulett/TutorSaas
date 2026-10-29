@@ -299,7 +299,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       unawaited(
         RetentionAnalytics.instance.track(
           _userId!,
-          'session_start',
+          AnalyticsEvent.sessionStart,
           properties: {'scenario_id': scenarioId ?? '', 'oracle': false},
         ),
       );
@@ -1764,18 +1764,17 @@ ENDING:
         kind: err.kind,
         canRetry: _lastUserText != null && _lastUserText!.isNotEmpty,
       );
-      unawaited(
-        RetentionAnalytics.instance.track(
-          _userId ?? 'anon',
-          'ai_error',
-          properties: {
-            'endpoint': 'chat',
-            'code': err.code,
-            'retries': err.retries,
-            // P-07: el reembolso lo decide el proxy; el cliente no lo sabe.
-            'refunded': false,
-          },
-        ),
+      // Utiliza `_track` para no insertar eventos con un `user_id` inválido
+      // (`user_id` es uuid y NOT NULL): sin sesión no hay nada que medir.
+      _track(
+        AnalyticsEvent.aiError,
+        properties: {
+          'endpoint': 'chat',
+          'code': err.code,
+          'retries': err.retries,
+          // P-07: el reembolso lo decide el proxy; el cliente no lo sabe.
+          'refunded': false,
+        },
       );
     }
   }
@@ -2519,7 +2518,7 @@ ENDING:
         unawaited(
           RetentionAnalytics.instance.track(
             _userId!,
-            'session_end',
+            AnalyticsEvent.sessionEnd,
             properties: {
               'turns': turns,
               'goals_completed': completed,
