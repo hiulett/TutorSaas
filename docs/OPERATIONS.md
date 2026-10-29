@@ -81,6 +81,41 @@ Tarifas por defecto (sobrescribibles con los secretos de la tabla):
 `cost_estimate_usd` es una **estimación**, no una factura: ajústala si cambia
 el contrato del proveedor.
 
+#### Medición y optimización (P-41)
+
+Vista `ai_cost_by_session` (respeta RLS con `security_invoker`): coste, tokens y
+número de llamadas por conversación. Se rellena solo cuando el cliente envía
+`conversation_id` en `/chat`.
+
+```sql
+-- coste por sesión y por acción (últimos 30 días)
+select * from public.ai_cost_by_session order by started_at desc limit 20;
+select action_code, count(*), round(avg(input_tokens)) as in,
+       round(avg(output_tokens)) as out, round(sum(cost_estimate_usd)::numeric, 4) as usd
+  from public.ai_usage_logs
+ where created_at > now() - interval '30 days'
+ group by 1 order by 5 desc;
+```
+
+**Estado (29-oct-2026):** hay muy pocas llamadas registradas (8) y casi ninguna
+con `conversation_id`, así que **aún no hay baseline por sesión**. Las
+optimizaciones aplicadas son las de coste evidente:
+
+1. **Evaluación de metas con gate** (`GoalEvaluationGate`): la llamada extra de
+   IA solo se hace si la respuesta del alumno tiene ≥5 palabras o una palabra
+   clave de una meta pendiente; el cierre de sesión fuerza una última evaluación
+   para no perder objetivos. Ahorra una llamada por turno en respuestas vacías
+   o monosílabos.
+2. **Historial por longitud** (`maxChatContextChars = 6000`): además del tope de
+   24 mensajes, se recorta por caracteres conservando los 4 últimos. 24 mensajes
+   largos ya no viajan enteros en cada turno.
+
+Pendiente (necesita datos o un golden set de P-39): combinar metas + errores +
+vocabulario en una sola llamada, modelo más pequeño para tareas booleanas y
+resumen del contexto antiguo (esto último añade una llamada, así que solo tiene
+sentido si el ahorro de contexto la compensa).
+
+
 ### 3.2 Cobro de maná en el proxy (P-07)
 
 Desde P-07 el maná se cobra en `llm-proxy`, **antes** de llamar al modelo, con
