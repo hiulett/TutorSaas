@@ -21,6 +21,7 @@
 - Tablas y RLS: `docs/DATA_MODEL.md` (producción manda; el repo **no** reproduce el esquema)
 - Entornos, secretos, funciones, cron: `docs/OPERATIONS.md`
 - Build y publicación: `docs/RELEASE.md`
+- Tests y red de regresión visual (goldens, guard de tokens): `docs/runbooks/QUALITY_TESTS.md`
 - Estado de migraciones: `docs/runbooks/MIGRATION_STATUS.md`
 - Decisiones de producto: `docs/PRODUCT.md`
 - Correcciones a documentación antigua: `docs/HISTORY.md`
@@ -48,4 +49,5 @@
 - Verificar datos reales: MCP `supabase` (solo lectura; nunca DDL).
 - Compras/planes: MCP `revenuecat` y `play-console`.
 - Comandos del repo: `/build`, `/test`, `/review`, `/db-check`.
+- Goldens y guard de tokens: `docs/runbooks/QUALITY_TESTS.md`.
 - Subagentes: `db-auditor`, `design-auditor`, `release-captain`, `acceptance`, `test-author`, `reviewer`.

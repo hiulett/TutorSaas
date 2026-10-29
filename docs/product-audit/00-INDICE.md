@@ -43,8 +43,8 @@ en producción).
 2. **Verificación en producción** mediante consultas SQL de solo lectura al
    proyecto `sipiumfdpvnszthykyog`: esquema, RLS, funciones, cron, catálogos y
    conteos agregados.
-3. **Ejecución de comprobaciones seguras**: `flutter test` (159 en verde) y
-   `flutter analyze` (0 errores, 35 warnings, 128 infos).
+3. **Ejecución de comprobaciones seguras** (re-medido el 29-oct-2026): `flutter
+   test` (530 en verde) y `flutter analyze` (0 errores, 0 warnings, 127 infos).
 4. **Contraste con la documentación previa** (`docs/*.md`), registrando la deriva.
 5. **Sin cambios**: no se modificó código, datos, configuración ni migraciones. No
    se ejecutó la app en dispositivo ni se probaron compras.
@@ -70,8 +70,8 @@ conflicto, manda lo aquí verificado y se indica en cada documento.
 | Edge Functions activas | 6 |
 | Jobs cron | 3 |
 | Claves i18n | 951 (es/en/pt) |
-| Pruebas | 159 en verde |
-| Analyzer | 0 errores · 35 warnings · 128 infos (exit 1) |
+| Pruebas | 530 en verde (0 saltadas) |
+| Analyzer | 0 errores · 0 warnings · 127 infos (`--no-fatal-infos`, exit 0) |
 | Usuarios / conversaciones / mensajes | 60 / 68 / 740 |
 | Compras / inventario / suscripciones | 0 / 0 / 11 (1 noble) |
 | Misiones creadas / completadas | 533 / 7 |

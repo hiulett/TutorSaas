@@ -133,9 +133,12 @@ record (AAC/m4a)  →  llm-proxy /stt (Groq Whisper, language=en)
 ## 8. Pruebas y calidad
 
 ```
-flutter analyze → 0 errores (36 warnings, 128 infos: deprecaciones y código muerto)
-flutter test    → 155 pruebas
+flutter analyze → 0 errores, 0 warnings, 127 infos (deprecaciones; no bloquean)
+flutter test    → 530 pruebas (0 saltadas)
 ```
+
+Verificado el 29-oct-2026 (#207). Detalle de la red visual en
+`docs/runbooks/QUALITY_TESTS.md`.
 
 Cobertura relevante: modelos de misión, economía, desbloqueo de lecciones,
 overflow en pantallas pequeñas, escalado de texto, codificación de ARB,

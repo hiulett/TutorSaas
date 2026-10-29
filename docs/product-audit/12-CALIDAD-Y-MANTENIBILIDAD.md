@@ -9,19 +9,17 @@
 
 | Comprobación | Resultado | Nota |
 |---|---|---|
-| `flutter analyze` | **0 errores, 35 warnings, 128 infos** (163 issues) | Sale con **código 1** |
-| `flutter test` | **159 pruebas, todas en verde** | 20 archivos |
+| `flutter analyze` | **0 errores, 0 warnings, 127 infos** | `--no-fatal-infos`; exit 0 |
+| `flutter test` | **530 pruebas, todas en verde, 0 saltadas** | 66 archivos |
 | Cobertura | No medida | No hay `coverage` configurado |
-| CI | `flutter analyze` + `flutter test` en push/PR | **El job de analyze falla por el código de salida** |
+| CI | `flutter analyze` + `flutter test` en push/PR | **En verde** (último run de `master`, `f595fcf`) |
 
-La documentación previa dice "155 pruebas" y "36 warnings + 128 infos"
-(`docs/ARCHITECTURE.md:136-137`); hoy son 159 y 35.
-
-### Consecuencia del código de salida
-`flutter analyze` devuelve 1 cuando hay cualquier issue. El workflow
-`.github/workflows/ci.yml` ejecuta el comando sin `--no-fatal-warnings`, así que
-**el pipeline queda rojo** con los 35 warnings actuales. No hay evidencia en el
-repo de que se haya mitigado; verificar en GitHub Actions.
+> **Corrección 29-oct-2026 (#207).** La medición original de este documento
+> (25-oct) decía "0 errores, 35 warnings, 128 infos (163 issues)" y "159
+> pruebas". Re-medido sobre `f595fcf`: 0 errores, **0 warnings**, 127 infos y
+> **530 pruebas**. La consecuencia que se deducía de los warnings —"el pipeline
+> queda rojo"— ya no aplica: el workflow pasa `--no-fatal-infos` y los últimos
+> runs de CI están en verde.
 
 ---
 
@@ -46,7 +44,7 @@ repo de que se haya mitigado; verificar en GitHub Actions.
 | `bundled_fonts_test.dart` | 2 | Fuentes empaquetadas |
 | `l10n_encoding_test.dart` | 1 | Codificación ARB |
 | `widget_test.dart` | 1 | Arranque sin sesión → Welcome |
-| Golden (`glass_card`, `rpg_chips`, `segmented_bar`) | 3 | Widgets base |
+| `test/golden/` (estructura + guard de tokens + 1 pixel-golden) | 16 | Design system: `GlassCard`, chips RPG, `SegmentedBar` y paleta/radios/tipografías |
 
 ### Qué **no** está cubierto
 
@@ -116,7 +114,7 @@ No se midió tiempo de arranque, FPS ni memoria (requiere dispositivo).
 | Archivo más grande | `lesson_catalog.dart` (4.600+ líneas de datos) |
 | Widgets > 1.000 líneas | `conversation_screen.dart` (1.462), `settings_screen.dart` (1.361), `chat_rooms_screen.dart` (1.227), `voice_room_screen.dart` (1.171), `onboarding_screen.dart` (966) |
 | Dependencias sin uso | 13 |
-| Código muerto señalado por el analyzer | ~10 warnings de `dead_code` |
+| Código muerto señalado por el analyzer | 0 warnings (todo `info` tras el baseline de P-17) |
 | Duplicación de lógica | CEFR→rango en 3 sitios; two "completada"; dos rachas; dos barras de maná |
 | Documentación vs código | Deriva confirmada en al menos 8 puntos (docs 02, 05, 08, 10) |
 
@@ -153,4 +151,5 @@ están en la cobertura de fórmulas, sino en:
 1. la **ausencia de observabilidad** (errores y costes),
 2. los **silencios** (`catch (_) {}`) que ocultan fallos reales,
 3. la **deriva** entre documentación, repo y producción,
-4. y el **pipeline en rojo** por warnings.
+4. y la **red de regresión visual** (desde #207: aserciones estructurales +
+   un pixel-golden libre de texto; `docs/runbooks/QUALITY_TESTS.md`).
