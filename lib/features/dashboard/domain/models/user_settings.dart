@@ -1,3 +1,5 @@
+import '../../../notifications/domain/models/reminder_settings.dart';
+
 class UserSettings {
   final String correctionLevel;
   final String correctionStyle;
@@ -5,6 +7,9 @@ class UserSettings {
   final int dailyGoalMinutes;
   final bool notificationsEnabled;
   final String notificationTime;
+
+  /// Dias ISO del recordatorio diario (1 = lunes ... 7 = domingo).
+  final List<int> notificationDays;
   final List<String> interests;
   final String motivation;
 
@@ -15,6 +20,7 @@ class UserSettings {
     required this.dailyGoalMinutes,
     required this.notificationsEnabled,
     required this.notificationTime,
+    this.notificationDays = ReminderSettings.everyDay,
     this.interests = const [],
     this.motivation = '',
   });
@@ -27,6 +33,7 @@ class UserSettings {
       dailyGoalMinutes: 15,
       notificationsEnabled: false,
       notificationTime: '20:00:00',
+      notificationDays: ReminderSettings.everyDay,
     );
   }
 
@@ -38,6 +45,9 @@ class UserSettings {
       dailyGoalMinutes: json['daily_goal_minutes'] as int? ?? 15,
       notificationsEnabled: json['notifications_enabled'] as bool? ?? false,
       notificationTime: json['notification_time'] as String? ?? '20:00:00',
+      notificationDays: ReminderSettings.normalizeDays(
+        json['notification_days'],
+      ),
       interests: List<String>.from(json['interests'] ?? []),
       motivation: json['motivation'] as String? ?? '',
     );
@@ -51,6 +61,7 @@ class UserSettings {
       'daily_goal_minutes': dailyGoalMinutes,
       'notifications_enabled': notificationsEnabled,
       'notification_time': notificationTime,
+      'notification_days': notificationDays,
       'interests': interests,
       'motivation': motivation,
     };
@@ -63,6 +74,7 @@ class UserSettings {
     int? dailyGoalMinutes,
     bool? notificationsEnabled,
     String? notificationTime,
+    List<int>? notificationDays,
     List<String>? interests,
     String? motivation,
   }) {
@@ -73,6 +85,7 @@ class UserSettings {
       dailyGoalMinutes: dailyGoalMinutes ?? this.dailyGoalMinutes,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       notificationTime: notificationTime ?? this.notificationTime,
+      notificationDays: notificationDays ?? this.notificationDays,
       interests: interests ?? this.interests,
       motivation: motivation ?? this.motivation,
     );

@@ -11,6 +11,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../economy/presentation/widgets/session_drop_controller.dart';
+import '../../../notifications/presentation/widgets/notification_permission_prompt.dart';
 import '../providers/dashboard_providers.dart';
 
 /// Resumen post-sesión de conversación.
@@ -30,12 +31,19 @@ class SessionSummaryScreen extends ConsumerWidget {
     final sessionResult = ref.watch(sessionResultProvider);
     final messages = convState.messages;
     final userMsgs = messages.where((m) => m.sender == 'user').toList();
-    final wordCount = userMsgs.fold(0, (sum, m) =>
-        sum + m.text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length);
+    final wordCount = userMsgs.fold(
+      0,
+      (sum, m) =>
+          sum +
+          m.text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length,
+    );
 
     final double fluencyVal = userMsgs.isEmpty
         ? 0.85
-        : math.min(0.98, math.max(0.70, 0.78 + (wordCount > 20 ? 0.15 : wordCount * 0.005)));
+        : math.min(
+            0.98,
+            math.max(0.70, 0.78 + (wordCount > 20 ? 0.15 : wordCount * 0.005)),
+          );
     final int fluencyPct = (fluencyVal * 100).round();
 
     final double pronVal = userMsgs.isEmpty
@@ -48,8 +56,9 @@ class SessionSummaryScreen extends ConsumerWidget {
         .toList();
 
     final int? resultMinutes = (sessionResult?['minutes'] as num?)?.toInt();
-    final String durationLabel =
-        (resultMinutes == null || resultMinutes <= 0) ? '—' : '${resultMinutes}m';
+    final String durationLabel = (resultMinutes == null || resultMinutes <= 0)
+        ? '—'
+        : '${resultMinutes}m';
 
     final bool hasData = userMsgs.isNotEmpty;
 
@@ -101,20 +110,32 @@ class SessionSummaryScreen extends ConsumerWidget {
 
           // Drop sorpresa de fin de sesión (aplica XP + notificación épica).
           SessionDropController(
-            completedGoals: convState.goalEvaluationResults.values.where((v) => v).length,
+            completedGoals: convState.goalEvaluationResults.values
+                .where((v) => v)
+                .length,
           ),
+
+          // Issue #106: tras la primera lección completada se ofrece el
+          // recordatorio diario (pantalla previa antes del permiso Android 13+).
+          const NotificationPermissionPrompt(),
 
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 16.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ── Cabecera compacta ──────────────────────────────────────
                   Row(
                     children: [
-                      _RoundIconButton(icon: Icons.arrow_back_rounded, onTap: goHome),
+                      _RoundIconButton(
+                        icon: Icons.arrow_back_rounded,
+                        onTap: goHome,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -122,7 +143,10 @@ class SessionSummaryScreen extends ConsumerWidget {
                           style: AppTypography.title(context),
                         ),
                       ),
-                      _StatusPill(label: l10n.session_completed, color: AppColors.runeViolet),
+                      _StatusPill(
+                        label: l10n.session_completed,
+                        color: AppColors.runeViolet,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -259,8 +283,11 @@ class SessionSummaryScreen extends ConsumerWidget {
                   // ── Retroalimentación y correcciones ──────────────────────
                   Row(
                     children: [
-                      const Icon(Icons.error_outline_rounded,
-                          color: AppColors.errorRed, size: 18),
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: AppColors.errorRed,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         l10n.session_feedback,
@@ -284,17 +311,23 @@ class SessionSummaryScreen extends ConsumerWidget {
                       accentColor: AppColors.manaCyan,
                     )
                   else
-                    ...corrections.take(3).map((c) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _buildSummaryCorrectionCard(
-                            context,
-                            originalText: c.originalText ?? c.text,
-                            correctedText: c.text,
-                            category: l10n.session_correction,
-                            tag: c.correctionExplanation ?? l10n.session_grammar,
-                            accentColor: AppColors.runeViolet,
+                    ...corrections
+                        .take(3)
+                        .map(
+                          (c) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _buildSummaryCorrectionCard(
+                              context,
+                              originalText: c.originalText ?? c.text,
+                              correctedText: c.text,
+                              category: l10n.session_correction,
+                              tag:
+                                  c.correctionExplanation ??
+                                  l10n.session_grammar,
+                              accentColor: AppColors.runeViolet,
+                            ),
                           ),
-                        )),
+                        ),
                   const SizedBox(height: 24),
 
                   // ── Recompensas + acciones ─────────────────────────────────
@@ -349,21 +382,32 @@ class SessionSummaryScreen extends ConsumerWidget {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                icon: const Icon(Icons.menu_book_rounded, size: 16),
+                                icon: const Icon(
+                                  Icons.menu_book_rounded,
+                                  size: 16,
+                                ),
                                 label: Text(l10n.summary_view_vocab),
                                 onPressed: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(l10n.summary_vocab_saved)),
+                                    SnackBar(
+                                      content: Text(l10n.summary_vocab_saved),
+                                    ),
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.runeViolet,
                                   side: BorderSide(
-                                    color: AppColors.runeViolet.withValues(alpha: 0.35),
+                                    color: AppColors.runeViolet.withValues(
+                                      alpha: 0.35,
+                                    ),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.sm,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -377,9 +421,13 @@ class SessionSummaryScreen extends ConsumerWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.runeViolet,
                                   foregroundColor: AppColors.onSurface,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.sm,
+                                    ),
                                   ),
                                   elevation: 3,
                                 ),
@@ -408,7 +456,8 @@ class SessionSummaryScreen extends ConsumerWidget {
   Widget _buildNextLessonButton(BuildContext context, dynamic convState) {
     final l10n = AppLocalizations.of(context)!;
     final scenarioId = convState?.activeScenarioId as String?;
-    if (scenarioId == null || scenarioId.isEmpty) return const SizedBox.shrink();
+    if (scenarioId == null || scenarioId.isEmpty)
+      return const SizedBox.shrink();
 
     final current = LessonCatalog.getLessonById(
       scenarioId,
@@ -420,7 +469,8 @@ class SessionSummaryScreen extends ConsumerWidget {
         .where((l) => l.level.toUpperCase() == current.level.toUpperCase())
         .toList();
     final idx = levelLessons.indexWhere((l) => l.id == current.id);
-    if (idx < 0 || idx >= levelLessons.length - 1) return const SizedBox.shrink();
+    if (idx < 0 || idx >= levelLessons.length - 1)
+      return const SizedBox.shrink();
 
     final next = levelLessons[idx + 1];
 
@@ -467,14 +517,19 @@ class SessionSummaryScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const _RoundIconButton(icon: Icons.close_rounded, color: AppColors.errorRed, size: 24, iconSize: 14),
+              const _RoundIconButton(
+                icon: Icons.close_rounded,
+                color: AppColors.errorRed,
+                size: 24,
+                iconSize: 14,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   originalText,
-                  style: AppTypography.bodyMuted(context).copyWith(
-                    decoration: TextDecoration.lineThrough,
-                  ),
+                  style: AppTypography.bodyMuted(
+                    context,
+                  ).copyWith(decoration: TextDecoration.lineThrough),
                 ),
               ),
             ],
@@ -482,12 +537,19 @@ class SessionSummaryScreen extends ConsumerWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              const _RoundIconButton(icon: Icons.arrow_forward_rounded, color: AppColors.manaCyan, size: 24, iconSize: 14),
+              const _RoundIconButton(
+                icon: Icons.arrow_forward_rounded,
+                color: AppColors.manaCyan,
+                size: 24,
+                iconSize: 14,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   correctedText,
-                  style: AppTypography.body(context).copyWith(fontWeight: FontWeight.w600),
+                  style: AppTypography.body(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -503,10 +565,9 @@ class SessionSummaryScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   category,
-                  style: AppTypography.tiny(context).copyWith(
-                    color: accentColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTypography.tiny(
+                    context,
+                  ).copyWith(color: accentColor, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(width: 8),
@@ -516,10 +577,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                   color: AppColors.onSurface.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
-                child: Text(
-                  tag,
-                  style: AppTypography.tiny(context),
-                ),
+                child: Text(tag, style: AppTypography.tiny(context)),
               ),
             ],
           ),
@@ -557,7 +615,11 @@ class _RoundIconButton extends StatelessWidget {
           child: SizedBox(
             width: size,
             height: size,
-            child: Icon(icon, color: color ?? AppColors.onSurface, size: iconSize),
+            child: Icon(
+              icon,
+              color: color ?? AppColors.onSurface,
+              size: iconSize,
+            ),
           ),
         ),
       ),
@@ -624,10 +686,9 @@ class _CompactRing extends StatelessWidget {
         child: Center(
           child: Text(
             label,
-            style: AppTypography.stat(context).copyWith(
-              color: color,
-              fontSize: 16,
-            ),
+            style: AppTypography.stat(
+              context,
+            ).copyWith(color: color, fontSize: 16),
           ),
         ),
       ),
@@ -681,10 +742,7 @@ class _MetricCell extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  label,
-                  style: AppTypography.tiny(context),
-                ),
+                Text(label, style: AppTypography.tiny(context)),
               ],
             ),
           ),
@@ -748,10 +806,9 @@ class _SkillBarRow extends StatelessWidget {
           child: Text(
             '~$percent%',
             textAlign: TextAlign.right,
-            style: AppTypography.stat(context).copyWith(
-              color: color,
-              fontSize: 12,
-            ),
+            style: AppTypography.stat(
+              context,
+            ).copyWith(color: color, fontSize: 12),
           ),
         ),
       ],
@@ -795,10 +852,7 @@ class _RewardChip extends StatelessWidget {
               value,
               style: AppTypography.subtitle(context).copyWith(fontSize: 15),
             ),
-            Text(
-              label,
-              style: AppTypography.tiny(context),
-            ),
+            Text(label, style: AppTypography.tiny(context)),
           ],
         ),
       ],
@@ -827,10 +881,7 @@ class _MiniTag extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 12),
           const SizedBox(width: 4),
-          Text(
-            text,
-            style: AppTypography.tiny(context).copyWith(color: color),
-          ),
+          Text(text, style: AppTypography.tiny(context).copyWith(color: color)),
         ],
       ),
     );

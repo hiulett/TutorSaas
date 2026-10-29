@@ -6027,6 +6027,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will learn English. You can change the interface language in Settings.'**
   String get onboarding_english_only;
+
+  /// No description provided for @notif_settings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY REMINDER'**
+  String get notif_settings_title;
+
+  /// No description provided for @notif_settings_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'One reminder a day, at the time you choose. Never at night.'**
+  String get notif_settings_desc;
+
+  /// No description provided for @notif_time_label.
+  ///
+  /// In en, this message translates to:
+  /// **'REMINDER TIME'**
+  String get notif_time_label;
+
+  /// No description provided for @notif_days_label.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE DAYS'**
+  String get notif_days_label;
+
+  /// No description provided for @notif_quiet_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet hours are 22:00-08:00, so the reminder moved to 08:00.'**
+  String get notif_quiet_hours;
+
+  /// No description provided for @notif_time_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set for {time}.'**
+  String notif_time_updated(String time);
+
+  /// No description provided for @notif_permission_denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked. Allow them in Android settings > Apps > Dungeon of English > Notifications.'**
+  String get notif_permission_denied;
+
+  /// No description provided for @notif_permission_open_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN ANDROID SETTINGS'**
+  String get notif_permission_open_settings;
+
+  /// No description provided for @notif_prompt_title.
+  ///
+  /// In en, this message translates to:
+  /// **'DON\'T LOSE YOUR STREAK'**
+  String get notif_prompt_title;
+
+  /// No description provided for @notif_prompt_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on one daily reminder and we will nudge you at the time you choose. You can change it or turn it off in Settings.'**
+  String get notif_prompt_body;
+
+  /// No description provided for @notif_prompt_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'TURN IT ON'**
+  String get notif_prompt_accept;
+
+  /// No description provided for @notif_prompt_later.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT NOW'**
+  String get notif_prompt_later;
+
+  /// No description provided for @notif_enabled_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder armed.'**
+  String get notif_enabled_ok;
+
+  /// No description provided for @notif_save_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the reminder. Check your connection and try again.'**
+  String get notif_save_error;
+
+  /// No description provided for @notif_reminder_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak awaits'**
+  String get notif_reminder_title;
+
+  /// No description provided for @notif_reminder_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A short raid today keeps the streak alive. Your tutor is ready.'**
+  String get notif_reminder_body;
 }
 
 class _AppLocalizationsDelegate

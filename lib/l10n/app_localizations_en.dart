@@ -3260,4 +3260,60 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboarding_english_only =>
       'You will learn English. You can change the interface language in Settings.';
+
+  @override
+  String get notif_settings_title => 'DAILY REMINDER';
+
+  @override
+  String get notif_settings_desc =>
+      'One reminder a day, at the time you choose. Never at night.';
+
+  @override
+  String get notif_time_label => 'REMINDER TIME';
+
+  @override
+  String get notif_days_label => 'ACTIVE DAYS';
+
+  @override
+  String get notif_quiet_hours =>
+      'Quiet hours are 22:00-08:00, so the reminder moved to 08:00.';
+
+  @override
+  String notif_time_updated(String time) {
+    return 'Reminder set for $time.';
+  }
+
+  @override
+  String get notif_permission_denied =>
+      'Notifications are blocked. Allow them in Android settings > Apps > Dungeon of English > Notifications.';
+
+  @override
+  String get notif_permission_open_settings => 'OPEN ANDROID SETTINGS';
+
+  @override
+  String get notif_prompt_title => 'DON\'T LOSE YOUR STREAK';
+
+  @override
+  String get notif_prompt_body =>
+      'Turn on one daily reminder and we will nudge you at the time you choose. You can change it or turn it off in Settings.';
+
+  @override
+  String get notif_prompt_accept => 'TURN IT ON';
+
+  @override
+  String get notif_prompt_later => 'NOT NOW';
+
+  @override
+  String get notif_enabled_ok => 'Daily reminder armed.';
+
+  @override
+  String get notif_save_error =>
+      'Could not save the reminder. Check your connection and try again.';
+
+  @override
+  String get notif_reminder_title => 'Your streak awaits';
+
+  @override
+  String get notif_reminder_body =>
+      'A short raid today keeps the streak alive. Your tutor is ready.';
 }
