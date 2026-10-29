@@ -6,19 +6,26 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/glass_card.dart';
-import '../../../../core/widgets/segmented_bar.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
+import '../../domain/models/session_learned_summary.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../economy/presentation/widgets/session_drop_controller.dart';
 import '../../../notifications/presentation/widgets/notification_permission_prompt.dart';
+import '../../../vocabulary/presentation/widgets/srs_flashcard_modal.dart';
 import '../providers/dashboard_providers.dart';
 
-/// Resumen post-sesión de conversación.
+/// Resumen post-sesión de conversación (issue #113, P-28).
 ///
-/// Diseño bento-grid compacto (MV-2026): un hero con el anillo principal,
-/// una cuadrícula 2×2 de métricas pequeñas, barras segmentadas de habilidad
-/// (HUD) y acciones discretas — todo con tokens de DS y radio estándar 4px.
+/// Todo lo que se muestra viene de datos reales:
+/// * Recompensa: `apply_session_rewards` (XP/oro/fragmentos) con estados de
+///   confirmación y error accionable.
+/// * «Qué aprendiste»: RPC `get_session_learned_summary` (palabras nuevas y
+///   repasadas, correcciones y foco recomendado). Si no hay datos, lo dice.
+/// * Metas cumplidas/total, duración y turnos de la propia sesión.
+///
+/// No se calculan porcentajes locales: si falta un dato se muestra «—» o el
+/// mensaje explícito de «sin datos suficientes».
 class SessionSummaryScreen extends ConsumerWidget {
   const SessionSummaryScreen({super.key});
 
@@ -26,11 +33,13 @@ class SessionSummaryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
 
-    // ── Métricas dinámicas desde el estado de la conversación ────────────────
     final convState = ref.watch(conversationStateProvider);
-    final sessionResult = ref.watch(sessionResultProvider);
-    final messages = convState.messages;
-    final userMsgs = messages.where((m) => m.sender == 'user').toList();
+    final sessionAsync = ref.watch(sessionResultProvider);
+    final sessionResult = sessionAsync.valueOrNull;
+
+    final userMsgs = convState.messages
+        .where((m) => m.sender == 'user')
+        .toList();
     final wordCount = userMsgs.fold(
       0,
       (sum, m) =>
@@ -38,35 +47,35 @@ class SessionSummaryScreen extends ConsumerWidget {
           m.text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length,
     );
 
-    final double fluencyVal = userMsgs.isEmpty
-        ? 0.85
-        : math.min(
-            0.98,
-            math.max(0.70, 0.78 + (wordCount > 20 ? 0.15 : wordCount * 0.005)),
-          );
-    final int fluencyPct = (fluencyVal * 100).round();
+    // Conversación de esta sesión. `session_id` es el id real cuando la sesión
+    // dejó recompensa; si no, se usa el id activo de la conversación.
+    final conversationId =
+        _uuidOrNull(sessionResult?['session_id']) ??
+        _uuidOrNull(ref.watch(activeConversationIdProvider));
+    final since = _sessionStart(sessionResult);
+    final learnedKey = conversationId == null
+        ? null
+        : (conversationId: conversationId, since: since);
 
-    final double pronVal = userMsgs.isEmpty
-        ? 0.80
-        : math.min(0.96, math.max(0.72, 0.75 + (userMsgs.length * 0.03)));
-    final int pronPct = (pronVal * 100).round();
+    final learnedAsync = learnedKey == null
+        ? const AsyncValue<LearnedSummaryData>.data(LearnedSummaryData.empty)
+        : ref.watch(sessionLearnedSummaryProvider(learnedKey));
 
-    final corrections = userMsgs
-        .where((m) => m.originalText != null && m.originalText!.isNotEmpty)
-        .toList();
+    final lesson = LessonCatalog.getLessonById(
+      convState.activeScenarioId,
+      title: convState.activeScenarioName,
+    );
 
-    final int? resultMinutes = (sessionResult?['minutes'] as num?)?.toInt();
-    final String durationLabel = (resultMinutes == null || resultMinutes <= 0)
-        ? '—'
-        : '${resultMinutes}m';
-
-    final bool hasData = userMsgs.isNotEmpty;
-
-    final int xpEarned = (sessionResult?['xp'] as num?)?.toInt() ?? 0;
-    final int goldEarned = (sessionResult?['gold'] as num?)?.toInt() ?? 0;
-    final int fragmentsEarned =
-        (sessionResult?['fragments'] as num?)?.toInt() ?? 0;
-    final bool rewardApplied = sessionResult?['reward_applied'] == true;
+    final view = SessionSummaryView.from(
+      sessionResult: sessionResult,
+      learned: learnedAsync.valueOrNull ?? LearnedSummaryData.empty,
+      inMemoryGoalsCompleted: convState.goalEvaluationResults.values
+          .where((v) => v)
+          .length,
+      inMemoryTurns: userMsgs.length,
+      inMemoryWords: wordCount,
+      catalogGoalsTotal: lesson?.goals.length,
+    );
 
     void goHome() {
       ref.read(dashboardRefreshProvider.notifier).state++;
@@ -109,14 +118,10 @@ class SessionSummaryScreen extends ConsumerWidget {
           ),
 
           // Drop sorpresa de fin de sesión (aplica XP + notificación épica).
-          SessionDropController(
-            completedGoals: convState.goalEvaluationResults.values
-                .where((v) => v)
-                .length,
-          ),
+          SessionDropController(completedGoals: view.goalsCompleted),
 
-          // Issue #106: tras la primera lección completada se ofrece el
-          // recordatorio diario (pantalla previa antes del permiso Android 13+).
+          // Issue #106: tras la primera lecciÃ³n completada se ofrece el
+          // recordatorio diario (pantalla previa del permiso Android 13+).
           const NotificationPermissionPrompt(),
 
           SafeArea(
@@ -129,7 +134,7 @@ class SessionSummaryScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Cabecera compacta ──────────────────────────────────────
+                  // ── Cabecera compacta ─────────────────────────────────────
                   Row(
                     children: [
                       _RoundIconButton(
@@ -151,7 +156,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // ── Hero: anillo principal + titular ──────────────────────
+                  // ── Hero: metas cumplidas + resumen real ──────────────────
                   GlassCard(
                     blur: 16,
                     opacity: AppColors.glassOpacity,
@@ -160,10 +165,10 @@ class SessionSummaryScreen extends ConsumerWidget {
                     child: Row(
                       children: [
                         _CompactRing(
-                          value: fluencyVal,
-                          color: AppColors.manaCyan,
+                          value: view.goalsRatio,
+                          color: AppColors.emeraldGreen,
                           size: 76,
-                          label: '~$fluencyPct%',
+                          label: view.goalsTotal > 0 ? view.goalsLabel : '—',
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -176,7 +181,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                hasData
+                                view.hasSessionData
                                     ? l10n.session_words_spoken(wordCount)
                                     : l10n.session_ready,
                                 style: AppTypography.bodyMuted(context),
@@ -189,12 +194,16 @@ class SessionSummaryScreen extends ConsumerWidget {
                                   _MiniTag(
                                     icon: Icons.record_voice_over_rounded,
                                     color: AppColors.runeViolet,
-                                    text: '${userMsgs.length} turnos',
+                                    text: l10n.summary_turns_value(
+                                      userMsgs.length,
+                                    ),
                                   ),
                                   _MiniTag(
-                                    icon: Icons.check_circle_rounded,
+                                    icon: Icons.gps_fixed_rounded,
                                     color: AppColors.emeraldGreen,
-                                    text: '~$pronPct% precisión',
+                                    text: view.goalsTotal > 0
+                                        ? view.goalsLabel
+                                        : '—',
                                   ),
                                 ],
                               ),
@@ -206,235 +215,36 @@ class SessionSummaryScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Cuadrícula 2×2 de métricas compactas ──────────────────
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _MetricCell(
-                          icon: Icons.timer_outlined,
-                          color: AppColors.manaCyan,
-                          value: durationLabel,
-                          label: l10n.session_duration,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _MetricCell(
-                          icon: Icons.abc_rounded,
-                          color: AppColors.runeViolet,
-                          value: '$wordCount',
-                          label: l10n.session_words,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _MetricCell(
-                          icon: Icons.gps_fixed_rounded,
-                          color: AppColors.emeraldGreen,
-                          value: '~$pronPct%',
-                          label: l10n.session_accuracy,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _MetricCell(
-                          icon: Icons.bolt_rounded,
-                          color: AppColors.royalGold,
-                          value: rewardApplied ? '+$xpEarned' : '—',
-                          label: 'XP',
-                        ),
-                      ),
-                    ],
+                  // ── Cuadrícula 2×2 de métricas reales ─────────────────────
+                  _buildMetricsGrid(context, l10n, view),
+                  const SizedBox(height: 16),
+
+                  // ── Qué aprendiste ────────────────────────────────────────
+                  _buildLearnedCard(
+                    context,
+                    l10n,
+                    view,
+                    learnedAsync,
+                    onRetry: learnedKey == null
+                        ? null
+                        : () => ref.invalidate(
+                            sessionLearnedSummaryProvider(learnedKey),
+                          ),
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Habilidades: barras segmentadas compactas ─────────────
-                  GlassCard(
-                    blur: 16,
-                    opacity: AppColors.glassOpacity,
-                    borderColor: AppColors.runeViolet.withValues(alpha: 0.2),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _SkillBarRow(
-                          icon: Icons.waves_rounded,
-                          color: AppColors.manaCyan,
-                          label: l10n.session_fluency,
-                          value: fluencyVal,
-                          percent: fluencyPct,
-                        ),
-                        const SizedBox(height: 14),
-                        _SkillBarRow(
-                          icon: Icons.record_voice_over_rounded,
-                          color: AppColors.runeViolet,
-                          label: l10n.session_pronunciation,
-                          value: pronVal,
-                          percent: pronPct,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ── Retroalimentación y correcciones ──────────────────────
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.error_outline_rounded,
-                        color: AppColors.errorRed,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.session_feedback,
-                        style: AppTypography.title(context),
-                      ),
-                    ],
+                  // ── Recompensas + acciones ────────────────────────────────
+                  _buildRewardsCard(
+                    context,
+                    ref,
+                    l10n,
+                    view,
+                    sessionAsync,
+                    onDone: goHome,
                   ),
                   const SizedBox(height: 12),
-
-                  if (corrections.isEmpty)
-                    _buildSummaryCorrectionCard(
-                      context,
-                      originalText: hasData
-                          ? l10n.session_excellent_performance
-                          : l10n.session_ready_first,
-                      correctedText: hasData
-                          ? l10n.session_no_errors
-                          : l10n.session_talk_tutor,
-                      category: l10n.session_performance,
-                      tag: l10n.session_excellent,
-                      accentColor: AppColors.manaCyan,
-                    )
-                  else
-                    ...corrections
-                        .take(3)
-                        .map(
-                          (c) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _buildSummaryCorrectionCard(
-                              context,
-                              originalText: c.originalText ?? c.text,
-                              correctedText: c.text,
-                              category: l10n.session_correction,
-                              tag:
-                                  c.correctionExplanation ??
-                                  l10n.session_grammar,
-                              accentColor: AppColors.runeViolet,
-                            ),
-                          ),
-                        ),
-                  const SizedBox(height: 24),
-
-                  // ── Recompensas + acciones ─────────────────────────────────
-                  GlassCard(
-                    blur: 20,
-                    opacity: AppColors.glassOpacity,
-                    borderColor: AppColors.royalGold.withValues(alpha: 0.2),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Wrap(
-                          alignment: WrapAlignment.spaceAround,
-                          spacing: 16,
-                          runSpacing: 10,
-                          children: [
-                            _RewardChip(
-                              icon: Icons.star_rounded,
-                              color: AppColors.runeViolet,
-                              value: rewardApplied ? '+$xpEarned XP' : '—',
-                              label: 'XP',
-                            ),
-                            _RewardChip(
-                              icon: Icons.monetization_on_rounded,
-                              color: AppColors.royalGold,
-                              value: rewardApplied ? '+$goldEarned' : '—',
-                              label: l10n.summary_reward_gold,
-                            ),
-                            _RewardChip(
-                              icon: Icons.auto_awesome_rounded,
-                              color: AppColors.emeraldGreen,
-                              value: rewardApplied ? '+$fragmentsEarned' : '—',
-                              label: l10n.summary_reward_fragments,
-                            ),
-                          ],
-                        ),
-                        if (!rewardApplied) ...[
-                          const SizedBox(height: 12),
-                          Text(
-                            l10n.summary_reward_pending,
-                            textAlign: TextAlign.center,
-                            style: AppTypography.bodyMuted(context),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-                        Divider(
-                          color: AppColors.onSurface.withValues(alpha: 0.08),
-                          height: 1,
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                icon: const Icon(
-                                  Icons.menu_book_rounded,
-                                  size: 16,
-                                ),
-                                label: Text(l10n.summary_view_vocab),
-                                onPressed: () => _openVocabularySheet(context),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.runeViolet,
-                                  side: BorderSide(
-                                    color: AppColors.runeViolet.withValues(
-                                      alpha: 0.35,
-                                    ),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.sm,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.check_rounded, size: 16),
-                                label: Text(l10n.summary_done),
-                                onPressed: goHome,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.runeViolet,
-                                  foregroundColor: AppColors.onSurface,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.sm,
-                                    ),
-                                  ),
-                                  elevation: 3,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Continuar con la siguiente lección del nivel (si superada).
-                        _buildNextLessonButton(context, convState),
-                      ],
-                    ),
-                  ),
+                  // Continuar con la siguiente lección del nivel (si existe).
+                  _buildNextLessonButton(context, l10n, convState),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -445,13 +255,483 @@ class SessionSummaryScreen extends ConsumerWidget {
     );
   }
 
-  /// Botón "Siguiente lección": navega a la próxima lección desbloqueada del
-  /// mismo nivel CEFR, encadenando el flujo de práctica.
-  Widget _buildNextLessonButton(BuildContext context, dynamic convState) {
-    final l10n = AppLocalizations.of(context)!;
+  // ── Metas y métricas ────────────────────────────────────────────────────────
+
+  Widget _buildMetricsGrid(
+    BuildContext context,
+    AppLocalizations l10n,
+    SessionSummaryView view,
+  ) {
+    final rows = view.metricRows;
+    Widget cell(SummaryMetric metric) {
+      return Expanded(
+        child: _MetricCell(
+          icon: _metricIcon(metric.kind),
+          color: _metricColor(metric.kind),
+          value: _metricValue(l10n, view, metric),
+          label: _metricLabel(l10n, metric.kind),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Row(
+          children: [cell(rows[0]), const SizedBox(width: 10), cell(rows[1])],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [cell(rows[2]), const SizedBox(width: 10), cell(rows[3])],
+        ),
+      ],
+    );
+  }
+
+  IconData _metricIcon(SummaryMetricKind kind) => switch (kind) {
+    SummaryMetricKind.duration => Icons.timer_outlined,
+    SummaryMetricKind.words => Icons.abc_rounded,
+    SummaryMetricKind.goals => Icons.gps_fixed_rounded,
+    SummaryMetricKind.turns => Icons.record_voice_over_rounded,
+  };
+
+  Color _metricColor(SummaryMetricKind kind) => switch (kind) {
+    SummaryMetricKind.duration => AppColors.manaCyan,
+    SummaryMetricKind.words => AppColors.runeViolet,
+    SummaryMetricKind.goals => AppColors.emeraldGreen,
+    SummaryMetricKind.turns => AppColors.royalGold,
+  };
+
+  String _metricLabel(AppLocalizations l10n, SummaryMetricKind kind) =>
+      switch (kind) {
+        SummaryMetricKind.duration => l10n.session_duration,
+        SummaryMetricKind.words => l10n.session_words,
+        SummaryMetricKind.goals => l10n.summary_goals,
+        SummaryMetricKind.turns => l10n.summary_turns,
+      };
+
+  String _metricValue(
+    AppLocalizations l10n,
+    SessionSummaryView view,
+    SummaryMetric metric,
+  ) {
+    if (metric.kind == SummaryMetricKind.duration && view.minutes > 0) {
+      return l10n.summary_learned_minutes_value(view.minutes);
+    }
+    return metric.value;
+  }
+
+  // ── Qué aprendiste ──────────────────────────────────────────────────────────
+
+  Widget _buildLearnedCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    SessionSummaryView view,
+    AsyncValue<LearnedSummaryData> learnedAsync, {
+    required VoidCallback? onRetry,
+  }) {
+    return GlassCard(
+      blur: 16,
+      opacity: AppColors.glassOpacity,
+      borderColor: AppColors.manaCyan.withValues(alpha: 0.2),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            icon: Icons.school_rounded,
+            color: AppColors.manaCyan,
+            text: l10n.summary_learned_title,
+          ),
+          const SizedBox(height: 14),
+          if (learnedAsync.isLoading)
+            Row(
+              children: [
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.summary_learned_loading,
+                    style: AppTypography.bodyMuted(context),
+                  ),
+                ),
+              ],
+            )
+          else if (learnedAsync.hasError)
+            _ErrorRow(
+              message: l10n.summary_learned_error,
+              retryLabel: l10n.summary_retry,
+              onRetry: onRetry,
+            )
+          else
+            ..._buildLearnedBody(context, l10n, view),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildLearnedBody(
+    BuildContext context,
+    AppLocalizations l10n,
+    SessionSummaryView view,
+  ) {
+    final words = view.learned.words;
+    final corrections = view.learned.corrections;
+
+    return [
+      _Label(l10n.summary_learned_words),
+      const SizedBox(height: 8),
+      if (words.isEmpty)
+        Text(
+          l10n.summary_learned_no_words,
+          style: AppTypography.bodyMuted(context),
+        )
+      else
+        ...words.map((word) => _wordRow(context, l10n, word)),
+      const SizedBox(height: 14),
+      _divider(),
+      const SizedBox(height: 12),
+      _Label(l10n.summary_learned_corrections),
+      const SizedBox(height: 8),
+      if (corrections.isEmpty)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.emeraldGreen,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n.summary_learned_no_corrections,
+                style: AppTypography.bodyMuted(context),
+              ),
+            ),
+          ],
+        )
+      else
+        ...corrections.map(
+          (correction) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _buildCorrectionCard(context, l10n, correction),
+          ),
+        ),
+      const SizedBox(height: 4),
+      _divider(),
+      const SizedBox(height: 12),
+      _Label(l10n.summary_learned_focus),
+      const SizedBox(height: 6),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            view.learned.hasFocus
+                ? Icons.my_location_rounded
+                : Icons.hourglass_empty_rounded,
+            color: view.learned.hasFocus
+                ? AppColors.royalGold
+                : AppColors.onSurfaceVariant,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              view.learned.hasFocus
+                  ? view.learned.focus!
+                  : l10n.summary_learned_no_focus,
+              style: view.learned.hasFocus
+                  ? AppTypography.body(context)
+                  : AppTypography.bodyMuted(context),
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _wordRow(
+    BuildContext context,
+    AppLocalizations l10n,
+    LearnedWord word,
+  ) {
+    final color = word.isNew ? AppColors.emeraldGreen : AppColors.manaCyan;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(Icons.translate_rounded, color: color, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  word.word,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.body(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  word.translation,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodyMuted(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _MiniTag(
+            icon: word.isNew ? Icons.add_rounded : Icons.refresh_rounded,
+            color: color,
+            text: word.isNew
+                ? l10n.summary_learned_word_new
+                : l10n.summary_learned_word_review,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCorrectionCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    SessionCorrection correction,
+  ) {
+    return GlassCard(
+      blur: 14,
+      opacity: AppColors.glassOpacity,
+      borderColor: AppColors.runeViolet.withValues(alpha: 0.2),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const _RoundIconButton(
+                icon: Icons.close_rounded,
+                color: AppColors.errorRed,
+                size: 24,
+                iconSize: 14,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  correction.original,
+                  style: AppTypography.bodyMuted(
+                    context,
+                  ).copyWith(decoration: TextDecoration.lineThrough),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const _RoundIconButton(
+                icon: Icons.arrow_forward_rounded,
+                color: AppColors.manaCyan,
+                size: 24,
+                iconSize: 14,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  correction.corrected,
+                  style: AppTypography.body(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          if (correction.explanation != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              correction.explanation!,
+              style: AppTypography.bodyMuted(context),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _Tag(text: l10n.session_correction, color: AppColors.runeViolet),
+              const SizedBox(width: 8),
+              Flexible(
+                child: _Tag(
+                  text: correction.errorType ?? l10n.session_grammar,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Recompensa + acciones ───────────────────────────────────────────────────
+
+  Widget _buildRewardsCard(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    SessionSummaryView view,
+    AsyncValue<Map<String, dynamic>?> sessionAsync, {
+    required VoidCallback onDone,
+  }) {
+    final hasWords = view.learned.hasWords;
+
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      borderColor: AppColors.royalGold.withValues(alpha: 0.2),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceAround,
+            spacing: 16,
+            runSpacing: 10,
+            children: [
+              _RewardChip(
+                icon: Icons.star_rounded,
+                color: AppColors.runeViolet,
+                value: view.xpLabel,
+                label: 'XP',
+              ),
+              _RewardChip(
+                icon: Icons.monetization_on_rounded,
+                color: AppColors.royalGold,
+                value: view.goldLabel,
+                label: l10n.summary_reward_gold,
+              ),
+              _RewardChip(
+                icon: Icons.auto_awesome_rounded,
+                color: AppColors.emeraldGreen,
+                value: view.fragmentsLabel,
+                label: l10n.summary_reward_fragments,
+              ),
+            ],
+          ),
+          if (sessionAsync.isLoading) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    l10n.summary_reward_loading,
+                    style: AppTypography.bodyMuted(context),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (sessionAsync.hasError) ...[
+            const SizedBox(height: 12),
+            _ErrorRow(
+              message: l10n.summary_reward_error,
+              retryLabel: l10n.summary_retry,
+              onRetry: () => ref.read(sessionResultProvider.notifier).retry(),
+            ),
+          ] else if (!view.rewardApplied) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.summary_reward_pending,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMuted(context),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton.icon(
+                icon: const Icon(Icons.refresh_rounded, size: 16),
+                label: Text(l10n.summary_retry),
+                onPressed: () =>
+                    ref.read(sessionResultProvider.notifier).retry(),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Divider(
+            color: AppColors.onSurface.withValues(alpha: 0.08),
+            height: 1,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.menu_book_rounded, size: 16),
+                  label: Text(
+                    l10n.summary_review_words,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  // Sin palabras reales no se abre un repaso vacío.
+                  onPressed: hasWords
+                      ? () => SrsFlashcardModal.show(context, view.srsItems)
+                      : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.runeViolet,
+                    side: BorderSide(
+                      color: AppColors.runeViolet.withValues(alpha: 0.35),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check_rounded, size: 16),
+                  label: Text(l10n.summary_done),
+                  onPressed: onDone,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.runeViolet,
+                    foregroundColor: AppColors.onSurface,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    elevation: 3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Botón "Siguiente lección": navega a la próxima lección del mismo nivel
+  /// CEFR. Si no existe, no se pinta (criterio del issue #113).
+  Widget _buildNextLessonButton(
+    BuildContext context,
+    AppLocalizations l10n,
+    dynamic convState,
+  ) {
     final scenarioId = convState?.activeScenarioId as String?;
-    if (scenarioId == null || scenarioId.isEmpty)
+    if (scenarioId == null || scenarioId.isEmpty) {
       return const SizedBox.shrink();
+    }
 
     final current = LessonCatalog.getLessonById(
       scenarioId,
@@ -463,8 +743,9 @@ class SessionSummaryScreen extends ConsumerWidget {
         .where((l) => l.level.toUpperCase() == current.level.toUpperCase())
         .toList();
     final idx = levelLessons.indexWhere((l) => l.id == current.id);
-    if (idx < 0 || idx >= levelLessons.length - 1)
+    if (idx < 0 || idx >= levelLessons.length - 1) {
       return const SizedBox.shrink();
+    }
 
     final next = levelLessons[idx + 1];
 
@@ -493,95 +774,128 @@ class SessionSummaryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryCorrectionCard(
-    BuildContext context, {
-    required String originalText,
-    required String correctedText,
-    required String category,
-    required String tag,
-    required Color accentColor,
-  }) {
-    return GlassCard(
-      blur: 14,
-      opacity: AppColors.glassOpacity,
-      borderColor: accentColor.withValues(alpha: 0.2),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const _RoundIconButton(
-                icon: Icons.close_rounded,
-                color: AppColors.errorRed,
-                size: 24,
-                iconSize: 14,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  originalText,
-                  style: AppTypography.bodyMuted(
-                    context,
-                  ).copyWith(decoration: TextDecoration.lineThrough),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const _RoundIconButton(
-                icon: Icons.arrow_forward_rounded,
-                color: AppColors.manaCyan,
-                size: 24,
-                iconSize: 14,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  correctedText,
-                  style: AppTypography.body(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-                child: Text(
-                  category,
-                  style: AppTypography.tiny(
-                    context,
-                  ).copyWith(color: accentColor, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.onSurface.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-                child: Text(tag, style: AppTypography.tiny(context)),
-              ),
-            ],
-          ),
-        ],
-      ),
+  Widget _divider() =>
+      Divider(color: AppColors.onSurface.withValues(alpha: 0.08), height: 1);
+}
+
+/// Inicio de la sesión: lo persiste el cierre de la conversación. Si el resumen
+/// se abrió sin sesión previa, se usa una ventana conservadora de 3 horas.
+DateTime _sessionStart(Map<String, dynamic>? sessionResult) {
+  final raw = sessionResult?['started_at'];
+  if (raw is String) {
+    final parsed = DateTime.tryParse(raw);
+    if (parsed != null) return parsed;
+  }
+  return DateTime.now().subtract(const Duration(hours: 3));
+}
+
+/// Solo se consulta la RPC con un id de conversación real (uuid). Las sesiones
+/// locales (`local_...`) y los ids sintéticos de recompensa no existen en BD.
+String? _uuidOrNull(Object? value) {
+  if (value is! String) return null;
+  final trimmed = value.trim();
+  final isUuid = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  ).hasMatch(trimmed);
+  return isUuid ? trimmed : null;
+}
+
+// ── Sub-widgets compactos ─────────────────────────────────────────────────────
+
+/// Título de sección (icono + texto).
+class _SectionTitle extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String text;
+
+  const _SectionTitle({
+    required this.icon,
+    required this.color,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, style: AppTypography.title(context))),
+      ],
     );
   }
 }
 
-// ── Sub-widgets compactos ─────────────────────────────────────────────────────
+/// Etiqueta mono en mayúsculas.
+class _Label extends StatelessWidget {
+  final String text;
+
+  const _Label(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text, style: AppTypography.label(context));
+  }
+}
+
+/// Fila de error accionable con botón de reintento.
+class _ErrorRow extends StatelessWidget {
+  final String message;
+  final String retryLabel;
+  final VoidCallback? onRetry;
+
+  const _ErrorRow({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(
+          Icons.error_outline_rounded,
+          color: AppColors.errorRed,
+          size: 16,
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Text(message, style: AppTypography.bodyMuted(context))),
+        if (onRetry != null)
+          TextButton(onPressed: onRetry, child: Text(retryLabel)),
+      ],
+    );
+  }
+}
+
+/// Pill de etiqueta pequeño.
+class _Tag extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _Tag({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      constraints: const BoxConstraints(maxWidth: 220),
+      child: Text(
+        text,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: AppTypography.tiny(
+          context,
+        ).copyWith(color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
 
 /// Botón redondo compacto para cabeceras y chips.
 class _RoundIconButton extends StatelessWidget {
@@ -736,76 +1050,17 @@ class _MetricCell extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(label, style: AppTypography.tiny(context)),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.tiny(context),
+                ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Fila de habilidad con barra segmentada (HUD).
-class _SkillBarRow extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final double value;
-  final int percent;
-
-  const _SkillBarRow({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.value,
-    required this.percent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.12),
-          ),
-          child: Icon(icon, color: color, size: 15),
-        ),
-        const SizedBox(width: 10),
-        SizedBox(
-          width: 100,
-          child: Text(
-            label,
-            style: AppTypography.bodyMuted(context),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: SegmentedBar(
-            value: value,
-            segments: 10,
-            color: color,
-            height: 5,
-          ),
-        ),
-        const SizedBox(width: 10),
-        SizedBox(
-          width: 38,
-          child: Text(
-            '~$percent%',
-            textAlign: TextAlign.right,
-            style: AppTypography.stat(
-              context,
-            ).copyWith(color: color, fontSize: 12),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -930,113 +1185,4 @@ class NeonProgressPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-/// P-11d: el boton "Ver vocabulario" abre las palabras guardadas (las mas
-/// recientes primero, que son las de esta sesion) en vez de un snackbar.
-void _openVocabularySheet(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    backgroundColor: AppColors.sheetBackground,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sm)),
-    ),
-    builder: (_) => const _SessionVocabularySheet(),
-  );
-}
-
-class _SessionVocabularySheet extends ConsumerWidget {
-  const _SessionVocabularySheet();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final vocabAsync = ref.watch(learnedVocabularyProvider);
-    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-      color: AppColors.onSurface,
-      fontWeight: FontWeight.bold,
-      letterSpacing: 0.5,
-    );
-    final mutedStyle = Theme.of(
-      context,
-    ).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceVariant);
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.summary_vocab_title, style: titleStyle),
-            const SizedBox(height: 12),
-            Flexible(
-              child: vocabAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(color: AppColors.runeViolet),
-                ),
-                error: (e, st) => Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    l10n.summary_vocab_empty,
-                    style: mutedStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                data: (items) {
-                  final recent = items.take(12).toList();
-                  if (recent.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        l10n.summary_vocab_empty,
-                        style: mutedStyle,
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: recent.length,
-                    separatorBuilder: (_, __) => Divider(
-                      color: AppColors.onSurface.withValues(alpha: 0.08),
-                      height: 1,
-                    ),
-                    itemBuilder: (_, i) {
-                      final item = recent[i];
-                      return ListTile(
-                        dense: true,
-                        title: Text(
-                          item['word'] as String? ?? '',
-                          style: titleStyle?.copyWith(fontSize: 14),
-                        ),
-                        subtitle: Text(
-                          item['translation'] as String? ?? '',
-                          style: mutedStyle,
-                        ),
-                        trailing: Text(
-                          item['category'] as String? ?? '',
-                          style: mutedStyle?.copyWith(fontSize: 10),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

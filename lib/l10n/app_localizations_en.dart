@@ -2299,6 +2299,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get session_maintained => 'Maintained';
 
   @override
+  String get summary_learned_title => 'WHAT YOU LEARNED';
+
+  @override
+  String get summary_learned_words => 'NEW AND REVIEWED WORDS';
+
+  @override
+  String get summary_learned_word_new => 'NEW';
+
+  @override
+  String get summary_learned_word_review => 'REVIEW';
+
+  @override
+  String get summary_learned_no_words =>
+      'No vocabulary was recorded in this session yet.';
+
+  @override
+  String get summary_learned_corrections => 'CORRECTIONS';
+
+  @override
+  String get summary_learned_no_corrections =>
+      'No corrections: you communicated clearly this time.';
+
+  @override
+  String get summary_learned_focus => 'RECOMMENDED FOCUS';
+
+  @override
+  String get summary_learned_no_focus =>
+      'Not enough data for a recommendation yet.';
+
+  @override
+  String get summary_learned_loading => 'Loading your session data...';
+
+  @override
+  String get summary_learned_error =>
+      'We couldn\'t load what you learned. Check your connection and try again.';
+
+  @override
+  String summary_learned_minutes_value(int count) {
+    return '$count min';
+  }
+
+  @override
+  String get summary_goals => 'GOALS';
+
+  @override
+  String get summary_turns => 'TURNS';
+
+  @override
+  String summary_turns_value(int count) {
+    return '$count turns';
+  }
+
+  @override
+  String get summary_reward_loading => 'Confirming your reward...';
+
+  @override
+  String get summary_reward_error =>
+      'We couldn\'t confirm your reward. Check your connection and try again.';
+
+  @override
+  String get summary_retry => 'TRY AGAIN';
+
+  @override
+  String get summary_review_words => 'REVIEW WORDS';
+
+  @override
   String get profile_status_panel => 'STATUS PANEL';
 
   @override

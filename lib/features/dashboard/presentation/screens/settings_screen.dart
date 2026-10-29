@@ -104,17 +104,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   // Header
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: AppColors.onSurface,
-                          ),
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onSurface),
                           onPressed: () {
                             if (context.canPop()) {
                               context.pop();
@@ -145,74 +139,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Expanded(
                     child: ListView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0,
-                        vertical: 16.0,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                       children: [
-                        _SectionHeader(
-                          title:
-                              l10n?.settings_target_cefr ??
-                              'TARGET LANGUAGE & CEFR LEVEL',
-                        ),
+                        _SectionHeader(title: l10n?.settings_target_cefr ?? 'TARGET LANGUAGE & CEFR LEVEL'),
                         const SizedBox(height: 12),
                         _buildLanguageTile(context),
                         const SizedBox(height: 12),
                         _buildCefrLevelTile(context),
                         const SizedBox(height: 24),
 
-                        _SectionHeader(
-                          title: l10n?.settings_language ?? 'LANGUAGE',
-                        ),
+                        _SectionHeader(title: l10n?.settings_language ?? 'LANGUAGE'),
                         const SizedBox(height: 12),
                         _buildDeviceLanguageTile(context),
                         const SizedBox(height: 12),
                         _buildInterfaceLanguageTile(context),
                         const SizedBox(height: 24),
 
-                        _SectionHeader(
-                          title:
-                              l10n?.settings_ai_parameters ??
-                              'AI TUTOR PARAMETERS',
-                        ),
+                        _SectionHeader(title: l10n?.settings_ai_parameters ?? 'AI TUTOR PARAMETERS'),
                         const SizedBox(height: 12),
-                        _buildCorrectionLevelTile(
-                          context,
-                          currentSettings.correctionLevel,
-                        ),
+                        _buildCorrectionLevelTile(context, currentSettings.correctionLevel),
                         const SizedBox(height: 12),
-                        _buildTutorPersonalityTile(
-                          context,
-                          currentSettings.tutorPersonality,
-                        ),
+                        _buildTutorPersonalityTile(context, currentSettings.tutorPersonality),
                         const SizedBox(height: 12),
-                        _buildCorrectionStyleTile(
-                          context,
-                          currentSettings.correctionStyle,
-                        ),
+                        _buildCorrectionStyleTile(context, currentSettings.correctionStyle),
                         const SizedBox(height: 12),
-                        _buildDailyGoalTile(
-                          context,
-                          currentSettings.dailyGoalMinutes,
-                        ),
+                        _buildDailyGoalTile(context, currentSettings.dailyGoalMinutes),
                         const SizedBox(height: 24),
 
-                        _SectionHeader(
-                          title:
-                              l10n?.settings_audio_comms ??
-                              'AUDIO & COMMUNICATIONS',
-                        ),
+                        _SectionHeader(title: l10n?.settings_audio_comms ?? 'AUDIO & COMMUNICATIONS'),
                         const SizedBox(height: 12),
-                        // Issue #39: los controles de SFX siguen retirados
-                        // porque no hay audio de efectos en runtime.
-                        // Issue #106: el recordatorio diario ya existe de verdad
-                        // (notificacion local), asi que recupera su tarjeta.
+                        // Issue #39: los controles de SFX siguen retirados porque no hay
+                        // audio de efectos en runtime. Issue #106: el recordatorio diario ya
+                        // existe de verdad (notificacion local), asi que recupera su tarjeta.
                         const ReminderSettingsCard(),
                         const SizedBox(height: 24),
 
-                        _SectionHeader(
-                          title: l10n?.settings_account ?? 'ACCOUNT',
-                        ),
+                        _SectionHeader(title: l10n?.settings_account ?? 'ACCOUNT'),
                         const SizedBox(height: 12),
                         _buildAccountTile(
                           context,
@@ -225,9 +187,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         _buildAccountTile(
                           context,
                           icon: Icons.delete_forever_rounded,
-                          label:
-                              l10n?.settings_delete_account ??
-                              'DELETE MY ACCOUNT',
+                          label: l10n?.settings_delete_account ?? 'DELETE MY ACCOUNT',
                           color: AppColors.errorRed,
                           onTap: () => _confirmDeleteAccount(context),
                         ),
@@ -242,12 +202,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           const SizedBox(height: 24),
                         ],
                         _buildSaveButton(context, currentSettings),
-                        const SizedBox(
-                          height: 100,
-                        ), // deja espacio bajo la barra flotante
+                        const SizedBox(height: 100), // deja espacio bajo la barra flotante
                       ],
                     ),
                   ),
+
                 ],
               ),
             ),
@@ -268,14 +227,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               : () async {
                   setState(() => _isSaving = true);
                   try {
-                    // El recordatorio diario se guarda al instante desde su
-                    // propia tarjeta (Issue #106): se mezcla el estado vivo para
-                    // que este boton no lo pise con la copia local.
+                    // El recordatorio diario se guarda al instante desde su propia
+                    // tarjeta (Issue #106): se mezcla el estado vivo para que este boton
+                    // no lo pise con la copia local.
                     final liveSettings = ref.read(userSettingsProvider);
                     final toSave = currentSettings.copyWith(
-                      notificationsEnabled: liveSettings.notificationsEnabled,
-                      notificationTime: liveSettings.notificationTime,
-                      notificationDays: liveSettings.notificationDays,
+                        notificationsEnabled: liveSettings.notificationsEnabled,
+                        notificationTime: liveSettings.notificationTime,
+                        notificationDays: liveSettings.notificationDays,
                     );
                     await ref
                         .read(userSettingsProvider.notifier)
@@ -302,12 +261,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            AppLocalizations.of(context)?.settings_aligned ??
-                                'CONFIGURATION ALIGNED SUCCESSFULLY',
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            AppLocalizations.of(context)?.settings_aligned ?? 'CONFIGURATION ALIGNED SUCCESSFULLY',
+                            style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           backgroundColor: AppColors.emeraldGreen,
                           duration: const Duration(seconds: 2),
@@ -318,13 +273,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     debugPrint('Error saving settings: $e');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            AppLocalizations.of(context)?.settings_save_error ??
-                                'Could not save settings.',
-                          ),
-                          backgroundColor: AppColors.errorRed,
-                        ),
+                        SnackBar(content: Text(AppLocalizations.of(context)?.settings_save_error ?? 'Could not save settings.'), backgroundColor: AppColors.errorRed),
                       );
                     }
                   } finally {
@@ -335,9 +284,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             backgroundColor: AppColors.runeViolet,
             foregroundColor: AppColors.onSurface,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(4.0)),
-            ),
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))),
             elevation: 8,
             shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
           ),
@@ -345,14 +292,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ? const SizedBox(
                   height: 20,
                   width: 20,
-                  child: CircularProgressIndicator(
-                    color: AppColors.onSurface,
-                    strokeWidth: 2,
-                  ),
+                  child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2),
                 )
               : Text(
-                  AppLocalizations.of(context)?.settings_save ??
-                      'SAVE CONFIGURATION',
+                  AppLocalizations.of(context)?.settings_save ?? 'SAVE CONFIGURATION',
                   style: GoogleFonts.jetBrainsMono(
                     fontWeight: FontWeight.bold,
                     color: AppColors.onSurface,
@@ -366,8 +309,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // --- Language Selection Tile ---
-  Widget _buildLanguageTile(BuildContext context) {
-    final Map<String, String> langNames = {
+  Widget _buildLanguageTile(BuildContext context) {    final Map<String, String> langNames = {
       'en': 'ENGLISH (EN)',
       'fr': 'FRENCH (FR)',
       'de': 'GERMAN (DE)',
@@ -382,11 +324,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showLanguageBottomSheet(context),
         child: Row(
           children: [
-            const Icon(
-              Icons.language_rounded,
-              color: AppColors.manaCyan,
-              size: 24,
-            ),
+            const Icon(Icons.language_rounded, color: AppColors.manaCyan, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -411,10 +349,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
           ],
         ),
       ),
@@ -429,11 +364,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
-          const Icon(
-            Icons.psychology_rounded,
-            color: AppColors.manaCyan,
-            size: 24,
-          ),
+          const Icon(Icons.psychology_rounded, color: AppColors.manaCyan, size: 24),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -459,11 +390,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           // P-11a: el nivel lo fija el examen del Oraculo; aqui no se edita.
-          const Icon(
-            Icons.lock_outline_rounded,
-            color: AppColors.onSurfaceVariant,
-            size: 18,
-          ),
+          const Icon(Icons.lock_outline_rounded, color: AppColors.onSurfaceVariant, size: 18),
         ],
       ),
     );
@@ -479,16 +406,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _confirmLogout(context),
         child: Row(
           children: [
-            const Icon(
-              Icons.logout_rounded,
-              color: AppColors.errorRed,
-              size: 24,
-            ),
+            const Icon(Icons.logout_rounded, color: AppColors.errorRed, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                (AppLocalizations.of(context)?.settings_logout_dungeon ??
-                    'LOG OUT OF DUNGEON'),
+                (AppLocalizations.of(context)?.settings_logout_dungeon ?? 'LOG OUT OF DUNGEON'),
                 style: GoogleFonts.spaceGrotesk(
                   color: AppColors.errorRed,
                   fontWeight: FontWeight.bold,
@@ -552,11 +474,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
     } catch (e) {
       if (!context.mounted) return;
-      SystemSnack.show(
-        context,
-        'No se pudo exportar: $e',
-        type: SystemSnackType.error,
-      );
+      SystemSnack.show(context, 'No se pudo exportar: $e',
+          type: SystemSnackType.error);
     }
   }
 
@@ -569,18 +488,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: Text(
           l10n?.settings_delete_confirm_title ?? 'Delete your account?',
           style: const TextStyle(
-            color: AppColors.onSurface,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+              color: AppColors.onSurface,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
         ),
         content: Text(
           l10n?.settings_delete_confirm_body ??
               'This permanently deletes your account and progress. This cannot be undone.',
-          style: const TextStyle(
-            color: AppColors.onSurfaceVariant,
-            fontSize: 13,
-          ),
+          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
         ),
         actions: [
           TextButton(
@@ -589,10 +504,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(
-              l10n?.delete ?? 'DELETE',
-              style: const TextStyle(color: AppColors.errorRed),
-            ),
+            child: Text(l10n?.delete ?? 'DELETE',
+                style: const TextStyle(color: AppColors.errorRed)),
           ),
         ],
       ),
@@ -608,10 +521,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } catch (e) {
       if (!context.mounted) return;
       SystemSnack.show(
-        context,
-        '${l10n?.settings_delete_error ?? 'Could not delete the account.'}: $e',
-        type: SystemSnackType.error,
-      );
+          context,
+          '${l10n?.settings_delete_error ?? 'Could not delete the account.'}: $e',
+          type: SystemSnackType.error);
     }
   }
 
@@ -623,15 +535,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         backgroundColor: AppColors.surfaceDeep,
         title: Text(
           l10n?.logout_confirm_title ?? 'LOG OUT?',
-          style: TextStyle(
-            color: AppColors.onSurface,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: AppColors.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          l10n?.logout_confirm_desc ??
-              'Your progress is saved. You will need to sign in again to continue.',
+          l10n?.logout_confirm_desc ?? 'Your progress is saved. You will need to sign in again to continue.',
           style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
         ),
         actions: [
@@ -646,10 +553,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () => Navigator.pop(dialogContext, true),
             child: Text(
               (l10n?.logout ?? 'LOG OUT').toUpperCase(),
-              style: TextStyle(
-                color: AppColors.errorRed,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -682,17 +586,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text(
                   'SELECT TARGET PATH',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                  ),
+                  style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.onSurface),
                 ),
                 const SizedBox(height: 16),
                 _buildOption(
                   title: 'ENGLISH (EN)',
-                  description:
-                      'Engage in intense conversation and vocabulary modules.',
+                  description: 'Engage in intense conversation and vocabulary modules.',
                   isActive: _selectedTargetLanguage == 'en',
                   icon: Icons.language_rounded,
                   onTap: () {
@@ -728,11 +627,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showCorrectionLevelBottomSheet(context, currentLevel),
         child: Row(
           children: [
-            const Icon(
-              Icons.tune_rounded,
-              color: AppColors.runeViolet,
-              size: 24,
-            ),
+            const Icon(Icons.tune_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -757,10 +652,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
           ],
         ),
       ),
@@ -768,24 +660,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // --- Tutor Personality Tile ---
-  Widget _buildTutorPersonalityTile(
-    BuildContext context,
-    String currentPersonality,
-  ) {
+  Widget _buildTutorPersonalityTile(BuildContext context, String currentPersonality) {
     return GlassCard(
       blur: 20,
       opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: InkWell(
-        onTap: () =>
-            _showTutorPersonalityBottomSheet(context, currentPersonality),
+        onTap: () => _showTutorPersonalityBottomSheet(context, currentPersonality),
         child: Row(
           children: [
-            const Icon(
-              Icons.face_rounded,
-              color: AppColors.runeViolet,
-              size: 24,
-            ),
+            const Icon(Icons.face_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -810,10 +694,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
           ],
         ),
       ),
@@ -830,11 +711,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showCorrectionStyleBottomSheet(context, currentStyle),
         child: Row(
           children: [
-            const Icon(
-              Icons.spellcheck_rounded,
-              color: AppColors.runeViolet,
-              size: 24,
-            ),
+            const Icon(Icons.spellcheck_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -859,10 +736,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
           ],
         ),
       ),
@@ -879,11 +753,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         onTap: () => _showDailyGoalBottomSheet(context, currentGoal),
         child: Row(
           children: [
-            const Icon(
-              Icons.outlined_flag_rounded,
-              color: AppColors.runeViolet,
-              size: 24,
-            ),
+            const Icon(Icons.outlined_flag_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -908,10 +778,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant),
           ],
         ),
       ),
@@ -920,10 +787,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   // --- Notification Tiles ---
   // --- Bottom Sheet Helpers ---
-  void _showCorrectionLevelBottomSheet(
-    BuildContext context,
-    String currentLevel,
-  ) {
+  void _showCorrectionLevelBottomSheet(BuildContext context, String currentLevel) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.sheetBackground,
@@ -954,106 +818,64 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 24),
                 _buildOption(
                   title: 'IMPORTANT MISTAKES ONLY',
-                  description:
-                      'AI will only correct critical structural breaks.',
+                  description: 'AI will only correct critical structural breaks.',
                   isActive: currentLevel == 'important_only',
                   icon: Icons.tune_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionLevel: 'important_only',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'important_only');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_compact_title ??
-                      'COMPACT FEEDBACK',
-                  description:
-                      AppLocalizations.of(context)?.settings_opt_compact_desc ??
-                      'Quick corrections with single line annotations.',
+                  title: AppLocalizations.of(context)?.settings_opt_compact_title ?? 'COMPACT FEEDBACK',
+                  description: AppLocalizations.of(context)?.settings_opt_compact_desc ?? 'Quick corrections with single line annotations.',
                   isActive: currentLevel == 'short',
                   icon: Icons.tune_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionLevel: 'short',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'short');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_moderate_title ??
-                      'MODERATE EXPLANATION',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_moderate_desc ??
-                      'Balanced corrections with 1 to 3 detail sentences.',
+                  title: AppLocalizations.of(context)?.settings_opt_moderate_title ?? 'MODERATE EXPLANATION',
+                  description: AppLocalizations.of(context)?.settings_opt_moderate_desc ?? 'Balanced corrections with 1 to 3 detail sentences.',
                   isActive: currentLevel == 'moderate',
                   icon: Icons.tune_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionLevel: 'moderate',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'moderate');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_detailed_title ??
-                      'DETAILED BREAKDOWN',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_detailed_desc ??
-                      'In-depth grammar blueprints with contextual examples.',
+                  title: AppLocalizations.of(context)?.settings_opt_detailed_title ?? 'DETAILED BREAKDOWN',
+                  description: AppLocalizations.of(context)?.settings_opt_detailed_desc ?? 'In-depth grammar blueprints with contextual examples.',
                   isActive: currentLevel == 'detailed',
                   icon: Icons.tune_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionLevel: 'detailed',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'detailed');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(context)?.settings_opt_oracle_title ??
-                      'ORACLE MASTER MODE',
-                  description:
-                      AppLocalizations.of(context)?.settings_opt_oracle_desc ??
-                      'Complete analysis of error blueprints.',
+                  title: AppLocalizations.of(context)?.settings_opt_oracle_title ?? 'ORACLE MASTER MODE',
+                  description: AppLocalizations.of(context)?.settings_opt_oracle_desc ?? 'Complete analysis of error blueprints.',
                   isActive: currentLevel == 'teacher',
                   icon: Icons.tune_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionLevel: 'teacher',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionLevel: 'teacher');
                     });
                     Navigator.pop(context);
                   },
@@ -1066,10 +888,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showTutorPersonalityBottomSheet(
-    BuildContext context,
-    String currentPersonality,
-  ) {
+  void _showTutorPersonalityBottomSheet(BuildContext context, String currentPersonality) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.sheetBackground,
@@ -1099,68 +918,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 24),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_companion_title ??
-                      'COMPANION RATE',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_companion_desc ??
-                      'Patient, warm, and highly supportive responses.',
+                  title: AppLocalizations.of(context)?.settings_opt_companion_title ?? 'COMPANION RATE',
+                  description: AppLocalizations.of(context)?.settings_opt_companion_desc ?? 'Patient, warm, and highly supportive responses.',
                   isActive: currentPersonality == 'friendly',
                   icon: Icons.sentiment_satisfied_alt_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            tutorPersonality: 'friendly',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'friendly');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_commander_title ??
-                      'COMMANDER BRIEF',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_commander_desc ??
-                      'Formal, highly structured, and structured corrections.',
+                  title: AppLocalizations.of(context)?.settings_opt_commander_title ?? 'COMMANDER BRIEF',
+                  description: AppLocalizations.of(context)?.settings_opt_commander_desc ?? 'Formal, highly structured, and structured corrections.',
                   isActive: currentPersonality == 'professional',
                   icon: Icons.business_center_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            tutorPersonality: 'professional',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'professional');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(context)?.settings_opt_boss_title ??
-                      'BOSS CALIBER CHALLENGE',
-                  description:
-                      AppLocalizations.of(context)?.settings_opt_boss_desc ??
-                      'High-level vocabulary demands and strict responses.',
+                  title: AppLocalizations.of(context)?.settings_opt_boss_title ?? 'BOSS CALIBER CHALLENGE',
+                  description: AppLocalizations.of(context)?.settings_opt_boss_desc ?? 'High-level vocabulary demands and strict responses.',
                   isActive: currentPersonality == 'challenging',
                   icon: Icons.campaign_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            tutorPersonality: 'challenging',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(tutorPersonality: 'challenging');
                     });
                     Navigator.pop(context);
                   },
@@ -1173,10 +963,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showCorrectionStyleBottomSheet(
-    BuildContext context,
-    String currentStyle,
-  ) {
+  void _showCorrectionStyleBottomSheet(BuildContext context, String currentStyle) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.sheetBackground,
@@ -1206,72 +993,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 24),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_strict_style_title ??
-                      'STRICT ACTION',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_strict_style_desc ??
-                      'Interrupts and repairs errors instantly.',
+                  title: AppLocalizations.of(context)?.settings_opt_strict_style_title ?? 'STRICT ACTION',
+                  description: AppLocalizations.of(context)?.settings_opt_strict_style_desc ?? 'Interrupts and repairs errors instantly.',
                   isActive: currentStyle == 'strict',
                   icon: Icons.check_circle_outline_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionStyle: 'strict',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'strict');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_balanced_title ??
-                      'BALANCED COMPASS',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_balanced_desc ??
-                      'Maintains dialogue speed with structured correction feedback.',
+                  title: AppLocalizations.of(context)?.settings_opt_balanced_title ?? 'BALANCED COMPASS',
+                  description: AppLocalizations.of(context)?.settings_opt_balanced_desc ?? 'Maintains dialogue speed with structured correction feedback.',
                   isActive: currentStyle == 'balanced',
                   icon: Icons.balance_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionStyle: 'balanced',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'balanced');
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_immersive_title ??
-                      'IMMERSIVE RAIDS',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_immersive_desc ??
-                      'Keeps speaking flow; repairs only terminal breaks.',
+                  title: AppLocalizations.of(context)?.settings_opt_immersive_title ?? 'IMMERSIVE RAIDS',
+                  description: AppLocalizations.of(context)?.settings_opt_immersive_desc ?? 'Keeps speaking flow; repairs only terminal breaks.',
                   isActive: currentStyle == 'conversational',
                   icon: Icons.chat_bubble_outline_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            correctionStyle: 'conversational',
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(correctionStyle: 'conversational');
                     });
                     Navigator.pop(context);
                   },
@@ -1314,88 +1068,52 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 24),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(context)?.settings_opt_casual_title ??
-                      'CASUAL RUN (10 MIN)',
-                  description:
-                      AppLocalizations.of(context)?.settings_opt_casual_desc ??
-                      'Quick entry practice daily.',
+                  title: AppLocalizations.of(context)?.settings_opt_casual_title ?? 'CASUAL RUN (10 MIN)',
+                  description: AppLocalizations.of(context)?.settings_opt_casual_desc ?? 'Quick entry practice daily.',
                   isActive: currentGoal == 10,
                   icon: Icons.fitness_center_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            dailyGoalMinutes: 10,
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 10);
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_regular_title ??
-                      'REGULAR RAID (15 MIN)',
-                  description:
-                      AppLocalizations.of(context)?.settings_opt_regular_desc ??
-                      'Solid learning rate path.',
+                  title: AppLocalizations.of(context)?.settings_opt_regular_title ?? 'REGULAR RAID (15 MIN)',
+                  description: AppLocalizations.of(context)?.settings_opt_regular_desc ?? 'Solid learning rate path.',
                   isActive: currentGoal == 15,
                   icon: Icons.timer_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            dailyGoalMinutes: 15,
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 15);
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_serious_title ??
-                      'SERIOUS CAMPAIGN (30 MIN)',
-                  description:
-                      AppLocalizations.of(context)?.settings_opt_serious_desc ??
-                      'Acquire fluent skill markers rapidly.',
+                  title: AppLocalizations.of(context)?.settings_opt_serious_title ?? 'SERIOUS CAMPAIGN (30 MIN)',
+                  description: AppLocalizations.of(context)?.settings_opt_serious_desc ?? 'Acquire fluent skill markers rapidly.',
                   isActive: currentGoal == 30,
                   icon: Icons.speed_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            dailyGoalMinutes: 30,
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 30);
                     });
                     Navigator.pop(context);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildOption(
-                  title:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_overload_title ??
-                      'OVERLOAD OVERCLOCK (60 MIN)',
-                  description:
-                      AppLocalizations.of(
-                        context,
-                      )?.settings_opt_overload_desc ??
-                      'Complete immersion overdrive.',
+                  title: AppLocalizations.of(context)?.settings_opt_overload_title ?? 'OVERLOAD OVERCLOCK (60 MIN)',
+                  description: AppLocalizations.of(context)?.settings_opt_overload_desc ?? 'Complete immersion overdrive.',
                   isActive: currentGoal == 60,
                   icon: Icons.bolt_rounded,
                   onTap: () {
                     setState(() {
-                      _localSettings =
-                          (_localSettings ?? UserSettings.initial()).copyWith(
-                            dailyGoalMinutes: 60,
-                          );
+                      _localSettings = (_localSettings ?? UserSettings.initial()).copyWith(dailyGoalMinutes: 60);
                     });
                     Navigator.pop(context);
                   },
@@ -1420,26 +1138,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.runeViolet.withValues(alpha: 0.1)
-              : AppColors.onSurface.withValues(alpha: 0.02),
+          color: isActive ? AppColors.runeViolet.withValues(alpha: 0.1) : AppColors.onSurface.withValues(alpha: 0.02),
           borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
-            color: isActive
-                ? AppColors.runeViolet
-                : AppColors.onSurface.withValues(alpha: 0.05),
+            color: isActive ? AppColors.runeViolet : AppColors.onSurface.withValues(alpha: 0.05),
             width: 1.5,
           ),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: isActive
-                  ? AppColors.runeViolet
-                  : AppColors.onSurfaceVariant,
-              size: 20,
-            ),
+            Icon(icon, color: isActive ? AppColors.runeViolet : AppColors.onSurfaceVariant, size: 20),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -1486,19 +1194,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Icon(
-            Icons.phonelink_setup_rounded,
-            color: AppColors.manaCyan,
-            size: 24,
-          ),
+          const Icon(Icons.phonelink_setup_rounded, color: AppColors.manaCyan, size: 24),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  (AppLocalizations.of(context)?.settings_follow_device ??
-                      'USAR IDIOMA DEL DISPOSITIVO'),
+                  (AppLocalizations.of(context)?.settings_follow_device ?? 'USAR IDIOMA DEL DISPOSITIVO'),
                   style: GoogleFonts.spaceGrotesk(
                     color: AppColors.onSurface,
                     fontSize: 13,
@@ -1520,9 +1223,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             value: langSettings.followDeviceLanguage,
             activeThumbColor: AppColors.manaCyan,
             onChanged: (val) {
-              ref
-                  .read(userLanguageProvider.notifier)
-                  .setFollowDeviceLanguage(val);
+              ref.read(userLanguageProvider.notifier).setFollowDeviceLanguage(val);
             },
           ),
         ],
@@ -1548,19 +1249,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             : () => _showInterfaceLanguageBottomSheet(context),
         child: Row(
           children: [
-            const Icon(
-              Icons.language_rounded,
-              color: AppColors.runeViolet,
-              size: 24,
-            ),
+            const Icon(Icons.language_rounded, color: AppColors.runeViolet, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AppLocalizations.of(context)?.settings_app_language ??
-                        'APP LANGUAGE',
+                    AppLocalizations.of(context)?.settings_app_language ?? 'APP LANGUAGE',
                     style: GoogleFonts.spaceGrotesk(
                       color: AppColors.onSurface,
                       fontSize: 13,
@@ -1569,12 +1265,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    langNames[langSettings.uiLanguage] ??
-                        langSettings.uiLanguage.toUpperCase(),
+                    langNames[langSettings.uiLanguage] ?? langSettings.uiLanguage.toUpperCase(),
                     style: GoogleFonts.jetBrainsMono(
-                      color: langSettings.followDeviceLanguage
-                          ? AppColors.onSurfaceVariant
-                          : AppColors.manaCyan,
+                      color: langSettings.followDeviceLanguage ? AppColors.onSurfaceVariant : AppColors.manaCyan,
                       fontSize: 11,
                     ),
                   ),
@@ -1582,9 +1275,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
             Icon(
-              langSettings.followDeviceLanguage
-                  ? Icons.lock_rounded
-                  : Icons.keyboard_arrow_down_rounded,
+              langSettings.followDeviceLanguage ? Icons.lock_rounded : Icons.keyboard_arrow_down_rounded,
               color: AppColors.onSurfaceVariant,
             ),
           ],
@@ -1614,8 +1305,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  AppLocalizations.of(sheetContext)?.settings_app_language ??
-                      'APP LANGUAGE',
+                  AppLocalizations.of(sheetContext)?.settings_app_language ?? 'APP LANGUAGE',
                   style: GoogleFonts.spaceGrotesk(
                     color: AppColors.onSurface,
                     fontSize: 16,
@@ -1626,24 +1316,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               ...langNames.entries.map((e) {
                 return ListTile(
-                  leading: const Icon(
-                    Icons.language_rounded,
-                    color: AppColors.manaCyan,
-                  ),
-                  title: Text(
-                    e.value,
-                    style: const TextStyle(color: AppColors.onSurface),
-                  ),
+                  leading: const Icon(Icons.language_rounded, color: AppColors.manaCyan),
+                  title: Text(e.value, style: const TextStyle(color: AppColors.onSurface)),
                   trailing: ref.watch(userLanguageProvider).uiLanguage == e.key
-                      ? const Icon(
-                          Icons.check_rounded,
-                          color: AppColors.emeraldGreen,
-                        )
+                      ? const Icon(Icons.check_rounded, color: AppColors.emeraldGreen)
                       : null,
                   onTap: () {
-                    ref
-                        .read(userLanguageProvider.notifier)
-                        .setUiLanguage(e.key);
+                    ref.read(userLanguageProvider.notifier).setUiLanguage(e.key);
                     Navigator.pop(sheetContext);
                   },
                 );
@@ -1674,10 +1353,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      (AppLocalizations.of(
-                            context,
-                          )?.settings_force_onboarding ??
-                          'Forzar Onboarding Continuo'),
+                      (AppLocalizations.of(context)?.settings_force_onboarding ?? 'Forzar Onboarding Continuo'),
                       style: TextStyle(
                         color: AppColors.onSurface,
                         fontWeight: FontWeight.bold,
@@ -1703,9 +1379,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 inactiveThumbColor: AppColors.onSurfaceVariant,
                 inactiveTrackColor: AppColors.onSurface.withValues(alpha: 0.1),
                 onChanged: (val) async {
-                  await ref
-                      .read(devAlwaysShowOnboardingProvider.notifier)
-                      .toggle(val);
+                  await ref.read(devAlwaysShowOnboardingProvider.notifier).toggle(val);
                 },
               ),
             ],
@@ -1722,36 +1396,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 final user = ref.read(currentUserProvider);
                 if (user != null) {
                   try {
-                    await supabase
-                        .from('user_language_profiles')
-                        .delete()
-                        .eq('user_id', user.id);
+                    await supabase.from('user_language_profiles').delete().eq('user_id', user.id);
                     ref.invalidate(currentUserProvider);
                     ref.invalidate(userSettingsProvider);
-                    SystemSnack.show(
-                      context,
-                      AppLocalizations.of(context)?.settings_profile_deleted ??
-                          'Perfil de cazador eliminado. Reiniciando...',
-                      type: SystemSnackType.info,
-                    );
+                    SystemSnack.show(context, AppLocalizations.of(context)?.settings_profile_deleted ?? 'Perfil de cazador eliminado. Reiniciando...', type: SystemSnackType.info);
                     goRouter.go('/');
                   } catch (e) {
-                    SystemSnack.show(
-                      context,
-                      'Error al reiniciar: $e',
-                      type: SystemSnackType.error,
-                    );
+                    SystemSnack.show(context, 'Error al reiniciar: $e', type: SystemSnackType.error);
                   }
                 }
               },
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: Text(
-                (AppLocalizations.of(context)?.settings_reset_onboarding ??
-                    'REINICIAR HISTORIAL DE ONBOARDING'),
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
+                (AppLocalizations.of(context)?.settings_reset_onboarding ?? 'REINICIAR HISTORIAL DE ONBOARDING'),
+                style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.crimsonRed,

@@ -4294,6 +4294,120 @@ abstract class AppLocalizations {
   /// **'Maintained'**
   String get session_maintained;
 
+  /// Section title of the post-session summary (issue #113)
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT YOU LEARNED'**
+  String get summary_learned_title;
+
+  /// No description provided for @summary_learned_words.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW AND REVIEWED WORDS'**
+  String get summary_learned_words;
+
+  /// No description provided for @summary_learned_word_new.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get summary_learned_word_new;
+
+  /// No description provided for @summary_learned_word_review.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW'**
+  String get summary_learned_word_review;
+
+  /// No description provided for @summary_learned_no_words.
+  ///
+  /// In en, this message translates to:
+  /// **'No vocabulary was recorded in this session yet.'**
+  String get summary_learned_no_words;
+
+  /// No description provided for @summary_learned_corrections.
+  ///
+  /// In en, this message translates to:
+  /// **'CORRECTIONS'**
+  String get summary_learned_corrections;
+
+  /// No description provided for @summary_learned_no_corrections.
+  ///
+  /// In en, this message translates to:
+  /// **'No corrections: you communicated clearly this time.'**
+  String get summary_learned_no_corrections;
+
+  /// No description provided for @summary_learned_focus.
+  ///
+  /// In en, this message translates to:
+  /// **'RECOMMENDED FOCUS'**
+  String get summary_learned_focus;
+
+  /// No description provided for @summary_learned_no_focus.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data for a recommendation yet.'**
+  String get summary_learned_no_focus;
+
+  /// No description provided for @summary_learned_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your session data...'**
+  String get summary_learned_loading;
+
+  /// No description provided for @summary_learned_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load what you learned. Check your connection and try again.'**
+  String get summary_learned_error;
+
+  /// No description provided for @summary_learned_minutes_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min'**
+  String summary_learned_minutes_value(int count);
+
+  /// No description provided for @summary_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'GOALS'**
+  String get summary_goals;
+
+  /// No description provided for @summary_turns.
+  ///
+  /// In en, this message translates to:
+  /// **'TURNS'**
+  String get summary_turns;
+
+  /// No description provided for @summary_turns_value.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} turns'**
+  String summary_turns_value(int count);
+
+  /// No description provided for @summary_reward_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your reward...'**
+  String get summary_reward_loading;
+
+  /// No description provided for @summary_reward_error.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t confirm your reward. Check your connection and try again.'**
+  String get summary_reward_error;
+
+  /// No description provided for @summary_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get summary_retry;
+
+  /// No description provided for @summary_review_words.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW WORDS'**
+  String get summary_review_words;
+
   /// No description provided for @profile_status_panel.
   ///
   /// In en, this message translates to:
