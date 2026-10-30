@@ -75,6 +75,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
 
 class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   late final DateTime _startTime;
+  ProviderContainer? _container;
   bool _showTopicsBar = false;
   bool _showKeyboardDrawer = false;
   bool _isBlindListening = false;
@@ -152,6 +153,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   ];
 
   @override
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Se captura con el arbol vivo: dentro de dispose() `ref` ya no es valido.
+    _container ??= ProviderScope.containerOf(context, listen: false);
+  }
+
+  @override
   void initState() {
     super.initState();
     _startTime = DateTime.now();
@@ -221,7 +230,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // `suppress` ademÃ¡s impide que un turno de la IA que termine despuÃ©s de la
     // salida dispare una nueva narraciÃ³n.
     try {
-      ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
+      _container?.read(conversationStateProvider.notifier).stopTts(suppress: true);
     } catch (e, st) {
       ErrorTracker.logSilent(
         'lib/features/conversation/presentation/screens/conversation_screen.dart:184',
@@ -233,11 +242,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // (app muerta, kill de widget, salida por go), persiste el progreso aquÃ­.
     // Idempotente: endSession solo guarda la primera vez (flag en el notifier).
     try {
-      final isOracleEval = ref
-          .read(conversationStateProvider)
-          .isOracleEvaluation;
+      final notifier = _container?.read(conversationStateProvider.notifier);
+      final isOracleEval =
+          _container?.read(conversationStateProvider).isOracleEvaluation ?? false;
       if (!isOracleEval) {
-        unawaited(ref.read(conversationStateProvider.notifier).endSession());
+        unawaited(notifier?.endSession() ?? Future<void>.value());
       }
     } catch (e, st) {
       ErrorTracker.logSilent(
@@ -249,13 +258,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     _textController.dispose();
     _chatScrollController.dispose();
     try {
-      ref.read(dashboardRefreshProvider.notifier).state++;
-      ref.invalidate(userProgressProvider);
-      ref.invalidate(skillsRadarProvider);
-      ref.invalidate(practiceHeatmapProvider);
-      ref.invalidate(fluencyTrendsProvider);
-      ref.invalidate(weeklyPracticeProvider);
-      ref.invalidate(learnedVocabularyProvider);
+      _container?.read(dashboardRefreshProvider.notifier).state++;
+      _container?.invalidate(userProgressProvider);
+      _container?.invalidate(skillsRadarProvider);
+      _container?.invalidate(practiceHeatmapProvider);
+      _container?.invalidate(fluencyTrendsProvider);
+      _container?.invalidate(weeklyPracticeProvider);
+      _container?.invalidate(learnedVocabularyProvider);
     } catch (e, st) {
       ErrorTracker.logSilent(
         'lib/features/conversation/presentation/screens/conversation_screen.dart:205',

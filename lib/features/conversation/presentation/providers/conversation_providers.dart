@@ -288,7 +288,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         } else {
           query = query.ilike('title', '%$scenarioTitle%');
         }
-        final res = await query.maybeSingle();
+        // El titulo puede coincidir con varias escenas: sin limit(1),
+        // maybeSingle lanza "multiple (or no) rows returned".
+        final res = await query.limit(1).maybeSingle();
         if (res != null) {
           final uiLang = _ref.read(userLanguageProvider).uiLanguage;
           LessonCatalog.updateCatalogFromMap(res, locale: uiLang);
