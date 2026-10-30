@@ -14,14 +14,14 @@ voz y la app gamifica el progreso con misiones, rangos y maná.
 |---|---|
 | App | Flutter · Dart `^3.11.5` · Material 3 (solo tema oscuro) |
 | Estado | `flutter_riverpod` (`StateNotifier`, `FutureProvider`) |
-| Navegación | `go_router` (14 rutas) |
+| Navegación | `go_router` (20 rutas) |
 | Backend | Supabase (Postgres + Auth + RLS + Realtime + Edge Functions) |
 | IA | Edge Function `llm-proxy` → DeepSeek (chat SSE) y Groq Whisper (STT) |
 | Voz | `record` (AAC/m4a) + `flutter_tts` (on-device) |
 | Compras | Google Play Billing vía RevenueCat |
 | Admin | `web_admin/` (React + Vite, cliente Supabase) |
 
-35 dependencias de runtime, 6 de desarrollo.
+25 dependencias de runtime, 5 de desarrollo.
 
 ---
 
@@ -34,8 +34,8 @@ flutter run -d <device>                 # dispositivo o emulador Android
 ```
 
 ```sh
-flutter analyze     # 0 errores es el criterio
-flutter test        # 155 pruebas
+flutter analyze     # 0 errores, 0 warnings (126 infos son la línea base)
+flutter test        # 725 pruebas
 flutter gen-l10n    # tras editar cualquier .arb
 ```
 
@@ -48,6 +48,7 @@ Backend y despliegue: [docs/OPERATIONS.md](docs/OPERATIONS.md),
 
 | Documento | Contenido |
 |---|---|
+| [docs/INDICE-DOCUMENTACION.md](docs/INDICE-DOCUMENTACION.md) | **Inventario**: qué doc es vigente, su fuente de verdad y fecha de verificación |
 | [docs/CONTEXTO_ACTUAL.md](docs/CONTEXTO_ACTUAL.md) | **Traspaso**: estado, trabajo abierto y cómo continuar |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Capas, features, rutas, pipeline de voz, estado |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Tablas, RLS, RPC, migraciones |

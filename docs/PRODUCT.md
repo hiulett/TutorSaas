@@ -1,6 +1,6 @@
 # Producto
 
-_Actualizado: 18-oct-2026._
+_Actualizado: 29-oct-2026 (planes verificados en `subscription_plans`)._
 
 ---
 

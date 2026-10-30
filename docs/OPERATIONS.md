@@ -1,6 +1,7 @@
 # Operaciones
 
-_Actualizado: 18-oct-2026._
+_Actualizado: 29-oct-2026 (funciones, cron y modo de cobro verificados contra
+producción y código)._
 
 ---
 
@@ -37,6 +38,11 @@ supabase functions list --project-ref sipiumfdpvnszthykyog
 
 `--use-api` evita necesitar Docker para desplegar.
 
+Comprobado el 29-oct-2026: **8 funciones desplegadas y activas** con el
+`verify_jwt` de la tabla (`llm-proxy` v18, `missions-cron`, `livekit-token`,
+`revenuecat-webhook`, `lesson-generator`, `sync-entitlement`,
+`evaluate-placement`, `reactivation-email`).
+
 Topes de salida de `llm-proxy`: 200 tokens por defecto y 600 como máximo; la
 evaluación del Oráculo (`action_code = oracle_eval`) tiene 1200 porque devuelve
 un JSON con 10 métricas y con 600 se truncaba (#73).
@@ -59,7 +65,7 @@ supabase secrets set NOMBRE=valor --project-ref ...
 | `REVENUECAT_SECRET_KEY` | `sync-entitlement` (API v1, `sk_…`) |
 | `CRON_SECRET` | `missions-cron` |
 | `AI_PRICE_INPUT_PER_1M`, `AI_PRICE_OUTPUT_PER_1M`, `AI_PRICE_STT_PER_MINUTE` | `llm-proxy` (estimación de coste; opcionales) |
-| `MANA_CHARGE_MODE` | `llm-proxy` (cobro de maná: `all` por defecto, `capability`, `off`) |
+| `MANA_CHARGE_MODE` | `llm-proxy` (cobro de maná: `capability` por defecto en el código, `all`, `off`) |
 | `RESEND_API_KEY`, `RESEND_FROM` | `reactivation-email` (opcional `REACTIVATION_CTA_URL`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Todas |
 
@@ -215,9 +221,9 @@ Si el proveedor falla después de cobrar, el proxy llama a `refund_mana`
 
 `MANA_CHARGE_MODE`:
 
-- `capability` (defecto de transición): cobra solo si el cliente envía
-  `client_capabilities: ["server_mana"]`. Las builds antiguas siguen cobrando en
-  cliente y no se les cobra dos veces.
+- `capability` (**defecto del código**: un valor desconocido o vacío también cae
+  aquí): cobra solo si el cliente envía `client_capabilities: ["server_mana"]`.
+  Las builds antiguas siguen cobrando en cliente y no se les cobra dos veces.
 - `all` (estado final): cobra siempre. Pásalo a `all` cuando la app que ya no
   cobra en cliente esté publicada; cierra el hueco de los clientes modificados.
 - `off`: no cobra (rollback de emergencia; la IA queda gratis).
@@ -279,7 +285,7 @@ mismo en el formulario **Data Safety** de la ficha de Play.
 | `rotate-daily-missions` | `5 0 * * *` | Rota el tablón de misiones (00:05 UTC) |
 | `clean-old-logs` | `15 3 * * *` | Poda logs antiguos |
 | `purge-stale-participants` | `* * * * *` | Borra participantes sin latido (>180 s) |
-| `reactivation-email-daily` | `0 10 * * *` | **No activo**: email de reactivación (3 y 7 días). Ver [runbook](runbooks/REACTIVATION_EMAIL.md) |
+| `reactivation-email-daily` | `0 10 * * *` | **No programado**: el envío de reactivación (3 y 7 días) está implementado, pero el `cron.schedule` no se ejecuta hasta que exista `RESEND_API_KEY`. Ver [runbook](runbooks/REACTIVATION_EMAIL.md) |
 
 ```sql
 select jobname, schedule, active from cron.job;

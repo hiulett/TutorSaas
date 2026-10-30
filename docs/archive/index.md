@@ -10,7 +10,7 @@
 
 | Archivo | Descripción |
 |---------|-------------|
-| [Arquitectura](architecture.md) | Arquitectura Feature-first Clean Architecture, capas data/domain/presentation, Riverpod, GoRouter, Supabase, pipeline de voz |
+| [Arquitectura](../ARCHITECTURE.md) | Arquitectura Feature-first Clean Architecture, capas data/domain/presentation, Riverpod, GoRouter, Supabase, pipeline de voz |
 | [Negocio](business.md) | Contexto de negocio: Freemium SaaS, speech barrier, público objetivo, monetización, diferenciadores |
 | [UI / Design System](ui.md) | Sistema de diseño "Abyssal Interface" (Isekai Manhwa System HUD), colores, tipografía, componentes, screens |
 | [Base de Datos](database.md) | Esquema completo de Supabase: tablas, relaciones, políticas RLS, triggers |
@@ -44,6 +44,6 @@
 
 | Archivo | Descripción |
 |---------|-------------|
-| [CONTEXTO.md](../contexto.md) | Documento maestro de contexto técnico y de negocio |
-| [TUTORSAAS_MASTER_CONTEXT.md](../TUTORSAAS_MASTER_CONTEXT.md) | Contexto maestro generado por análisis completo del codebase |
-| [AGENTS.md](../AGENTS.md) | Instrucciones para agentes de IA sobre el proyecto |
+| [CONTEXTO.md](root/contexto.md) | Documento maestro de contexto técnico y de negocio |
+| [TUTORSAAS_MASTER_CONTEXT.md](root/TUTORSAAS_MASTER_CONTEXT.md) | Contexto maestro generado por análisis completo del codebase |
+| [AGENTS.md](../../AGENTS.md) | Instrucciones para agentes de IA sobre el proyecto |
