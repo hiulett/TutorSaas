@@ -110,8 +110,14 @@ class _WeeklyReportScreenState extends ConsumerState<WeeklyReportScreen> {
                         _WeekSelector(
                           report: report,
                           weekOffset: _weekOffset,
+                          // P-44 (#129): el plan limita el historial. El botón
+                          // se desactiva en el último offset permitido en vez
+                          // de pedir semanas que el servidor va a bloquear.
+                          canGoPrevious: _weekOffset < report.maxWeekOffset,
                           onPrevious: () => setState(() {
-                            if (_weekOffset < 52) _weekOffset += 1;
+                            if (_weekOffset < report.maxWeekOffset) {
+                              _weekOffset += 1;
+                            }
                           }),
                           onNext: _weekOffset == 0
                               ? null
@@ -120,10 +126,15 @@ class _WeeklyReportScreenState extends ConsumerState<WeeklyReportScreen> {
                                 }),
                         ),
                         const SizedBox(height: 16),
-                        if (!report.hasData)
+                        if (report.locked)
+                          _LockedWeekCard(report: report)
+                        else if (!report.hasData)
                           _EmptyWeekCard(report: report)
                         else
                           _ReportBody(report: report),
+                        if (_weekOffset >= report.maxWeekOffset &&
+                            report.historyWeeks < 52)
+                          _HistoryLimitNote(weeks: report.historyWeeks),
                       ],
                     );
                   },
@@ -143,12 +154,14 @@ class _WeekSelector extends StatelessWidget {
     required this.weekOffset,
     required this.onPrevious,
     required this.onNext,
+    this.canGoPrevious = true,
   });
 
   final WeeklyReport report;
   final int weekOffset;
   final VoidCallback onPrevious;
   final VoidCallback? onNext;
+  final bool canGoPrevious;
 
   @override
   Widget build(BuildContext context) {
@@ -166,10 +179,12 @@ class _WeekSelector extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          onPressed: onPrevious,
-          icon: const Icon(
+          onPressed: canGoPrevious ? onPrevious : null,
+          icon: Icon(
             Icons.chevron_left_rounded,
-            color: AppColors.manaCyan,
+            color: canGoPrevious
+                ? AppColors.manaCyan
+                : AppColors.medievalTextDim.withValues(alpha: 0.4),
           ),
           tooltip: l10n?.weekly_previous_week ?? 'Previous week',
         ),
@@ -257,6 +272,90 @@ class _EmptyWeekCard extends StatelessWidget {
         const SizedBox(height: 16),
         _LevelCard(report: report),
       ],
+    );
+  }
+}
+
+class _LockedWeekCard extends StatelessWidget {
+  const _LockedWeekCard({required this.report});
+
+  final WeeklyReport report;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      borderColor: AppColors.runeViolet.withValues(alpha: 0.45),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.lock_outline_rounded,
+            color: AppColors.runeViolet,
+            size: 26,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n?.weekly_history_locked(report.historyWeeks) ??
+                'Your plan keeps ${report.historyWeeks} week of history.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: AppColors.medievalText,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n?.weekly_history_upgrade ??
+                'Upgrade your plan to open previous weeks.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              height: 1.4,
+              color: AppColors.medievalTextDim,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Aviso al llegar al final del historial que permite el plan.
+class _HistoryLimitNote extends StatelessWidget {
+  const _HistoryLimitNote({required this.weeks});
+
+  final int weeks;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            size: 14,
+            color: AppColors.medievalTextDim,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              l10n?.weekly_history_locked(weeks) ??
+                  'Your plan keeps $weeks week of history.',
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                height: 1.4,
+                color: AppColors.medievalTextDim,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

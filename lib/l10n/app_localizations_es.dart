@@ -1706,6 +1706,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String shop_plan_required_body(String plan) {
+    return 'Este objeto es exclusivo del plan $plan.';
+  }
+
+  @override
   String get gems_insufficient => 'GEMAS INSUFICIENTES';
 
   @override
@@ -3739,6 +3744,44 @@ class AppLocalizationsEs extends AppLocalizations {
   String get paywall_manage_subscription => 'GESTIONAR SUSCRIPCIÓN';
 
   @override
+  String get paywall_plans_title => 'ELIGE TU ESTAMENTO';
+
+  @override
+  String get paywall_per_month => '/mes';
+
+  @override
+  String paywall_plan_mana(String amount) {
+    return '$amount de maná/mes';
+  }
+
+  @override
+  String paywall_plan_report_weeks(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '$weeks semanas de historial en el informe',
+      one: '1 semana de historial en el informe',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paywall_plan_exclusives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cosméticos exclusivos',
+      one: '1 cosmético exclusivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paywall_trial_then(int days, String price) {
+    return '$days días gratis, luego $price/mes';
+  }
+
+  @override
   String get mana_inventory_title => 'INVENTARIO DE MANÁ';
 
   @override
@@ -4175,6 +4218,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get weekly_open => 'VER INFORME';
+
+  @override
+  String weekly_history_locked(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: 'Tu plan guarda $weeks semanas de historial.',
+      one: 'Tu plan guarda 1 semana de historial.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weekly_history_upgrade =>
+      'Mejora tu plan para abrir semanas anteriores.';
 
   @override
   String get checkpoint_title => 'CHEQUEO DE NIVEL';

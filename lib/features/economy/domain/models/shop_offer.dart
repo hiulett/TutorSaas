@@ -33,6 +33,7 @@ class ShopOffer {
     this.craftFragments = 0,
     this.requiredLevel = 1,
     this.imageUrl,
+    this.minPlan,
   });
 
   factory ShopOffer.fromMap(Map<String, dynamic> map) {
@@ -47,6 +48,7 @@ class ShopOffer {
       craftFragments: _int(map['craft_cost_fragments']),
       requiredLevel: _int(map['required_level'], fallback: 1).clamp(1, 999),
       imageUrl: map['image_url'] as String?,
+      minPlan: _text(map['min_plan']),
     );
   }
 
@@ -60,6 +62,16 @@ class ShopOffer {
   final int craftFragments;
   final int requiredLevel;
   final String? imageUrl;
+
+  /// P-44 (#129): plan mínimo que exige el objeto (`cosmetic_catalog.min_plan`).
+  /// La compra la valida el servidor (`purchase_cosmetic`/`craft_cosmetic`);
+  /// aquí solo se usa para anunciarlo en la tienda.
+  final String? minPlan;
+
+  bool get isExclusive => minPlan != null && minPlan!.isNotEmpty;
+
+  /// Etiqueta del plan exigido ("REALEZA"), o `null` si es para todos.
+  String? get requiredPlanLabel => isExclusive ? minPlan!.toUpperCase() : null;
 
   bool get purchasableWithGold => priceGold > 0;
   bool get purchasableWithGems => priceGems > 0;
@@ -149,6 +161,12 @@ class ShopOffer {
     if (value is int) return value;
     if (value is num) return value.round();
     return int.tryParse('$value') ?? fallback;
+  }
+
+  static String? _text(Object? value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 }
 

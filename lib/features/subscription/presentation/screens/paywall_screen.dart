@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
+import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
+import '../../domain/models/subscription_plan.dart';
 import '../providers/subscription_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -84,8 +88,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         ref.read(isPremiumProvider.notifier).setPremium(true);
         _refreshAfterPurchase();
         _track(AnalyticsEvent.restoreResult, const {'result': 'granted'});
-        SystemSnack.show(context, l10n.paywall_restored,
-            type: SystemSnackType.success);
+        SystemSnack.show(
+          context,
+          l10n.paywall_restored,
+          type: SystemSnackType.success,
+        );
       } else {
         _track(AnalyticsEvent.restoreResult, const {'result': 'nothing'});
         SystemSnack.show(
@@ -96,10 +103,16 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       }
     } catch (e) {
       debugPrint('Restore purchases failed: $e');
-      _track(AnalyticsEvent.restoreResult, {'result': 'error', 'error': e.toString()});
+      _track(AnalyticsEvent.restoreResult, {
+        'result': 'error',
+        'error': e.toString(),
+      });
       if (mounted) {
-        SystemSnack.show(context, l10n.paywall_load_error,
-            type: SystemSnackType.error);
+        SystemSnack.show(
+          context,
+          l10n.paywall_load_error,
+          type: SystemSnackType.error,
+        );
       }
     } finally {
       if (mounted) setState(() => _isPresenting = false);
@@ -137,8 +150,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         case PaywallResult.restored:
           _refreshAfterPurchase();
           _track(AnalyticsEvent.purchaseSucceeded, const {'via': 'restore'});
-          SystemSnack.show(context, l10n.paywall_restored,
-              type: SystemSnackType.success);
+          SystemSnack.show(
+            context,
+            l10n.paywall_restored,
+            type: SystemSnackType.success,
+          );
           break;
         // El usuario cerró el paywall sin comprar, no se presentó o hubo error:
         // sin acción adicional.
@@ -147,7 +163,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           _track(AnalyticsEvent.purchaseCancelled, {'result': result.name});
           break;
         case PaywallResult.error:
-          _track(AnalyticsEvent.purchaseFailed, const {'error': 'paywall_result_error'});
+          _track(AnalyticsEvent.purchaseFailed, const {
+            'error': 'paywall_result_error',
+          });
           if (mounted) setState(() => _paywallError = l10n.paywall_load_error);
           break;
       }
@@ -177,8 +195,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       await ref.read(revenueCatServiceProvider).presentCustomerCenter();
     } catch (e) {
       if (mounted) {
-        SystemSnack.show(context, '${l10n.paywall_load_error} $e',
-            type: SystemSnackType.error);
+        SystemSnack.show(
+          context,
+          '${l10n.paywall_load_error} $e',
+          type: SystemSnackType.error,
+        );
       }
     }
   }
@@ -196,12 +217,19 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             children: [
               // Top App Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 12.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: AppColors.onSurface, size: 28),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: AppColors.onSurface,
+                        size: 28,
+                      ),
                       onPressed: () {
                         if (context.canPop()) {
                           context.pop();
@@ -212,12 +240,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                     ),
                     TextButton(
                       onPressed: _isPresenting ? null : _restorePurchases,
-                      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
                       child: Text(
                         l10n.paywall_restore,
-                        style: AppTypography.stat(context).copyWith(
-                          color: AppColors.runeViolet,
-                        ),
+                        style: AppTypography.stat(
+                          context,
+                        ).copyWith(color: AppColors.runeViolet),
                       ),
                     ),
                   ],
@@ -241,7 +271,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                             color: AppColors.runeViolet.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
-                              color: AppColors.runeViolet.withValues(alpha: 0.4),
+                              color: AppColors.runeViolet.withValues(
+                                alpha: 0.4,
+                              ),
                               width: 2,
                             ),
                           ),
@@ -273,13 +305,22 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                         textAlign: TextAlign.center,
                         style: AppTypography.bodyMuted(context),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+
+                      // P-44 (#129): comparación de planes con capacidades
+                      // reales. Solo se pinta lo que `subscription_plans`
+                      // publica con `is_active = true`; si la consulta falla
+                      // el bloque no aparece y el CTA sigue operativo.
+                      const _PlanComparison(),
+                      const SizedBox(height: 24),
 
                       entitlementsAsync.when(
                         loading: () => const Padding(
                           padding: EdgeInsets.symmetric(vertical: 60),
                           child: Center(
-                            child: CircularProgressIndicator(color: AppColors.runeViolet),
+                            child: CircularProgressIndicator(
+                              color: AppColors.runeViolet,
+                            ),
                           ),
                         ),
                         error: (e, _) => Padding(
@@ -320,12 +361,17 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             decoration: BoxDecoration(
               color: AppColors.errorRed.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: AppColors.errorRed.withValues(alpha: 0.4),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.error_outline_rounded,
-                    color: AppColors.errorRed, size: 18),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.errorRed,
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -342,8 +388,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           onPressed: _isPresenting
               ? null
               : isPremium
-                  ? _openCustomerCenter
-                  : _openPaywall,
+              ? _openCustomerCenter
+              : _openPaywall,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.runeViolet,
             foregroundColor: AppColors.onSurface,
@@ -379,9 +425,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             onPressed: _isPresenting ? null : _restorePurchases,
             child: Text(
               l10n.paywall_restore,
-              style: AppTypography.stat(context).copyWith(
-                color: AppColors.manaCyan,
-              ),
+              style: AppTypography.stat(
+                context,
+              ).copyWith(color: AppColors.manaCyan),
             ),
           ),
         const SizedBox(height: 16),
@@ -396,5 +442,224 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         const SizedBox(height: 32),
       ],
     );
+  }
+}
+
+/// P-44 (#129) — comparación de planes leída de `subscription_plans`.
+///
+/// Solo aparecen los planes activos y sus capacidades reales:
+/// maná/mes, semanas de historial del informe y cosméticos exclusivos. Si la
+/// tabla no responde, el bloque desaparece (el paywall nativo sigue igual).
+class _PlanComparison extends ConsumerWidget {
+  const _PlanComparison();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final catalog = ref.watch(planCatalogProvider).value;
+    if (catalog == null || catalog.plans.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final locale = Localizations.localeOf(context).toString();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          (l10n?.paywall_plans_title ?? 'ELIGE TU ESTAMENTO').toUpperCase(),
+          style: AppTypography.label(context).copyWith(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.4,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 10),
+        for (final plan in catalog.plans)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _PlanCard(
+              plan: plan,
+              exclusiveItems: catalog.exclusivesFor(plan),
+              locale: locale,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({
+    required this.plan,
+    required this.exclusiveItems,
+    required this.locale,
+  });
+
+  final SubscriptionPlan plan;
+  final int exclusiveItems;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final accent = plan.hasTrial ? AppColors.royalGold : AppColors.runeViolet;
+    final bullets = <String>[
+      if (plan.manaAllowance > 0)
+        l10n?.paywall_plan_mana(_formatAmount(plan.manaAllowance)) ??
+            '${_formatAmount(plan.manaAllowance)} maná/mes',
+      l10n?.paywall_plan_report_weeks(plan.weeklyReportWeeks) ??
+          '${plan.weeklyReportWeeks} semanas de historial',
+      if (exclusiveItems > 0)
+        l10n?.paywall_plan_exclusives(exclusiveItems) ??
+            '$exclusiveItems cosméticos exclusivos',
+    ];
+
+    return GlassCard(
+      borderColor: accent.withValues(alpha: plan.hasTrial ? 0.55 : 0.28),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            plan.name.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.subtitle(context).copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                              color: AppColors.onSurface,
+                            ),
+                          ),
+                        ),
+                        if (plan.badgeTag != null &&
+                            plan.badgeTag!.trim().isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: accent.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              border: Border.all(
+                                color: accent.withValues(alpha: 0.45),
+                              ),
+                            ),
+                            child: Text(
+                              plan.badgeTag!.toUpperCase(),
+                              style: AppTypography.tiny(context).copyWith(
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                                color: accent,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                plan.price,
+                style: AppTypography.stat(context).copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.royalGold,
+                ),
+              ),
+              Text(
+                l10n?.paywall_per_month ?? '/mes',
+                style: AppTypography.tiny(
+                  context,
+                ).copyWith(fontSize: 9, color: AppColors.onSurfaceVariant),
+              ),
+            ],
+          ),
+          if (plan.hasTrial) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.royalGold.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(
+                  color: AppColors.royalGold.withValues(alpha: 0.45),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.card_giftcard_rounded,
+                    color: AppColors.royalGold,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n?.paywall_trial_then(plan.trialDays, plan.price) ??
+                          '${plan.trialDays} días gratis, luego ${plan.price}',
+                      style: AppTypography.tiny(context).copyWith(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.royalGold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          for (final bullet in bullets)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.check_circle_rounded,
+                    size: 11,
+                    color: accent.withValues(alpha: 0.85),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      bullet,
+                      style: AppTypography.body(context).copyWith(
+                        fontSize: 11,
+                        height: 1.35,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatAmount(int value) {
+    try {
+      return NumberFormat.decimalPattern(locale).format(value);
+    } catch (_) {
+      return value.toString();
+    }
   }
 }

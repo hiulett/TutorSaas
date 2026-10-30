@@ -2,15 +2,25 @@
 
 > Datos leídos de producción el 29-oct-2026 (`subscription_plans`, `ai_action_costs`,
 > `ai_usage_logs`). Los precios reales de Play no se consultaron en esta pasada.
+>
+> **P-44 (#129) y P-45 (#130) aplicados el 30-oct-2026** en
+> `20261030005704_plans_capabilities_p44_p45.sql`: DIVINO retirado
+> (`is_active = false`) y diferenciación por capacidad (historial del informe +
+> títulos exclusivos). Ver [PRODUCT.md](PRODUCT.md) y
+> [runbooks/TRIAL_NOBLE_P45.md](runbooks/TRIAL_NOBLE_P45.md). Lo que falta es
+> configuración de Play Console (trial), no código.
 
 ## Estado real del catálogo
+
+> Tras P-44: **activos = PLEBEYO, NOBLE, REALEZA**. DIVINO sigue en la tabla con
+> `is_active = false` (histórico), no se borra.
 
 | Plan | Precio/mes | Anual | Maná/mes | Min. audio | Activo |
 |---|---|---|---|---|---|
 | PLEBEYO | $0 | — | 3 000 (tope diario 200) | 30 | sí |
 | NOBLE | $4.99 | $53.99 | 17 000 | 300 | sí |
 | REALEZA | $9.99 | $107.99 | 20 500 | 1 200 | sí |
-| DIVINO | $12.99 | $132.99 | 25 500 | 2 000 | sí |
+| DIVINO | $12.99 | $132.99 | 25 500 | 2 000 | **no** (retirado) |
 | free/monthly/annual/lifetime | — | — | — | — | **no** (legado) |
 
 Costes de maná por acción: `free_chat_turn 8` · `dungeon_turn 12` · `oracle_turn 15`
@@ -41,6 +51,17 @@ números.
 **Recomendación:** 2 + 1 (features reales primero, cantidades después). Sin features,
 triplicar SKUs solo añade confusión y carga de soporte.
 
+**Decisión aplicada (30-oct-2026):** 2 + 3. DIVINO fuera y dos palancas reales,
+gateadas en servidor:
+
+| Capacidad | PLEBEYO | NOBLE | REALEZA | Enforcement |
+|---|---|---|---|---|
+| Semanas en el informe semanal | 1 | 4 | 52 | `get_weekly_report` (`weekly_report_weeks`) |
+| Cosméticos exclusivos | — | — | 2 (título + aura) | `purchase_cosmetic` / `craft_cosmetic` (`min_plan`) |
+
+El paywall pinta solo `is_active = true` y las capacidades salen de la tabla
+(maná, semanas de historial, nº de exclusivos del plan).
+
 ## P-45 · Prueba gratuita y gestión de planes
 
 - En la base **no hay trial**: la prueba debe configurarse en Play Console (7 días en
@@ -50,6 +71,12 @@ triplicar SKUs solo añade confusión y carga de soporte.
 - **Recomendación:** trial de 7 días solo en NOBLE (el plan que ya gana por precio),
   botón “Gestionar suscripción” que abra Play (`https://play.google.com/store/account/subscriptions`),
   y un aviso claro antes de que termine el trial. Requiere acción en Play Console.
+- **Aplicado (30-oct-2026):** `subscription_plans.trial_days` (NOBLE = 7, resto 0) y el
+  paywall muestra «7 días gratis, luego $4.99/mes» **solo** si el plan tiene trial.
+  La app no promete nada mientras la base diga 0. Falta configurar la oferta en Play
+  Console/RevenueCat: [runbooks/TRIAL_NOBLE_P45.md](runbooks/TRIAL_NOBLE_P45.md).
+  El recordatorio previo al cobro sigue pendiente (requiere distinguir trial en
+  `user_subscriptions`).
 
 ## P-46 · Compra de maná opcional
 

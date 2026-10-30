@@ -21,7 +21,9 @@ bool isPremiumSubscription(Map<String, dynamic>? subscription) {
 
   final rawEnd = subscription['period_end'];
   if (rawEnd == null) return true; // sin fecha: se confía en el estado
-  final end = rawEnd is DateTime ? rawEnd : DateTime.tryParse(rawEnd.toString());
+  final end = rawEnd is DateTime
+      ? rawEnd
+      : DateTime.tryParse(rawEnd.toString());
   if (end == null) return true;
 
   return end.isAfter(DateTime.now().toUtc());

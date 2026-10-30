@@ -9,7 +9,8 @@ Procedimiento para validar el flujo de suscripciones en la app Android.
 | Paso | Dónde | Detalle |
 |---|---|---|
 | Alta como *license tester* | Play Console → Configuración → Pruebas de licencia | La **misma** cuenta de Google que usarás para comprar |
-| Suscripciones activas | Play Console → Monetizar → Productos → Suscripciones | `dungeonsspeak_noble_*`, `_realeza_*`, `_divino_*` |
+| Suscripciones activas | Play Console → Monetizar → Productos → Suscripciones | `dungeonsspeak_noble_*`, `_realeza_*` (`_divino_*` está retirado desde P-44) |
+| Prueba gratuita (opcional) | Play Console → Suscripción NOBLE → Ofertas | 7 días solo en `_noble_monthly`; ver `TRIAL_NOBLE_P45.md` |
 | Service account conectado | RevenueCat → Project settings → Integraciones | `play_service_account_credentials_configured: true` |
 | Webhook apuntando a la app correcta | RevenueCat → Integraciones → Webhooks | `app_id = app69c16b2a83` (Play), no Test Store |
 | Secreto del webhook | Supabase → Edge Functions → Secrets | `REVENUECAT_AUTH_TOKEN` idéntico al del dashboard |

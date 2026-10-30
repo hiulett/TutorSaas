@@ -16,19 +16,30 @@ evaluadas (issue #43).
 
 ## 2. Planes
 
-| Plan | Maná/mes | Notas |
-|---|---|---|
-| `plebeyo` | 3.000 | Gratis, es el estado por defecto |
-| `noble` | 17.000 | Premium 1 |
-| `realeza` | 20.500 | Premium 2 |
-| `divino` | 25.500 | Premium 3 |
+| Plan | Precio/mes | Maná/mes | Historial del informe | Notas |
+|---|---|---|---|---|
+| `plebeyo` | $0 | 3.000 (tope 200/día) | 1 semana | Gratis, estado por defecto |
+| `noble` | $4.99 | 17.000 | 4 semanas | **Trial de 7 días** (Play + RevenueCat) |
+| `realeza` | $9.99 | 20.500 | 52 semanas | Títulos/auras exclusivos |
 
-- Los planes activos viven en `subscription_plans` (sin precios: los pone la
-  tienda).
-- Productos en Play: `dungeonsspeak_{noble|realeza|divino}_{monthly|yearly}`.
+- Los planes activos viven en `subscription_plans` y la app **solo pinta los
+  `is_active = true`** (P-44 / #129). No hay lista de planes en el código.
+- **DIVINO está retirado** desde la migración `20261030005704` (`is_active =
+  false`); la fila se conserva porque `user_subscriptions` y `payments` la
+  referencian. No hay usuarios con ese plan.
+- La diferenciación es por **capacidad**, no solo por volumen de maná:
+  semanas de historial en el informe semanal (`weekly_report_weeks`, aplicado
+  en `get_weekly_report`) y cosméticos exclusivos (`cosmetic_catalog.min_plan`,
+  aplicado en `purchase_cosmetic` / `craft_cosmetic`).
+- Productos en Play: `dungeonsspeak_{noble|realeza}_{monthly|yearly}`. El
+  mapeo de `sync-entitlement` / `revenuecat-webhook` sigue aceptando `divino`
+  solo por compatibilidad histórica de SKUs ya publicados.
 - RevenueCat: entitlement **`DungeonsSpeak Pro`**, offering `default`.
-- El premium **solo** añade maná y features de texto; no vende ventajas de
-  juego (decisión de producto).
+- El trial se configura en Play Console y RevenueCat; la app solo anuncia los
+  días de `subscription_plans.trial_days` y deben coincidir con la tienda.
+  Checklist: [runbooks/TRIAL_NOBLE_P45.md](runbooks/TRIAL_NOBLE_P45.md).
+- El premium **no** vende ventajas de aprendizaje evaluado: las capacidades
+  extra son de informe, historial y cosmética.
 
 ---
 

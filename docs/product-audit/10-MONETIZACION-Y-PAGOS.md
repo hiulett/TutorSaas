@@ -4,6 +4,13 @@
 > `paywall_screen.dart`, `subscription_repository_impl.dart`, tablas
 > `subscription_plans` / `user_subscriptions` / `payments` (producción) y
 > `docs/OPERATIONS.md` §5.
+>
+> **Actualizado 30-oct-2026 (P-44 #129 / P-45 #130):** `divino` pasó a
+> `is_active=false` y el premium ya no es "solo maná": hay semanas de historial
+> del informe y cosméticos exclusivos gateados en servidor. Ver
+> [../PRODUCT.md](../PRODUCT.md) y
+> [../runbooks/TRIAL_NOBLE_P45.md](../runbooks/TRIAL_NOBLE_P45.md). Las tablas
+> de abajo describen la foto del 25-oct.
 
 ---
 
