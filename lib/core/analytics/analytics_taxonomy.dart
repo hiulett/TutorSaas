@@ -51,6 +51,12 @@ abstract final class AnalyticsEvent {
   static const helpPhraseUsed = 'help_phrase_used';
   static const conversationTurnLatency = 'conversation_turn_latency';
 
+  // P-34f (#198): modo del micrófono y resultado del gesto mantener-hablar.
+  // `mic_mode_changed.mode` = tap | hold.
+  // `hold_to_talk_turn.result` = sent | too_short | cancelled.
+  static const micModeChanged = 'mic_mode_changed';
+  static const holdToTalkTurn = 'hold_to_talk_turn';
+
   // P-25 (#110): mini-conversación de valor tras el onboarding.
   // `turn` lleva el número de turno; `input` = text | voice.
   static const miniConversationStarted = 'mini_conversation_started';
@@ -89,6 +95,8 @@ abstract final class AnalyticsEvent {
     helpPhrasesShown,
     helpPhraseUsed,
     conversationTurnLatency,
+    micModeChanged,
+    holdToTalkTurn,
     miniConversationStarted,
     miniConversationTurn,
     miniConversationCompleted,

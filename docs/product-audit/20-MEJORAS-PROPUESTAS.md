@@ -482,7 +482,7 @@
 - **P-34c Velocidad del TTS** (0.75×/1×/1.25×) y **selección de voz** (`tutor_voice_id` ya existe en `user_settings`).
 - **P-34d Traducción bajo demanda** de la burbuja del tutor al idioma nativo (`ai_explanations_native`).
 - **P-34e Permiso de micrófono denegado:** flujo "ir a ajustes" (hoy no existe).
-- **P-34f Modo hold-to-talk** vs tap-to-toggle (`micModeHoldToTalkProvider` existe sin consumidores).
+- **P-34f Modo hold-to-talk** vs tap-to-toggle. **Implementado en #198:** ajuste persistido en `user_settings.mic_mode_hold_to_talk`, gesto en `ConversationMicButton`, descarte de clips <300 ms y cancelación por arrastre (sin STT).
 - **P-34g Feedback visual de grabación** (forma de onda) y de latencia ("pensando…").
 - **Criterios genéricos:** cada una con evento de uso y ajuste persistido en `user_settings`.
 
@@ -629,7 +629,7 @@
 
 ### H-51 · Limpieza técnica
 **P-51 · Deuda controlada** (P3)
-- Eliminar 13 dependencias sin uso, `STT_URL/TTS_URL` sin uso, `UserProgress` sin uso, `micModeHoldToTalkProvider` (si no se implementa P-34f), `system_ai_settings` (leerlo o retirar el panel), planes legacy.
+- Eliminar 13 dependencias sin uso, `STT_URL/TTS_URL` sin uso, `UserProgress` sin uso, `system_ai_settings` (leerlo o retirar el panel), planes legacy. (`micModeHoldToTalkProvider` se conserva: P-34f se implementó en #198.)
 - Partir pantallas monolíticas (>1.000 líneas): `conversation_screen`, `settings_screen`, `chat_rooms_screen`, `voice_room_screen`, `onboarding_screen`.
 - Mover lógica de negocio de repositorios (estrellas, racha, progreso) a servicios de dominio o servidor.
 - Accesibilidad: `Semantics`, contraste, soporte de lector de pantalla, ya cubierta parcialmente por tests de escala de texto.

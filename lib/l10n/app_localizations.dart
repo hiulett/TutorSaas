@@ -5344,6 +5344,18 @@ abstract class AppLocalizations {
   /// **'Open Settings > Apps > Dungeon of English > Permissions > Microphone.'**
   String get convo_mic_manual_hint;
 
+  /// No description provided for @convo_mic_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone'**
+  String get convo_mic_label;
+
+  /// No description provided for @convo_hold_too_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Too short: keep the microphone pressed while you speak and release to send.'**
+  String get convo_hold_too_short;
+
   /// No description provided for @convo_help_title.
   ///
   /// In en, this message translates to:
@@ -5745,6 +5757,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vibrate on goal complete and level up'**
   String get settings_haptics_desc;
+
+  /// No description provided for @settings_hold_to_talk.
+  ///
+  /// In en, this message translates to:
+  /// **'HOLD TO TALK'**
+  String get settings_hold_to_talk;
+
+  /// No description provided for @settings_hold_to_talk_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the microphone pressed while you speak and release to send. Off: tap to start and tap to stop.'**
+  String get settings_hold_to_talk_desc;
 
   /// No description provided for @settings_sounds.
   ///

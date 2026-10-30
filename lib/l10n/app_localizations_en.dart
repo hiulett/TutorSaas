@@ -2903,6 +2903,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Open Settings > Apps > Dungeon of English > Permissions > Microphone.';
 
   @override
+  String get convo_mic_label => 'Microphone';
+
+  @override
+  String get convo_hold_too_short =>
+      'Too short: keep the microphone pressed while you speak and release to send.';
+
+  @override
   String get convo_help_title => 'I need help';
 
   @override
@@ -3120,6 +3127,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_haptics_desc => 'Vibrate on goal complete and level up';
+
+  @override
+  String get settings_hold_to_talk => 'HOLD TO TALK';
+
+  @override
+  String get settings_hold_to_talk_desc =>
+      'Keep the microphone pressed while you speak and release to send. Off: tap to start and tap to stop.';
 
   @override
   String get settings_sounds => 'SOUNDS';
