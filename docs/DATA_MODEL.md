@@ -28,6 +28,9 @@ _Medido en producción el 29-oct-2026._
 - `user_settings` guarda preferencias (meta diaria, intereses, estilo de
   corrección, personalidad del tutor). También el opt-out de los emails de
   reactivación (`reactivation_emails`) y su token de baja (issue #107).
+  Preferencias de voz: `tts_speed`, `tutor_voice_id` (#119). Modo del
+  micrófono: `mic_mode_hold_to_talk` (boolean, `not null default false`, #198:
+  `false` = tap-to-toggle, `true` = mantener para hablar).
 
 ### Aprendizaje
 `scenarios` (500 filas sembradas), `scenario_goals`, `scenario_objectives`,

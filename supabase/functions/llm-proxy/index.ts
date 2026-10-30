@@ -82,8 +82,9 @@ const MANA_CHARGE_MODE = normalizeManaChargeMode(Deno.env.get('MANA_CHARGE_MODE'
 const FALLBACK_PAID_ACTIONS = new Set([
   'dungeon_turn',
   'free_chat_turn',
-  // P-29-b (#193): correcciones en conversación libre.
-  'correction_turn',
+  // P-40-c (#222): `correction_turn` NO va aquí. Es gratuita (`FREE_ACTIONS`);
+  // si estuviera en el respaldo, un fallo al leer `ai_action_costs` la cobraría
+  // y `consume_mana` la rechazaría por inactiva (402 → sin correcciones).
   'lesson_generation',
   'oracle_eval',
   'oracle_turn',
@@ -429,9 +430,13 @@ async function handleChat(req: Request, userId: string): Promise<Response> {
   }
 
   // P-07: valida la acción contra `ai_action_costs` (o la lista de gratuitas).
+  // P-40-c: la lista de gratuitas manda. Así `correction_turn` no se cobra ni
+  // con una fila activa obsoleta en `ai_action_costs` (orden de despliegue
+  // seguro) y el rollback solo exige revertir esta lista.
   const paidActions = await paidActionCodes();
-  const isPaid = paidActions.has(actionCode);
-  if (!isPaid && !FREE_ACTIONS.has(actionCode)) {
+  const isFree = FREE_ACTIONS.has(actionCode);
+  const isPaid = !isFree && paidActions.has(actionCode);
+  if (!isPaid && !isFree) {
     return json({ error: 'invalid_action', action_code: actionCode }, 400);
   }
 

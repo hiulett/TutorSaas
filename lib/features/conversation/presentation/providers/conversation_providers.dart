@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:record/record.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../data/repositories/conversation_repository_impl.dart';
@@ -42,6 +41,8 @@ import '../../../../core/utils/text_diff_utils.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../domain/models/tts_preferences.dart';
+import '../../domain/models/hold_to_talk_gesture.dart';
+import '../../domain/services/conversation_audio_recorder.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Providers
@@ -95,8 +96,21 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   final ConversationRepository _repository;
   final Ref _ref;
 
-  // Raw Audio Recorder for ultra-reliable voice capture
-  final Record _audioRecorder = Record();
+  // Raw Audio Recorder for ultra-reliable voice capture.
+  // P-34f (#198): detrás de una interfaz para poder probar la interacción
+  // (inicio/fin/descarte) sin el plugin nativo. Los parámetros de audio del
+  // pipeline no cambian.
+  late final ConversationAudioRecorder _audioRecorder = _ref.read(
+    conversationAudioRecorderProvider,
+  );
+
+  /// P-34f (#198): identifica la grabación en curso. Se incrementa al
+  /// descartar para que un `startRecording` todavía en vuelo (permiso o
+  /// comprobación de maná) no deje el micrófono grabando tras cancelar.
+  int _recordingSession = 0;
+
+  /// `true` mientras `startRecording` espera permisos/maná/plugin.
+  bool _recordingStartInFlight = false;
 
   // On-device Text-to-Speech
   final FlutterTts _tts = FlutterTts();
@@ -153,9 +167,6 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// (chat libre). Cuenta también los intentos fallidos: el tope acota el
   /// gasto de IA, no los aciertos.
   int _correctionEvaluations = 0;
-
-  /// P-29-b: tras un `402 no_mana` no se vuelve a pedir en esta sesión.
-  bool _correctionsSkippedForMana = false;
 
   /// Errores recurrentes del alumno (vista `user_recurring_errors`).
   /// Alimentan el prompt del tutor y la misión de refuerzo.
@@ -240,7 +251,6 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // contexto de errores recurrentes se refresca al abrir la conversación.
     _correctionTurnRef = null;
     _correctionEvaluations = 0;
-    _correctionsSkippedForMana = false;
     _recurringErrors = const [];
     _ref.read(sessionCorrectionsProvider.notifier).clear();
     unawaited(_loadRecurringErrors());
@@ -658,6 +668,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
   Future<void> startRecording() async {
     if (state.isRecording || state.isProcessing) return;
+    // P-34f (#198): token del intento de grabación. Si el gesto se descarta
+    // mientras se piden permisos o se consulta el maná, este intento se anula.
+    final int session = ++_recordingSession;
+    _recordingStartInFlight = true;
 
     if (state.isPlaying) {
       await _tts.stop();
@@ -666,6 +680,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
 
     try {
       final hasPermission = await _audioRecorder.hasPermission();
+      if (session != _recordingSession) return;
       if (!hasPermission) {
         // P-34e (#119): la pantalla muestra una tarjeta con "Ir a ajustes".
         // No se usa `errorMessage` para no disparar dos avisos a la vez.
@@ -705,17 +720,20 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         }
       }
 
+      if (session != _recordingSession) return;
+
       final tempDir = await getTemporaryDirectory();
       final recordingPath =
           '${tempDir.path}/rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       _recordingStartTimestamp = DateTime.now();
-      await _audioRecorder.start(
-        path: recordingPath,
-        encoder: AudioEncoder.aacLc,
-        bitRate: 128000,
-        samplingRate: 16000,
-      );
+      await _audioRecorder.start(recordingPath);
+
+      if (session != _recordingSession) {
+        // El gesto se descartó mientras el plugin arrancaba: se cierra ya.
+        await _discardAudioFile(await _audioRecorder.stop());
+        return;
+      }
 
       _hasProcessedThisTurn = false;
       state = state.copyWith(
@@ -731,6 +749,9 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         isRecording: false,
         errorMessage: 'Error al acceder al micrófono: $e',
       );
+    } finally {
+      // Si el token cambió, el descarte ya limpió la marca.
+      if (session == _recordingSession) _recordingStartInFlight = false;
     }
   }
 
@@ -831,6 +852,89 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         kind: AiErrorKind.stt,
         canRetry: false,
       );
+    }
+  }
+
+  // ── P-34f (#198): Modo mantener-para-hablar ────────────────────────────────
+
+  /// Mensaje accionable por defecto cuando la pulsación no llega al umbral
+  /// mínimo (la UI puede aportar la traducción).
+  static const String defaultTooShortMessage =
+      'Mantén pulsado mientras hablas y suelta para enviar tu respuesta.';
+
+  /// Pulsación mantenida: inicia la grabación.
+  ///
+  /// Reutiliza `startRecording` a propósito: el pipeline (AAC 16 kHz →
+  /// Groq STT → DeepSeek SSE → flutter_tts) no cambia, solo cuándo se dispara.
+  Future<void> startHoldRecording() => startRecording();
+
+  /// Se soltó dentro del botón: envía al STT si supera el umbral mínimo.
+  Future<void> endHoldRecording(Duration heldFor) async {
+    if (heldFor < HoldToTalkGesture.defaultMinHoldDuration) {
+      await discardHoldRecording(tooShort: true, heldFor: heldFor);
+      return;
+    }
+    // Nunca llegó a grabar (permiso denegado, sin maná, error del plugin):
+    // no hay nada que enviar y el estado ya explica el motivo.
+    if (!state.isRecording) return;
+    _track(
+      AnalyticsEvent.holdToTalkTurn,
+      properties: {'result': 'sent', 'ms': heldFor.inMilliseconds},
+    );
+    await stopRecording();
+  }
+
+  /// Descarta la grabación sin enviarla al STT.
+  ///
+  /// [tooShort] = se soltó antes del umbral (aviso accionable);
+  /// `false` = se canceló el gesto (arrastrar fuera) y se descarta en silencio.
+  Future<void> discardHoldRecording({
+    required bool tooShort,
+    Duration? heldFor,
+    String? message,
+  }) async {
+    if (!tooShort && !state.isRecording && !_recordingStartInFlight) {
+      return;
+    }
+    final bool wasRecording = state.isRecording;
+    _recordingSession++; // anula un `startRecording` todavía en vuelo
+    _recordingStartInFlight = false;
+    if (wasRecording) {
+      try {
+        await _discardAudioFile(await _audioRecorder.stop());
+      } catch (e, st) {
+        debugPrint('No se pudo descartar la grabación: $e');
+        ErrorTracker.logSilent(
+          'lib/features/conversation/presentation/providers/conversation_providers.dart:discard_hold',
+          e,
+          stackTrace: st,
+        );
+      }
+    }
+    _recordingStartTimestamp = null;
+    state = state.copyWith(
+      isRecording: false,
+      isProcessing: false,
+      currentTranscribingText: '',
+      errorMessage: tooShort ? (message ?? defaultTooShortMessage) : null,
+    );
+    _track(
+      AnalyticsEvent.holdToTalkTurn,
+      properties: {
+        'result': tooShort ? 'too_short' : 'cancelled',
+        'ms': heldFor?.inMilliseconds ?? 0,
+      },
+    );
+  }
+
+  /// Borra el archivo de una grabación descartada (nunca se transcribe).
+  Future<void> _discardAudioFile(String? path) async {
+    if (path == null || path.isEmpty) return;
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (e) {
+      debugPrint('No se pudo borrar el audio descartado: $e');
     }
   }
 
@@ -2030,12 +2134,15 @@ ENDING:
         .join('\n');
   }
 
-  /// P-29-b (#193): pide las correcciones del turno cuando no hubo `goal_eval`.
+  /// P-29-b (#193) / P-40-c (#222): pide las correcciones del turno cuando no
+  /// hubo `goal_eval`.
   ///
-  /// Best-effort y sin bloquear: un fallo, un JSON ilegible o un 402 dejan la
-  /// conversación exactamente igual (sin chip y sin error visible). El coste
-  /// lo acota [CorrectionTurnPolicy] (gate de longitud + tope por sesión) y el
-  /// maná lo cobra `llm-proxy` con `action_code = correction_turn`.
+  /// Best-effort y sin bloquear: un fallo, un JSON ilegible o un 429/402 dejan
+  /// la conversación exactamente igual (sin chip y sin error visible). El coste
+  /// real de tokens lo acota [CorrectionTurnPolicy] (gate de longitud + tope por
+  /// sesión). La acción es gratuita en `llm-proxy` (`FREE_ACTIONS`): no depende
+  /// del maná, así que un alumno sin saldo que conversa con el turno de gracia
+  /// sigue generando errores que el tutor puede usar después.
   Future<void> _maybeRequestTurnCorrections({
     required String messageText,
     required bool goalEvalRanThisTurn,
@@ -2050,7 +2157,6 @@ ENDING:
       lastUserMessage: messageText,
       evaluationsThisSession: _correctionEvaluations,
       goalsEvaluatedThisTurn: goalEvalRanThisTurn,
-      skippedForMana: _correctionsSkippedForMana,
     );
     if (!shouldRequest) return;
 
@@ -2059,17 +2165,16 @@ ENDING:
       conversationId: _conversationId,
     );
 
-    switch (result.outcome) {
-      case CorrectionTurnOutcome.noMana:
-        // Plan gratuito sin maná: se deja de pedir en esta sesión. El turno ya
-        // está respondido, así que el 402 no rompe nada.
-        _correctionsSkippedForMana = true;
-        debugPrint('correction_turn: sin maná, correcciones desactivadas');
-      case CorrectionTurnOutcome.ok:
-      case CorrectionTurnOutcome.failed:
-        // Los intentos fallidos también consumen presupuesto: el tope acota el
-        // gasto de IA por sesión, no solo las evaluaciones con éxito.
-        _correctionEvaluations++;
+    // Los intentos fallidos también consumen presupuesto: el tope acota el
+    // gasto de IA por sesión, no solo las evaluaciones con éxito. `noMana` solo
+    // puede llegar de un proxy antiguo todavía desplegado; se trata como un
+    // fallo puntual (se reintenta en el siguiente turno dentro del tope).
+    _correctionEvaluations++;
+    if (result.outcome == CorrectionTurnOutcome.noMana) {
+      debugPrint(
+        'correction_turn: el proxy sigue cobrando (402); '
+        'se reintentará en el siguiente turno dentro del tope',
+      );
     }
 
     _handleTurnCorrections(result.corrections, messageText: messageText);
@@ -2113,17 +2218,24 @@ ENDING:
         .read(sessionCorrectionsProvider.notifier)
         .addForMessage(target, corrections);
 
+    // P-40-c: el chip se pinta siempre, pero solo se escribe historial cuando
+    // hay datos reales y un turno al que anclarlos (nunca filas inventadas).
     final userId = _userId;
     final turnRef = _correctionTurnRef;
-    if (userId == null || userId.startsWith('guest_') || turnRef == null)
+    if (!CorrectionTurnPolicy.shouldPersist(
+      userId: userId,
+      turnRef: turnRef,
+      corrections: corrections,
+    )) {
       return;
+    }
 
     unawaited(
       _ref
           .read(correctionsRepositoryProvider)
           .saveCorrections(
-            userId: userId,
-            turnRef: turnRef,
+            userId: userId!,
+            turnRef: turnRef!,
             corrections: corrections,
             conversationId: _conversationId,
           ),
@@ -2661,12 +2773,10 @@ ENDING:
 
   /// Cierra los plugins nativos sin romper el árbol de providers cuando no
   /// existen (tests) o el motor falla.
+  ///
+  /// El grabador lo libera `conversationAudioRecorderProvider` (`onDispose`),
+  /// así que aquí solo queda el TTS.
   Future<void> _disposePlugins() async {
-    try {
-      await _audioRecorder.dispose();
-    } catch (e) {
-      debugPrint('Record dispose failed (non-blocking): $e');
-    }
     try {
       await _tts.stop();
     } catch (e) {
@@ -2815,4 +2925,30 @@ final conversationStateProvider =
       return ConversationNotifier(repo, ref);
     });
 
-final micModeHoldToTalkProvider = StateProvider<bool>((ref) => false);
+/// P-34f (#198): modo del micrófono — mantener para hablar vs tap-to-toggle.
+///
+/// Se deriva de `user_settings.mic_mode_hold_to_talk` (BD) para que el ajuste
+/// elegido en Ajustes se respete al reabrir la conversación. Una sola fuente
+/// de verdad: no se guarda una copia local del ajuste.
+final micModeHoldToTalkProvider = Provider<bool>(
+  (ref) => ref.watch(userSettingsProvider).micModeHoldToTalk,
+);
+
+/// P-34f (#198): grabador nativo inyectable.
+///
+/// En producción usa `record` con los mismos parámetros de audio de siempre
+/// (AAC-LC, 128 kbps, 16 kHz); en tests se sustituye por un doble para probar
+/// inicio, fin y descarte sin plugin ni dispositivo.
+final conversationAudioRecorderProvider = Provider<ConversationAudioRecorder>((
+  ref,
+) {
+  final recorder = RecordAudioRecorder();
+  ref.onDispose(() async {
+    try {
+      await recorder.dispose();
+    } catch (e) {
+      debugPrint('Record dispose failed (non-blocking): $e');
+    }
+  });
+  return recorder;
+});

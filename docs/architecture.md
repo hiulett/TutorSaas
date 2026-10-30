@@ -97,7 +97,10 @@ record (AAC/m4a)  →  llm-proxy /stt (Groq Whisper, language=en)
                   →  flutter_tts (on-device, rate 0.48)
 ```
 
-- La captura es **tap-to-toggle** (paquete `record`).
+- La captura de voz usa el paquete `record`. Por defecto es **tap-to-toggle**;
+  con `user_settings.mic_mode_hold_to_talk` (#198) pasa a **mantener para
+  hablar**: graba al pulsar, envía al soltar y descarta el clip (sin STT) si
+  se suelta antes de 300 ms o se arrastra fuera del botón.
 - Las claves de IA (DeepSeek/Groq) **nunca** están en el cliente: viven como
   secretos de la Edge Function.
 - El streaming se muestra token a token; la evaluación de objetivos se hace con

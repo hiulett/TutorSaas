@@ -21,8 +21,9 @@ abstract final class AnalyticsEvent {
   static const invokeLlm = 'invoke_llm';
   static const aiError = 'ai_error';
 
-  // P-29-b (#193): evaluación de correcciones de un turno en chat libre
-  // (`action_code = correction_turn`). `result`: ok | no_mana | failed.
+  // P-29-b (#193) / P-40-c (#222): evaluación de correcciones de un turno en
+  // chat libre (`action_code = correction_turn`, gratuito). `result`:
+  // ok | no_mana | failed. `no_mana` solo se espera de un proxy antiguo.
   static const correctionEval = 'correction_eval';
 
   static const paywallViewed = 'paywall_viewed';
@@ -50,6 +51,12 @@ abstract final class AnalyticsEvent {
   static const helpPhrasesShown = 'help_phrases_shown';
   static const helpPhraseUsed = 'help_phrase_used';
   static const conversationTurnLatency = 'conversation_turn_latency';
+
+  // P-34f (#198): modo del micrófono y resultado del gesto mantener-hablar.
+  // `mic_mode_changed.mode` = tap | hold.
+  // `hold_to_talk_turn.result` = sent | too_short | cancelled.
+  static const micModeChanged = 'mic_mode_changed';
+  static const holdToTalkTurn = 'hold_to_talk_turn';
 
   // P-25 (#110): mini-conversación de valor tras el onboarding.
   // `turn` lleva el número de turno; `input` = text | voice.
@@ -89,6 +96,8 @@ abstract final class AnalyticsEvent {
     helpPhrasesShown,
     helpPhraseUsed,
     conversationTurnLatency,
+    micModeChanged,
+    holdToTalkTurn,
     miniConversationStarted,
     miniConversationTurn,
     miniConversationCompleted,

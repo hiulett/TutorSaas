@@ -16,6 +16,7 @@ import '../../domain/models/conversation_state.dart';
 import '../providers/conversation_providers.dart';
 import '../providers/help_phrases_provider.dart';
 import '../widgets/conversation_status_bar.dart';
+import '../widgets/conversation_mic_button.dart';
 import '../widgets/help_phrases_sheet.dart';
 import '../widgets/mic_permission_card.dart';
 import '../widgets/tts_settings_sheet.dart';
@@ -1085,6 +1086,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final conversationNotifier = ref.read(conversationStateProvider.notifier);
     final convError = ref.watch(conversationErrorProvider);
     final isOracle = conversationState.isOracleEvaluation;
+    // P-34f (#198): modo del micrófono persistido en `user_settings`.
+    final holdToTalk = ref.watch(micModeHoldToTalkProvider);
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
       // ManÃ¡ agotado â†’ abrir el GuardiÃ¡n de la Mazmorra (compra/espera/equipar)
@@ -2013,7 +2016,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               ),
                             )
                           else
-                            GestureDetector(
+                            // P-34f (#198): tap-to-toggle (por defecto) o
+                            // mantener para hablar, según `user_settings`.
+                            ConversationMicButton(
+                              holdToTalk: holdToTalk,
+                              isRecording: conversationState.isRecording,
+                              isProcessing: conversationState.isProcessing,
+                              isPlaying: conversationState.isPlaying,
+                              semanticsLabel:
+                                  l10n?.convo_mic_label ?? 'Micrófono',
                               onTap: () {
                                 if (conversationState.isPlaying) {
                                   conversationNotifier.stopTts();
@@ -2023,28 +2034,22 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   conversationNotifier.startRecording();
                                 }
                               },
-                              child: Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
+                              onHoldStart: () => unawaited(
+                                conversationNotifier.startHoldRecording(),
+                              ),
+                              onHoldEnd: (heldFor) => unawaited(
+                                conversationNotifier.endHoldRecording(heldFor),
+                              ),
+                              onHoldTooShort: (heldFor) => unawaited(
+                                conversationNotifier.discardHoldRecording(
+                                  tooShort: true,
+                                  heldFor: heldFor,
+                                  message: l10n?.convo_hold_too_short,
                                 ),
-                                child: Icon(
-                                  conversationState.isRecording
-                                      ? Icons.stop_rounded
-                                      : Icons.mic_rounded,
-                                  color: const Color(0xFF0F172A),
-                                  size: 36,
+                              ),
+                              onHoldCancel: () => unawaited(
+                                conversationNotifier.discardHoldRecording(
+                                  tooShort: false,
                                 ),
                               ),
                             ),

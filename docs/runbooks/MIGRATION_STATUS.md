@@ -2,26 +2,27 @@
 
 _Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
 
-> Estado actual verificado: **104 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **105 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | **170** |
-| De ellos, con prefijo de 14 dígitos válido | 95 |
+| Archivos `.sql` en `supabase/migrations/` | **171** |
+| De ellos, con prefijo de 14 dígitos válido | 96 |
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **104** |
-| Aplicadas **con** archivo correspondiente | 62 |
+| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **105** |
+| Aplicadas **con** archivo correspondiente | 63 |
 | Aplicadas **sin** archivo en el repo | **39** |
 | Archivos con prefijo que **no** están aplicados | 33 |
 
-> Recuento de archivos, migraciones aplicadas y archivos con prefijo
-> reverificado por MCP el 30-oct-2026 (tras P-44/P-45). Las filas de
-> correspondencia archivo↔historial (60/39) se ajustaron con la migración
-> nueva y siguen apoyadas en el desglose anterior: no se recontaron una a una.
+> Recuento de archivos (171 totales, 96 con prefijo, 40 en subcarpetas),
+> migraciones aplicadas (105) y archivos con prefijo (96) reverificado por MCP
+> y shell el 30-oct-2026 (tras P-40a/P-40b). Las filas de correspondencia
+> archivo↔historial (63/39) se ajustaron con las migraciones nuevas y siguen
+> apoyadas en el desglose anterior: no se recontaron una a una.
 
 ## Por qué el repo no reproduce el esquema
 
@@ -50,6 +51,7 @@ la versión real registrada por Supabase:
 | `20261018234615_restrict_subscription_writes.sql` | ✔ |
 | `20261019015914_oracle_turns_update_own.sql` | ✔ |
 | `20261030005704_plans_capabilities_p44_p45.sql` | ✔ (nuevo, P-44/P-45) |
+| `20261030035724_ai_action_costs_correction_turn_free_p40c.sql` | ✔ (nuevo, P-40-c/#222) |
 | `20261030040054_path_band_p40ab.sql` | ✔ (nuevo, P-40a/P-40b) |
 | `20261030041241_lesson_catalog_index_p40a.sql` | ✔ (nuevo, P-40a) |
 

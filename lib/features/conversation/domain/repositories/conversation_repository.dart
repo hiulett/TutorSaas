@@ -48,10 +48,12 @@ abstract class ConversationRepository {
     List<Map<String, dynamic>> goalItems,
   );
 
-  /// P-29-b (#193): pide SOLO las correcciones del turno cuando la sesión no
-  /// tiene metas de lección pendientes (conversación libre). Usa su propio
-  /// `action_code` (`correction_turn`) para que el proxy cobre en maná; un 402
-  /// se devuelve como [CorrectionTurnOutcome.noMana] y no rompe el chat.
+  /// P-29-b (#193) / P-40-c (#222): pide SOLO las correcciones del turno
+  /// cuando la sesión no tiene metas de lección pendientes (conversación
+  /// libre). Usa su propio `action_code` (`correction_turn`), gratuito desde
+  /// P-40-c, para que el gasto quede atribuido en `ai_usage_logs`; un 402 de un
+  /// proxy antiguo se devuelve como [CorrectionTurnOutcome.noMana] y no rompe
+  /// el chat.
   Future<CorrectionTurnResult> evaluateTurnCorrections(
     String conversationText, {
     String? conversationId,

@@ -8,7 +8,9 @@ enum CorrectionTurnOutcome {
   /// correcciones: el turno estaba bien).
   ok,
 
-  /// El proxy devolvió `402 no_mana`: no se insiste en el resto de la sesión.
+  /// El proxy devolvió `402 no_mana`. Desde P-40-c la acción es gratuita, así
+  /// que esto solo ocurre con un proxy antiguo desplegado; se trata como fallo
+  /// puntual y el turno siguiente puede reintentar dentro del tope.
   noMana,
 
   /// Red, HTTP no-200 o respuesta ilegible. No rompe el turno.
