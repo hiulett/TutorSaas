@@ -110,7 +110,7 @@ class UserLanguageNotifier extends StateNotifier<UserLanguageSettings> {
         await Supabase.instance.client.from('user_settings').upsert({
           'user_id': user.id,
           ...state.toJson(),
-        });
+        }, onConflict: 'user_id');
       }
     } catch (e, st) {
       ErrorTracker.logSilent('lib/core/i18n/language_settings.dart:114', e, stackTrace: st);
