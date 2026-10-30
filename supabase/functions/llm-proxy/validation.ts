@@ -13,11 +13,19 @@ export const MAX_CHARS_PER_MESSAGE = 4000;
 export const MAX_TOTAL_CHARS = 24000;
 
 // P-07: acciones que NO se cobran (evaluaciones internas y chat de gremio).
+//
+// P-40-c (#222): `correction_turn` también es gratuita. Sin ella, un alumno sin
+// maná nunca generaba correcciones y el tutor se quedaba sin
+// `user_recurring_errors` que usar en el prompt. El maná lo sigue pagando el
+// turno de conversación (`free_chat_turn`/`dungeon_turn`); el gasto real de
+// esta llamada se acota en el cliente (gate de ≥5 palabras + 6 por sesión) y en
+// la cuota del proxy (30 peticiones/minuto).
 export const FREE_ACTIONS: ReadonlySet<string> = new Set([
   'goal_eval',
   'carisma_eval',
   'guild_chat',
   'stt_transcribe',
+  'correction_turn',
 ]);
 
 /// Modos de cobro de maná (`MANA_CHARGE_MODE`).

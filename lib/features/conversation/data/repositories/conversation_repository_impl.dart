@@ -348,10 +348,11 @@ No markdown, no explanation, no code blocks.
   /// P-29-b (#193): correcciones en conversación libre.
   ///
   /// Reutiliza el endpoint `/chat` (sin metas: el prompt solo pide
-  /// correcciones) con `action_code = correction_turn`, que el proxy cobra en
-  /// maná antes de llamar al modelo. La validación de tipos y el recorte a 3
-  /// correcciones son los mismos de P-29 ([parseGoalEvaluation] →
-  /// [parseCorrections]); un JSON roto deja el turno intacto.
+  /// correcciones) con `action_code = correction_turn`, **gratuito desde
+  /// P-40-c**: el proxy lo acepta por `FREE_ACTIONS` y no llama a
+  /// `consume_mana`. La validación de tipos y el recorte a 3 correcciones son
+  /// los mismos de P-29 ([parseGoalEvaluation] → [parseCorrections]); un JSON
+  /// roto deja el turno intacto.
   @override
   Future<CorrectionTurnResult> evaluateTurnCorrections(
     String conversationText, {

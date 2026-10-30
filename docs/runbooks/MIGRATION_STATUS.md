@@ -2,26 +2,27 @@
 
 _Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
 
-> Estado actual verificado: **102 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **103 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | **168** |
-| De ellos, con prefijo de 14 dígitos válido | 93 |
+| Archivos `.sql` en `supabase/migrations/` | **169** |
+| De ellos, con prefijo de 14 dígitos válido | 94 |
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **102** |
-| Aplicadas **con** archivo correspondiente | 60 |
+| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **103** |
+| Aplicadas **con** archivo correspondiente | 61 |
 | Aplicadas **sin** archivo en el repo | **39** |
 | Archivos con prefijo que **no** están aplicados | 33 |
 
-> Recuento de archivos, migraciones aplicadas y archivos con prefijo
-> reverificado por MCP el 30-oct-2026 (tras P-44/P-45). Las filas de
-> correspondencia archivo↔historial (60/39) se ajustaron con la migración
-> nueva y siguen apoyadas en el desglose anterior: no se recontaron una a una.
+> Recuento de archivos (169 totales, 94 con prefijo, 40 en subcarpetas),
+> migraciones aplicadas (103) y archivos con prefijo (94) reverificado por MCP
+> y shell el 30-oct-2026 (tras P-40-c/#222). Las filas de correspondencia
+> archivo↔historial (61/39) se ajustaron con la migración nueva y siguen
+> apoyadas en el desglose anterior: no se recontaron una a una.
 
 ## Por qué el repo no reproduce el esquema
 
@@ -50,6 +51,7 @@ la versión real registrada por Supabase:
 | `20261018234615_restrict_subscription_writes.sql` | ✔ |
 | `20261019015914_oracle_turns_update_own.sql` | ✔ |
 | `20261030005704_plans_capabilities_p44_p45.sql` | ✔ (nuevo, P-44/P-45) |
+| `20261030035724_ai_action_costs_correction_turn_free_p40c.sql` | ✔ (nuevo, P-40-c/#222) |
 
 Antes tenían prefijos `202610180000xx` que **no** existían en el historial: un
 `db push` las habría intentado aplicar de nuevo.

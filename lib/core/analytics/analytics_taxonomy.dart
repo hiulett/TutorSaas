@@ -21,8 +21,9 @@ abstract final class AnalyticsEvent {
   static const invokeLlm = 'invoke_llm';
   static const aiError = 'ai_error';
 
-  // P-29-b (#193): evaluación de correcciones de un turno en chat libre
-  // (`action_code = correction_turn`). `result`: ok | no_mana | failed.
+  // P-29-b (#193) / P-40-c (#222): evaluación de correcciones de un turno en
+  // chat libre (`action_code = correction_turn`, gratuito). `result`:
+  // ok | no_mana | failed. `no_mana` solo se espera de un proxy antiguo.
   static const correctionEval = 'correction_eval';
 
   static const paywallViewed = 'paywall_viewed';

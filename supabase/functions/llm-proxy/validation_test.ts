@@ -39,12 +39,21 @@ Deno.test('un MANA_CHARGE_MODE desconocido cae en el modo de transición', () =>
   assertEquals(normalizeManaChargeMode('cobrar-todo'), 'capability');
 });
 
-Deno.test('las evaluaciones internas y el chat de gremio son gratuitas', () => {
-  for (const action of ['goal_eval', 'carisma_eval', 'guild_chat', 'stt_transcribe']) {
+Deno.test('las evaluaciones internas, el chat de gremio y las correcciones son gratuitas', () => {
+  for (
+    const action of [
+      'goal_eval',
+      'carisma_eval',
+      'guild_chat',
+      'stt_transcribe',
+      // P-40-c (#222): las correcciones no dependen del maná.
+      'correction_turn',
+    ]
+  ) {
     assert(FREE_ACTIONS.has(action), `${action} debe ser gratuita`);
   }
   assert(!FREE_ACTIONS.has('free_chat_turn'));
-  assert(!FREE_ACTIONS.has('correction_turn'));
+  assert(!FREE_ACTIONS.has('dungeon_turn'));
 });
 
 // ── Capacidades del cliente (entrada manipulable) ────────────────────────────
