@@ -1,6 +1,6 @@
 # Arquitectura
 
-_Actualizado: 18-oct-2026 · verificado contra el código._
+_Actualizado: 29-oct-2026 · verificado contra el código._
 
 ---
 
@@ -92,10 +92,13 @@ No hay BLoC, Redux, GetX ni `provider` clásico.
 ## 4. Pipeline de voz
 
 ```
-record (AAC/m4a)  →  llm-proxy /stt (Groq Whisper, language=en)
+record (AAC/m4a)  →  llm-proxy /transcribe (Groq Whisper, language=en)
                   →  llm-proxy /chat (DeepSeek, SSE)
                   →  flutter_tts (on-device, rate 0.48)
 ```
+
+Un tercer endpoint, `GET /health`, solo devuelve `{ok, ts}` y no revela claves
+ni el modo de cobro.
 
 - La captura de voz usa el paquete `record`. Por defecto es **tap-to-toggle**;
   con `user_settings.mic_mode_hold_to_talk` (#198) pasa a **mantener para
@@ -148,11 +151,11 @@ record (AAC/m4a)  →  llm-proxy /stt (Groq Whisper, language=en)
 ## 8. Pruebas y calidad
 
 ```
-flutter analyze → 0 errores, 0 warnings, 127 infos (deprecaciones; no bloquean)
-flutter test    → 530 pruebas (0 saltadas)
+flutter analyze → 0 errores, 0 warnings, 126 infos (deprecaciones; no bloquean)
+flutter test    → 702 pruebas (0 saltadas)
 ```
 
-Verificado el 29-oct-2026 (#207). Detalle de la red visual en
+Verificado el 29-oct-2026. Detalle de la red visual en
 `docs/runbooks/QUALITY_TESTS.md`.
 
 Cobertura relevante: modelos de misión, economía, desbloqueo de lecciones,

@@ -1,14 +1,17 @@
 # Contexto actual del proyecto (traspaso de sesión)
 
-> Lee esto y nada más para empezar. Última actualización: 18-oct-2026, noche.
+> Lee esto y nada más para empezar. Última actualización: **29-oct-2026**,
+> verificado contra código, producción y GitHub.
 
 ---
 
 ## En una frase
 
 App Android (Flutter + Supabase) de inglés conversacional con capa RPG. El
-pipeline de voz, la economía y las compras funcionan. **Lo que falla es que las
-misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
+pipeline de voz, la economía, las compras y el bucle de misiones funcionan y
+están verificados en producción; lo que queda es **publicar** (`#51`), cerrar
+**configuración de Play/Google Cloud** (`#61`, trial de NOBLE) y la deuda de la
+épica `#137`.
 
 ---
 
@@ -17,63 +20,66 @@ misiones no se pueden completar** (#5), así que el bucle de juego no cierra.
 | Dato | Valor |
 |---|---|
 | Versión | `1.0.21+22` (Android únicamente) |
-| Tests / analyze | 530 en verde (0 saltadas) · 0 errores, 0 warnings, 127 infos |
-| AAB / APK | 104,0 MB / 131,9 MB |
-| Backend | Supabase `sipiumfdpvnszthykyog` (producción) |
-| Issues | 85: 52 implementados · 23 parciales · 6 pendientes · 2 decisión · 1 descartado · 1 epic |
-| Último commit | `866ecbc` — 14 docs de estrategia |
+| Commits base | `995e958` (merge de `#198`, hold-to-talk) |
+| Tests / analyze | **702 en verde** (0 saltadas) · 0 errores, 0 warnings, **126 infos** |
+| Backend | Supabase `sipiumfdpvnszthykyog` (producción; no hay staging) |
+| Esquema | 89 tablas · 134 políticas RLS (84 tablas) · 98 funciones · 14 vistas · 36 triggers · 3 cron |
+| Migraciones | 106 aplicadas; 39 sin archivo en el repo; no ejecutar `supabase db push` |
+| Edge Functions | 8 desplegadas y activas |
+| Pistas de Play | internal `1.0.18+19` · alpha `1.0.19+20` · beta/production vacías |
+| Issues | 152 en total · **40 abiertos** · 112 cerrados |
+
+Cifras y comandos: [INDICE-DOCUMENTACION.md](INDICE-DOCUMENTACION.md).
 
 ---
 
-## Qué se hizo en las últimas sesiones
+## Qué está hecho y verificado
 
-1. **Auditoría integral** (72 issues) y oleadas de correcciones de cliente y
-   servidor: RLS de suscripciones, webhook de RevenueCat, Stripe eliminado,
-   fuentes empaquetadas, Maestre de Sesión sin duplicar burbujas, dock que subía
-   con el teclado, restaurar compras real.
-2. **Fase 2 de estrategia**: 14 documentos en `docs/estrategia_producto/`.
-3. **Documentación consolidada**: 268 `.md` → 10 vigentes + `docs/archive/`.
+1. **Voz:** `record` → `llm-proxy /transcribe` (Groq Whisper) →
+   `/chat` (DeepSeek SSE) → `flutter_tts`. Hold-to-talk por
+   `user_settings.mic_mode_hold_to_talk` (#198).
+2. **Maná en servidor** (P-07): cobra `consume_mana` antes del modelo; `402
+   no_mana`, `413 payload_too_large` y reembolso con `refund_mana` /
+   `refund_failed_turn`.
+3. **Economía con sumideros** (P-32): `currency_ledger` idempotente, compras,
+   crafteo, freeze de racha (30 gemas, máx. 3) y recompensas de nivel.
+4. **Misiones** (#109/#124): progreso solo por triggers `SECURITY DEFINER`;
+   `claim_mission_reward` idempotente con contrato `{success, ok, …}`.
+5. **Currículo** (P-38 fase 1): criterio único de lección superada
+   (`lesson_completion_passed()` + `LessonCompletion.isPassed`). Quedan el
+   mapeo `lesson_key` (fase 2, `#202`) y el runtime (fase 3, `#203`).
+6. **Planes** (P-44/P-45): activos `plebeyo`, `noble`, `realeza`; DIVINO
+   inactivo; diferenciación por capacidad (historial del informe, cosméticos) y
+   trial de 7 días de NOBLE configurable en Play.
+7. **Comprensión auditiva** (P-30): 3 ejercicios activos en
+   `listening_exercises`, audio por TTS y corrección en
+   `submit_listening_attempt`.
+8. **Correcciones gratuitas en chat libre** (P-40-c, `#222`): `correction_turn`
+   con fila inactiva en `ai_action_costs` y en `FREE_ACTIONS` del proxy.
 
 ---
 
-## Trabajo abierto
+## Trabajo abierto (los que bloquean o condicionan)
 
-### Pendiente de ti (bloquea al resto)
+### Pendiente de configuración, no de código
 
-- **#61** — registrar el SHA-1 `14:13:F7:…:1F:4C` en Google Cloud (consola web).
-- **#51** — subir el AAB 1.0.21+22 a *internal testing* de Play.
+- **#51** — subir y verificar el AAB `1.0.21+22` en Play.
+- **#61** — registrar el SHA-1 de la upload key en Google Cloud (Google
+  Sign-In falla en builds firmadas con `ApiException: 10`).
+- **Trial de NOBLE** — se crea en Play Console y RevenueCat; runbook en
+  `runbooks/TRIAL_NOBLE_P45.md`.
+- **#226** — reflejar en Data Safety de Play las métricas agregadas de P-15.
 
-### Siguiente en la cola (nadie lo ha empezado)
+### Deuda de producto y técnica
 
-- **#76 (resto)** — reacción propia por escena (3 escenas redactadas) y
-  consumir unlocked_next en el mapa.
-- **#85** ✅ hecho — el cliente ya no puede completar misiones sin jugar.
-- **#73 (resto)** ✅ — Edge Function `evaluate-placement` calcula y persiste el
-  nivel en servidor; el cliente ya no escribe `cefr_level_id`.
+- **#137** — épica con el resto del backlog de la auditoría (51 historias).
+- **#101** — staging y baseline de esquema (`supabase db dump` requiere Docker).
+- **#202 / #203** — fases 2 y 3 de P-38 (mapeo de `lesson_key` y runtime sobre
+  `scenarios`).
+- **#16** — retención de conversaciones y borrado/exportación de cuenta.
 
-### Hecho en las últimas sesiones
-
-- **#5** — motor de misiones conectado. Nueva RPC `advance_my_missions` ligada
-  a `auth.uid()`; la app avanza misiones al cerrar sesión, en cada turno y al
-  repasar vocabulario. Verificado en producción (`sessions` pasó a `completed`).
-- **#73 (parcial)** — trigger `guard_language_profile`: el cliente ya no puede
-  cambiar `cefr_level_id`, `game_rank`, `xp_points`, oro, gemas, fragmentos,
-  rachas ni placement. Las RPC `SECURITY DEFINER` siguen funcionando. Verificado
-  con rol simulado.
-- **#74 (parcial)** — tabla `vocabulary_reviews` (append-only), SM-2 en servidor
-  (`record_vocabulary_review`) y métrica `learning_evidence()` con
-  `retention_7d` (null si aún no hay datos). La tarjeta SRS muestra la retención.
-  Faltan progreso comparable y transferencia (dependen de #76).
-- **#85** ✅ — `guard_mission_instance` sin `SECURITY DEFINER`: el cliente no
-  puede cambiar `status`, `current_value` ni `completed_at`; la RPC sí.
-
-### Las 12 historias de la fase 2
-
-`#73` placement en servidor · `#74` evidencia de aprendizaje · `#75` onboarding
-invertido · `#76` consecuencia narrativa · `#77` tres ejes · `#78` SRS de
-producción · `#79` plan de 4 semanas · `#80` dashboard a 3 indicadores ·
-`#81` refuerzo desde errores · `#82` perfil de 5 competencias · `#83`/`#84`
-validaciones P3.
+Los documentos de `docs/estrategia_producto/` describen el resto como
+propuestas; no son hechos.
 
 ---
 
@@ -86,12 +92,20 @@ validaciones P3.
 4. No tocar el pipeline de voz (record → STT → LLM → TTS).
 5. No ejecutar `supabase db push`: el repo no reproduce el esquema
    (`docs/runbooks/MIGRATION_STATUS.md`).
+6. Las claves de IA viven como secretos de `llm-proxy`, nunca en el cliente.
+
+---
 
 ## Trampas conocidas
 
 - `GlassCard` absorbe el tap: pasar `onTap:` al widget, no envolverlo.
-- Las funciones que escriben `user_subscriptions` son `SECURITY DEFINER`.
-- Los precios viven en RevenueCat/Play, no en `subscription_plans`.
+- La escritura de `xp/racha/minutos` desde el cliente la descarta
+  `guard_language_profile`.
+- El resumen de sesión muestra cifras fijas; la recompensa real viene de
+  `close_session` (`session_reward_ledger`).
+- Hay dos currículos (Dart y BD): el criterio de "completada" ya es único, pero
+  el mapeo de claves no.
+- El defecto de `MANA_CHARGE_MODE` es `capability`, no `all` (`validation.ts`).
 
 ---
 
@@ -99,6 +113,7 @@ validaciones P3.
 
 | Necesitas | Archivo |
 |---|---|
+| Qué doc es vigente y con qué fuente | `docs/INDICE-DOCUMENTACION.md` |
 | Cómo está construido | `docs/ARCHITECTURE.md` |
 | Tablas y RLS | `docs/DATA_MODEL.md` |
 | Infra, secretos, funciones | `docs/OPERATIONS.md` |
@@ -114,7 +129,7 @@ validaciones P3.
 ## Comandos
 
 ```sh
-flutter analyze && flutter test     # 0 errores/0 warnings · 530 tests
+flutter analyze && flutter test     # 0 errores/0 warnings · 702 tests
 flutter gen-l10n                    # tras editar un .arb
 flutter build appbundle --release
 supabase functions deploy <f> --project-ref sipiumfdpvnszthykyog --use-api
@@ -125,7 +140,7 @@ supabase functions deploy <f> --project-ref sipiumfdpvnszthykyog --use-api
 ## Cómo continuar en una sesión nueva
 
 ```
-Lee docs/CONTEXTO_ACTUAL.md y continúa con el issue #5.
+Lee docs/CONTEXTO_ACTUAL.md y continúa con el issue #51.
 ```
 
 Eso es todo el contexto necesario. Si el trabajo es de otro tema, cambia el

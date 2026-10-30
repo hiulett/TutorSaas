@@ -5,7 +5,9 @@
 
 ## Estado verificado del producto
 
-- Auditoría vigente (25-oct-2026): `docs/product-audit/00-INDICE.md`
+- **Inventario y cifras medidas (29-oct-2026): `docs/INDICE-DOCUMENTACION.md`**
+- Auditoría integral (foto del 25-oct-2026; sus cifras son de ese día):
+  `docs/product-audit/00-INDICE.md`
   - Arquitectura: `02-ARQUITECTURA-TECNICA.md`
   - Pantallas: `03-PANTALLAS-Y-NAVEGACION.md`
   - Pedagogía: `05-SISTEMA-PEDAGOGICO.md`
@@ -27,6 +29,8 @@
 - Personalización del tutor (qué campo se lee, P-40): `docs/runbooks/P40_PERSONALIZACION.md`
 - Decisiones de producto: `docs/PRODUCT.md`
 - Correcciones a documentación antigua: `docs/HISTORY.md`
+- Qué doc es vigente, su fuente de verdad y cuándo se verificó:
+  `docs/INDICE-DOCUMENTACION.md`
 
 ## Reglas duras (no renegociar)
 

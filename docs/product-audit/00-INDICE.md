@@ -4,6 +4,12 @@
 Versión auditada: `1.0.21+22` · Fecha de medición: **25-oct-2026** ·
 Alcance: repositorio completo + proyecto Supabase de producción (solo lectura).
 
+> **Documento fechado.** Los capítulos 01–20 conservan las cifras del
+> 25-oct-2026 tal como se midieron. La §3 de este índice muestra además el
+> valor re-medido el 29-oct-2026; para cualquier afirmación sobre el estado
+> **actual** manda [INDICE-DOCUMENTACION.md](../INDICE-DOCUMENTACION.md) y la
+> consulta a producción.
+
 ---
 
 ## 1. Cómo leer esta documentación
@@ -44,7 +50,7 @@ en producción).
    proyecto `sipiumfdpvnszthykyog`: esquema, RLS, funciones, cron, catálogos y
    conteos agregados.
 3. **Ejecución de comprobaciones seguras** (re-medido el 29-oct-2026): `flutter
-   test` (530 en verde) y `flutter analyze` (0 errores, 0 warnings, 127 infos).
+   test` (702 en verde) y `flutter analyze` (0 errores, 0 warnings, 126 infos).
 4. **Contraste con la documentación previa** (`docs/*.md`), registrando la deriva.
 5. **Sin cambios**: no se modificó código, datos, configuración ni migraciones. No
    se ejecutó la app en dispositivo ni se probaron compras.
@@ -57,25 +63,29 @@ conflicto, manda lo aquí verificado y se indica en cada documento.
 
 ---
 
-## 3. Cifras clave (verificadas)
+## 3. Cifras clave (25-oct-2026 y re-medición del 29-oct-2026)
 
-| Dato | Valor |
-|---|---|
-| Versión / plataforma | `1.0.21+22` · Android únicamente |
-| Rutas | 14 (+4 pestañas) |
-| Features | 10 |
-| Lecciones en código | 140 (20 × 7 niveles) |
-| Escenarios en BD | 500 (PRE-A1 20; 80 por nivel A1-C2 × 4 idiomas) |
-| Tablas / políticas RLS / funciones | 77 / 122 / 58 |
-| Edge Functions activas | 6 |
-| Jobs cron | 3 |
-| Claves i18n | 951 (es/en/pt) |
-| Pruebas | 530 en verde (0 saltadas) |
-| Analyzer | 0 errores · 0 warnings · 127 infos (`--no-fatal-infos`, exit 0) |
-| Usuarios / conversaciones / mensajes | 60 / 68 / 740 |
-| Compras / inventario / suscripciones | 0 / 0 / 11 (1 noble) |
-| Misiones creadas / completadas | 533 / 7 |
-| Migraciones | 164 archivos; el repo no reproduce el esquema |
+| Dato | 25-oct-2026 | 29-oct-2026 | Comando / fuente |
+|---|---|---|---|
+| Versión / plataforma | `1.0.21+22` · Android | igual | `pubspec.yaml` |
+| Rutas | 14 | **20** | `lib/app/router.dart` |
+| Features | 10 | **16** | `lib/features/*` |
+| Lecciones en código | 140 (20 × 7 niveles) | igual | `lesson_catalog.dart` |
+| Escenarios en BD | 500 | 500 | `scenarios` |
+| Tablas | 77 | **89** | `information_schema.tables` |
+| Políticas RLS | 122 | **134** (84 tablas) | `pg_policies` |
+| Funciones `public` | 58 | **98** | `pg_proc` |
+| Vistas | — | 14 | `information_schema.views` |
+| Edge Functions activas | 6 | **8** | `supabase functions list` |
+| Jobs cron | 3 | 3 | `cron.job` |
+| Claves i18n | 951 | **1.287** (en/es/pt) | `app_en.arb` |
+| Pruebas | 530 | **702** en verde (0 saltadas) | `flutter test` |
+| Analyzer | 0 err · 0 warn · 127 infos | 0 err · 0 warn · **126 infos** | `flutter analyze` |
+| Migraciones aplicadas | 98 | **106** | `schema_migrations` |
+| Archivos `.sql` (raíz) | 164 | **170** (95 con prefijo, 75 sin) | `ls` |
+| Usuarios / conversaciones / mensajes | 60 / 68 / 740 | foto del 25-oct; no re-medida | producción |
+| Compras / inventario / suscripciones | 0 / 0 / 11 | foto del 25-oct; no re-medida | producción |
+| Misiones creadas / completadas | 533 / 7 | foto del 25-oct; no re-medida | producción |
 
 ---
 
@@ -105,12 +115,14 @@ por XP.
 **¿Qué hace la IA y cómo está integrada?** DeepSeek (`deepseek-v4-flash`) detrás de
 la Edge Function `llm-proxy`, con Groq Whisper para voz. Cuatro usos: respuesta
 conversacional, evaluación booleana de metas por turno, examen/placement del
-Oráculo y generación de lecciones de refuerzo (esta última rota). El cobro de maná
-**no** se valida en el servidor de IA.
+Oráculo y generación de lecciones de refuerzo (esta última rota). El cobro de
+maná se hace **en el servidor** desde P-07 (`consume_mana` dentro de
+`llm-proxy`); el 25-oct todavía no lo validaba.
 
-**¿Cómo se almacenan los datos?** Supabase Postgres con 77 tablas, RLS en todas y
-58 funciones; las escrituras sensibles van por RPC `SECURITY DEFINER`. El repo de
-migraciones no reproduce el esquema: 33 migraciones solo existen en producción.
+**¿Cómo se almacenan los datos?** Supabase Postgres con 89 tablas (77 el
+25-oct), RLS en todas y 98 funciones (58 entonces); las escrituras sensibles van
+por RPC `SECURITY DEFINER`. El repo de migraciones no reproduce el esquema: a
+29-oct hay 41 migraciones aplicadas sin archivo.
 
 **¿Cómo se maneja la progresión?** CEFR (solo cambia con el Oráculo), XP, aura,
 prestigio y títulos. La racha está rota: el trigger de guarda descarta las

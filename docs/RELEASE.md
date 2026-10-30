@@ -1,6 +1,6 @@
 # Release y publicación
 
-_Actualizado: 28-oct-2026._
+_Actualizado: 29-oct-2026 (versión, comandos y pistas verificados)._
 
 ---
 
@@ -8,7 +8,7 @@ _Actualizado: 28-oct-2026._
 
 ```
 versionName 1.0.21 · versionCode 22   (pubspec.yaml: version: 1.0.21+22)
-AAB   104,2 MB (medido en local, master)
+AAB   104,2 MB (medido en local, master; no re-medido el 29-oct)
 APK   (medir con `flutter build apk --release`)
 ```
 
@@ -25,7 +25,7 @@ flutter-apk/app-release.apk
 
 ```sh
 flutter analyze                           # 0 errores · 0 warnings
-flutter test                              # 530 pruebas
+flutter test                              # 702 pruebas
 flutter gen-l10n                          # si tocaste algún .arb
 
 flutter build appbundle --release         # Play
@@ -97,6 +97,10 @@ Presupuesto de tamaño: **150 MB** de AAB; el job falla si se supera.
 
 > El versionCode debe ser mayor que el último subido. El 21 nunca se publicó;
 > el 22 es el actual.
+
+Pistas comprobadas el 29-oct-2026 con la Play Developer API (`internal` y
+`alpha` con una release completada cada una; `beta` y `production` sin
+releases).
 
 ---
 

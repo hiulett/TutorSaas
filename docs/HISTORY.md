@@ -8,7 +8,8 @@ conclusiones antiguas ya no son ciertas**.
 ## 1. Por qué había 268 archivos
 
 Entre julio y octubre de 2026 el proyecto acumuló documentación de varias
-generaciones:
+generaciones (a 29-oct-2026, `docs/` tiene 308 archivos `.md`, 252 de ellos en
+`archive/`):
 
 | Generación | Ejemplos | Estado |
 |---|---|---|
@@ -39,7 +40,11 @@ afirmaciones que ya no eran ciertas:
 | «Stripe es el flujo de pago» | Eliminado en oct-2026; todo va por Play Billing + RevenueCat |
 | «Los goldens del design system son 3 pixel-goldens» (#207) | Solo `SegmentedBar` conserva pixel-golden; `GlassCard` y los chips RPG se validan con aserciones estructurales porque su PNG de Windows no coincide en Linux. Ver `runbooks/QUALITY_TESTS.md` |
 | «No hay hold-to-talk: es un `onTap` que alterna» (#198 / P-34f) | Cierto hasta #198. Ahora `user_settings.mic_mode_hold_to_talk` alterna entre tap-to-toggle (por defecto) y mantener-para-hablar; el pipeline `record → STT → LLM → TTS` no cambió |
-| «El CI falla por warnings del analyzer» (auditoría 25-oct) | El job usa `--no-fatal-infos`; medido el 29-oct: 0 errores, 0 warnings, 127 infos y 530 pruebas en verde |
+| «El CI falla por warnings del analyzer» (auditoría 25-oct) | El job usa `--no-fatal-infos`; medido el 29-oct: 0 errores, 0 warnings, 126 infos y 702 pruebas en verde |
+| «El STT se llama `/stt` en el proxy» | El endpoint real es `POST /transcribe` (más `/chat` y `GET /health`); el cliente ya llamaba a `/transcribe`. Corregido en ARCHITECTURE.md |
+| «`MANA_CHARGE_MODE` es `all` por defecto» | El código cae en `capability` cuando el secreto falta o es desconocido (`validation.ts`). El valor desplegado no es legible; el defecto del código manda. Corregido en OPERATIONS.md |
+| «El producto tiene 14 rutas y 10 features» (auditoría 25-oct) | 20 rutas en `lib/app/router.dart` y 16 features en `lib/features/` (medido el 29-oct) |
+| «Las estrategias de julio se movieron a `docs/archive/`» | Estaban **duplicadas** en la raíz. El 29-oct se eliminaron las copias: la raíz solo conserva `AGENTS.md` y `README.md` |
 
 Lección: la documentación envejece más rápido que el código. Los hechos de este
 directorio se verificaron contra la base de datos y el código en la fecha
@@ -55,12 +60,14 @@ indicada al inicio de cada documento.
 | ago-2026 | Gremio, misiones, economía, primer AAB (1.0.18+19) |
 | sep-2026 | Auditoría integral → 72 issues en GitHub, oleadas de correcciones |
 | oct-2026 | Webhook de RevenueCat arreglado, Stripe retirado, RLS endurecido, fuentes empaquetadas, documentación consolidada |
+| 29/30-oct-2026 | P-38/P-40/P-43/P-44/P-45 (currículo, correcciones gratuitas, informe semanal, planes por capacidad, trial NOBLE); inventario de documentación y cifras re-medidas |
 
 ---
 
 ## 4. Dónde está cada cosa ahora
 
 - Estado actual del producto: [PRODUCT.md](PRODUCT.md)
+- Qué está vigente y qué es histórico: [INDICE-DOCUMENTACION.md](INDICE-DOCUMENTACION.md)
 - Cómo está construido: [ARCHITECTURE.md](ARCHITECTURE.md)
 - Datos y RLS: [DATA_MODEL.md](DATA_MODEL.md)
 - Infraestructura: [OPERATIONS.md](OPERATIONS.md)

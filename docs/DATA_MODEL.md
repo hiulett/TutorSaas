@@ -7,6 +7,7 @@ _Medido en producción el 29-oct-2026._
 | Tablas en `public` | **89** |
 | Políticas RLS | **134** sobre 84 tablas |
 | Funciones (`public`) | **98** |
+| Triggers | 36 |
 | Trabajos `pg_cron` | 3 |
 | Buckets de Storage | 1 |
 | Vistas | 14 |
@@ -40,7 +41,17 @@ _Medido en producción el 29-oct-2026._
 `user_vocabulary`, `daily_stats`, `weekly_stats`, `daily_fluency_stats`,
 `speech_dna_metrics`, `user_scenario_fluency`, `user_scenario_goals`,
 `user_scenario_phrases`, `listening_exercises`, `listening_attempts`,
-`lesson_catalog_index` (espejo servidor del catálogo Dart, P-40a)
+`lesson_catalog_index` (espejo servidor del catálogo Dart, P-40a),
+`boss_exam_attempts`, `daily_goal_celebrations`, `vocabulary_curation_runs`,
+`vocabulary_reviews`
+
+- `boss_exam_attempts` guarda cada intento del jefe de nivel (requisitos,
+  resultado y cooldown); `boss_exam_status()` lo lee para decidir si se puede
+  reintentar.
+- `vocabulary_curation_runs` registra las pasadas de curación de vocabulario
+  por IA (`vocabulary_curation`).
+- `daily_goal_celebrations` hace idempotente la celebración de la meta diaria
+  (`claim_daily_goal_celebration`).
 
 - `conversations.scenario_id` es **`varchar`**, no UUID: guarda tanto UUIDs de
   escenario como claves del catálogo Dart (`a1_ordering_coffee_at_a_cafe`) y el
@@ -92,8 +103,8 @@ _Medido en producción el 29-oct-2026._
 `subscription_plans`, `user_subscriptions`, `payments`, `mana_transactions`,
 `mana_potions`, `mana_gems`, `mana_items`, `player_inventory`,
 `cosmetic_catalog`, `currency_ledger`, `level_rewards`, `ai_action_costs`,
-`session_reward_ledger`, `reward_history`, `player_streaks`,
-`aura_session_awards`, `achievements`, `user_achievements`,
+`session_reward_ledger`, `session_drops`, `practice_sessions`, `reward_history`,
+`player_streaks`, `aura_session_awards`, `achievements`, `user_achievements`,
 `hunter_collection_catalog`, `hunter_collections`, `player_pergaminos`
 
 - `user_subscriptions` es la fuente que lee la app para plan y maná.
@@ -139,10 +150,12 @@ _Medido en producción el 29-oct-2026._
 ### Operación
 `retention_events`, `analytics_events`, `api_request_logs`, `ai_usage_logs`,
 `llm_quota_events`, `revenuecat_events`, `system_ai_settings`,
-`player_daily_state`, `reactivation_emails`
+`player_daily_state`, `reactivation_emails`, `device_tokens`
 
 - `revenuecat_events` da idempotencia al webhook (PK = `event.id`).
 - `retention_events` recibe los eventos de producto (paywall, onboarding, etc.).
+- `device_tokens` guarda los tokens de notificaciones locales/remotas por
+  dispositivo.
 
 ---
 
@@ -239,11 +252,14 @@ restauran ítems equipados. El cliente interpreta el resultado con
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` (raíz) | 164 |
-| Con prefijo válido de 14 dígitos | 89 |
+| Archivos `.sql` en `supabase/migrations/` (raíz) | 170 |
+| Con prefijo válido de 14 dígitos | 95 |
 | Sin prefijo (el CLI los ignora) | 75 |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas | **98** |
+| Migraciones aplicadas | **106** |
+| Aplicadas con archivo en el repo | 65 |
+| Aplicadas sin archivo en el repo | 41 |
+| Archivos con prefijo no aplicados | 30 |
 
 _Recuento local y `schema_migrations` del 29-oct-2026._
 
