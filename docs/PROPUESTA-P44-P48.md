@@ -24,7 +24,8 @@
 | free/monthly/annual/lifetime | — | — | — | — | **no** (legado) |
 
 Costes de maná por acción: `free_chat_turn 8` · `dungeon_turn 12` · `oracle_turn 15`
-· `oracle_eval 30` · `lesson_generation 100` · `correction_turn 3` · `vocabulary_curation 2`.
+· `oracle_eval 30` · `lesson_generation 100` · `vocabulary_curation 2` ·
+`correction_turn 0` (gratuita desde P-40-c/#222; fila inactiva en `ai_action_costs`).
 
 ## P-44 · Valor premium diferenciado
 

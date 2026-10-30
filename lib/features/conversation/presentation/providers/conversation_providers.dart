@@ -153,9 +153,6 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// gasto de IA, no los aciertos.
   int _correctionEvaluations = 0;
 
-  /// P-29-b: tras un `402 no_mana` no se vuelve a pedir en esta sesión.
-  bool _correctionsSkippedForMana = false;
-
   /// Errores recurrentes del alumno (vista `user_recurring_errors`).
   /// Alimentan el prompt del tutor y la misión de refuerzo.
   List<CorrectionGroup> _recurringErrors = const [];
@@ -232,7 +229,6 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // contexto de errores recurrentes se refresca al abrir la conversación.
     _correctionTurnRef = null;
     _correctionEvaluations = 0;
-    _correctionsSkippedForMana = false;
     _recurringErrors = const [];
     _ref.read(sessionCorrectionsProvider.notifier).clear();
     unawaited(_loadRecurringErrors());
@@ -2003,12 +1999,15 @@ ENDING:
         .join('\n');
   }
 
-  /// P-29-b (#193): pide las correcciones del turno cuando no hubo `goal_eval`.
+  /// P-29-b (#193) / P-40-c (#222): pide las correcciones del turno cuando no
+  /// hubo `goal_eval`.
   ///
-  /// Best-effort y sin bloquear: un fallo, un JSON ilegible o un 402 dejan la
-  /// conversación exactamente igual (sin chip y sin error visible). El coste
-  /// lo acota [CorrectionTurnPolicy] (gate de longitud + tope por sesión) y el
-  /// maná lo cobra `llm-proxy` con `action_code = correction_turn`.
+  /// Best-effort y sin bloquear: un fallo, un JSON ilegible o un 429/402 dejan
+  /// la conversación exactamente igual (sin chip y sin error visible). El coste
+  /// real de tokens lo acota [CorrectionTurnPolicy] (gate de longitud + tope por
+  /// sesión). La acción es gratuita en `llm-proxy` (`FREE_ACTIONS`): no depende
+  /// del maná, así que un alumno sin saldo que conversa con el turno de gracia
+  /// sigue generando errores que el tutor puede usar después.
   Future<void> _maybeRequestTurnCorrections({
     required String messageText,
     required bool goalEvalRanThisTurn,
@@ -2023,7 +2022,6 @@ ENDING:
       lastUserMessage: messageText,
       evaluationsThisSession: _correctionEvaluations,
       goalsEvaluatedThisTurn: goalEvalRanThisTurn,
-      skippedForMana: _correctionsSkippedForMana,
     );
     if (!shouldRequest) return;
 
@@ -2032,17 +2030,16 @@ ENDING:
       conversationId: _conversationId,
     );
 
-    switch (result.outcome) {
-      case CorrectionTurnOutcome.noMana:
-        // Plan gratuito sin maná: se deja de pedir en esta sesión. El turno ya
-        // está respondido, así que el 402 no rompe nada.
-        _correctionsSkippedForMana = true;
-        debugPrint('correction_turn: sin maná, correcciones desactivadas');
-      case CorrectionTurnOutcome.ok:
-      case CorrectionTurnOutcome.failed:
-        // Los intentos fallidos también consumen presupuesto: el tope acota el
-        // gasto de IA por sesión, no solo las evaluaciones con éxito.
-        _correctionEvaluations++;
+    // Los intentos fallidos también consumen presupuesto: el tope acota el
+    // gasto de IA por sesión, no solo las evaluaciones con éxito. `noMana` solo
+    // puede llegar de un proxy antiguo todavía desplegado; se trata como un
+    // fallo puntual (se reintenta en el siguiente turno dentro del tope).
+    _correctionEvaluations++;
+    if (result.outcome == CorrectionTurnOutcome.noMana) {
+      debugPrint(
+        'correction_turn: el proxy sigue cobrando (402); '
+        'se reintentará en el siguiente turno dentro del tope',
+      );
     }
 
     _handleTurnCorrections(result.corrections, messageText: messageText);
@@ -2086,17 +2083,24 @@ ENDING:
         .read(sessionCorrectionsProvider.notifier)
         .addForMessage(target, corrections);
 
+    // P-40-c: el chip se pinta siempre, pero solo se escribe historial cuando
+    // hay datos reales y un turno al que anclarlos (nunca filas inventadas).
     final userId = _userId;
     final turnRef = _correctionTurnRef;
-    if (userId == null || userId.startsWith('guest_') || turnRef == null)
+    if (!CorrectionTurnPolicy.shouldPersist(
+      userId: userId,
+      turnRef: turnRef,
+      corrections: corrections,
+    )) {
       return;
+    }
 
     unawaited(
       _ref
           .read(correctionsRepositoryProvider)
           .saveCorrections(
-            userId: userId,
-            turnRef: turnRef,
+            userId: userId!,
+            turnRef: turnRef!,
             corrections: corrections,
             conversationId: _conversationId,
           ),

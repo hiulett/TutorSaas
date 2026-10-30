@@ -18,14 +18,12 @@ void main() {
     String message = longAnswer,
     int evaluations = 0,
     bool goalsEvaluatedThisTurn = false,
-    bool skippedForMana = false,
   }) {
     return CorrectionTurnPolicy.shouldRequest(
       correctionLevel: level,
       lastUserMessage: message,
       evaluationsThisSession: evaluations,
       goalsEvaluatedThisTurn: goalsEvaluatedThisTurn,
-      skippedForMana: skippedForMana,
     );
   }
 
@@ -65,8 +63,70 @@ void main() {
       expect(shouldRequest(evaluations: max + 3), isFalse);
     });
 
-    test('tras un 402 no se vuelve a pedir en la sesión', () {
-      expect(shouldRequest(skippedForMana: true), isFalse);
+    test(
+      'la decisión no depende del maná: el mismo turno se pide con saldo 0',
+      () {
+        // P-40-c: no existe ninguna condición de maná en la política. Un alumno
+        // sin saldo que conversa (turno de gracia) sigue generando correcciones.
+        expect(shouldRequest(), isTrue);
+        expect(CorrectionTurnPolicy.maxEvaluationsPerSession, greaterThan(0));
+      },
+    );
+  });
+
+  group('qué se registra (P-40-c)', () {
+    const correction = TurnCorrection(
+      original: 'I go yesterday',
+      corrected: 'I went yesterday',
+      type: CorrectionType.grammar,
+      explanation: 'Use the past simple.',
+    );
+
+    test('turno con usuario y turn_ref guarda la corrección', () {
+      expect(
+        CorrectionTurnPolicy.shouldPersist(
+          userId: 'user-1',
+          turnRef: 'turn-7',
+          corrections: [correction],
+        ),
+        isTrue,
+      );
+    });
+
+    test('sin correcciones no hay fila', () {
+      expect(
+        CorrectionTurnPolicy.shouldPersist(
+          userId: 'user-1',
+          turnRef: 'turn-7',
+          corrections: const [],
+        ),
+        isFalse,
+      );
+    });
+
+    test('invitado, usuario vacío o sin turn_ref no escriben historial', () {
+      for (final userId in [null, '', 'guest_user', 'guest_abc']) {
+        expect(
+          CorrectionTurnPolicy.shouldPersist(
+            userId: userId,
+            turnRef: 'turn-7',
+            corrections: [correction],
+          ),
+          isFalse,
+          reason: 'userId=$userId',
+        );
+      }
+      for (final turnRef in [null, '']) {
+        expect(
+          CorrectionTurnPolicy.shouldPersist(
+            userId: 'user-1',
+            turnRef: turnRef,
+            corrections: [correction],
+          ),
+          isFalse,
+          reason: 'turnRef=$turnRef',
+        );
+      }
     });
   });
 
