@@ -4,12 +4,32 @@ import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../data/repositories/subscription_plan_repository_impl.dart';
 import '../../data/repositories/subscription_repository_impl.dart';
+import '../../domain/models/subscription_plan.dart';
+import '../../domain/repositories/subscription_plan_repository.dart';
 import '../../domain/repositories/subscription_repository.dart';
 
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
   final supabaseClient = ref.watch(supabaseClientProvider);
   return SubscriptionRepositoryImpl(supabaseClient);
+});
+
+final subscriptionPlanRepositoryProvider = Provider<SubscriptionPlanRepository>(
+  (ref) {
+    final supabaseClient = ref.watch(supabaseClientProvider);
+    return SubscriptionPlanRepositoryImpl(supabaseClient);
+  },
+);
+
+/// P-44 (#129): catálogo de planes **activos** (`is_active = true`) con sus
+/// capacidades reales (semanas de informe, trial, exclusivos).
+///
+/// Es la única fuente de la lista de planes: no hay ids de plan hardcodeados
+/// en la UI, así que retirar un plan (DIVINO en la migración 20261030005704)
+/// lo quita del paywall sin tocar código.
+final planCatalogProvider = FutureProvider.autoDispose<PlanCatalog>((ref) {
+  return ref.watch(subscriptionPlanRepositoryProvider).loadCatalog();
 });
 
 /// Issue #64: garantiza que el SDK de RevenueCat esté configurado con el
@@ -40,7 +60,7 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
   static DateTime? _lastEntitlementSync;
 
   PremiumStatusNotifier(this._repository, this._rcService, this._userId)
-      : super(false) {
+    : super(false) {
     _checkStatus();
   }
 
@@ -55,7 +75,8 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
         // P-19: como mucho una sincronización por hora; el provider se recrea
         // a menudo y no debe golpear la Edge Function cada vez.
         final lastSync = _lastEntitlementSync;
-        final needsSync = lastSync == null ||
+        final needsSync =
+            lastSync == null ||
             DateTime.now().difference(lastSync) > const Duration(hours: 1);
         if (needsSync) {
           _lastEntitlementSync = DateTime.now();
@@ -82,7 +103,11 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
         state = isPrem;
       }
     } catch (e, st) {
-      ErrorTracker.logSilent('lib/features/subscription/presentation/providers/subscription_providers.dart:63', e, stackTrace: st);
+      ErrorTracker.logSilent(
+        'lib/features/subscription/presentation/providers/subscription_providers.dart:63',
+        e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -95,8 +120,8 @@ class PremiumStatusNotifier extends StateNotifier<bool> {
 
 final isPremiumProvider =
     StateNotifierProvider.autoDispose<PremiumStatusNotifier, bool>((ref) {
-  final repo = ref.watch(subscriptionRepositoryProvider);
-  final rcService = ref.watch(revenueCatServiceProvider);
-  final user = ref.watch(currentUserProvider);
-  return PremiumStatusNotifier(repo, rcService, user?.id);
-});
+      final repo = ref.watch(subscriptionRepositoryProvider);
+      final rcService = ref.watch(revenueCatServiceProvider);
+      final user = ref.watch(currentUserProvider);
+      return PremiumStatusNotifier(repo, rcService, user?.id);
+    });

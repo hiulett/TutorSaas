@@ -48,6 +48,15 @@ void main() {
       requiredLevel: 2,
       craftFragments: 250,
     ),
+    // P-44 (#129): cosmético exclusivo de REALEZA.
+    ShopOffer(
+      id: 'title_leyenda_viva',
+      name: 'Leyenda Viva',
+      category: 'title',
+      priceGold: 800,
+      requiredLevel: 3,
+      minPlan: 'realeza',
+    ),
   ];
 
   const wallet = EconomyWallet(
@@ -94,6 +103,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
   }
 
+  test('ShopOffer.fromMap lee el plan mínimo', () {
+    final exclusive = ShopOffer.fromMap(const {
+      'id': 'title_leyenda_viva',
+      'name': 'Leyenda Viva',
+      'min_plan': 'realeza',
+    });
+    final normal = ShopOffer.fromMap(const {
+      'id': 'title_novato',
+      'name': 'Novato',
+    });
+
+    expect(exclusive.isExclusive, isTrue);
+    expect(exclusive.requiredPlanLabel, 'REALEZA');
+    expect(normal.isExclusive, isFalse);
+    expect(normal.requiredPlanLabel, isNull);
+  });
+
   testWidgets('pinta los tres sumideros y el nivel', (tester) async {
     await pumpShop(tester);
 
@@ -131,6 +157,15 @@ void main() {
 
     expect(find.textContaining('250 FRAGMENTOS'), findsOneWidget);
     expect(find.textContaining('CRAFTEAR'), findsOneWidget);
+  });
+
+  testWidgets('anuncia el plan mínimo de los cosméticos exclusivos', (
+    tester,
+  ) async {
+    await pumpShop(tester);
+
+    // P-44 (#129): la tienda avisa del plan; el servidor es quien bloquea.
+    expect(find.text('REALEZA'), findsOneWidget);
   });
 
   testWidgets('no desborda a 312 dp y avisa de recompensas pendientes', (

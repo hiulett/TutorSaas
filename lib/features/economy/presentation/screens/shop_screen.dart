@@ -173,7 +173,19 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               : (l10n?.cosmetic_purchased ?? '¡COSMÉTICO ADQUIRIDO!'),
         );
       } else {
-        _snack(_failureMessage(res['reason'] as String?), success: false);
+        final reason = res['reason'] as String?;
+        // P-44 (#129): el servidor exige un plan mínimo para los cosméticos
+        // exclusivos; se dice cuál en vez de un error genérico.
+        final requiredPlan = (res['required_plan'] as String?)?.toUpperCase();
+        if (reason == 'plan_required' && requiredPlan != null) {
+          _snack(
+            l10n?.shop_plan_required_body(requiredPlan) ??
+                'Este objeto es exclusivo del plan $requiredPlan.',
+            success: false,
+          );
+        } else {
+          _snack(_failureMessage(reason), success: false);
+        }
       }
     } catch (e, st) {
       ErrorTracker.logSilent(
@@ -922,6 +934,34 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                             ),
                           ),
                         ),
+                      // P-44 (#129): cosmético exclusivo de un plan. La compra
+                      // la bloquea el servidor; aquí solo se anuncia.
+                      if (offer.requiredPlanLabel != null) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.runeViolet.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            border: Border.all(
+                              color: AppColors.runeViolet.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            offer.requiredPlanLabel!,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.runeViolet,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 6),

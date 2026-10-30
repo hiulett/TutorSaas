@@ -49,6 +49,8 @@ class WeeklyReport {
     this.levelAssessed = false,
     this.gameRank,
     this.previous = const WeeklyReportTotals(),
+    this.historyWeeks = 52,
+    this.locked = false,
   });
 
   factory WeeklyReport.fromMap(Map<String, dynamic> map) {
@@ -71,6 +73,12 @@ class WeeklyReport {
       levelAssessed: map['level_assessed'] == true,
       gameRank: _text(map['game_rank']),
       previous: WeeklyReportTotals.fromMap(map['previous']),
+      // `history_weeks` no viene en respuestas antiguas: 52 mantiene el
+      // comportamiento anterior (todas las semanas) en vez de bloquear.
+      historyWeeks: map['history_weeks'] == null
+          ? 52
+          : _int(map['history_weeks']),
+      locked: map['locked'] == true,
     );
   }
 
@@ -103,6 +111,23 @@ class WeeklyReport {
   final String? gameRank;
 
   final WeeklyReportTotals previous;
+
+  /// P-44 (#129): semanas de historial que el plan permite. Lo decide el
+  /// servidor (`subscription_plans.weekly_report_weeks`) y viaja en cada
+  /// respuesta; el cliente solo lo usa para no pedir semanas de más.
+  final int historyWeeks;
+
+  /// `true` cuando la semana pedida queda fuera del historial del plan. El
+  /// servidor no devuelve datos en ese caso (llegan todos a cero): se muestra
+  /// el aviso de mejora, nunca una semana vacía como si fuera real.
+  final bool locked;
+
+  /// Último desplazamiento navegable (`0` = semana en curso).
+  int get maxWeekOffset {
+    final last = historyWeeks - 1;
+    if (last <= 0) return 0;
+    return last > 52 ? 52 : last;
+  }
 
   /// Diferencia de minutos frente a la semana anterior. `null` si esta semana
   /// no tiene datos: no se inventa una caída del 100%.

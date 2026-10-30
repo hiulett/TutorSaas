@@ -606,7 +606,7 @@ class EconomyRepositoryImpl implements EconomyRepository {
           .from('cosmetic_catalog')
           .select(
             'id, name, description, category, price_gold, price_gems, '
-            'rarity, image_url, required_level, craft_cost_fragments',
+            'rarity, image_url, required_level, craft_cost_fragments, min_plan',
           )
           .order('required_level', ascending: true)
           .order('price_gold', ascending: true);

@@ -95,6 +95,62 @@ void main() {
     });
   });
 
+  // P-44 (#129): el historial visible lo decide el plan en el servidor.
+  group('WeeklyReport · historial por plan', () {
+    test('sin history_weeks se asume el comportamiento anterior (52)', () {
+      final report = WeeklyReport.fromMap(const {'week_offset': 0});
+
+      expect(report.historyWeeks, 52);
+      expect(report.locked, isFalse);
+      expect(report.maxWeekOffset, 51);
+    });
+
+    test('PLEBEYO solo navega la semana en curso', () {
+      final report = WeeklyReport.fromMap(const {
+        'week_offset': 0,
+        'history_weeks': 1,
+        'locked': false,
+      });
+
+      expect(report.historyWeeks, 1);
+      expect(report.maxWeekOffset, 0);
+    });
+
+    test('NOBLE llega a 4 semanas y bloquea la quinta', () {
+      final allowed = WeeklyReport.fromMap(const {
+        'week_offset': 3,
+        'history_weeks': 4,
+        'locked': false,
+        'has_data': true,
+        'minutes': 30,
+      });
+      final blocked = WeeklyReport.fromMap(const {
+        'week_offset': 4,
+        'history_weeks': 4,
+        'locked': true,
+        'has_data': false,
+      });
+
+      expect(allowed.maxWeekOffset, 3);
+      expect(allowed.locked, isFalse);
+      expect(blocked.locked, isTrue);
+      // Una semana bloqueada nunca se pinta como semana vacía real.
+      expect(blocked.hasData, isFalse);
+      expect(blocked.minutesDelta, isNull);
+    });
+
+    test('REALEZA mantiene el historial completo', () {
+      final report = WeeklyReport.fromMap(const {
+        'week_offset': 51,
+        'history_weeks': 52,
+        'locked': false,
+      });
+
+      expect(report.maxWeekOffset, 51);
+      expect(report.locked, isFalse);
+    });
+  });
+
   group('LevelCheckpoint', () {
     test('el aviso salta a las 10 lecciones, no antes', () {
       expect(LevelCheckpoint.isDue(0), isFalse);

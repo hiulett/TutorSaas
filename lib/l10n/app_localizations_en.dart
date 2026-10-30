@@ -1698,6 +1698,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String shop_plan_required_body(String plan) {
+    return 'This item is exclusive to the $plan plan.';
+  }
+
+  @override
   String get gems_insufficient => 'INSUFFICIENT GEMS';
 
   @override
@@ -3719,6 +3724,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paywall_manage_subscription => 'MANAGE SUBSCRIPTION';
 
   @override
+  String get paywall_plans_title => 'CHOOSE YOUR ESTATE';
+
+  @override
+  String get paywall_per_month => '/month';
+
+  @override
+  String paywall_plan_mana(String amount) {
+    return '$amount mana/month';
+  }
+
+  @override
+  String paywall_plan_report_weeks(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '$weeks weeks of report history',
+      one: '1 week of report history',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paywall_plan_exclusives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exclusive cosmetics',
+      one: '1 exclusive cosmetic',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paywall_trial_then(int days, String price) {
+    return '$days days free, then $price/month';
+  }
+
+  @override
   String get mana_inventory_title => 'MANA INVENTORY';
 
   @override
@@ -4154,6 +4197,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weekly_open => 'VIEW REPORT';
+
+  @override
+  String weekly_history_locked(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: 'Your plan keeps $weeks weeks of history.',
+      one: 'Your plan keeps 1 week of history.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weekly_history_upgrade =>
+      'Upgrade your plan to open previous weeks.';
 
   @override
   String get checkpoint_title => 'LEVEL CHECK';

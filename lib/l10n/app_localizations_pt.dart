@@ -1703,6 +1703,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String shop_plan_required_body(String plan) {
+    return 'Este item é exclusivo do plano $plan.';
+  }
+
+  @override
   String get gems_insufficient => 'GEMAS INSUFICIENTES';
 
   @override
@@ -3732,6 +3737,44 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paywall_manage_subscription => 'GERENCIAR ASSINATURA';
 
   @override
+  String get paywall_plans_title => 'ESCOLHA SEU ESTAMENTO';
+
+  @override
+  String get paywall_per_month => '/mês';
+
+  @override
+  String paywall_plan_mana(String amount) {
+    return '$amount de mana/mês';
+  }
+
+  @override
+  String paywall_plan_report_weeks(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '$weeks semanas de histórico no relatório',
+      one: '1 semana de histórico no relatório',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paywall_plan_exclusives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cosméticos exclusivos',
+      one: '1 cosmético exclusivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String paywall_trial_then(int days, String price) {
+    return '$days dias grátis, depois $price/mês';
+  }
+
+  @override
   String get mana_inventory_title => 'INVENTÁRIO DE MANA';
 
   @override
@@ -4168,6 +4211,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get weekly_open => 'VER RELATÓRIO';
+
+  @override
+  String weekly_history_locked(int weeks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: 'Seu plano guarda $weeks semanas de histórico.',
+      one: 'Seu plano guarda 1 semana de histórico.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get weekly_history_upgrade =>
+      'Melhore seu plano para abrir semanas anteriores.';
 
   @override
   String get checkpoint_title => 'CHECAGEM DE NÍVEL';

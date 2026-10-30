@@ -3220,6 +3220,12 @@ abstract class AppLocalizations {
   /// **'NEXT UNLOCK: {name} · LV. {level}'**
   String shop_next_unlock(String name, int level);
 
+  /// No description provided for @shop_plan_required_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is exclusive to the {plan} plan.'**
+  String shop_plan_required_body(String plan);
+
   /// No description provided for @gems_insufficient.
   ///
   /// In en, this message translates to:
@@ -6802,6 +6808,42 @@ abstract class AppLocalizations {
   /// **'MANAGE SUBSCRIPTION'**
   String get paywall_manage_subscription;
 
+  /// No description provided for @paywall_plans_title.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOOSE YOUR ESTATE'**
+  String get paywall_plans_title;
+
+  /// No description provided for @paywall_per_month.
+  ///
+  /// In en, this message translates to:
+  /// **'/month'**
+  String get paywall_per_month;
+
+  /// No description provided for @paywall_plan_mana.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} mana/month'**
+  String paywall_plan_mana(String amount);
+
+  /// No description provided for @paywall_plan_report_weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{weeks, plural, =1{1 week of report history} other{{weeks} weeks of report history}}'**
+  String paywall_plan_report_weeks(int weeks);
+
+  /// No description provided for @paywall_plan_exclusives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 exclusive cosmetic} other{{count} exclusive cosmetics}}'**
+  String paywall_plan_exclusives(int count);
+
+  /// No description provided for @paywall_trial_then.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days free, then {price}/month'**
+  String paywall_trial_then(int days, String price);
+
   /// No description provided for @mana_inventory_title.
   ///
   /// In en, this message translates to:
@@ -7563,6 +7605,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'VIEW REPORT'**
   String get weekly_open;
+
+  /// No description provided for @weekly_history_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'{weeks, plural, =1{Your plan keeps 1 week of history.} other{Your plan keeps {weeks} weeks of history.}}'**
+  String weekly_history_locked(int weeks);
+
+  /// No description provided for @weekly_history_upgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade your plan to open previous weeks.'**
+  String get weekly_history_upgrade;
 
   /// No description provided for @checkpoint_title.
   ///

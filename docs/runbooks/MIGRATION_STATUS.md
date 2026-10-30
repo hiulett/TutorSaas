@@ -1,26 +1,27 @@
 # Estado de las migraciones (auditoría real)
 
-_Actualizado: 29-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
+_Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
 
-> Estado actual verificado: **101 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **102 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | **165** |
-| De ellos, con prefijo de 14 dígitos válido | 90 |
+| Archivos `.sql` en `supabase/migrations/` | **168** |
+| De ellos, con prefijo de 14 dígitos válido | 93 |
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **101** |
-| Aplicadas **con** archivo correspondiente | 59 |
+| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **102** |
+| Aplicadas **con** archivo correspondiente | 60 |
 | Aplicadas **sin** archivo en el repo | **39** |
-| Archivos con prefijo que **no** están aplicados | 30 |
+| Archivos con prefijo que **no** están aplicados | 33 |
 
-> Recuento de archivos y de migraciones aplicadas reverificado por MCP el
-> 29-oct-2026 (tras P-30 / #115). Las filas de correspondencia
-> archivo↔historial (59/39/30) son del desglose anterior y no se recontaron.
+> Recuento de archivos, migraciones aplicadas y archivos con prefijo
+> reverificado por MCP el 30-oct-2026 (tras P-44/P-45). Las filas de
+> correspondencia archivo↔historial (60/39) se ajustaron con la migración
+> nueva y siguen apoyadas en el desglose anterior: no se recontaron una a una.
 
 ## Por qué el repo no reproduce el esquema
 
@@ -48,6 +49,7 @@ la versión real registrada por Supabase:
 | `20261018201310_add_in_grace_status.sql` | ✔ |
 | `20261018234615_restrict_subscription_writes.sql` | ✔ |
 | `20261019015914_oracle_turns_update_own.sql` | ✔ |
+| `20261030005704_plans_capabilities_p44_p45.sql` | ✔ (nuevo, P-44/P-45) |
 
 Antes tenían prefijos `202610180000xx` que **no** existían en el historial: un
 `db push` las habría intentado aplicar de nuevo.
