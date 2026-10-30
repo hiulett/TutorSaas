@@ -78,7 +78,7 @@ conflicto, manda lo aquí verificado y se indica en cada documento.
 | Vistas | — | 14 | `information_schema.views` |
 | Edge Functions activas | 6 | **8** | `supabase functions list` |
 | Jobs cron | 3 | 3 | `cron.job` |
-| Claves i18n | 951 | **1.287** (en/es/pt) | `app_en.arb` |
+| Claves i18n | 951 | **1.292** (en/es/pt) | `app_en.arb` |
 | Pruebas | 530 | **702** en verde (0 saltadas) | `flutter test` |
 | Analyzer | 0 err · 0 warn · 127 infos | 0 err · 0 warn · **126 infos** | `flutter analyze` |
 | Migraciones aplicadas | 98 | **106** | `schema_migrations` |

@@ -252,13 +252,13 @@ restauran ítems equipados. El cliente interpreta el resultado con
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` (raíz) | 170 |
-| Con prefijo válido de 14 dígitos | 95 |
+| Archivos `.sql` en `supabase/migrations/` (raíz) | 172 |
+| Con prefijo válido de 14 dígitos | 97 |
 | Sin prefijo (el CLI los ignora) | 75 |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
 | Migraciones aplicadas | **106** |
-| Aplicadas con archivo en el repo | 65 |
-| Aplicadas sin archivo en el repo | 41 |
+| Aplicadas con archivo en el repo | 67 |
+| Aplicadas sin archivo en el repo | 39 |
 | Archivos con prefijo no aplicados | 30 |
 
 _Recuento local y `schema_migrations` del 29-oct-2026._

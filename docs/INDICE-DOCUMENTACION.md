@@ -44,7 +44,7 @@ columna «cómo se mide».
 | Rutas registradas | **20** | `lib/app/router.dart` (ocurrencias de `path:`) |
 | Features | **16** | `lib/features/*` (directorios) |
 | Lecciones en el catálogo Dart | 140 (20 × 7 niveles) | `lesson_catalog.dart` |
-| Claves i18n | **1.287** en `en`/`es`/`pt` (paridad) | `app_en.arb` sin claves `@` |
+| Claves i18n | **1.292** en `en`/`es`/`pt` (paridad) | `app_en.arb` sin claves `@` |
 | Dependencias | 25 runtime · 5 dev | `pubspec.yaml` |
 | Tablas en `public` | **89** | `information_schema.tables` (BASE TABLE) |
 | Vistas | **14** | `information_schema.views` |
@@ -204,7 +204,7 @@ este entorno. Se resuelven con el issue indicado.
 | D-2 | `docs/estrategia_producto/01_DIAGNOSTICO_ESTRATEGICO.md` se verificó el 18-oct y cita cifras anteriores a P-38/P-40/P-44 | `docs/estrategia_producto/01` | Re-verificar si se retoma el roadmap; no bloquea código |
 | D-3 | El tamaño del AAB (104,2 MB) no se puede comprobar sin `flutter build appbundle --release` (requiere keystore y ~10 min) | `docs/RELEASE.md` §1 | Medirlo en la próxima release (#51) |
 | D-4 | La cobertura de tests que publica el CI no se ha consultado en esta sesión | `docs/runbooks/QUALITY_TESTS.md` §1 | Leer el último run de `ci.yml` (P-18) |
-| D-5 | El número de claves i18n crece con cada PR de producto; el índice lo fija en 1.287 y hay que re-medirlo al cerrar release | este índice §2 | `ConvertFrom-Json` sobre `app_en.arb` |
+| D-5 | El número de claves i18n crece con cada PR de producto; el índice lo fija en 1.292 y hay que re-medirlo al cerrar release | este índice §2 | `ConvertFrom-Json` sobre `app_en.arb` |
 | D-6 | 39 migraciones aplicadas no tienen archivo en el repo y 30 archivos con prefijo no están aplicados: el repo sigue sin reproducir el esquema | `docs/runbooks/MIGRATION_STATUS.md` | Baseline con `supabase db dump` (#101) |
 
 ---
