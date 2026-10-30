@@ -1411,5 +1411,10 @@
   "listening_error_load": "Não foi possível carregar este exercício. Verifique sua conexão e tente novamente.",
   "listening_retry_send": "TENTAR ENVIAR DE NOVO",
   "listening_explanation": "Resposta correta: {answer}",
-  "@listening_explanation": {"placeholders": {"answer": {"type": "String"}}}
+  "@listening_explanation": {"placeholders": {"answer": {"type": "String"}}},
+  "path_recommended": "RECOMENDADA",
+  "path_recommended_interest": "Pelos seus interesses",
+  "path_recommended_error": "Reforça os seus erros",
+  "path_recommended_review": "Revisão do que aprendeu",
+  "path_recommended_next": "Próximo passo"
 }

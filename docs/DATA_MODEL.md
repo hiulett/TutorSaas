@@ -4,9 +4,9 @@ _Medido en producción el 29-oct-2026._
 
 | Objeto | Cantidad |
 |---|---|
-| Tablas en `public` | **88** |
+| Tablas en `public` | **89** |
 | Políticas RLS | **134** sobre 84 tablas |
-| Funciones (`public`) | **92** |
+| Funciones (`public`) | **98** |
 | Trabajos `pg_cron` | 3 |
 | Buckets de Storage | 1 |
 | Vistas | 14 |
@@ -39,11 +39,17 @@ _Medido en producción el 29-oct-2026._
 `pronunciation_assessments`, `lesson_progress`, `vocabulary_items`,
 `user_vocabulary`, `daily_stats`, `weekly_stats`, `daily_fluency_stats`,
 `speech_dna_metrics`, `user_scenario_fluency`, `user_scenario_goals`,
-`user_scenario_phrases`, `listening_exercises`, `listening_attempts`
+`user_scenario_phrases`, `listening_exercises`, `listening_attempts`,
+`lesson_catalog_index` (espejo servidor del catálogo Dart, P-40a)
 
 - `conversations.scenario_id` es **`varchar`**, no UUID: guarda tanto UUIDs de
   escenario como claves del catálogo Dart (`a1_ordering_coffee_at_a_cafe`) y el
   literal `oracle-evaluation`.
+- `scenarios.lesson_key` (P-40a) es el puente nullable entre la fila de BD y el
+  id del catálogo Dart. Índice **no único** `(language_id, lesson_key)`: un
+  escenario generado puede repetir título. `lesson_catalog_index` (140 filas,
+  RLS sin políticas) permite al servidor ordenar la ruta incluso en B2/C1, donde
+  los títulos de `scenarios` ya no coinciden con el catálogo.
 - Criterio único de "lección superada": `lesson_completion_passed()` en SQL y
   `LessonCompletion.isPassed` en Dart (75 %, con una meta fallada tolerada en
   lecciones de 4 metas o menos). Las estrellas salen de

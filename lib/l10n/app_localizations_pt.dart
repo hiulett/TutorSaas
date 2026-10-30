@@ -4354,4 +4354,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String listening_explanation(String answer) {
     return 'Resposta correta: $answer';
   }
+
+  @override
+  String get path_recommended => 'RECOMENDADA';
+
+  @override
+  String get path_recommended_interest => 'Pelos seus interesses';
+
+  @override
+  String get path_recommended_error => 'Reforça os seus erros';
+
+  @override
+  String get path_recommended_review => 'Revisão do que aprendeu';
+
+  @override
+  String get path_recommended_next => 'Próximo passo';
 }

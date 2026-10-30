@@ -15,6 +15,8 @@ import '../../domain/models/lesson_unlock_service.dart';
 import '../../domain/models/lesson_completion.dart';
 import '../../domain/models/lesson_halo.dart';
 import '../../domain/models/mission_progress_service.dart';
+import '../../domain/models/recommended_path.dart';
+import '../../domain/services/path_order.dart';
 import '../providers/dashboard_providers.dart';
 
 class LearningPathRoadmap extends ConsumerStatefulWidget {
@@ -98,13 +100,110 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
     }
   }
 
+  /// P-40a (#220): primer paso recomendado de esta etapa que aún no es repaso.
+  ///
+  /// Se apoya en el orden ya aplicado por [PathOrder], así que el badge cae
+  /// siempre en la primera lección de la lista (la que el alumno debería abrir)
+  /// y nunca en un escenario marcado como `review`.
+  ({String lessonId, RecommendedPathStep step})? _topRecommendation(
+    List<LessonData> lessons,
+    List<RecommendedPathStep> path,
+  ) {
+    if (path.isEmpty) return null;
+    for (final lesson in lessons) {
+      final step = _stepFor(lesson, path);
+      if (step == null) continue;
+      if (step.reason == RecommendedPathReason.review) continue;
+      return (lessonId: lesson.id, step: step);
+    }
+    return null;
+  }
+
+  /// Cruza una lección del catálogo con la ruta del servidor: primero por
+  /// `lesson_key` y después por nivel + título (los dos currículos comparten
+  /// títulos, no ids).
+  RecommendedPathStep? _stepFor(
+    LessonData lesson,
+    List<RecommendedPathStep> path,
+  ) {
+    final id = lesson.id.trim().toLowerCase();
+    for (final step in path) {
+      if (step.lessonKey?.trim().toLowerCase() == id) return step;
+    }
+    final titleKey = _titleKey(lesson.level, lesson.title);
+    for (final step in path) {
+      if (_titleKey(step.level, step.title) == titleKey) return step;
+    }
+    return null;
+  }
+
+  static String _titleKey(String level, String title) =>
+      '${level.trim().toUpperCase()}|${title.trim().toLowerCase()}';
+
+  Widget _buildRecommendationBadge(
+    BuildContext context,
+    RecommendedPathStep step,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final label = l10n?.path_recommended ?? 'RECOMENDADA';
+    final reason = _reasonLabel(l10n, step.reason);
+    return Padding(
+      padding: const EdgeInsets.only(left: 58, right: 8, bottom: 6),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.auto_awesome_rounded,
+            size: 13,
+            color: AppColors.manaCyan,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              '$label · $reason',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: AppColors.manaCyan,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _reasonLabel(AppLocalizations? l10n, RecommendedPathReason reason) {
+    switch (reason) {
+      case RecommendedPathReason.interest:
+        return l10n?.path_recommended_interest ?? 'Por tus intereses';
+      case RecommendedPathReason.recurringError:
+        return l10n?.path_recommended_error ?? 'Refuerza tus errores';
+      case RecommendedPathReason.review:
+        return l10n?.path_recommended_review ?? 'Repaso';
+      case RecommendedPathReason.next:
+        return l10n?.path_recommended_next ?? 'Siguiente paso';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final completedGoalRows = ref.watch(completedGoalsProvider).value ?? [];
-    final stageLessons = LessonCatalog.catalog
-        .where((l) => l.level.toUpperCase() == _selectedLevel)
-        .toList();
+    // P-40a (#220): orden recomendado por el servidor. Si la ruta no llega o
+    // no reconoce la etapa, `PathOrder.apply` conserva el orden del catálogo.
+    final recommendedPath =
+        ref.watch(recommendedPathProvider).value ??
+        const <RecommendedPathStep>[];
+    final stageLessons = PathOrder.apply(
+      LessonCatalog.catalog
+          .where((l) => l.level.toUpperCase() == _selectedLevel)
+          .toList(),
+      recommendedPath,
+    );
+    final topRecommendation = _topRecommendation(stageLessons, recommendedPath);
 
     // Progreso de etapa por objetivos: Σ completados(etapa) / Σ totales(etapa).
     final stageCompletedGoals = stageLessons.fold<int>(
@@ -326,6 +425,11 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (topRecommendation?.lessonId == lesson.id)
+                          _buildRecommendationBadge(
+                            context,
+                            topRecommendation!.step,
+                          ),
                         _RoadmapNodeTile(
                           lesson: lesson,
                           index: index + 1,

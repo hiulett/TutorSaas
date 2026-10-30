@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tutorsaas/core/utils/error_tracker.dart';
 import '../../domain/repositories/dashboard_repository.dart';
+import '../../domain/models/recommended_path.dart';
 import '../../domain/models/title_evaluator.dart';
 import '../../domain/models/lesson_completion.dart';
 import '../../domain/services/lesson_relevance.dart';
@@ -282,6 +283,31 @@ class DashboardRepositoryImpl implements DashboardRepository {
     }
 
     return result;
+  }
+
+  /// P-40a (#220): productor real de `user_ai_profiles.recommended_path_scenarios`.
+  ///
+  /// La RPC vive en el servidor (SECURITY DEFINER, valida `auth.uid()`), usa
+  /// solo escenarios existentes y es idempotente. Si falla, devuelve `[]`: la
+  /// Ruta sigue funcionando con el orden del catálogo.
+  @override
+  Future<List<RecommendedPathStep>> refreshRecommendedPath(
+    String userId,
+  ) async {
+    try {
+      final res = await _supabaseClient.rpc(
+        'refresh_recommended_path',
+        params: {'p_user_id': userId},
+      );
+      return RecommendedPathStep.listFromRpc(res);
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/dashboard/data/repositories/dashboard_repository_impl.dart:refreshRecommendedPath',
+        e,
+        stackTrace: st,
+      );
+      return const [];
+    }
   }
 
   @override

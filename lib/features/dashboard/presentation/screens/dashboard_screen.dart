@@ -16,6 +16,8 @@ import '../widgets/daily_goal_ring_card.dart';
 import '../widgets/welcome_back_card.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
+import '../../domain/models/recommended_path.dart';
+import '../../domain/services/path_order.dart';
 import '../widgets/progress_tab_view.dart';
 import '../../../economy/presentation/widgets/daily_reward_modal.dart';
 import '../../../vocabulary/presentation/widgets/srs_review_card.dart';
@@ -44,7 +46,12 @@ class DashboardScreen extends ConsumerWidget {
     final goalRows =
         ref.watch(completedGoalsProvider).value ??
         const <Map<String, dynamic>>[];
-    final lesson = _nextLesson(cefrCode, goalRows);
+    // P-40a (#220): la CTA sigue la ruta recomendada del servidor. Sin ruta
+    // (error/backend antiguo) `_nextLesson` conserva el orden del catálogo.
+    final recommendedPath =
+        ref.watch(recommendedPathProvider).value ??
+        const <RecommendedPathStep>[];
+    final lesson = _nextLesson(cefrCode, goalRows, recommendedPath);
     if (lesson == null) return const SizedBox.shrink();
 
     return Padding(
@@ -121,16 +128,21 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  /// Primera lección disponible del nivel; si ya están todas superadas,
-  /// devuelve la primera como repaso.
-  LessonData? _nextLesson(String level, List<Map<String, dynamic>> goalRows) {
+  /// Primera lección disponible del nivel en el orden de la ruta recomendada;
+  /// si ya están todas superadas, devuelve la primera como repaso.
+  LessonData? _nextLesson(
+    String level,
+    List<Map<String, dynamic>> goalRows,
+    List<RecommendedPathStep> path,
+  ) {
     final normalized = level.toUpperCase();
     final lessons = LessonCatalog.catalog
         .where((l) => l.level.toUpperCase() == normalized)
         .toList();
     if (lessons.isEmpty) return null;
 
-    for (final lesson in lessons) {
+    final ordered = PathOrder.apply(lessons, path);
+    for (final lesson in ordered) {
       final state = LessonUnlockService.classify(
         lesson: lesson,
         userCefr: normalized,
@@ -139,7 +151,7 @@ class DashboardScreen extends ConsumerWidget {
       );
       if (state == LessonUnlockState.nextAvailable) return lesson;
     }
-    return lessons.first;
+    return ordered.first;
   }
 
   @override
@@ -513,8 +525,7 @@ class DashboardScreen extends ConsumerWidget {
                                         label:
                                             l10n?.my_errors_short ?? 'ERRORES',
                                         color: AppColors.emeraldGreen,
-                                        onTap: () =>
-                                            context.push('/my-errors'),
+                                        onTap: () => context.push('/my-errors'),
                                       ),
                                     ],
                                   ),

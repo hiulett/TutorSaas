@@ -1,6 +1,14 @@
+import '../models/recommended_path.dart';
+
 abstract class DashboardRepository {
   Future<Map<String, dynamic>> getUserProgress(String userId);
   Future<List<Map<String, dynamic>>> getRecommendedLessons(String userId);
+
+  /// P-40a (#220): recalcula y persiste la ruta recomendada en servidor.
+  ///
+  /// Idempotente y sin coste de IA. Devuelve `[]` si la RPC falla para que la
+  /// Ruta caiga al orden actual del catálogo.
+  Future<List<RecommendedPathStep>> refreshRecommendedPath(String userId);
   Future<List<Map<String, dynamic>>> getUserAchievements(String userId);
   Future<String> getCorrectionLevel(String userId);
   Future<void> updateCorrectionLevel(String userId, String level);
@@ -10,12 +18,19 @@ abstract class DashboardRepository {
   Future<void> updateUserSettings(String userId, Map<String, dynamic> settings);
   Future<void> logPracticeSession(String userId, int minutes);
   Future<void> saveVocabularyFromSession(String userId, List<String> userTexts);
-  Future<void> updateVocabularySrsScore(String userId, String vocabularyId, double qualityScore,
-      {String cardType = 'recognition'});
+  Future<void> updateVocabularySrsScore(
+    String userId,
+    String vocabularyId,
+    double qualityScore, {
+    String cardType = 'recognition',
+  });
 
   /// Issue #24: palabras cuyo `next_review_at` ya venció (o nunca se fijó).
   /// Devuelve `{id, vocabulary_id, word, translation}` listo para el modal SRS.
-  Future<List<Map<String, dynamic>>> getDueVocabulary(String userId, {int limit = 10});
+  Future<List<Map<String, dynamic>>> getDueVocabulary(
+    String userId, {
+    int limit = 10,
+  });
   Future<void> updateUserProfile(
     String userId, {
     String? displayName,

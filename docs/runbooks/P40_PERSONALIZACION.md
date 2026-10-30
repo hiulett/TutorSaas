@@ -66,10 +66,12 @@ onboarding / ajustes
 | Campo | Por qué no se usa | Seguimiento |
 |---|---|---|
 | `user_ai_profiles.learning_style` | Valor único (`auditory_interactive`) escrito por el onboarding; no varía por usuario y no aporta al prompt. | No requiere trabajo: se deja fuera a propósito. |
-| `user_ai_profiles.recommended_path_scenarios` | Vacío en producción y sin productor: exigiría una ruta pedagógica por usuario (generación = coste de IA). | Issue de seguimiento creado desde P-40. |
-| Subir/bajar **el escenario** a otra banda CEFR | El catálogo tiene `difficulty_level` fijo por escenario; generar contenido adaptado por banda cuesta una llamada `lesson_generation` (maná). | Issue de seguimiento creado desde P-40; hoy el ajuste es léxico dentro del mismo escenario. |
 | Errores recurrentes en planes sin maná | **Resuelto en P-40-c (#222)**: `correction_turn` es gratuita. Ver §6. | — |
 | Reordenar el catálogo por `skill_radar` | El radar vive en un provider de presentación; moverlo al repositorio duplica consultas. Se priorizó interés + duración. | No verificable hoy: pendiente de medir impacto antes de añadirlo. |
+
+Las dos filas que antes figuraban aquí (`recommended_path_scenarios` sin
+productor y la banda CEFR fija del escenario) **ya no aplican**: las resolvieron
+P-40a (#220) y P-40b (#221) sin llamadas nuevas de IA. Detalle en §7.
 
 ## 5. Comprobación en producción (solo lectura)
 
@@ -192,3 +194,68 @@ turnos ni había correcciones).
 primero el proxy (acepta la acción gratis), después la fila inactiva; al revés,
 un proxy viejo devolvería `400 invalid_action`. El cliente no cambia: sigue
 enviando `correction_turn`.
+
+## 7. P-40a (#220) y P-40b (#221): ruta recomendada y banda del escenario
+
+### Ruta recomendada (P-40a)
+
+- Productor: `refresh_recommended_path(p_user_id)` (`SECURITY DEFINER`,
+  migración `20261030040054_path_band_p40ab.sql`). Calcula la ruta con el nivel
+  real (`user_language_profiles → cefr_levels`), los intereses
+  (`user_settings.interests` + `user_ai_profiles.focus_areas`), los errores
+  recurrentes (P-29) y las lecciones superadas (`lesson_progress.status =
+  'passed'` y `user_scenario_goals`), sobre escenarios existentes.
+- Idempotente: el orden es determinista y solo escribe cuando la ruta cambia.
+  No gasta IA ni maná.
+- Persistencia: `user_ai_profiles.recommended_path_scenarios` (jsonb). Lector
+  barato: `get_recommended_path(p_user_id)`.
+- UI: `recommendedPathProvider` → `PathOrder.apply` ordena la Ruta y la CTA
+  «continuar aventura»; si la RPC falla o devuelve vacío, se conserva el orden
+  actual del catálogo.
+- Puente de currículos: `scenarios.lesson_key` enlaza cada escenario de BD con
+  su id del catálogo Dart. Los títulos coinciden en PRE-A1…B1 y C2; B2 y C1
+  divergieron (ver `CURRICULUM_ALIGNMENT.md`), así que la ruta se calcula sobre
+  `lesson_catalog_index` (espejo servidor del catálogo, 140 lecciones, RLS sin
+  políticas) y enriquece con el escenario de BD cuando existe. En B2/C1 los
+  pasos llegan sin `scenario_id` y la Ruta los abre por `lesson_key`.
+
+### Banda CEFR del escenario (P-40b)
+
+- `ScenarioBand.plan` resuelve la banda del turno con el nivel real:
+  - escenario por encima del alumno → se recorta al nivel real;
+  - 2 fallos seguidos (`simplify`) → una banda menos (suelo PRE-A1);
+  - 3 turnos limpios (`stretch`) → una banda más (techo C2).
+- La banda efectiva viaja en el system prompt (`Target CEFR Level` +
+  `LEVEL ADAPTATION`) y decide el saludo inicial, no solo el léxico.
+- Objetivos: si el escenario queda por encima, el tutor persigue solo los
+  primeros N (40–60 % según el hueco, mínimo 2).
+- Refuerzo (P-42): `ensureRemedialLesson` recibe la banda adyacente inferior al
+  nivel real. Es la misma llamada de siempre: no añade coste.
+- El catálogo cubre las 7 bandas (20 escenarios por nivel e idioma), así que no
+  hay que generar contenido para «cubrir el hueco» (verificado en producción).
+
+### Medición disponible
+
+```sql
+-- Ruta persistida (vacía hasta que un cliente con esta versión abra el dashboard)
+select count(*) filter (where recommended_path_scenarios <> '[]'::jsonb) as con_ruta,
+       count(*) as total
+from public.user_ai_profiles;
+
+-- Puente entre escenarios y catálogo
+select count(*) filter (where lesson_key is not null) as con_puente,
+       count(*) as total
+from public.scenarios where language_id = 1;
+
+-- Espejo del catálogo que usa el servidor (debe ser 20 por nivel)
+select level, count(*) from public.lesson_catalog_index group by level order by level;
+```
+
+Estado al cerrar P-40a/P-40b (MCP `supabase`, solo lectura): `scenarios` con
+102/140 filas de inglés puenteadas (`lesson_key`) y las 38 restantes de B2/C1
+sin equivalente; `lesson_catalog_index` con 140/140 lecciones (20 por nivel);
+`user_ai_profiles` sigue con 0 rutas persistidas porque ningún cliente de
+producción ejecuta todavía la versión que llama a la RPC. La validación
+funcional se hizo en una transacción con un usuario real y `rollback` (ruta de
+20 pasos, idempotente, intereses primero y superadas al final; también en B2 con
+pasos sin `scenario_id`).

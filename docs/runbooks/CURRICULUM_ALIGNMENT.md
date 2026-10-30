@@ -75,7 +75,7 @@ Camino escrito:
 | Fase | Contenido | Estado |
 |---|---|---|
 | **1** | Una sola regla de "completada" (app + servidor) y vistas de diagnóstico | **este PR** |
-| 2 | `scenarios.lesson_key text` (nullable), índice único `(language_id, lesson_key)`, backfill de las 80 coincidencias exactas y mapeo manual de B2–C2; el runtime lee por `lesson_key` | pendiente |
+| 2 | `scenarios.lesson_key text` (nullable), índice **no único** `(language_id, lesson_key)` (un escenario generado puede repetir título), backfill de las coincidencias exactas y `lesson_catalog_index` para B2–C2; el runtime de la Ruta sigue leyendo Dart, pero el servidor ordena con el índice | **P-40a (#220), parcial** |
 | 3 | `scenarios` como fuente de lectura del currículo en inglés, caché del último currículo (modo sin conexión) y filtro por intereses en la Ruta | pendiente |
 | 4 | `LessonCatalog` queda solo como semilla de migración y se retira del runtime | pendiente |
 

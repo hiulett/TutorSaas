@@ -2,26 +2,26 @@
 
 _Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
 
-> Estado actual verificado: **103 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **106 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | **169** |
-| De ellos, con prefijo de 14 dígitos válido | 94 |
+| Archivos `.sql` en `supabase/migrations/` | **172** |
+| De ellos, con prefijo de 14 dígitos válido | 97 |
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **103** |
-| Aplicadas **con** archivo correspondiente | 61 |
+| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **106** |
+| Aplicadas **con** archivo correspondiente | 64 |
 | Aplicadas **sin** archivo en el repo | **39** |
 | Archivos con prefijo que **no** están aplicados | 33 |
 
-> Recuento de archivos (169 totales, 94 con prefijo, 40 en subcarpetas),
-> migraciones aplicadas (103) y archivos con prefijo (94) reverificado por MCP
-> y shell el 30-oct-2026 (tras P-40-c/#222). Las filas de correspondencia
-> archivo↔historial (61/39) se ajustaron con la migración nueva y siguen
+> Recuento de archivos (172 totales, 97 con prefijo, 40 en subcarpetas),
+> migraciones aplicadas (106) y archivos con prefijo (97) reverificado por MCP
+> y shell el 30-oct-2026 (tras P-40a/P-40b). Las filas de correspondencia
+> archivo↔historial (64/39) se ajustaron con las migraciones nuevas y siguen
 > apoyadas en el desglose anterior: no se recontaron una a una.
 
 ## Por qué el repo no reproduce el esquema
@@ -52,6 +52,9 @@ la versión real registrada por Supabase:
 | `20261019015914_oracle_turns_update_own.sql` | ✔ |
 | `20261030005704_plans_capabilities_p44_p45.sql` | ✔ (nuevo, P-44/P-45) |
 | `20261030035724_ai_action_costs_correction_turn_free_p40c.sql` | ✔ (nuevo, P-40-c/#222) |
+| `20261030035921_hold_to_talk_mic_mode.sql` | ✔ (nuevo, P-34/#198) |
+| `20261030040054_path_band_p40ab.sql` | ✔ (nuevo, P-40a/P-40b) |
+| `20261030041241_lesson_catalog_index_p40a.sql` | ✔ (nuevo, P-40a) |
 
 Antes tenían prefijos `202610180000xx` que **no** existían en el historial: un
 `db push` las habría intentado aplicar de nuevo.

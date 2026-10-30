@@ -15,6 +15,7 @@ import '../../domain/models/correction_turn_policy.dart';
 import '../../domain/models/conversation_message.dart';
 import '../../domain/models/conversation_state.dart';
 import '../../domain/models/tutor_adaptation.dart';
+import '../../domain/models/scenario_band.dart';
 import '../../domain/models/tutor_personalization.dart';
 import '../../domain/repositories/conversation_repository.dart';
 import '../../domain/services/tutor_prompt_builder.dart';
@@ -179,6 +180,13 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
   /// P-40: ajuste de dificultad dentro del nivel (rachas de acierto/fallo).
   final TutorAdaptationTracker _adaptation = TutorAdaptationTracker();
 
+  /// P-40b (#221): nivel real del alumno al abrir la sesión.
+  ///
+  /// Se usa para el saludo inicial (antes de que cargue el perfil de
+  /// personalización) y como respaldo del prompt. Nunca se inventa: si no hay
+  /// dato, la banda del escenario se queda como está.
+  String? _sessionLearnerLevel;
+
   /// P-40: señales del turno en curso. Se reinician al empezar cada turno y se
   /// consumen al terminar la persistencia en segundo plano (sin IA extra).
   int _turnNumber = 0;
@@ -250,6 +258,10 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
     // alumno releído (pudo cambiar de intereses o de nivel desde la anterior).
     _adaptation.reset();
     _turnNumber = 0;
+    // P-40b (#221): el nivel real del alumno manda sobre la banda fija del
+    // escenario. Se lee del progreso ya cargado por el dashboard; si no está,
+    // la banda del escenario se queda como está (sin inventar nivel).
+    _sessionLearnerLevel = _readLearnerLevel();
     _correctionsThisTurn = 0;
     _goalsCompletedThisTurn = 0;
     unawaited(_loadTutorPersonalization(scenarioId: scenarioId));
@@ -294,6 +306,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       scenarioId,
       title: scenarioTitle,
     );
+    final openingMessage = lesson == null ? null : _openingForLearner(lesson);
 
     state = state.copyWith(
       activeScenarioId: scenarioId,
@@ -352,7 +365,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
         } else if (lesson != null) {
           // First time (or broken history): set initial assistant message,
           // graded to the mission's CEFR level (from the catalog).
-          final opening = lesson.initialAssistantMessage;
+          final opening = openingMessage ?? lesson.initialAssistantMessage;
           state = state.copyWith(
             messages: [ConversationMessage(sender: 'tutor', text: opening)],
           );
@@ -376,7 +389,7 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
       _ref.read(activeConversationIdProvider.notifier).state = null;
 
       if (lesson != null) {
-        final opening = lesson.initialAssistantMessage;
+        final opening = openingMessage ?? lesson.initialAssistantMessage;
         state = state.copyWith(
           messages: [ConversationMessage(sender: 'tutor', text: opening)],
         );
@@ -1745,12 +1758,23 @@ ENDING:
           : null;
 
       final personalization = await _ensureTutorPersonalization();
-      final pendingGoals = lesson == null
-          ? const <String>[]
-          : lesson.goals
-                .where((g) => state.goalEvaluationResults[g.id] != true)
-                .map((g) => g.text)
-                .toList(growable: false);
+      // P-40b (#221): la banda efectiva se resuelve con el nivel real y las
+      // rachas del turno; el escenario aporta contenido, no la exigencia.
+      final bandPlan = ScenarioBand.plan(
+        learnerLevel: _learnerLevel(personalization),
+        scenarioLevel: lesson?.level ?? '',
+        adaptation: _adaptation.adjustment,
+        totalGoals: lesson?.goals.length ?? 0,
+      );
+      final List<ScenarioGoalItem> lessonGoals = lesson == null
+          ? const <ScenarioGoalItem>[]
+          : bandPlan.goalBudget > 0
+          ? lesson.goals.take(bandPlan.goalBudget).toList(growable: false)
+          : lesson.goals;
+      final pendingGoals = lessonGoals
+          .where((g) => state.goalEvaluationResults[g.id] != true)
+          .map((g) => g.text)
+          .toList(growable: false);
 
       final List<Map<String, String>> historyList = [
         {
@@ -1760,7 +1784,10 @@ ENDING:
               correctionLevel: personalization.correctionLevel.isNotEmpty
                   ? personalization.correctionLevel
                   : _ref.read(correctionLevelProvider),
-              cefrLevel: lesson?.level ?? personalization.cefrLevel,
+              cefrLevel: bandPlan.effectiveLevel.isNotEmpty
+                  ? bandPlan.effectiveLevel
+                  : (lesson?.level ?? personalization.cefrLevel),
+              scenarioLevel: lesson?.level ?? '',
               tutorPersonality: personalization.tutorPersonality,
               correctionStyle: personalization.correctionStyle,
               interests: personalization.allInterests,
@@ -2229,6 +2256,43 @@ ENDING:
     }
   }
 
+  /// P-40b (#221): nivel real del alumno para resolver la banda del escenario.
+  ///
+  /// Prefiere el perfil de personalización (recién leído en el turno); si aún
+  /// no cargó, usa el nivel que el dashboard ya tiene en memoria.
+  String _learnerLevel(TutorPersonalization personalization) {
+    final fromProfile = personalization.cefrLevel.trim();
+    if (fromProfile.isNotEmpty) return fromProfile;
+    return _sessionLearnerLevel ?? '';
+  }
+
+  /// Nivel mostrado por el dashboard al abrir la sesión, sin lanzar consultas.
+  String _readLearnerLevel() {
+    try {
+      final level = _ref.read(userProgressProvider).value?['level_code'];
+      return (level as String?)?.trim() ?? '';
+    } catch (e) {
+      debugPrint('No se pudo leer el nivel real del alumno: $e');
+      return '';
+    }
+  }
+
+  /// Saludo inicial en la banda efectiva cuando el escenario queda por encima
+  /// del alumno. No genera contenido: reutiliza el catálogo por nivel.
+  String _openingForLearner(LessonData lesson) {
+    final plan = ScenarioBand.plan(
+      learnerLevel: _sessionLearnerLevel ?? '',
+      scenarioLevel: lesson.level,
+    );
+    if (!plan.changesBand || plan.effectiveLevel.isEmpty) {
+      return lesson.initialAssistantMessage;
+    }
+    return LessonCatalog.levelAppropriateOpening(
+      plan.effectiveLevel,
+      lesson.title,
+    );
+  }
+
   /// P-40 (#125): lee el perfil del alumno sin bloquear la apertura del chat.
   ///
   /// El primer turno espera la lectura con [_ensureTutorPersonalization]; el
@@ -2472,10 +2536,14 @@ ENDING:
               recurringErrors: _recurringErrors,
               failedGoals: failedGoals,
             );
-            final level =
+            // P-40b (#221): el refuerzo se genera una banda por debajo del
+            // nivel real (el alumno acaba de fallar). No añade ninguna llamada:
+            // es la misma invocación de P-42 con la banda adyacente.
+            final realLevel =
                 (_ref.read(userProgressProvider).value?['level_code']
                     as String?) ??
                 'A1';
+            final level = ScenarioBand.remedialLevel(realLevel);
 
             final result = plan == null
                 ? const RemedialLessonResult(

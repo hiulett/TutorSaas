@@ -14,6 +14,7 @@ import '../../data/models/hunter_skill_titles.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/aura_system.dart';
 import '../../domain/models/daily_goal_progress.dart';
+import '../../domain/models/recommended_path.dart';
 import '../../domain/models/user_settings.dart';
 import '../../domain/models/welcome_back.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
@@ -259,6 +260,26 @@ final recommendedLessonsProvider =
       return ref
           .read(dashboardRepositoryProvider)
           .getRecommendedLessons(user.id);
+    });
+
+/// P-40a (#220): ruta recomendada del alumno, calculada en servidor.
+///
+/// El servidor decide el orden con el nivel real, los intereses, los errores
+/// recurrentes y las lecciones superadas, y lo persiste en
+/// `user_ai_profiles.recommended_path_scenarios`. Si la RPC falla (sin red,
+/// RLS, backend antiguo) el provider devuelve `[]` y la Ruta mantiene el orden
+/// actual del catálogo.
+final recommendedPathProvider =
+    FutureProvider.autoDispose<List<RecommendedPathStep>>((ref) async {
+      final user = ref.watch(currentUserProvider);
+      if (user == null) return const [];
+      // Se recalcula al cerrar sesión (dashboardRefresh) y cuando cambia el
+      // nivel/progreso, porque ambos cambian la ruta.
+      ref.watch(dashboardRefreshProvider);
+      ref.watch(userProgressProvider);
+      return ref
+          .read(dashboardRepositoryProvider)
+          .refreshRecommendedPath(user.id);
     });
 
 final userAchievementsProvider =
