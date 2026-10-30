@@ -124,7 +124,9 @@ Detalle en doc 09 §3. En esta capa:
   (`guild_master_floating_banner.dart`).
 - Arranque: en lección chequea maná y bloquea a `/dungeon-guardian` si
   `available < 12` (`:142-164`); en Oráculo arranca `initOracleSession`.
-- Controles: micrófono **tap-to-toggle**, drawer de teclado (chat de texto),
+- Controles: micrófono **tap-to-toggle** por defecto y **mantener para hablar**
+  si se activa en Ajustes > AUDIO (`mic_mode_hold_to_talk`, #198); drawer de
+  teclado (chat de texto),
   replay TTS por burbuja, brújula de objetivos, 20 tópicos sugeridos, huella de
   voz.
 - **No hay botón de pausa**; detener al tutor = tocar el micrófono o salir.

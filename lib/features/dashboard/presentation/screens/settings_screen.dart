@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,8 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/i18n/language_settings.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
+import '../../../../core/services/retention_analytics.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/user_settings.dart';
 import '../providers/dashboard_providers.dart';
@@ -1186,12 +1189,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// P-34f (#198): analítica del modo del micrófono (best-effort, no bloquea).
+  void _trackMicMode(bool holdToTalk) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    try {
+      unawaited(
+        RetentionAnalytics.instance.track(
+          user.id,
+          AnalyticsEvent.micModeChanged,
+          properties: {'mode': holdToTalk ? 'hold' : 'tap'},
+        ),
+      );
+    } catch (e) {
+      debugPrint('Analytics (mic_mode_changed) no disponible: $e');
+    }
+  }
+
   /// P-37 (#122): vibracion y sonido de las celebraciones.
+  /// P-34f (#198): el modo del micrófono vive aqui, junto a ellos.
   Widget _buildSensoryTiles(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settings = ref.watch(userSettingsProvider);
 
     Widget tile({
+      Key? key,
       required IconData icon,
       required String title,
       required String subtitle,
@@ -1199,6 +1221,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       required ValueChanged<bool> onChanged,
     }) {
       return Padding(
+        key: key,
         padding: const EdgeInsets.only(top: 8),
         child: GlassCard(
           blur: 20,
@@ -1263,6 +1286,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onChanged: (value) => ref
               .read(userSettingsProvider.notifier)
               .updateSetting('sound_enabled', value),
+        ),
+        tile(
+          key: const ValueKey('settings-hold-to-talk'),
+          icon: Icons.mic_rounded,
+          title: l10n?.settings_hold_to_talk ?? 'MANTENER PARA HABLAR',
+          subtitle:
+              l10n?.settings_hold_to_talk_desc ??
+              'Mantén pulsado el micrófono y suelta para enviar. Desactivado: toca para grabar y detener.',
+          value: settings.micModeHoldToTalk,
+          onChanged: (value) {
+            ref
+                .read(userSettingsProvider.notifier)
+                .updateSetting('mic_mode_hold_to_talk', value);
+            _trackMicMode(value);
+          },
         ),
       ],
     );

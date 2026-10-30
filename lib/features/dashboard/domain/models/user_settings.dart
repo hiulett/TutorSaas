@@ -14,6 +14,10 @@ class UserSettings {
   final bool notificationsEnabled;
   final bool hapticsEnabled;
   final bool soundEnabled;
+
+  /// P-34f (#198): `true` = mantener pulsado el micrófono para hablar.
+  /// `false` = tap-to-toggle (comportamiento histórico).
+  final bool micModeHoldToTalk;
   final String notificationTime;
 
   /// Dias ISO del recordatorio diario (1 = lunes ... 7 = domingo).
@@ -31,6 +35,7 @@ class UserSettings {
     required this.notificationsEnabled,
     this.hapticsEnabled = true,
     this.soundEnabled = true,
+    this.micModeHoldToTalk = false,
     required this.notificationTime,
     this.notificationDays = ReminderSettings.everyDay,
     this.interests = const [],
@@ -60,6 +65,7 @@ class UserSettings {
       notificationsEnabled: json['notifications_enabled'] as bool? ?? false,
       hapticsEnabled: json['haptics_enabled'] as bool? ?? true,
       soundEnabled: json['sound_enabled'] as bool? ?? true,
+      micModeHoldToTalk: json['mic_mode_hold_to_talk'] as bool? ?? false,
       notificationTime: json['notification_time'] as String? ?? '20:00:00',
       notificationDays: ReminderSettings.normalizeDays(
         json['notification_days'],
@@ -80,6 +86,7 @@ class UserSettings {
       'notifications_enabled': notificationsEnabled,
       'haptics_enabled': hapticsEnabled,
       'sound_enabled': soundEnabled,
+      'mic_mode_hold_to_talk': micModeHoldToTalk,
       'notification_time': notificationTime,
       'notification_days': notificationDays,
       'interests': interests,
@@ -97,6 +104,7 @@ class UserSettings {
     bool? notificationsEnabled,
     bool? hapticsEnabled,
     bool? soundEnabled,
+    bool? micModeHoldToTalk,
     String? notificationTime,
     List<int>? notificationDays,
     List<String>? interests,
@@ -112,6 +120,7 @@ class UserSettings {
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       soundEnabled: soundEnabled ?? this.soundEnabled,
+      micModeHoldToTalk: micModeHoldToTalk ?? this.micModeHoldToTalk,
       notificationTime: notificationTime ?? this.notificationTime,
       notificationDays: notificationDays ?? this.notificationDays,
       interests: interests ?? this.interests,

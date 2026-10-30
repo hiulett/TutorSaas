@@ -298,7 +298,7 @@ operación.
 | `dio` usado solo para `llm-proxy` (SSE manual) | `conversation_repository_impl.dart:3`; `placement_ai.dart:2` | Convive con `supabase_flutter`; doble stack HTTP |
 | `STT_URL`/`TTS_URL` apuntan a `api.tutorsaas.ai` sin uso | `api_constants.dart:50-58` | Configuración engañosa |
 | `UserProgress` (Freezed) nunca se instancia | `domain/models/user_progress.dart` | Código muerto |
-| `micModeHoldToTalkProvider` sin consumidores | `conversation_providers.dart:1665` | Feature fantasma |
+| `micModeHoldToTalkProvider` **ya tiene consumidor** (P-34f / #198) | `conversation_providers.dart` lo deriva de `user_settings.mic_mode_hold_to_talk`; `ConversationMicButton` decide tap-to-toggle u hold-to-talk | Corregido: ya no es una feature fantasma |
 | `api_usage_logs`/`ai_usage_logs` nunca se escriben | 0 filas en producción | Sin control de coste |
 | `system_ai_settings` no lo lee ninguna función | `llm-proxy/index.ts:36` fija el modelo en código | Panel admin de IA sin efecto |
 | `retention_events` **no existe** en producción | consulta `information_schema` | La documentación previa (`docs/ARCHITECTURE.md:104`, `DATA_MODEL.md:74`) está desactualizada |
