@@ -25,6 +25,7 @@ class TutorPromptInput {
   const TutorPromptInput({
     required this.correctionLevel,
     this.cefrLevel = '',
+    this.scenarioLevel = '',
     this.tutorPersonality = 'friendly',
     this.correctionStyle = 'balanced',
     this.interests = const [],
@@ -46,6 +47,11 @@ class TutorPromptInput {
 
   final String correctionLevel;
   final String cefrLevel;
+
+  /// Banda del escenario (`scenarios.difficulty_level`) cuando difiere de la
+  /// banda efectiva del alumno (P-40b / #221).
+  final String scenarioLevel;
+
   final String tutorPersonality;
   final String correctionStyle;
   final List<String> interests;
@@ -86,6 +92,7 @@ class TutorPromptBuilder {
   static String build(TutorPromptInput input) {
     final sections = <String>[
       _roleSection(input),
+      if (_levelAdaptation(input).isNotEmpty) _levelAdaptation(input),
       if (_clean(input.mainObjective).isNotEmpty)
         'YOUR OBJECTIVE IN THIS SCENE: ${_clean(input.mainObjective)}',
       if (_usable(input.usefulPhrases).isNotEmpty)
@@ -145,6 +152,20 @@ class TutorPromptBuilder {
       buffer.write(' Target CEFR Level: $level. $levelRule');
     }
     return buffer.toString().trim();
+  }
+
+  /// P-40b (#221): la banda del escenario no manda sobre el nivel real.
+  ///
+  /// Solo aparece cuando difieren: deja claro que se conserva la escena pero la
+  /// exigencia se ajusta al alumno (no se le empuja por encima de su nivel).
+  static String _levelAdaptation(TutorPromptInput input) {
+    final effective = _clean(input.cefrLevel).toUpperCase();
+    final scene = _clean(input.scenarioLevel).toUpperCase();
+    if (effective.isEmpty || scene.isEmpty || effective == scene) return '';
+    return 'LEVEL ADAPTATION: this scene was written for CEFR $scene, but the '
+        'student real level is $effective. Keep the scene, roles and goals, '
+        'but grade your language, tasks and follow-up questions to $effective. '
+        'Do not push the student above $effective.';
   }
 
   static String _levelRule(String level) {

@@ -2,19 +2,19 @@
 
 _Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
 
-> Estado actual verificado: **102 migraciones aplicadas**. La foto completa del
+> Estado actual verificado: **104 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
 
 ## Resumen
 
 | Métrica | Valor |
 |---|---|
-| Archivos `.sql` en `supabase/migrations/` | **168** |
-| De ellos, con prefijo de 14 dígitos válido | 93 |
+| Archivos `.sql` en `supabase/migrations/` | **170** |
+| De ellos, con prefijo de 14 dígitos válido | 95 |
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
-| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **102** |
-| Aplicadas **con** archivo correspondiente | 60 |
+| Migraciones aplicadas según `supabase_migrations.schema_migrations` | **104** |
+| Aplicadas **con** archivo correspondiente | 62 |
 | Aplicadas **sin** archivo en el repo | **39** |
 | Archivos con prefijo que **no** están aplicados | 33 |
 
@@ -50,6 +50,8 @@ la versión real registrada por Supabase:
 | `20261018234615_restrict_subscription_writes.sql` | ✔ |
 | `20261019015914_oracle_turns_update_own.sql` | ✔ |
 | `20261030005704_plans_capabilities_p44_p45.sql` | ✔ (nuevo, P-44/P-45) |
+| `20261030040054_path_band_p40ab.sql` | ✔ (nuevo, P-40a/P-40b) |
+| `20261030041241_lesson_catalog_index_p40a.sql` | ✔ (nuevo, P-40a) |
 
 Antes tenían prefijos `202610180000xx` que **no** existían en el historial: un
 `db push` las habría intentado aplicar de nuevo.

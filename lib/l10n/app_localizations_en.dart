@@ -4325,4 +4325,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String listening_explanation(String answer) {
     return 'Correct answer: $answer';
   }
+
+  @override
+  String get path_recommended => 'RECOMMENDED';
+
+  @override
+  String get path_recommended_interest => 'Based on your interests';
+
+  @override
+  String get path_recommended_error => 'Reinforces your mistakes';
+
+  @override
+  String get path_recommended_review => 'Review of what you learned';
+
+  @override
+  String get path_recommended_next => 'Next step';
 }

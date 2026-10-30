@@ -1520,5 +1520,10 @@
   "listening_error_load": "We could not load this exercise. Check your connection and try again.",
   "listening_retry_send": "RETRY SEND",
   "listening_explanation": "Correct answer: {answer}",
-  "@listening_explanation": {"placeholders": {"answer": {"type": "String"}}}
+  "@listening_explanation": {"placeholders": {"answer": {"type": "String"}}},
+  "path_recommended": "RECOMMENDED",
+  "path_recommended_interest": "Based on your interests",
+  "path_recommended_error": "Reinforces your mistakes",
+  "path_recommended_review": "Review of what you learned",
+  "path_recommended_next": "Next step"
 }

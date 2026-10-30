@@ -7797,6 +7797,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Correct answer: {answer}'**
   String listening_explanation(String answer);
+
+  /// No description provided for @path_recommended.
+  ///
+  /// In en, this message translates to:
+  /// **'RECOMMENDED'**
+  String get path_recommended;
+
+  /// No description provided for @path_recommended_interest.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on your interests'**
+  String get path_recommended_interest;
+
+  /// No description provided for @path_recommended_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Reinforces your mistakes'**
+  String get path_recommended_error;
+
+  /// No description provided for @path_recommended_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review of what you learned'**
+  String get path_recommended_review;
+
+  /// No description provided for @path_recommended_next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step'**
+  String get path_recommended_next;
 }
 
 class _AppLocalizationsDelegate
