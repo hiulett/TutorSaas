@@ -40,7 +40,7 @@ afirmaciones que ya no eran ciertas:
 | «Stripe es el flujo de pago» | Eliminado en oct-2026; todo va por Play Billing + RevenueCat |
 | «Los goldens del design system son 3 pixel-goldens» (#207) | Solo `SegmentedBar` conserva pixel-golden; `GlassCard` y los chips RPG se validan con aserciones estructurales porque su PNG de Windows no coincide en Linux. Ver `runbooks/QUALITY_TESTS.md` |
 | «No hay hold-to-talk: es un `onTap` que alterna» (#198 / P-34f) | Cierto hasta #198. Ahora `user_settings.mic_mode_hold_to_talk` alterna entre tap-to-toggle (por defecto) y mantener-para-hablar; el pipeline `record → STT → LLM → TTS` no cambió |
-| «El CI falla por warnings del analyzer» (auditoría 25-oct) | El job usa `--no-fatal-infos`; medido el 29-oct: 0 errores, 0 warnings, 126 infos y 702 pruebas en verde |
+| «El CI falla por warnings del analyzer» (auditoría 25-oct) | El job usa `--no-fatal-infos`; medido el 29-oct: 0 errores, 0 warnings, 126 infos y 725 pruebas en verde |
 | «El STT se llama `/stt` en el proxy» | El endpoint real es `POST /transcribe` (más `/chat` y `GET /health`); el cliente ya llamaba a `/transcribe`. Corregido en ARCHITECTURE.md |
 | «`MANA_CHARGE_MODE` es `all` por defecto» | El código cae en `capability` cuando el secreto falta o es desconocido (`validation.ts`). El valor desplegado no es legible; el defecto del código manda. Corregido en OPERATIONS.md |
 | «El producto tiene 14 rutas y 10 features» (auditoría 25-oct) | 20 rutas en `lib/app/router.dart` y 16 features en `lib/features/` (medido el 29-oct) |

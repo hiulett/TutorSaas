@@ -152,7 +152,7 @@ ni el modo de cobro.
 
 ```
 flutter analyze → 0 errores, 0 warnings, 126 infos (deprecaciones; no bloquean)
-flutter test    → 702 pruebas (0 saltadas)
+flutter test    → 725 pruebas (0 saltadas)
 ```
 
 Verificado el 29-oct-2026. Detalle de la red visual en

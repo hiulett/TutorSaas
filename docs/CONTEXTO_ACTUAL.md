@@ -20,8 +20,8 @@ están verificados en producción; lo que queda es **publicar** (`#51`), cerrar
 | Dato | Valor |
 |---|---|
 | Versión | `1.0.21+22` (Android únicamente) |
-| Commits base | `995e958` (merge de `#198`, hold-to-talk) |
-| Tests / analyze | **702 en verde** (0 saltadas) · 0 errores, 0 warnings, **126 infos** |
+| Commits base | `d75fc29` (merge de `#198`, hold-to-talk) |
+| Tests / analyze | **725 en verde** (0 saltadas) · 0 errores, 0 warnings, **126 infos** |
 | Backend | Supabase `sipiumfdpvnszthykyog` (producción; no hay staging) |
 | Esquema | 89 tablas · 134 políticas RLS (84 tablas) · 98 funciones · 14 vistas · 36 triggers · 3 cron |
 | Migraciones | 106 aplicadas; 39 sin archivo en el repo; no ejecutar `supabase db push` |
@@ -129,7 +129,7 @@ propuestas; no son hechos.
 ## Comandos
 
 ```sh
-flutter analyze && flutter test     # 0 errores/0 warnings · 702 tests
+flutter analyze && flutter test     # 0 errores/0 warnings · 725 tests
 flutter gen-l10n                    # tras editar un .arb
 flutter build appbundle --release
 supabase functions deploy <f> --project-ref sipiumfdpvnszthykyog --use-api

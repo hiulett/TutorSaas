@@ -35,7 +35,7 @@ flutter run -d <device>                 # dispositivo o emulador Android
 
 ```sh
 flutter analyze     # 0 errores, 0 warnings (126 infos son la línea base)
-flutter test        # 702 pruebas
+flutter test        # 725 pruebas
 flutter gen-l10n    # tras editar cualquier .arb
 ```
 

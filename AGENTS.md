@@ -28,7 +28,7 @@ Backend: Supabase (`sipiumfdpvnszthykyog`). Compras: Play Billing + RevenueCat.
 
 ```sh
 flutter analyze     # 0 errores · 0 warnings (126 infos son la línea base)
-flutter test        # 702 pruebas (0 saltadas)
+flutter test        # 725 pruebas (0 saltadas)
 flutter gen-l10n    # obligatorio tras editar cualquier .arb
 dart run build_runner build --delete-conflicting-outputs   # freezed/json
 flutter build appbundle --release
@@ -127,7 +127,7 @@ cargues la auditoría completa).
 | Comando | Cuándo |
 |---|---|
 | `/build` | Tras editar código: `flutter analyze` (0 errores) |
-| `/test` | Antes de commit: 702 pruebas |
+| `/test` | Antes de commit: 725 pruebas |
 | `/review` | Antes de commit: revisión read-only del diff |
 | `/db-check` | Si tocas esquema, RLS o RPC |
 | `/ui-check` | Si tocas pantallas, estilos o textos |

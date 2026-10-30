@@ -50,7 +50,7 @@ en producción).
    proyecto `sipiumfdpvnszthykyog`: esquema, RLS, funciones, cron, catálogos y
    conteos agregados.
 3. **Ejecución de comprobaciones seguras** (re-medido el 29-oct-2026): `flutter
-   test` (702 en verde) y `flutter analyze` (0 errores, 0 warnings, 126 infos).
+   test` (725 en verde) y `flutter analyze` (0 errores, 0 warnings, 126 infos).
 4. **Contraste con la documentación previa** (`docs/*.md`), registrando la deriva.
 5. **Sin cambios**: no se modificó código, datos, configuración ni migraciones. No
    se ejecutó la app en dispositivo ni se probaron compras.
@@ -79,7 +79,7 @@ conflicto, manda lo aquí verificado y se indica en cada documento.
 | Edge Functions activas | 6 | **8** | `supabase functions list` |
 | Jobs cron | 3 | 3 | `cron.job` |
 | Claves i18n | 951 | **1.292** (en/es/pt) | `app_en.arb` |
-| Pruebas | 530 | **702** en verde (0 saltadas) | `flutter test` |
+| Pruebas | 530 | **725** en verde (0 saltadas) | `flutter test` |
 | Analyzer | 0 err · 0 warn · 127 infos | 0 err · 0 warn · **126 infos** | `flutter analyze` |
 | Migraciones aplicadas | 98 | **106** | `schema_migrations` |
 | Archivos `.sql` (raíz) | 164 | **170** (95 con prefijo, 75 sin) | `ls` |

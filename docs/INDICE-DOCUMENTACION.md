@@ -5,7 +5,7 @@
 > y cuándo se verificó por última vez.
 >
 > **Última verificación global: 29-oct-2026** (worktree limpio sobre
-> `origin/master` `995e958`). Las cifras de la §2 las medí yo en esa sesión; no
+> `origin/master` `d75fc29`). Las cifras de la §2 las medí yo en esa sesión; no
 > están heredadas de otro documento.
 
 ---
@@ -38,7 +38,7 @@ columna «cómo se mide».
 | Dato | Valor | Cómo se mide |
 |---|---|---|
 | Versión | `1.0.21+22` | `pubspec.yaml: version` |
-| Pruebas | **702 en verde, 0 saltadas** | `flutter test` |
+| Pruebas | **725 en verde, 0 saltadas** | `flutter test` |
 | Analyzer | **0 errores · 0 warnings · 126 infos** | `flutter analyze` |
 | Pruebas de `test/golden` | 16 | `flutter test test/golden` |
 | Rutas registradas | **20** | `lib/app/router.dart` (ocurrencias de `path:`) |
