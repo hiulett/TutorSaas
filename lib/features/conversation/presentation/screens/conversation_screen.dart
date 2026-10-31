@@ -2028,6 +2028,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               isPlaying: conversationState.isPlaying,
                               semanticsLabel:
                                   l10n?.convo_mic_label ?? 'Micrófono',
+                              // UX-13 (#252): el hint dice con palabras qué
+                              // hace el botón, porque el gesto no se deduce.
+                              semanticsHint: holdToTalk
+                                  ? (l10n?.convo_mic_hint_hold ??
+                                        'Mantén pulsado para grabar y toca dos veces para detener y enviar.')
+                                  : (l10n?.convo_mic_hint_toggle ??
+                                        'Toca dos veces para empezar o detener la grabación.'),
                               onTap: () {
                                 if (conversationState.isPlaying) {
                                   conversationNotifier.stopTts();

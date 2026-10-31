@@ -156,7 +156,15 @@ class LeagueLeaderboardWidget extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              const Icon(Icons.star_rounded, color: AppColors.royalGold, size: 14),
+                              // UX-22 (#259): la estrella es la única pista del tipo de cifra.
+                              Icon(
+                                Icons.star_rounded,
+                                color: AppColors.royalGold,
+                                size: 14,
+                                semanticLabel:
+                                    AppLocalizations.of(context)?.stats_stars_label ??
+                                    'ESTRELLAS',
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 '$stars',

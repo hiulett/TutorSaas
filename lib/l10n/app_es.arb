@@ -700,6 +700,9 @@
   "voice_stand_up": "LEVANTARSE",
   "voice_in_queue": "EN COLA #{pos}",
   "voice_seat": "SILLA",
+  "chat_seats_label": "Asientos",
+  "chat_standing_label": "De pie",
+  "stats_stars_label": "Estrellas",
   "voice_exit": "SALIR",
 
   "guild_rec_beginner": "Recomiendo la Taberna del Aprendiz: es la mesa perfecta para cazadores novatos.",
@@ -1037,6 +1040,8 @@
   "convo_mic_denied_body": "Dungeon of English necesita el micrófono para escucharte. Actívalo en los ajustes de Android y vuelve a intentarlo.",
   "convo_mic_open_settings": "Abrir ajustes",
   "convo_mic_retry": "Reintentar",
+  "convo_mic_hint_toggle": "Toca dos veces para empezar o detener la grabación.",
+  "convo_mic_hint_hold": "Mantén pulsado para grabar y toca dos veces para detener y enviar.",
   "convo_mic_manual_hint": "Abre Ajustes > Apps > Dungeon of English > Permisos > Micrófono.",
   "convo_mic_label": "Micrófono",
   "convo_hold_too_short": "Muy corto: mantén pulsado el micrófono mientras hablas y suelta para enviar.",
