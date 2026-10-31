@@ -5,7 +5,7 @@
 > de la base de datos en producción. No es una auditoría de UX ni un plan: es
 > el mapa de **qué existe, qué se usa y qué solo se promete**.
 >
-> **Medido:** 30-oct-2026, worktree `p14-ai-usage` sobre `origin/master`.
+> **Medido:** 31-oct-2026, worktree `p14-ai-usage` sobre `origin/master`.
 > Cifras base en [`_baseline.md`](_baseline.md) (no se repiten aquí).
 > **Autor de las mediciones:** lectura del repo + consultas de solo lectura al
 > MCP `supabase` (proyecto `sipiumfdpvnszthykyog`). Sin acceso a Play Console,
@@ -45,8 +45,8 @@ tabla, RPC o test.
 | Idiomas de UI | es · en · pt | `lib/l10n/app_{en,es,pt}.arb` |
 | Idioma que se enseña | Inglés (único) | `app_es.arb:1009` (`onboarding_english_only`) |
 | Superficie | 20 pantallas · 20 rutas · 16 features | `_baseline.md`, `lib/app/router.dart:33-140` |
-| Base de datos | 84 tablas · 82 funciones · 130 políticas RLS · 13 vistas | `_baseline.md` (medido por `information_schema`/`pg_proc`/`pg_policies`) |
-| Pruebas | 741 | `_baseline.md` (`flutter test`) |
+| Base de datos | 90 tablas · 99 funciones · 135 políticas RLS · 14 vistas · 108 migraciones | `_baseline.md` (medido 31-oct-2026 por `information_schema`/`pg_proc`/`pg_policies` en producción) |
+| Pruebas | 733 | `_baseline.md` (`flutter test`) |
 
 **Tres identidades conviviendo** `[PARCIAL]`: la app dice *Dungeon of English*,
 la tienda/Android dice *DungeonSpeak* y el código dice *tutorsaas*. Confirmado
@@ -249,8 +249,8 @@ diseño: lo que se compra es maná (más turnos) y cosmética/techo de prestigio
 ### 8.1 Superficie construida
 
 - 20 pantallas, 20 rutas, 16 features (`_baseline.md`).
-- 84 tablas, 82 funciones, 130 políticas RLS, 13 vistas, 8 Edge Functions.
-- 741 pruebas, 0 errores y 0 warnings de `analyze` (`_baseline.md`).
+- 90 tablas, 99 funciones, 135 políticas RLS, 14 vistas, 8 Edge Functions.
+- 733 pruebas, 0 errores y 0 warnings de `analyze` (`_baseline.md`).
 - Feature más profunda: `conversation` (pipeline de voz + Oráculo + evaluación
   + correcciones + vocabulario + resumen). God file de 2.956 líneas en
   `conversation_providers.dart` (`_baseline.md` §"God files").
@@ -298,8 +298,10 @@ confirmarlo exige acceso a Play Console y RevenueCat
 3. **El producto real de hoy son dos pantallas:** Oráculo/onboarding y
    conversación. Todo lo demás es superficie no validada.
 4. **La monetización es una hipótesis no probada:** 0 pagos. El diseño
-   (estamento como techo de prestigio) es coherente y está bien ejecutado en
-   servidor, pero no ha generado ni un ingreso.
+   (membresía por planes con techo de títulos de prestigio) es coherente y está
+   bien ejecutado en servidor, pero no ha generado ni un ingreso. El copy usa
+   todavía "estamento", término retirado por **D-01** (ver
+   [`19` §2.1](19-canon-and-decisions.md#21-d-01--una-institución-un-nombre-una-escala)).
 5. **La promesa de "RPG social" es la más débil:** 6 mesas sembradas, sistema
    de sillas/presencia implementado y cero conversaciones. El Maestre de Mesa
    recomienda mesas que **no existen** en la BD (§ doc 01 §6.3).

@@ -1,358 +1,206 @@
-# 10 · Economía y recursos
+# 10 · Economía y recursos (A4)
 
-> Medido el 31-oct-2026 contra producción `sipiumfdpvnszthykyog` (solo lectura,
-> MCP `supabase`) y contra `origin/master` del worktree `p14-ai-usage`.
-> Baseline: [_baseline.md](_baseline.md).
+> Medido el **31-oct-2026** contra producción `sipiumfdpvnszthykyog` (solo
+> lectura, MCP `supabase`) y contra `origin/master` del worktree `p14-ai-usage`.
+> Baseline: [_baseline.md](_baseline.md). Decisiones:
+> [_decisions.md](_decisions.md).
 >
-> Decisiones ya tomadas: [../PRODUCT.md](../PRODUCT.md) §3 (monedas) y §8 (tope
-> diario + turno de gracia); [../PROPUESTA-P44-P48.md](../PROPUESTA-P44-P48.md)
-> §P-46 (no abrir consumibles de maná) y §P-47 (margen). Medición de sumideros
-> ya documentada en [../runbooks/ECONOMY_SINKS.md](../runbooks/ECONOMY_SINKS.md):
-> este documento **no la repite**, la verifica y la conecta con el ciclo
-> completo.
+> Misma materia que [07-gameplay-and-game-mechanics.md](07-gameplay-and-game-mechanics.md)
+> (bucles, misiones, jerarquía); aquí se lee en clave **económica** y se audita
+> el código contra **D-05** y **D-06**. Los sumideros ya están medidos en
+> [`../runbooks/ECONOMY_SINKS.md`](../runbooks/ECONOMY_SINKS.md): este documento
+> no los repite, los conecta.
+>
+> Etiquetas: `[HECHO]` · `[INFERENCIA]` · `[PROPUESTA]` · `[PENDIENTE DE VALIDAR]`.
 
 ---
 
 ## 1. Resumen ejecutivo
 
-La economía tiene **cinco recursos** y **un solo recurso escaso de verdad**
-(maná). El oro, las gemas y los fragmentos se ganan, existen en los perfiles y
-**no tienen un solo movimiento registrado en el libro contable**: el
-`currency_ledger` está vacío aunque los saldos han subido. La razón es
-estructural: las tres funciones que pagan monedas escriben el saldo
-**directamente** y se saltan `economy_apply_currency`, que según P-32 era "el
-único punto de escritura".
-
-Y el recurso escaso (maná) **no es escaso en la práctica**: 13 usuarios han
-gastado 3.298 de maná en ~100 días. El tope diario de 200 se ha alcanzado
-**una vez** en toda la historia del proyecto.
-
-### 1.1 Deriva corregida en esta pasada
-
-Estas afirmaciones de documentación previa ya no son ciertas; este documento
-las reemplaza:
-
-| Dónde | Decía | Realidad verificada |
-|---|---|---|
-| [`../product-audit/06-GAMEPLAY-Y-GAMIFICACION.md:64`](../product-audit/06-GAMEPLAY-Y-GAMIFICACION.md) | "`llm-proxy` no valida maná: un cliente modificado puede consumir IA sin pagar" | `llm-proxy` llama `consume_mana` y responde 402 (`llm-proxy/index.ts:205-236`, `:452`) |
-| [`README.md`](README.md) §5 | "Recompensa de sesión: RPC `apply_session_rewards`" | `apply_session_rewards` está **deprecada y sin EXECUTE** para `authenticated`; la vía real es `close_session(uuid)` (`20261029171705_claim_mission_reward_contract.sql:80-81`) |
-| [`../PRODUCT.md`](../PRODUCT.md) §3 | "Pociones" como fuente de maná | `mana_items` = **0 filas** y no hay producto consumible (P-46 cerrado) |
+1. `[HECHO]` Hay **ocho** recursos declarados y **uno** con sumidero usado (maná).
+2. `[HECHO]` El libro contable está vacío (`currency_ledger` = 0) porque **todos
+   los ingresos** escriben saldo con `UPDATE` directo y solo los gastos pasan
+   por `economy_apply_currency`.
+3. `[HECHO]` El maná **no es escaso**: 3.298 consumidos en ~100 días por 13
+   usuarios; el tope diario de 200 se alcanzó **1 vez**.
+4. `[HECHO]` El 38,7 % del gasto de IA se factura a **0 de maná**.
+5. `[HECHO]` **D-06 se cumple en la parte que el jugador ve** (SRS, listening y
+   «Mis errores» cuestan $0 de IA) pero se incumple en dos puntos: el turno de
+   gracia regala 1 turno/día y hay llamadas caras a coste 0.
+6. `[HECHO]` **D-05 no está implementado**: el pergamino no es un reintento, no
+   existe consumidor, y los ítems de maná siguen en BD (aunque sin flujo).
 
 ---
 
-## 2. Mapa de recursos
+## 2. Mapa de recursos con cifras
 
-| Recurso | Dónde vive | Se gana con | Se gasta en | Sumidero real |
+| Recurso | Dónde vive | Entra por | Sale por | Saldo real (65 perfiles) |
 |---|---|---|---|---|
-| **Maná** | `user_subscriptions.used_audio_seconds` (¡nombre engañoso!) + `purchased_mana_balance` + `mana_items` | Plan mensual (`renew_mana_cycle`), elixires | Turnos de IA (`consume_mana`, en servidor) | **Sí** — es el único recurso que se agota |
-| **Oro** | `user_language_profiles.total_gold` | `close_session`, `claim_session_drop`, `claim_level_rewards` | `purchase_cosmetic` | **Sí** (cosméticos 60–1.200) |
-| **Gemas** | `user_language_profiles.total_gems` | `claim_mission_reward`, recompensa diaria (rota, §6.5) | `purchase_streak_freeze` (30), cosméticos | **Sí** |
-| **Fragmentos** | `user_language_profiles.fragments` | `close_session` | `craft_cosmetic` (120/250/400) | **Sí** |
-| **XP** | `user_language_profiles.xp_points` + `aura_xp` | `close_session`, `claim_session_drop`, `claim_mission_reward`, `add_aura_xp` | — (no se gasta) | N/A |
+| **Maná** | `user_subscriptions.used_audio_seconds` (+`purchased_mana_balance`) | `renew_mana_cycle` (3.000/17.000/20.500 al mes) | `consume_mana` (2–100/acción) | 3.298 gastados · 15 suscripciones |
+| **Oro** | `total_gold` | `close_session`, `claim_session_drop`, `claim_level_rewards` | `purchase_cosmetic` (60–1.200) | media 103 · máx 180 |
+| **Gemas** | `total_gems` | `claim_mission_reward`, recompensa diaria (rota) | `purchase_streak_freeze` (30), `purchase_cosmetic` (40–2.800) | media 3 · máx 96 |
+| **Fragmentos** | `fragments` | `close_session` | `craft_cosmetic` (120/250/400) | máx 398 |
+| **XP** | `xp_points` | `close_session`, drop, misión | — | media 57 · máx 3.263 |
+| **Aura** | `aura_xp` | `add_aura_xp` | — | máx 35 · total 63 |
+| **Pergaminos** | `player_daily_state.pergaminos_max` | recompensa diaria (2/5/8/15), consumibles (+10/+50) | **nadie** | `player_pergaminos` = 0 |
+| **Invocaciones** | `player_daily_state.invocations_max` | 20 base + `(racha/7)×5` | `useInvocation` (**sin llamadores**) | cuota muerta |
 
-`[PENDIENTE DE VALIDAR]` `mana_potions` (7 filas) y `mana_gems` (8 filas):
-existen y no las lee ninguna función actual; son legado de la etapa "maná
-comprado" que P-46 decidió no reabrir.
+`[INFERENCIA]` La economía tiene **un recurso de ritmo** (maná), **tres monedas
+decorativas** (oro/gemas/fragmentos, sin compras) y **dos contadores muertos**
+(pergaminos/invocaciones).
 
 ---
 
 ## 3. Maná
 
-### 3.1 Costes por acción (`ai_action_costs`, 7 filas)
+### 3.1 Precio por acción `[HECHO]`
 
-| `action_code` | Coste | `is_active` | Nota |
-|---|---|---|---|
-| `free_chat_turn` | **8** | sí | Turno de conversación libre |
-| `dungeon_turn` | **12** | sí | Turno dentro de una mazmorra |
-| `oracle_turn` | **15** | sí | Turno con el Oráculo |
-| `oracle_eval` | **30** | sí | Examen oral (primera evaluación gratis) |
-| `lesson_generation` | **100** | sí | Lección de refuerzo (se reembolsa si falla) |
-| `vocabulary_curation` | **2** | sí | Extracción de hasta 8 palabras al cerrar |
-| `correction_turn` | 3 | **no** | Gratuita desde P-40-c (#222) |
+`ai_action_costs` (7 filas): `lesson_generation` 100 · `oracle_eval` 30 ·
+`oracle_turn` 15 · `dungeon_turn` 12 · `free_chat_turn` 8 ·
+`vocabulary_curation` 2 · `correction_turn` 3 (**inactiva**).
 
-El cobro es **server-side**: `llm-proxy` llama `consume_mana` antes de invocar
-al modelo y responde 402 si no hay saldo (`llm-proxy/index.ts:205-236`,
-`:452`). Un cliente modificado **no** puede saltarse el cobro (esto corrige lo
-que decía `docs/product-audit/06-GAMEPLAY-Y-GAMIFICACION.md:64`, ya
-desactualizado).
+Gratis por `FREE_ACTIONS` (`llm-proxy/validation.ts:23-29`): `goal_eval`,
+`carisma_eval`, `guild_chat`, `stt_transcribe`, `correction_turn`.
 
-### 3.2 Orden de descuento (`consume_mana`)
+### 3.2 Orden de descuento (`consume_mana`) `[HECHO]`
 
 ```
-1. valida auth.uid() = p_user_id
-2. valida que la acción exista y esté activa  (si no → invalid_action)
-3. garantiza fila en user_subscriptions       (si no existía, el débito se perdía — bug corregido en 20260819)
-4. reset diario lazy (si daily_reset_date < CURRENT_DATE)
-5. si mana_expires_at < now() → allowance = 0
-6. si plan = 'plebeyo' y daily_used + coste > daily_limit → daily_limit_reached
+1. auth.uid() = p_user_id
+2. acción existe y está activa
+3. garantiza fila en user_subscriptions
+4. reset diario lazy
+5. mana_expires_at < now() → allowance = 0
+6. IF v_plan_id = 'plebeyo' AND daily_used + coste > daily_limit → daily_limit_reached
 7. descuenta del saldo del plan (used_audio_seconds += coste)
-8. si no alcanza → intenta el ítem equipado (mana_items)
+8. si no alcanza → ítem equipado (mana_items)
 9. si no hay ítem → insufficient_mana
 ```
 
 Evidencia: `supabase/migrations/20260819_fix_mana_consume.sql:32-152`.
+`[HECHO]` El tope diario se decide por **string de plan** (`= 'plebeyo'`), no por
+`subscription_plans.tier`: un plan gratuito nuevo con otro `id` no tendría tope.
 
-### 3.3 El "tope diario" que casi nunca aplica
+### 3.3 El tope de 200 casi nunca muerde `[HECHO]`
 
 | Dato | Valor |
 |---|---|
-| `subscription_plans.mana_allowance` PLEBEYO | 3.000/mes |
-| `user_subscriptions.daily_limit` (PLEBEYO) | 200 |
-| 3.000 ÷ 30 días | **100/día de media** |
-| Días que aguantaría gastando 200/día | **15** |
+| Maná PLEBEYO/mes | 3.000 |
+| Tope diario | 200 |
+| 3.000 ÷ 30 | **100/día de media** |
+| Días que aguanta a 200/día | **15** |
+| Veces alcanzado en producción | **1** (`max(daily_used)=200` en 1 de 15 filas) |
 
-Es decir: **el tope de 200 solo muerde si el usuario juega 15 días o menos al
-mes**. Si juega a diario, el límite que lo frena es el **saldo mensual**
-(≈100/día), no el tope diario. La decisión de P-26 ("se mantiene el tope de 200
-≈ 16 turnos de mazmorra") se justifica por la *sensación* de corte, no porque
-sea el factor limitante real.
+### 3.4 Turno de gracia `[HECHO]`
 
-### 3.4 Turno de gracia
+`claim_mana_grace` es idempotente por día (`mana_grace_date`), **solo
+`service_role`**, y `llm-proxy` la invoca únicamente cuando `consume_mana`
+devuelve `daily_limit_reached` (`llm-proxy/index.ts:452`). No aplica con el
+saldo mensual agotado.
 
-- `claim_mana_grace(p_user_id)` es idempotente por día (`mana_grace_date`) y
-  **solo `service_role`** puede ejecutarla
-  (`20261029080000_mana_grace_turn.sql:20-45`).
-- La invoca `llm-proxy` únicamente cuando `consume_mana` devuelve
-  `daily_limit_reached` (`llm-proxy/index.ts:452`). No aplica al saldo mensual
-  agotado. `[IMPLEMENTADO]`
-- Efecto medible: **1 fila** con `daily_used >= 200` en toda la BD. El turno de
-  gracia se ha podido usar una vez.
+### 3.5 Maná comprado `[HECHO]`
 
-### 3.5 Maná comprado (P-46: cerrado)
+| Pieza | Estado |
+|---|---|
+| `purchased_mana_balance` | 0 en las **15** suscripciones |
+| `mana_items` | 0 filas |
+| `mana_potions` | **7 filas** (25/50/100 de maná a $0,29/$0,49/$0,99) — ninguna función las lee |
+| `mana_gems` | **8 filas** (40–1.200 de maná a $0,99–$14,99) — ídem |
+| Tienda | sin tab de MANÁ (`shop_screen.dart:37`) |
 
-- `purchased_mana_balance` existe y `consume_mana` lo suma al saldo del plan
-  (`v_remaining = (allowance + purchased) − used`).
-- `mana_items` (elixires equipables) tiene **0 filas**: nadie ha comprado nunca
-  un elixir.
-- La tienda **no** tiene tab de MANÁ (`shop_screen.dart:20-29`); el CTA "obtener
-  maná" del Santuario abre `/paywall` (`dungeon_guardian_screen.dart:207-211`).
-- `[IMPLEMENTADO]` = el hueco técnico está; `[PENDIENTE DE VALIDAR]` = decidir
-  si algún día se abre un consumible (P-46 recomienda no hacerlo).
+`[INFERENCIA]` El maná comprado está **retirado del flujo pero no de la BD**:
+cualquier consulta futura encontrará dos catálogos de precios en dólares que no
+usa nadie y que contradicen el precio del plan.
 
 ---
 
 ## 4. Oro, gemas y fragmentos
 
-### 4.1 El libro contable (`currency_ledger`)
+### 4.1 El libro contable está vacío `[HECHO]`
 
-Diseñado en P-32 como **único punto de escritura**, idempotente por
-`unique (user_id, ref_key)`:
+`currency_ledger` = **0 filas**; `v_economy_flow` = **0 filas**. El
+`sink_ratio` que propone `ECONOMY_SINKS.md` §4 es **incalculable**.
 
-```sql
-create table public.currency_ledger (
-  id bigserial primary key,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  language_id integer not null default 1,
-  currency text not null check (currency in ('gold','gems','fragments')),
-  delta integer not null check (delta <> 0),
-  reason text not null,
-  ref_key text not null,
-  balance_after integer not null check (balance_after >= 0),
-  created_at timestamptz not null default now(),
-  unique (user_id, ref_key)
-);
-```
-
-Evidencia: `20261029215518_economy_purpose_p32.sql:90-116`.
-
-`economy_apply_currency(user, currency, delta, reason, ref_key)` es la función
-que mueve el saldo y escribe la fila (`:169-248`). Todo lo demás debería
-llamarla.
-
-**Estado real: `currency_ledger` = 0 filas.** Y `v_economy_flow` (la vista que
-calcula ganado/gastado) = 0 filas. El `sink_ratio` que
-[ECONOMY_SINKS.md](../runbooks/ECONOMY_SINKS.md) §4 propone medir **hoy es
-incalculable**.
-
-### 4.2 Quién escribe saldos sin pasar por el libro `[PARCIAL]`
-
-| Función | Escribe | ¿Usa `economy_apply_currency`? |
+| Función | Escribe | ¿Pasa por `economy_apply_currency`? |
 |---|---|---|
-| `purchase_cosmetic` | `total_gold` / `total_gems` | **Sí** (`:395-397` de la migración P-44) |
-| `craft_cosmetic` | `fragments` | **Sí** |
-| `purchase_streak_freeze` | `total_gems` | **Sí** |
-| `spend_currency` | cualquiera | **Sí** (delega) |
-| `claim_level_rewards` | `total_gold` | **Sí** (ref `level_reward:<n>`) |
-| **`close_session`** | `xp_points`, `total_gold`, `fragments` | **No** — `UPDATE` directo (`20261029041017_close_session_server_rewards.sql:92-96`) |
-| **`claim_session_drop`** | `xp_points`, `total_gold` | **No** — `UPDATE` directo (`20261026094912_session_drops.sql:94-97`) |
-| **`claim_mission_reward`** | `xp_points`, `total_gems` | **No** — `UPDATE` directo (`20261029171705_claim_mission_reward_contract.sql:62-65`) |
+| `purchase_cosmetic` | oro/gemas | sí |
+| `craft_cosmetic` | fragmentos | sí |
+| `purchase_streak_freeze` | gemas | sí |
+| `spend_currency` | cualquiera | sí |
+| `claim_level_rewards` | oro | sí |
+| **`close_session`** | XP, oro, fragmentos | **no** |
+| **`claim_session_drop`** | XP, oro | **no** |
+| **`claim_mission_reward`** | XP, gemas | **no** |
 
-Es decir: **todos los ingresos** de oro/gemas/fragmentos evitan el libro, y
-solo los gastos lo usan. Por eso el libro está vacío con saldos > 0.
+`[INFERENCIA]` Todos los **ingresos** evitan el libro y todos los **gastos** lo
+usan: por eso hay saldos > 0 con libro vacío.
 
-Prueba numérica: `session_reward_ledger` ha pagado **70 de oro y 35 de
-fragmentos** en sus 4 filas, y el saldo máximo de oro en los perfiles es
-**180** (media 103). Ese oro extra **no tiene traza contable**: no se sabe si
-vino de `claim_level_rewards`, de `add_gold` (solo `service_role`) o de una
-semilla.
+### 4.2 Catálogo (40 ítems) `[HECHO]`
 
-### 4.3 Catálogo y precios (40 ítems)
+| Categoría | Nº | Oro | Gemas | Nivel | Nota |
+|---|---:|---|---|---|---|
+| `aura` | 3 | 300–1.100 | 750–2.300 | 3–18 | 1 exclusivo REALEZA |
+| `title` | 6 | 0–800 | 0–1.800 | 1–10 | 2 con precio 0 |
+| `frame` | 4 | 90–900 | 0–2.000 | 1–12 | — |
+| `pet` | 2 | 600–1.000 | 1.400–2.300 | 6–15 | — |
+| `table_theme` | 2 | 700–1.200 | 1.800–2.800 | 8–20 | — |
+| `emote` | 2 | 60–120 | 0–350 | 1 | — |
+| `relic` | 3 | 0 | 0 | 1 | precio 0 y sin receta |
+| `consumable` | **18** | 0 | 40–1.600 | 1 | **sin efecto mecánico** |
 
-| Categoría | Nº | Precio oro | Precio gemas | Nivel requerido |
-|---|---|---|---|---|
-| `aura` | 3 | 300–1.100 | 750–2.300 | 3–18 |
-| `emote` | 2 | 60–120 | 0–350 | 1 |
-| `frame` | 3 | 90–… | — | 1–12 |
-| `title` | 4 | 80–… | — | 1–10 |
-| `pet` | 2 | — | — | 6–15 |
-| `theme` | 3 | — | 900 | 8–20 |
-| `consumable` (legado: libros, llaves, modificadores, skins) | 23 | **0** | 40–1.600 | 1 |
+Precios de los consumibles (todos en gemas, ninguno en oro):
+`+5 invocaciones` 40 · `10 pergaminos` 80 · `Piedra de Facilidad` 90 · `Libro de
+Phrasal Verbs` 100 · `Manual de Pronunciación` 120 · `Pergamino x2` 120 · `+20
+invocaciones` 150 · `Llave Mazmorra Oculta` 150 · `Piedra de Desafío` 150 ·
+`Grimorio` 180 · `Llave Ruta Secreta` 200 · `Llave Archivo` 250 · `50
+pergaminos` 300 · `Estandarte` 600 · `Skin Cazador` 800 · `Fondo Abismo` 900 ·
+`Skin Arcano` 1.600.
 
-Rangos reales usados en la práctica:
+`[INFERENCIA]` Con saldo máximo de **96 gemas**, el único ítem alcanzable es el
+de 40: que compra **invocaciones**, una cuota que ningún flujo consume.
 
-- **Oro**: el ítem más barato cuesta **60** (`emote_saludo_gremio`) y el saldo
-  inicial del perfil es ~100. La primera compra es posible desde el día 1 (esto
-  ya lo arregló P-32).
-- **Gemas**: el más barato cuesta **40** (`consumible_invocacion5`); el freeze
-  de racha, **30**.
-- **Fragmentos**: recetas de **120**, **250** y **400**.
+### 4.3 Recetas de fragmentos `[HECHO]`
 
-### 4.4 Nivel de cazador
+Solo **3** ítems tienen receta: 120 (`title_cazador_sombras`), 250
+(`frame_escudo`), 400 (`aura_fuego`). Los otros 37 tienen `craft_cost_fragments
+= 0`.
 
-`economy_level(xp) = 1 + xp/1000` (`:157-163`), espejo exacto de
-`HunterLevel.levelFor` en Dart. Con `xp = 3.263` (el máximo de producción) el
-nivel es **4**.
+### 4.4 Nivel de cazador y bolsas `[HECHO]`
 
-`level_rewards` premia los niveles 2, 3, 5, 8, 12 y 15 con bolsas de 100 a 800
-de oro (`:141-154`). Total si se reclaman todos: **2.300 de oro**, y exige
-**14.000 de XP** para el nivel 15. Hoy el jugador top (3.263 XP) puede reclamar
-**2 y 3 → 250 de oro**.
-
----
-
-## 5. XP
-
-Dos monedas de progreso distintas y desacopladas:
-
-| Moneda | Fuente | Escala | Qué desbloquea |
-|---|---|---|---|
-| `xp_points` | `close_session` (minutos × 10), `claim_session_drop` (15 × rareza), `claim_mission_reward` (50–400 × multiplicador) | Nivel = `1 + xp/1000` | Nivel de cazador, cosméticos por `required_level`, `level_rewards` |
-| `aura_xp` | `add_aura_xp` (radar + metas + bonus de nivel; sin techo) | 0 → 260.000 | Escalones de prestigio 1–21 (con techo de plan) |
-
-El diseño es sano (XP mide "cuánto", aura mide "qué tan bien"), pero el
-apalancamiento está roto: **una sola sesión puede dar 2.400 de XP** por el bug
-de §6.1, mientras las misiones (que deberían ser el motor) dan 50–400 y solo
-se han completado **8 de 637**.
+- `economy_level(xp) = 1 + xp/1000`; espejo en `hunter_level.dart:13-18`.
+- `level_rewards` (**6 filas**): niveles 2/3/5/8/12/15 → 100/150/250/400/600/800
+  de oro (total **2.300**; exige **14.000 XP**).
+- El jugador top (3.263 XP) puede reclamar 2 y 3 → **250 de oro**.
 
 ---
 
-## 6. Recompensas
+## 5. XP y aura: dos progresos desacoplados `[HECHO]`
 
-### 6.1 `close_session` — la vía canónica `[PARCIAL]`
-
-Fórmulas (`20261029041017_close_session_server_rewards.sql:57-90`):
-
-```
-objectives = least(12, count(user_scenario_goals completadas))   -- las pone el cliente por turno
-minutes    = greatest(0, least(240, ceil((coalesce(ended_at, now()) − started_at)/60)))
-
-xp        = minutes * 10              (0 si objectives = 0)
-gold      = objectives * (10 + bonus)  bonus: A2=1, B1=2, B2=3, C1=4, C2=5
-fragments = objectives * (5 + bonus)
-```
-
-**Defecto grave**: `conversations.ended_at` **nunca se escribe**.
-
-```sql
-select count(*) total, count(ended_at) con_fin from public.conversations;
--- 70 | 0
-```
-
-Ni una sola línea de Dart escribe `ended_at`. Por tanto `minutes` = *tiempo
-desde que se creó la fila de conversación*, no tiempo practicado, **clampado a
-240**. Si la conversación se creó hace 5 horas, la sesión vale 240 minutos y
-**2.400 de XP**.
-
-Caso real (el único usuario NOBLE, `46bd5746`):
-
-| `session_id` | `started_at` | `objectives` | `minutes` | `xp` |
-|---|---|---|---|---|
-| `d4435ae6-…` | 30-oct 20:21 | 1 | **240** | **2.400** |
-| `84b47423-…` | 30-oct 00:09 | 0 | **240** | 0 |
-| `c182bb1b-…` | 24-oct 13:20 | 4 | 7 | 70 |
-| `7c90f3d2-…` | — | 2 | 4 | 40 |
-
-Resultado: ese usuario tiene **3.263 XP**, de los que **2.400 (73,5 %)** salen
-de una sola sesión con **un** objetivo. El segundo jugador del ranking tiene
-**255**. La brecha 12,8× del leaderboard es un artefacto del bug, no mérito.
-
-### 6.2 `claim_session_drop` — drop de fin de sesión `[IMPLEMENTADO]`
-
-- Idempotente por `unique (user_id, session_id)`.
-- Sin objetivos → `reason='no_goals'` (anti-farmeo).
-- Probabilidades: **legendario 2 %**, épico 8 %, raro 25 %, común 65 %.
-- Importes: `xp = round(15 × mult)` (3,0 / 2,0 / 1,5 / 1,0) y
-  `gold = round(10 × mult)`.
-
-Evidencia: `20261026094912_session_drops.sql:32-119`.
-
-En producción: **1 fila** en `session_drops`.
-
-### 6.3 `claim_mission_reward` — misiones `[IMPLEMENTADO]`
-
-- Solo misiones `status='completed'`; idempotente por `is_reward_claimed`.
-- Paga `xp_reward × reward_multiplier` y `gem_reward × reward_multiplier`,
-  escribe en `reward_history`.
-- Contrato normalizado `{success, ok (legacy), already_claimed, xp, gems, reason}`.
-
-Evidencia: `20261029171705_claim_mission_reward_contract.sql:13-74`.
-
-En producción: 637 instancias, **8 completadas (1,26 %)** y **8 reclamadas**
-(100 % de las completadas). Las 629 restantes siguen `active` con
-`expires_at = NULL`: **las misiones nunca caducan** (D6 en §9).
-
-### 6.4 `claim_level_rewards` — bolsas por nivel `[IMPLEMENTADO]`
-
-Idempotente por `ref_key = 'level_reward:<nivel>'`. No otorga objetos: el
-desbloqueo por nivel ya lo hace `cosmetic_catalog.required_level`.
-
-### 6.5 Recompensa diaria — **rota** `[PARCIAL → roto]`
-
-`claimDailyReward` (`economy_repository_impl.dart:196-245`) hace todo en el
-cliente:
-
-```dart
-await _client.rpc('add_gems', {...});                    // línea 221-224
-await _client.rpc('increment_pergaminos_max', {...});     // línea 226-229
-await _client.from('player_daily_state')
-      .update({'daily_reward_claimed': true})             // línea 231-235
-```
-
-`add_gems` tiene EXECUTE **solo para `postgres` y `service_role`**
-(`information_schema.routine_privileges`). El usuario `authenticated` recibe
-*permission denied* → la excepción salta al `catch (_)` de la línea 242 →
-`return const {}`. Consecuencias:
-
-1. No se acreditan gemas **nunca**.
-2. El `catch` vacío oculta el motivo real (incumple la regla del repo de
-   `debugPrint` con el mensaje).
-3. Como el fallo ocurre antes del `update`, la recompensa tampoco se marca
-   como reclamada: el botón queda en un bucle "pulsa y no pasa nada".
-4. `increment_pergaminos_max` **sí** es ejecutable por `authenticated`: si el
-   orden se invirtiera, el usuario podría auto-otorgarse pergaminos.
-
-Contraste con los datos: `player_daily_state.daily_reward_claimed = true` en
-**4 de 79** filas — restos de cuando la RPC estaba abierta o de la semilla.
-
-Un dato más: la recompensa escala con la **racha** (5/50/100/300 gemas a los
-0/7/14/30 días). La racha máxima histórica de la app es **3**
-(`max(longest_streak) = 3`). El escalón de 50 gemas **nunca se ha alcanzado**.
-
-### 6.6 Compensaciones (`refund_*`) `[IMPLEMENTADO]`
-
-| RPC | Quién | Idempotencia | Comportamiento |
+| Moneda | Fuente | Escala | Desbloquea |
 |---|---|---|---|
-| `refund_failed_turn(turn_ref, action_code)` | cliente (`authenticated`) | por `mana_transactions.ref_id = turn_ref` | Devuelve el coste si hubo un débito de esa acción en los **últimos 5 minutos** |
-| `refund_mana(user, action_code)` | **solo `service_role`** (lo usa `llm-proxy`) | **ninguna** (no escribe `ref_id`) | Devuelve el coste sin verificar |
+| `xp_points` | `close_session` (min×10), drop (15×rareza), misión (20–400) | nivel `1+xp/1000` | bolsas, `required_level` de cosméticos |
+| `aura_xp` | `add_aura_xp` (metas × (10+bonus) × factor radar) | 0 → 260.000 | `prestige_ladder` (21 escalones, techo por plan) |
 
-Ambas devuelven el contrato normalizado
-`{success, refunded, already_refunded, reason}` con
-`reason ∈ {invalid_turn, invalid_action, no_recent_charge}`
-(`20261029155748_refund_contract_normalized.sql:19-137`).
+El diseño (XP mide «cuánto», aura mide «qué tan bien») es sano; el
+apalancamiento no: **una sesión de 240 min da 2.400 XP**, más que el historial
+completo del 99 % de los jugadores (media 57).
 
-En producción: **4 reembolsos** de `lesson_generation` (400 de maná devueltos
-de 400 cobrados: 100 % de las generaciones fallaron y se compensaron). Ningún
-reembolso de `dungeon_turn` pese a 181 turnos.
+---
+
+## 6. Recompensas: quién paga y cuánto
+
+| RPC | Fórmula | Estado real |
+|---|---|---|
+| `close_session` | `xp = min×10` (0 si metas=0) · `gold = metas×(10+bonus)` · `frag = metas×(5+bonus)` · bonus A2=1…C2=5 | **4** filas en `session_reward_ledger`: 7 metas, 491 min, **2.510 XP**, **70 oro**, **35 frag** |
+| `claim_session_drop` | `roll<2` legendario ×3 · `<10` épico ×2 · `<35` raro ×1,5 · resto común ×1; `xp=15×mult`, `gold=10×mult` | **1** fila |
+| `claim_mission_reward` | `xp×mult`, `gem×mult` (mult=1 en 637/637) | **8** filas (100 % de las completadas) |
+| `claim_level_rewards` | bolsa de `level_rewards` | 2 reclamables hoy |
+| Recompensa diaria | 5/50/100/300 gemas + 2/5/8/15 pergaminos **en Dart** | **rota** (§8.5) |
+| `refund_failed_turn` / `refund_mana` | devuelve el coste | 4 reembolsos de `lesson_generation` (400 de 400) |
+
+`[HECHO]` Defecto de `close_session`: `conversations.ended_at` **nunca se
+escribe** (0 de 70), así que `minutes = now() − started_at` con tope 240. Una
+conversación abierta 5 h vale 240 min → 2.400 XP. El jugador top tiene 3.263 XP,
+de los cuales **2.400 (73,5 %) vienen de una sesión con 1 meta**.
 
 ---
 
@@ -361,178 +209,225 @@ reembolso de `dungeon_turn` pese a 181 turnos.
 ```mermaid
 flowchart TD
     subgraph Membresía
-        P[Play Billing] --> RC[RevenueCat<br/>entitlement Pro]
+        PLAY[Play Billing] --> RC[RevenueCat]
         RC --> SE[sync_entitlement]
-        SE --> US[(user_subscriptions<br/>plan_id + period_end)]
-        SE --> RM[renew_mana_cycle<br/>used=0 · mana 'renew']
+        SE --> US[(user_subscriptions)]
+        SE --> RM[renew_mana_cycle]
     end
-
     subgraph Maná
-        US -->|allowance del plan| MS[get_mana_state → HUD]
         US --> CM{consume_mana}
         AI[llm-proxy] --> CM
         CM -->|ok| TURN[Turno de IA]
-        CM -->|daily_limit_reached| GRACE[claim_mana_grace<br/>1 por día, solo service_role]
+        CM -->|daily_limit_reached| GRACE[claim_mana_grace]
         GRACE --> TURN
-        CM -->|insufficient_mana| SANT[/dungeon-guardian → paywall/]
-        TURN -->|falla| REF[refund_failed_turn<br/>5 min de ventana]
-        REF --> CM
+        CM -->|insufficient_mana| PAY[/paywall/]
+        TURN -->|falla| REF[refund_failed_turn]
     end
-
-    subgraph Misión
-        AI --> GOALS[user_scenario_goals]
-        GOALS --> MSG[messages] --> TRG[on_message_advance_missions]
-        TRG --> MI[(mission_instances)]
-        MI -->|completed| CMR[claim_mission_reward]
-    end
-
-    subgraph Cierre de sesión
-        CS[close_session] -->|objectives × (10+bonus)| GOLD[(total_gold)]
-        CS -->|objectives × (5+bonus)| FRAG[(fragments)]
-        CS -->|minutes × 10| XP[(xp_points)]
-        CS --> SR[(session_reward_ledger<br/>idempotente)]
-        CS --> TRG2[on_session_reward_advance_missions]
-        DROP[claim_session_drop<br/>15×mult XP · 10×mult oro] --> XP
+    subgraph Cierre
+        TURN --> CS[close_session]
+        CS --> GOLD[(total_gold)]
+        CS --> FRAG[(fragments)]
+        CS --> XP[(xp_points)]
+        CS --> AURA[(aura_xp)]
+        DROP[claim_session_drop] --> XP
         DROP --> GOLD
-        CMR -->|xp × mult| XP
-        CMR -->|gem × mult| GEMS[(total_gems)]
-        AURA[add_aura_xp] --> AXP[(aura_xp)]
+        CMR[claim_mission_reward] --> XP
+        CMR --> GEMS[(total_gems)]
     end
-
     subgraph Gasto
-        GOLD --> PC[purchase_cosmetic] --> INV[player_inventory]
-        GEMS --> PSF[purchase_streak_freeze<br/>30 gemas · tope 3]
+        GOLD --> PC[purchase_cosmetic]
         GEMS --> PC
-        FRAG --> CC[craft_cosmetic] --> INV
-        CLR[claim_level_rewards] --> GOLD
-        XP --> LVL[nivel = 1 + xp/1000]
-        LVL -->|required_level| PC
-        LVL --> CLR
-        AXP --> PRES[compute_prestige_title<br/>techo por class_name]
+        GEMS --> PSF[purchase_streak_freeze]
+        FRAG --> CC[craft_cosmetic]
+        PC --> INV[(player_inventory = 0)]
+        CC --> INV
     end
-
-    LEDGER[(currency_ledger)]:::ledger
+    LEDGER[(currency_ledger = 0)]
     PC -.-> LEDGER
-    CC -.-> LEDGER
-    PSF -.-> LEDGER
-    CLR -.-> LEDGER
     CS -. ✗ .-> LEDGER
     DROP -. ✗ .-> LEDGER
     CMR -. ✗ .-> LEDGER
-
-    classDef ledger fill:#552,stroke:#fa0,stroke-width:2px
 ```
-
-Las flechas punteadas discontinuas marcan **ingresos que no escriben en el
-libro**: por eso el `sink_ratio` no se puede calcular.
 
 ---
 
-## 8. Equilibrio gratis vs. pago, con cifras
+## 8. Auditoría contra **D-06** (no se regala maná)
 
-### 8.1 Cuántos turnos compra cada plan
+> D-06: «No se regala maná. Sin maná, la alternativa gratuita son actividades
+> **sin coste de IA**: repaso SRS, listening, Mis errores.»
 
-| Plan | Maná/mes | Mazmorra (12) | Chat libre (8) | Oráculo (15) | Evaluación (30) | Lección (100) |
-|---|---|---|---|---|---|---|
+| Punto de D-06 | ¿Se cumple? | Evidencia |
+|---|---|---|
+| No se regala **saldo** de maná | `[HECHO]` sí | `purchased_mana_balance` = 0 en 15/15; `mana_items` 0; sin tab de compra |
+| No se regala **ningún** turno | `[HECHO]` **no** | `claim_mana_grace` concede **1 turno/día** al agotar el tope (P-26) |
+| Alternativa gratuita SRS | `[HECHO]` sí | `srs_flashcard_modal` + `vocabulary_reviews`: sin IA |
+| Alternativa gratuita listening | `[HECHO]` sí | `ListeningTts` usa `flutter_tts` del dispositivo («coste 0», `listening_tts.dart:8-11`) |
+| Alternativa gratuita «Mis errores» | `[HECHO]` sí | lee `user_recurring_errors`; sin llamada a modelo |
+| Ninguna actividad del jugador con IA gratis | `[HECHO]` **no** | 38,7 % del gasto IA se cobra a 0 de maná (§8.1) |
+
+### 8.1 El regalo estructural que no aparece en el maná `[HECHO]`
+
+| Acción | Maná | Coste IA medio | Naturaleza |
+|---|---:|---:|---|
+| `goal_eval` | 0 | $0,000707 × 6 | evaluación de metas por turno |
+| `carisma_eval` | 0 | $0,000212 × 3 | cierre de sesión |
+| `stt_transcribe` | 0 | $0,000048 × 16 | toda entrada de voz |
+| `guild_chat` | 0 | $0,000166 × 1 | chat de gremio |
+| `correction_turn` | 0 | sin logs | correcciones |
+
+Total medido: **$0,0058 de $0,0150** (54 llamadas). `[INFERENCIA]` Con 181
+turnos reales, `goal_eval` es el gasto que más crece y el único que no tiene
+precio: si D-06 se interpreta como «toda IA se paga», el modelo actual lo
+incumple en el eje del coste, no en el del saldo.
+
+### 8.2 Dónde sí hay una fuga de maná `[HECHO]`
+
+`mana_potions` (7) y `mana_gems` (8) siguen en la BD con precios en dólares
+($0,29–$14,99). Ninguna función ni pantalla las lee, pero **son dos catálogos de
+venta de maná vigentes a nivel de datos**: una consulta, un panel o un futuro
+script las convertiría en una tienda paralela sin pasar por Play Billing.
+
+---
+
+## 9. Auditoría contra **D-05** (pergamino = reintento)
+
+> D-05: «El pergamino pasa a ser **reintento de lección** (el maná sigue
+> cobrándose); se **retiran los ítems de maná**.»
+
+| Elemento de D-05 | Estado | Evidencia |
+|---|---|---|
+| Pergamino = reintento de lección | **no implementado** | `player_pergaminos` = 0 filas; `generateDailyPergaminos` inserta **5 diálogos de relleno** con frases fijas en inglés (`economy_repository_impl.dart:484-498`) |
+| El maná se cobra en el reintento | n/a | no existe flujo de reintento; cada turno se cobra siempre |
+| Consumidor de pergaminos | **no existe** | `pergaminos_max` solo se incrementa; ninguna pantalla lo descuenta |
+| Ítems de maná retirados del flujo | sí | sin tab de maná; `dungeon_guardian` manda a `/paywall` |
+| Ítems de maná retirados de BD | **no** | `mana_potions` 7 + `mana_gems` 8 filas |
+| En su lugar | **otros consumibles** | `consumible_invocacion5` 40 gemas, `+20` 150, `pergamino10` 80, `pergamino50` 300 |
+
+`[INFERENCIA]` D-05 quedó sustituido de facto por «compra intentos con gemas»,
+que es justo el patrón que la decisión quería evitar: el jugador paga por
+**volver a intentar**, no por aprender.
+
+### 9.1 Riesgo añadido de D-05 `[HECHO]`
+
+`increment_pergaminos_max(p_user_id, p_amount)` es `SECURITY DEFINER` con
+`EXECUTE` para `authenticated`, valida identidad y **no tiene tope ni coste**.
+Cualquier cliente puede ponerse `pergaminos_max` arbitrario; y la política
+`update_own_daily` permite además escribir `player_daily_state` directamente
+(`invocations_max`, `pergaminos_max`, `daily_reward_claimed`).
+
+---
+
+## 10. Equilibrio gratis vs. pago
+
+### 10.1 Turnos que compra cada plan `[HECHO]`
+
+| Plan | Maná/mes | Mazmorra (12) | Chat (8) | Oráculo (15) | Eval. (30) | Lección (100) |
+|---|---:|---:|---:|---:|---:|---:|
 | PLEBEYO | 3.000 | **250** | 375 | 200 | 100 | 30 |
 | NOBLE | 17.000 | **1.416** | 2.125 | 1.133 | 566 | 170 |
 | REALEZA | 20.500 | **1.708** | 2.562 | 1.366 | 683 | 205 |
-| _Tope diario PLEBEYO (200)_ | — | _16/día_ | _25/día_ | _13/día_ | _6/día_ | _2/día_ |
 
-### 8.2 Precio por unidad
+### 10.2 Precio por unidad `[HECHO]`
 
-| Plan | $/mes | $ por 1.000 de maná | Δ vs. plan anterior |
-|---|---|---|---|
-| PLEBEYO | $0.00 | — | — |
-| NOBLE | $4.99 | **$0.294** | — |
-| REALEZA | $9.99 | **$0.487** | +3.500 de maná por **+$5.00** → **$1.429/1.000 = 4,9× peor** |
-| DIVINO (retirado) | $12.99 | $0.509 | aún peor |
+| Plan | $/mes | $ por 1.000 de maná | Marginal |
+|---|---:|---:|---|
+| PLEBEYO | 0,00 | — | — |
+| NOBLE | 4,99 | **0,294** | — |
+| REALEZA | 9,99 | **0,487** | +$5,00 por +3.500 → **$1,429/1.000 (4,9× peor)** |
 
-**El tramo REALEZA es 4,9 veces más caro por unidad de maná que NOBLE.** Con
-maná como único argumento, el usuario racional compra NOBLE (P-44 ya lo
-diagnosticó; la corrección aplicada fue "diferenciar por capacidad", y de eso
-solo hay 52 semanas de historial + 2 cosméticos + 8 escalones de prestigio).
+### 10.3 Coste real del maná `[INFERENCIA, muestra pequeña]`
 
-### 8.3 Coste real y margen
+Coste medio por llamada (`ai_usage_logs`, n por acción) × llamadas reales
+(`mana_transactions`):
 
-Con el coste medido en P-47 (muestra de 8 llamadas):
+| Acción | Llamadas reales | $/llamada | Coste estimado |
+|---|---:|---:|---:|
+| `dungeon_turn` | 181 | 0,000210 | $0,0380 |
+| `oracle_eval` | 20 | 0,000812 | $0,0162 |
+| `oracle_turn` | 8 | 0,000340 | $0,0027 |
+| `vocabulary_curation` | 3 | 0,000517 | $0,0016 |
+| `lesson_generation` | 4 | (falló antes del modelo) | $0,0000 |
+| **Total** | **216** | — | **≈ $0,0585** |
 
-| Escenario | Cálculo | Coste IA | Margen bruto sobre $4.99 |
-|---|---|---|---|
-| NOBLE uso típico (todo mazmorra) | 1.416 × $0.00002 | **$0.03** | 99,4 % |
-| NOBLE peor caso (todo `oracle_eval`) | 566 × $0.0008 | **$0.45** | 90,9 % |
-| REALEZA peor caso | 683 × $0.0008 | **$0.55** | 94,5 % |
+3.298 de maná por $0,0585 → **$0,0000177/maná** (**$0,0177 por 1.000**).
+Frente a $0,294 (NOBLE) y $0,487 (REALEZA): el jugador paga **16,6× y 27,5×**
+el coste marginal de IA; en el tramo marginal de REALEZA, **80×**.
 
-Tras la comisión de Play (15 %): NOBLE peor caso ≈ **$0.75** de comisión +
-**$0.45** de IA sobre $4.99 → margen ≈ **76 %** (cifra de P-47).
+`[INFERENCIA]` Margen bruto: NOBLE con todo mazmorra = 1.416 × $0,000210 =
+**$0,30** de IA; peor caso (todo `oracle_eval`) = 566 × $0,000812 = **$0,46**.
+Sobre $4,99 y con 15 % de Play, el margen queda entre **76 % y 85 %**.
 
-**El maná no es un recurso caro.** Un turno de mazmorra cuesta $0.00002: los
-12 de maná que cobra la app equivalen a **$0.00024 de valor percibido frente a
-$0.00002 de coste real** (12× de margen en la unidad, 20.000× si se compara
-contra el precio del maná de REALEZA). El maná es una **palanca de ritmo**, no
-un coste.
+### 10.4 El equilibrio no se puede calibrar: nadie llega a los límites `[HECHO]`
 
-### 8.4 El equilibrio real (y por qué es irrelevante hoy)
-
-| Dato de producción | Valor |
+| Dato | Valor |
 |---|---|
-| Usuarios que han gastado maná | **13** de 68 |
-| Maná total consumido en ~100 días | **3.298** |
-| Consumo medio por usuario que usa IA | **253** |
-| Consumo medio diario por usuario activo | **≈ 2,5 de maná/día** (0,2 turnos de mazmorra) |
-| Tope diario | 200 → **80× el consumo medio** |
-| Maná mensual de PLEBEYO | 3.000 → **≈3,2 años** al ritmo medio de un usuario que usa IA |
-| Veces que se alcanzó el tope diario | **1** |
-| Saldo máximo de oro / gemas / fragmentos | 180 / 96 / 398 |
-| `player_inventory` | **0** — nadie ha comprado un cosmético |
+| Usuarios con consumo de IA | **13** de 68 |
+| Maná consumido en ~100 días | **3.298** |
+| Media por usuario que usa IA | **253** |
+| Tope diario vs. consumo medio | **200 vs ≈2,5/día (80×)** |
+| Plan gratuito al ritmo medio | ≈**3,2 años** de maná |
+| Veces alcanzado el tope diario | **1** |
+| Compras de cosméticos | **0** |
+| Movimientos en el libro | **0** |
 
-Conclusión: **el equilibrio gratis/pago no se puede calibrar con estos datos**
-porque nadie ha llegado a los límites. El problema no es que el plan gratuito
-sea generoso: es que el uso es 80× menor que el tope.
+### 10.5 La incoherencia más cara `[HECHO + INFERENCIA]`
 
-### 8.5 Tiempo de práctica que representan esas cifras
-
-Si un turno de conversación ≈ 20–30 s de habla del usuario:
-
-| Plan | 250 turnos (PLEBEYO) | 1.416 turnos (NOBLE) |
-|---|---|---|
-| Tiempo hablado estimado | 1,4–2,1 h/mes | 7,9–11,8 h/mes |
-| Media diaria | 2,8–4,2 min | 16–24 min |
-
-El plan gratuito da, en el mejor caso, **menos de 5 minutos de habla al día**.
-La meta diaria por defecto es **15 minutos** (`user_settings.daily_goal_minutes`
-= 15 en 68 de 68 perfiles). **El plan gratuito no permite cumplir la meta
-diaria que la app pide por defecto**: 15 min ≈ 36 turnos de ~25 s = **432 de
-maná/día**, es decir **≈13.000 al mes** (4,3× el plan gratuito), y el saldo se
-agotaría en la primera semana.
-
-Esa es, probablemente, la incoherencia de diseño más cara del producto: *la
-meta por defecto es inalcanzable con el plan por defecto*.
+Meta diaria por defecto **15 min** (`user_settings.daily_goal_minutes`: 15 en
+**67 de 68** filas, 30 en 1). Un turno ≈ 20–30 s → 15 min ≈ **36 turnos** ≈
+**432 de maná/día** ≈ **13.000/mes**, es decir **4,3× el plan gratuito** y por
+encima incluso del de pago (20.500). `[INFERENCIA]` **La meta por defecto no es
+alcanzable con ningún plan sin gastar más de lo asignado**; PLEBEYO da
+2,8–4,2 min/día de habla y NOBLE 16–24 min/día.
 
 ---
 
-## 9. Desequilibrios medidos
+## 11. Desequilibrios medidos
 
 | # | Desequilibrio | Cifra |
 |---|---|---|
-| D1 | XP derivado de `now() − started_at` con `ended_at` siempre nulo | **0 de 70** conversaciones tienen `ended_at`; **2.400 XP** (73,5 % del XP del jugador top) salen de una sesión de 1 objetivo |
-| D2 | El libro contable está vacío porque los ingresos lo evitan | `currency_ledger` **0 filas**; `v_economy_flow` **0 filas**; 70 de oro y 35 de fragmentos pagados sin traza |
-| D3 | El tramo REALEZA es 4,9× más caro por unidad de maná | $0.294/1.000 (NOBLE) vs $0.487/1.000 (REALEZA) = **$1.429/1.000** marginal |
-| D4 | La meta diaria por defecto (15 min) es inalcanzable con PLEBEYO | 250 turnos/mes ≈ **2,8–4,2 min/día** de habla; 15 min/día ≈ 36 turnos × 12 = **432 de maná/día** = **≈13.000/mes** (4,3× el plan gratuito) |
-| D5 | La recompensa diaria no paga (y falla en silencio) | `add_gems` sin EXECUTE para `authenticated`; **4 de 79** filas marcadas como reclamadas y **0** gemas acreditadas |
-| D6 | Las misiones nunca caducan | **629** instancias `active` con `expires_at = NULL`; **8 de 637** completadas (1,26 %) |
-| D7 | El tope diario de 200 no es el factor limitante | 3.000/mes ÷ 30 = **100/día**; el tope de 200 solo muerde **15 días o menos al mes** |
-| D8 | El 100 % de las lecciones de refuerzo generadas fallaron y se reembolsaron | `lesson_generation` **4 acciones / 4 reembolsos** (400 de maná devueltos de 400) |
+| E1 | XP derivado de `now() − started_at` con `ended_at` nulo | 0 de 70 conversaciones; 2.400 XP (73,5 % del top) de 1 meta |
+| E2 | El libro contable está vacío porque los ingresos lo evitan | `currency_ledger` 0; 70 oro y 35 frag sin traza |
+| E3 | REALEZA 4,9× más caro por unidad de maná | $0,294 vs $0,487/1.000 |
+| E4 | La meta diaria por defecto (15 min) es inalcanzable | ≈13.000 maná/mes vs 3.000 (PLEBEYO) |
+| E5 | Recompensa diaria no paga y falla en silencio | `add_gems` sin EXECUTE; `economy_repository_impl.dart:242` `catch (_) → {}` |
+| E6 | Las misiones nunca caducan | 629 activas con `expires_at = NULL`; 8/637 completadas |
+| E7 | El tope diario no es el factor limitante | 100/día de media; 1 sola vez alcanzado |
+| E8 | 23 consumibles sin efecto a 40–1.600 gemas | `cosmetic_catalog`; saldo máximo 96 |
+| E9 | 38,7 % del gasto de IA se factura a 0 | $0,0058 de $0,0150 |
+| E10 | `vocabulary_curation` cuesta 15× más por maná que un turno | $0,00026/maná vs $0,0000175 |
+| E11 | Pergaminos e invocaciones son contadores muertos y auto-otorgables | `increment_pergaminos_max` sin tope; `player_pergaminos` 0 |
+| E12 | Solo 1 suscripción de pago y 0 compras internas | 14 plebeyo + 1 noble; `player_inventory` 0 |
 
 ---
 
-## 10. No verificable
+## 12. Propuestas económicas (no vinculantes)
+
+`[PROPUESTA]` Ordenadas por coste de implementación:
+
+1. **Cerrar el libro**: que `close_session`, `claim_session_drop` y
+   `claim_mission_reward` llamen a `economy_apply_currency`. Sin esto no se
+   puede decidir nada con datos (§4.1).
+2. **Precio sombra del maná**: derivar de `ai_action_costs` la tabla
+   maná↔dólar y publicar el margen real (§10.3). Hoy el precio se fija a ojo.
+3. **Cobrar o eliminar las acciones gratis caras**: `goal_eval` es la 2.ª más
+   cara y no tiene precio (§8.1).
+4. **Retirar de BD** `mana_potions`, `mana_gems` y los 23 consumibles sin
+   efecto, o darles mecánica. Mantenerlos es deuda de seguridad económica.
+5. **Implementar D-05** como decisión de producto: si el pergamino no va a ser
+   reintento, decidir qué es y borrar el placeholder de §9.
+6. **Recalibrar la meta diaria** a lo que el plan regala (10 min) o subir el
+   plan gratuito: hoy el producto pide más de lo que entrega (§10.5).
+
+---
+
+## 13. No verificable
 
 | Dato | Por qué | Qué falta |
 |---|---|---|
-| Coste real de IA por acción | La muestra de P-47 son **8 llamadas**; `ai_usage_logs` tiene 54 filas con `cost_estimate_usd` | Recalcular con ≥ 2 semanas de uso (`ai_cost_by_session`) |
-| Si el ingreso del único NOBLE se registró en algún lado | `payments` = 0, `revenuecat_events` = 1 | Logs de `revenuecat-webhook` en la ventana de compra |
-| Origen del oro de los perfiles (máx. 180) | No hay traza contable (D2) | Reparar el libro y volver a medir |
-| Si `lesson_generation` falla por el modelo o por la BD | Los 4 reembolsos no distinguen causa | Logs de `lesson-generator` |
-| Precio real de los consumibles de Play | No hay consumibles publicados (P-46) | Play Console |
-| Efecto del turno de gracia en retención | Se ha usado como máximo 1 vez | Más uso real |
+| Coste real por acción | Muestra de 54 llamadas; extrapolado por media | ≥2 semanas de `ai_usage_logs` |
+| Ingreso del único NOBLE | `payments` 0, `revenuecat_events` 1 | Logs de `revenuecat-webhook` |
+| Origen del oro de los perfiles (máx 180) | Sin traza contable | Reparar el libro |
+| Si `lesson_generation` falla por modelo o por BD | 4 reembolsos sin causa | Logs de `lesson-generator` |
+| Precio real de los consumibles en Play | No hay consumibles publicados | Play Console |
+| Efecto del turno de gracia | Usado 1 vez | Más uso |
+| Si `MANA_CHARGE_MODE` cobra en todas las builds | Secreto de la Edge Function | Valor del secreto |

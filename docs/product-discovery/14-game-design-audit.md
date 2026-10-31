@@ -131,7 +131,7 @@ rango, gremio, temporada) está roto, vacío o decorativo.
 | **Problema** | Hay dos superficies comerciales con tres nombres: la **tienda** (oro/gemas/fragmentos), el **paywall** (planes) y el **Santuario de Maná**, cuyo botón "Obtener maná" abre el paywall. No se vende maná suelto; se vende una suscripción. El jugador que quiere "recargar" aterriza en un comparador de planes. |
 | **Evidencia** | `dungeon_guardian_screen.dart:208-214`; `paywall_screen.dart:314,509-520`; `docs/PRODUCT.md:60-61` ("la venta directa de maná sigue retirada"). |
 | **Impacto** | Rompe la promesa de la fantasía (un Guardián no te vende una suscripción) y añade fricción en el momento de máxima intención. Además mezcla dos economías: tiempo (maná) y dinero (planes). |
-| **Alternativa conceptual** | **Separar los dos contratos**: la tienda vende *objetos* (oro/gemas); el "estamento" se presenta como **membresía del gremio** en su propia pantalla, con nombre de contrato, no de compra. En el Santuario, el CTA honesto es "Ampliar mi estamento" y una alternativa gratuita clara ("volver mañana" / "turno de gracia"). |
+| **Alternativa conceptual** | **Separar los dos contratos**: la tienda vende *objetos* (oro/gemas); la **membresía del gremio** (nobleza/plebeyo) se presenta en su propia pantalla, con nombre de contrato, no de compra. En el Santuario, el CTA honesto es "Ampliar el pacto" y una alternativa gratuita clara de **coste cero** (repaso SRS, listening, Mis errores — D-06). |
 
 ### G-08 · Módulos que parecen islas
 

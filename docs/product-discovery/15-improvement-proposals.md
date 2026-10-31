@@ -8,6 +8,12 @@
 > Escalas: **Impacto** A (cambia la naturaleza del producto) · B (mejora el bucle)
 > · C (pulido). **Complejidad** S (≤1 día) · M (2–4) · L (≥5) · XL (rediseño).
 > Ninguna propuesta asume cambiar la paleta ni las familias tipográficas.
+>
+> **Alineadas con el canon (2026-10-31).** Las decisiones D-01…D-15 y G-01 están
+> aprobadas y no se cuestionan ([`19`](19-canon-and-decisions.md)). Se han
+> **eliminado** las propuestas que las contradecían: temporada de battle pass,
+> ítems de maná, retirada del pergamino y chat libre en el gremio. Los IDs `Q…`
+> del análisis previo se citan ya como `D…`.
 
 ---
 
@@ -77,9 +83,9 @@
 
 | Campo | Contenido |
 |---|---|
-| **Problema** | Siete tipos de misión, dos visibles, trece plantillas `secondary` invisibles y un embudo de 8 completadas sobre 629 instancias. |
-| **Evidencia** | `mission_visibility.dart:29-30,62-67`; `mission_templates` (15/7/13); `mission_instances` (442+187 activas, 8 completadas); G-01. |
-| **Solución** | Tres capas con un solo motor: **Hoy** (1 principal narrativa), **Contratos** (2–3 de gremio, asíncronos, del `guild_quest_pool` ya sembrado) y **Evento** (1 semanal de mundo). Eliminar del modelo `secret`, `emergency`, `secondary` y `event` hasta que tengan productor. El progreso solo lo avanza el servidor (ya es así). |
+| **Problema** | Siete tipos de misión, dos visibles, trece plantillas `secondary` invisibles y un embudo de 8 completadas sobre 637 instancias. |
+| **Evidencia** | `mission_visibility.dart:29-30,61-67`; `mission_templates` (15 daily / 7 weekly / 13 secondary); `mission_instances` (637, 8 completadas); G-01. |
+| **Solución** | Tres capas con un solo motor, **como fija G-01**: **Hoy** (1 principal narrativa), **Contratos** (2–3 de gremio, asíncronos, del `guild_quest_pool` ya sembrado) y **Evento** (1 semanal de mundo, reservado para la capa 3). Eliminar del modelo `secret`, `emergency` y `secondary` hasta que tengan productor. El progreso solo lo avanza el servidor (ya es así). |
 | **Justificación** | Menos tipos, más densidad. El pool de 199 quests ya existe y no se usa. |
 | **Beneficio** | Una lista que se puede completar y que cambia cada día; el gremio gana una razón asíncrona. |
 | **Impacto** | A |
@@ -87,19 +93,19 @@
 | **Dependencias** | P-GD-4 (gremio), `advance_missions_for_user`, `guild_quest_pool`. |
 | **Riesgos** | Volver a inflar objetivos no alcanzables. Mitigación: los techos de `MissionVisibility` ya están medidos (10 min/día, 15/semana); mantenerlos y testear alcanzabilidad. |
 
-### P-GD-3 · Podar o conectar los sistemas muertos
+### P-GD-3 · Cerrar los sistemas muertos (sin reabrirlos)
 
 | Campo | Contenido |
 |---|---|
 | **Problema** | Cuatro sistemas se anuncian y no funcionan: freeze de racha (no protege), battle pass (nivel 1 congelado), pergaminos (0 filas) e ítems de maná (0 filas). |
-| **Evidencia** | `register_practice` no lee `player_streaks`; `guild_battle_pass` 23×nivel 1 y 0 funciones; `player_pergaminos` = 0; `mana_items` = 0; G-04, G-05, G-06. |
-| **Solución** | Árbol de decisión por sistema: **conectar** (freeze → consumido automáticamente; battle pass → temporada con XP y 30 niveles) o **retirar de la UI** (pergaminos, ítems de maná) conservando las tablas. Prohibido dejarlos "visibles y quietos". |
-| **Justificación** | Cada sistema muerto resta credibilidad a los vivos y consume mantenimiento. |
+| **Evidencia** | `register_practice` no lee `player_streaks` ni consume `streak_freezes`; `guild_battle_pass` 23×nivel 1 y 0 funciones; `player_pergaminos` = 0; `mana_items` = 0; `chat_rooms_screen.dart:1012-1066` (chip PRESTIGIO); G-04, G-05, G-06. |
+| **Solución** | Una salida por sistema, **fijada por decisión**: **racha/freeze** → una sola racha y freeze consumido en `register_practice` al faltar un día (**D-03**); **battle pass** → **retirar** el chip, el provider y la lectura, y dejar los títulos de prestigio como único eje (**D-04**); **pergamino** → reasignarlo a **reintento de lección**, con el maná cobrándose igual (**D-05**); **ítems de maná** → **retirar** de tienda e inventario (**D-05**). No se deja nada "visible y quieto". |
+| **Justificación** | Cada sistema muerto resta credibilidad a los vivos y consume mantenimiento. Las cuatro salidas ya están decididas: la propuesta solo ejecuta. |
 | **Beneficio** | Menos superficie que explicar; el jugador deja de aprender a ignorar la recompensa diaria. |
 | **Impacto** | B |
-| **Complejidad** | S si se retira; L si se conecta el battle pass. |
-| **Dependencias** | P-GD-1 y P-ECO-1 si se conecta; ninguno si se retira. |
-| **Riesgos** | Retirar algo que el dueño quiere conservar por hoja de ruta. **Decisión en [`18`](18-open-questions-and-decisions.md) Q3/Q6.** |
+| **Complejidad** | S (retirar battle pass e ítems de maná) · M (consumir freeze + pergamino como reintento). |
+| **Dependencias** | D-03, D-04, D-05; P-LRN-1 (reintento con evidencia). |
+| **Riesgos** | La retirada del battle pass deja un hueco visual en la cabecera del gremio. Mitigación: ocuparlo con el **título de prestigio** (ya existe en `prestige_ladder`) y con el tablón de contratos de P-GD-4. |
 
 ### P-GD-4 · Gremio asíncrono o NPC colectivo
 
@@ -107,13 +113,13 @@
 |---|---|
 | **Problema** | El gremio exige coincidencia en tiempo real, se autodenomina DEMO y hoy tiene 0 participantes. Un módulo social vacío comunica que el juego está muerto. |
 | **Evidencia** | `chat_room_participants` = 0; `voice_room_screen.dart:703`; `guild_announcements` = 4; `guild_quest_pool` = 199; G-10. |
-| **Solución** | Fase 1 (sin masa crítica): el gremio es **tablón asíncrono** con contratos del pool, reputación por aportar frases y al Maestre como NPC que narra el mundo. Fase 2 (con ≥20 activos): mesas de voz como evento programado. |
-| **Justificación** | El valor social se puede entregar sin coincidencia horaria; la voz en vivo es el último paso, no el primero. |
+| **Solución** | Fase 1 (sin masa crítica): el gremio es **tablón asíncrono** con 2–3 contratos del pool, reputación por aportar frases y el Maestre como NPC que narra el mundo. **Sin chat libre**: se retira el composer de la sala de voz (hoy `voice_room_screen.dart:320,456`). Fase 2 (≥20 activos/semana, medido en BD): mesas de voz como evento programado. |
+| **Justificación** | El valor social se puede entregar sin coincidencia horaria; la voz en vivo es el último paso, no el primero. Con 0 participantes, un chat libre solo añade moderación sin uso. |
 | **Beneficio** | El gremio deja de estar vacío; alimenta misiones y narrativa. |
 | **Impacto** | B |
 | **Complejidad** | M (fase 1) / L (fase 2). |
-| **Dependencias** | P-GD-2 (contratos), `guild_quest_pool`, `guild_announcements`. |
-| **Riesgos** | Complejidad de moderación si se abre chat. Mitigación: fase 1 sin chat libre. |
+| **Dependencias** | P-GD-2 (contratos), `guild_quest_pool`, `guild_announcements`, D-08. |
+| **Riesgos** | Complejidad de moderación si se abre chat. Mitigación: fase 1 **sin** chat libre, por decisión (D-08). |
 
 ---
 
@@ -125,12 +131,12 @@
 |---|---|
 | **Problema** | Conviven tres metáforas (cazador de mazmorras, estamento feudal, gremio de taberna) y cuatro nombres para el jugador. El "rango" tiene tres escalas. |
 | **Evidencia** | `dashboard_screen.dart:332` ("Hunter"); `paywall_upgrade_subtitle` ("estamento"); `chat_rooms_screen.dart:993-1003` (HIERRO/PLATA/ORO); `guild_battle_pass` ("PRESTIGIO"); hallazgo G-01/§1. |
-| **Solución** | Un documento de canon de una página: metáfora dominante, glosario (jugador, rango, gremio, maná, aura, estamento), y una tabla "término prohibido → término único". Renombrar: "estamento" → **contrato del gremio**; "PRESTIGIO {level}" del battle pass → **temporada**; una sola escala de rango. |
+| **Solución** | Aplicar el **glosario único** ([`16`](16-product-glossary.md)): un solo nombre para el jugador (**aventurero**), "estamento" → **membresía del gremio** (nobleza/plebeyo) y **una sola escala de rango** (F–SSS). Retirar la escala `HIERRO/PLATA/ORO` de la cabecera del gremio. El chip "PRESTIGIO {nivel}" **desaparece** con el battle pass (D-04): el prestigio pasa a ser el **título del Aura** (`prestige_ladder`). Tabla "término prohibido → término único" en `16`. |
 | **Justificación** | La coherencia narrativa es barata (texto) y es lo que hace que un RPG se sienta un mundo y no una hoja de cálculo. |
 | **Beneficio** | Menos confusión, más identidad; base para copy de tienda, paywall y onboarding. |
 | **Impacto** | B |
 | **Complejidad** | S (documento) + M (i18n y reemplazos). |
-| **Dependencias** | Decisión del dueño sobre la metáfora dominante (Q1). |
+| **Dependencias** | D-01 y D-04 aprobadas; [`16`](16-product-glossary.md). |
 | **Riesgos** | Reescritura masiva de `.arb` (regla del repo: solo con la herramienta de edición y `flutter gen-l10n`). |
 
 ### P-NAR-2 · El maná como pacto narrado
@@ -138,14 +144,14 @@
 | Campo | Contenido |
 |---|---|
 | **Problema** | El maná es un contador. El Santuario de Maná es una pantalla de bloqueo que empuja al paywall y el Guardián grita sin consecuencias. La ficción no explica por qué hablar cuesta energía ni qué pasa cuando se acaba. |
-| **Evidencia** | `dungeon_guardian_screen.dart:90-107,208-214`; `ai_action_costs`; `docs/PRODUCT.md:123-137` (turno de gracia). |
-| **Solución** | Narrar el maná como **pacto con el Oráculo**: cada turno es una invocación; al agotarse, el Guardián ofrece un *favor* (turno de gracia) y recuerda el siguiente amanecer. El CTA de pago se convierte en "ampliar el pacto" (membresía), con la alternativa gratuita al mismo nivel visual. |
+| **Evidencia** | `dungeon_guardian_screen.dart:90-107,207-214`; `ai_action_costs`; `docs/PRODUCT.md:123-137` (turno de gracia, hoy en conflicto con D-06). |
+| **Solución** | Narrar el maná como **pacto con el Oráculo**: cada turno es una invocación; al agotarse, el Guardián **no regala IA** (D-06): ofrece las actividades de **coste cero** (repaso SRS, listening, Mis errores) y recuerda la recarga del ciclo. El CTA de pago se convierte en "ampliar el pacto" (membresía), con la alternativa gratuita al mismo nivel visual. |
 | **Justificación** | Convierte una restricción técnica (coste de IA) en regla de mundo, que es exactamente lo que pide el principio rector. |
 | **Beneficio** | El bloqueo deja de sentirse como un muro de pago y pasa a ser parte de la ficción; baja la percepción de "me están frenando". |
 | **Impacto** | B |
 | **Complejidad** | S (copy + jerarquía de CTAs) / M si se añade evento narrado. |
-| **Dependencias** | P-ECO-2 (monetización honesta). |
-| **Riesgos** | Prometer un favor que no se concede. Mitigación: `claim_mana_grace` ya es idempotente y del servidor; mostrar su estado real. |
+| **Dependencias** | P-ECO-2 (monetización honesta); D-06. |
+| **Riesgos** | Prometer un turno gratis que contradice D-06. Mitigación: ofrecer actividades de **coste cero**, no IA gratis; retirar el turno de gracia si se mantiene la decisión. |
 
 ---
 
@@ -171,13 +177,13 @@
 |---|---|
 | **Problema** | Cinco recursos con funciones solapadas; el Santuario vende una suscripción con la etiqueta "obtener maná"; la tienda y la membresía compiten por el mismo espacio mental. |
 | **Evidencia** | `dungeon_guardian_screen.dart:208-214`; `paywall_screen.dart:314-520`; `docs/PRODUCT.md:46-61`; G-04/G-07. |
-| **Solución** | Maná = *puedo practicar*; Oro = *me visto*; Gemas = *me salto una espera* (con espera real). Retirar pergaminos e ítems de maná. Renombrar el CTA del Santuario a "Ampliar el pacto" y presentar los planes como **membresía del gremio** en su propia pantalla, no como tienda. |
+| **Solución** | Maná = *puedo practicar*; Oro = *me visto*; Gemas = *me salto una espera* (con espera real). **Retirar los ítems de maná** (tienda, inventario y consumo equipado) y **reasignar el pergamino** a reintento de lección (D-05), dejando de regalarlo como moneda sin uso. Renombrar el CTA del Santuario a "Ampliar el pacto" y presentar los planes como **membresía del gremio** (nobleza/plebeyo) en su propia pantalla, no como tienda. |
 | **Justificación** | Un recurso por intención se explica en una frase; cinco no se explican. |
 | **Beneficio** | Menos confusión, menos fricción en el momento de pagar, menos promesas incumplidas. |
 | **Impacto** | B |
-| **Complejidad** | S (copy y jerarquía) + M (retirar UI y datos). |
-| **Dependencias** | P-NAR-2; decisión Q4. |
-| **Riesgos** | Reducir ingresos si el dueño esperaba vender maná suelto (hoy no existe). Mitigación: medir intención antes de retirar. |
+| **Complejidad** | S (copy y jerarquía) + M (retirar ítems de maná y reasignar el pergamino). |
+| **Dependencias** | P-NAR-2; D-05 y D-06. |
+| **Riesgos** | El pergamino deja de ser una recompensa "extra" de la recompensa diaria. Mitigación: sustituirlo por gemas o por el propio reintento ya desbloqueado. |
 
 ---
 
@@ -232,12 +238,12 @@
 | # | Propuesta | Dimensión | Impacto | Compl. | Depende de |
 |---|---|---|---|---|---|
 | 1 | P-UX-1 Estados honestos | UX | B | M | — |
-| 2 | P-GD-3 Podar/conectar muertos | Game design | B | S/L | Q3/Q6 |
+| 2 | P-GD-3 Cerrar sistemas muertos | Game design | B | S/M | D-03/D-04/D-05 |
 | 3 | P-GD-1 Rango como llave | Game design | A | L | P-ECO-1 |
 | 4 | P-ECO-1 Esfuerzo vs Maestría | Economía | A | L | Datos de evidencia |
 | 5 | P-GD-2 Motor de misión en 3 capas | Game design | A | L | P-GD-4 |
 | 6 | P-LRN-1 Resumen con evidencia | Aprendizaje | A | M | P-ECO-1 |
-| 7 | P-NAR-1 Canon y glosario | Narrativa | B | S/M | Q1 |
+| 7 | P-NAR-1 Canon y glosario | Narrativa | B | S/M | D-01/D-04 · [`16`](16-product-glossary.md) |
 | 8 | P-UX-2 Accesibilidad AA | UX | B | M | Validación visual |
 | 9 | P-ECO-2 Tres recursos + monetización honesta | Economía | B | S/M | P-NAR-2 |
 | 10 | P-GD-4 Gremio asíncrono | Game design | B | M | P-GD-2 |
@@ -252,8 +258,9 @@
    aprender, y ninguna otra propuesta arregla la promesa central.
 2. **P-GD-1 · Rango como llave.** Devuelve la fantasía de ascenso y da sentido a
    exámenes, gremio y contenido.
-3. **P-GD-3 · Podar o conectar sistemas muertos.** La relación
-   coste/credibilidad más alta: freeze, battle pass, pergaminos e ítems de maná.
+3. **P-GD-3 · Cerrar los sistemas muertos.** La relación
+   coste/credibilidad más alta: freeze, battle pass, pergamino e ítems de maná,
+   con salida ya decidida (D-03/D-04/D-05).
 4. **P-GD-2 · Motor único de misión en 3 capas.** Convierte 629 instancias y 8
    completadas en un bucle que se puede cerrar.
 5. **P-LRN-1 · Resumen con evidencia.** El único momento de "prueba" de

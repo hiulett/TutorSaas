@@ -1,7 +1,8 @@
 # Baseline verificado (punto de partida común)
 
-> Medido el 31-oct-2026 sobre `origin/master` del worktree
-> `C:\Users\GbitCorp\.local\share\opencode\worktree\6708f0\p14-ai-usage`.
+> **Re-medido el 31-oct-2026** sobre `origin/master` del worktree
+> `C:\Users\GbitCorp\.local\share\opencode\worktree\6708f0\p14-ai-usage`
+> (código) y producción `sipiumfdpvnszthykyog` (MCP `supabase`, solo lectura).
 > Si un documento de esta carpeta contradice esta tabla, **manda el código** y
 > actualiza la tabla.
 
@@ -12,14 +13,39 @@
 | Pantallas (`*_screen.dart`) | **20** | `Get-ChildItem lib -Recurse -Filter *_screen.dart` |
 | Rutas registradas | **20** | `lib/app/router.dart` |
 | Features | **16** | `lib/features/*` |
-| Tablas `public` | **84** | `information_schema.tables` |
-| Funciones `public` | **82** | `pg_proc` |
-| Políticas RLS | **130** | `pg_policies` |
-| Vistas | **13** | `information_schema.views` |
-| Migraciones aplicadas | **104+** | `supabase_migrations.schema_migrations` |
-| Pruebas | **741** | `flutter test` |
-| Analyze | 0 errores · 0 warnings | `flutter analyze` |
-| Edge Functions | `llm-proxy`, `evaluate-placement`, `lesson-generator`, `livekit-token`, `missions-cron`, `revenuecat-webhook`, `sync-entitlement`, `reactivation-email` | `supabase functions list` |
+| Tablas `public` | **90** | `information_schema.tables` (`BASE TABLE`) |
+| Tablas con RLS | **85** | `pg_policies` (`count(distinct tablename)`) |
+| Funciones `public` | **99** | `pg_proc` (0 procedimientos) |
+| Políticas RLS | **135** | `pg_policies` |
+| Vistas | **14** | `information_schema.views` (0 materializadas) |
+| Migraciones aplicadas | **108** | `supabase_migrations.schema_migrations` |
+| Pruebas | **733** | `flutter test --reporter compact` → `All tests passed!` |
+| Analyze | 0 errores · 0 warnings (**no re-ejecutado** en esta medición; se conserva el último resultado) | `flutter analyze` (medición anterior) |
+| Edge Functions | **8**: `llm-proxy`, `missions-cron`, `livekit-token`, `revenuecat-webhook`, `lesson-generator`, `sync-entitlement`, `evaluate-placement`, `reactivation-email` | MCP `supabase.list_edge_functions` |
+
+> **Nota sobre cifras antiguas.** Circulan **75 tablas / 120 políticas /
+> 52 funciones / 171 pruebas** (AGENTS.md) y **84 / 130 / 82 / 741** (medición
+> previa de esta carpeta). Las tres son instantáneas distintas: manda la tabla de
+> arriba, medida hoy contra producción y contra el worktree.
+
+## Volumen de datos (contexto para cualquier afirmación de comportamiento)
+
+| Dato | Valor | Fuente |
+|---|---|---|
+| `users` | **68** | `public.users` |
+| `user_language_profiles` | **65** (55 con `game_rank` NULL) | `public.user_language_profiles` |
+| Activos últimos 7 días | **1** usuario distinto · 9 `app_open` | `analytics_events` |
+| `practice_sessions` | **2** | `public.practice_sessions` |
+| `messages` | **771** | `public.messages` |
+| `payments` | **0** | `public.payments` |
+| `user_subscriptions` | **15** (1 `noble`, 14 `plebeyo`) | `public.user_subscriptions` |
+| `mission_instances` | **637** (8 completadas) | `public.mission_instances` |
+| `guild_quest_pool` | **199** | `public.guild_quest_pool` |
+| `chat_room_participants` / `chat_room_messages` | **0 / 0** | `public.chat_room_*` |
+| `boss_exam_attempts` | **0** | `public.boss_exam_attempts` |
+
+> Con este volumen **no hay ninguna conclusión de retención válida**. Ver
+> [`19` §3](19-canon-and-decisions.md#3-umbral-de-d-15-continuar--iterar--pivotar).
 
 ## Design tokens reales
 

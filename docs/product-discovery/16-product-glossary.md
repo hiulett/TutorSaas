@@ -1,235 +1,191 @@
-# 16 — Glosario oficial del producto
+# 16 — Glosario único del producto
 
-> **Para qué sirve.** Una sola fuente para nombrar las cosas igual en diseño,
-> producto, código y textos. Cada término dice **qué significa en este
-> producto** (no en el género RPG), **dónde vive** (archivo:línea, tabla o RPC)
-> y **si existe de verdad**.
+> **Qué es.** La lista corta de palabras con **un solo significado canónico** para
+> el universo de *Dungeon of English*. Existe porque el código, la BD y el copy
+> usan hoy varios nombres para lo mismo (cuatro para el jugador, tres para el
+> rango, dos para el prestigio).
 >
-> **Medido:** 30-oct-2026. Los `archivo:línea` de `.arb` se refieren a
-> `lib/l10n/app_es.arb` salvo que se indique otro idioma.
-> Contexto: [`00`](00-product-overview.md), [`01`](01-product-identity-and-universe.md).
+> **Manda:** [`_decisions.md`](_decisions.md) (D-01…D-15, G-01). La coherencia y la
+> brecha medida están en [`19` §2.1](19-canon-and-decisions.md#21-d-01--una-institución-un-nombre-una-escala).
+> Si este glosario y una decisión discrepan, **manda la decisión**.
+>
+> **Alcance:** términos de producto y de interfaz. No define reglas de negocio
+> (eso es [`../PRODUCT.md`](../PRODUCT.md)) ni fórmulas (eso es
+> [`../product-audit/06-GAMEPLAY-Y-GAMIFICACION.md`](../product-audit/06-GAMEPLAY-Y-GAMIFICACION.md)).
 
 ---
 
-## 0. Reglas de nomenclatura (normativa)
+## 1. Tabla maestra
 
-1. **El producto se llama "Dungeon of English"** en la interfaz
-   (`app_es.arb:5`). "DungeonSpeak" es el nombre de tienda/Android
-   (`AndroidManifest.xml:11`) y "tutorsaas" el técnico (`pubspec.yaml:1`).
-   No inventar un cuarto nombre; "TutorSaaS" solo sobrevive en un mapa de
-   traducciones **muerto** (`core/i18n/app_translations.dart:4`).
-2. **"Cazador"** (Hunter) es el usuario. Nunca "alumno", "estudiante" ni
-   "jugador" en textos de producto — aunque el código use `student` en prompts
-   en inglés.
-3. **"Mazmorra" = escenario de práctica**, no un nivel abstracto. Si se dice
-   "mazmorra de vocabulario" hay que saber que **no existe** (§11).
-4. **"Maestre de Mesa"** es el NPC del gremio; **"Maestro del Gremio"** es un
-   cargo que solo aparece en una clave duplicada (§10).
-5. **"Estamento"** = plan de pago (plebeyo/noble/realeza). **"Título de
-   prestigio"** = escalón ganado con Aura. No son lo mismo (§4).
-6. **"Maná"** es la energía que cuesta la IA; **"Aura"** es el mérito que no se
-   gasta. Confundirlos rompe todo el modelo (§7 y §4).
-
----
-
-## 1. Identidad y marcas
-
-| Término | Significado en el producto | Dónde vive | Etiqueta |
+| Término | Significado **canónico** | Términos prohibidos / en deuda | Estado del código |
 |---|---|---|---|
-| **Dungeon of English** | Nombre de la app en la interfaz | `app_es.arb:5` | `[IMPLEMENTADO]` |
-| **DungeonSpeak** | Nombre en el lanzador de Android y en los SKU de Play (`dungeonsspeak_*`) | `AndroidManifest.xml:11`; `docs/PRODUCT.md:34` | `[IMPLEMENTADO]` |
-| **tutorsaas** | Nombre del paquete y del proyecto (`com.tutorsaas.tutorsaas`) | `pubspec.yaml:1`, `android/app/build.gradle.kts:37` | `[IMPLEMENTADO]` |
-| **TutorSaaS** | Nombre legado en un diccionario de traducciones que **nadie lee** | `core/i18n/app_translations.dart:4` | `[CONCEPTUAL]` |
-| **Cazador / Hunter** | El usuario, en clave RPG | `app_es.arb:175,326-327`; `HUNTER_CLASSES` en `hunter_class.dart` | `[IMPLEMENTADO]` |
-| **Sistema (HUD)** | La voz que anuncia estado y logros ("EL SISTEMA HA HABLADO") | `app_es.arb:494,509-513` | `[IMPLEMENTADO]` |
+| **Jugador** | **Aventurero** del gremio. Es la persona que practica inglés; el único nombre visible para ella | "Hunter"/"Hunters", "cazador", "Usuario del Aura", "estamento" (como nombre de persona, no de plan) | `[PARCIAL]`: la UI dice "Hunter" |
+| **Rango** | Escala **única F → E → D → C → B → A → S → SS → SSS**. Sube por **examen de jefe** y **abre contenido** | `HIERRO/PLATA/ORO` (cabecera del gremio), `PRESTIGIO N` (battle pass) | `[PARCIAL]`: 3 etiquetas conviven |
+| **Gremio** | La **institución central**: da misiones en 3 capas (del día, contratos, evento), presta el tablón y tiene al **Maestre** como NPC | "Guild Hall" como marca en inglés (aceptable como rótulo), "taberna", "estamento feudal" | `[PARCIAL]`: existe la pantalla, no las misiones |
+| **Maná** | La **energía que cuesta cada acción de IA** (hablar, evaluar, generar). Se agota; no se regala | "energía", "combustible", "poción" como sinónimo de maná | `[IMPLEMENTADO]` como coste; copy de venta confuso |
+| **Aura** | El **mérito acumulado sin tope** que se gana practicando; alimenta el **título de prestigio**. No es una moneda y no se compra | "poder", "XP" (el Aura no es XP) | `[IMPLEMENTADO]`: `aura_xp`, `prestige_ladder` |
+| **Nobleza** | La **membresía de pago** del gremio (planes `noble` y `realeza`). Es una jerarquía **declarada**, no una ventaja de aprendizaje evaluado | "estamento", "élite", "premium" como nombre de la jerarquía | `[PARCIAL]`: el copy dice "estamento" |
+| **Plebeyo** | El **plan gratuito** del gremio (3.000 maná/mes, tope diario). No es un insulto ni un rango: es el nivel de membresía base | "free", "básico", "trial" como nombre del plan | `[IMPLEMENTADO]` (plan `plebeyo`) |
 
 ---
 
-## 2. El mundo
+## 2. Los siete términos, en detalle
 
-| Término | Significado | Dónde vive | Etiqueta |
+### 2.1 Jugador = **aventurero**
+
+- **Canónico:** *aventurero* (masculino genérico en el copy; en inglés
+  *adventurer*).
+- **Por qué:** D-01 declara el **gremio de aventureros** como institución central
+  y exige **un solo nombre** para el jugador. "Aventurero" es el único que deriva
+  de la institución y no de una metáfora paralela.
+- **Deuda medida:** la UI en inglés dice **"Hunter"** (`app_localizations_en.dart:15,488`;
+  `dashboard_screen.dart:331-332`), el banner de voz dice **"cazadores"**
+  (`voice_room_screen.dart:703`) y los comentarios de dominio dicen
+  **"aventurero"** (`aura_system.dart:7`, `mission_repository.dart:99`). La
+  ficción del Aura añade **"Usuario del Aura"** (`aura_system.dart:8`).
+- **Etiqueta:** `[PARCIAL]`. Cerrar cuando `grep` no devuelva "Hunter" ni
+  "cazador" en texto visible.
+- **Nota de honestidad:** el nombre exacto **no está escrito** en
+  `_decisions.md`; "aventurero" es la lectura directa de D-01 y está marcada como
+  **inferencia declarada** en [`19` §5](19-canon-and-decisions.md#5-límites-de-esta-auditoría).
+  Si Isaac prefiere otro, se cambia aquí y en el copy, no la decisión.
+
+### 2.2 Rango = **F–SSS, uno solo**
+
+- **Canónico:** una sola escala de nueve peldaños: **F** (iniciado), E, D, C, B,
+  A, S, SS, **SSS** (élite). Se **sube con examen de jefe** y **desbloquea
+  contenido** (D-07).
+- **Relación con el CEFR:** el CEFR mide **lengua**; el rango mide **uso**. Un
+  aprendiz A2 puede ser rango D y seguir siendo A2: no son lo mismo, aunque hoy
+  el código los haga equivalentes.
+- **Deuda medida:**
+  1. `cefr_rank.dart:13-21` mapea CEFR → rango 1:1 (A2 → D, B1 → C…), y
+     `aura_system.dart:88-98` marca "inconsistencia" si el rango no coincide con
+     el CEFR: el sistema **trata el rango como sinónimo**.
+  2. La cabecera del gremio pinta **HIERRO / PLATA / ORO** según la banda CEFR
+     (`chat_rooms_screen.dart:993-1011`): **segunda escala**, solo cosmética.
+  3. El battle pass pinta **"PRESTIGIO {nivel}"** (`app_localizations_es.dart:1138`):
+     **tercera escala**, que D-04 retira.
+- **Términos prohibidos:** "tier", "liga", "prestigio" como sinónimo de rango.
+- **Etiqueta:** `[PARCIAL]`.
+
+### 2.3 Gremio = **la institución**
+
+- **Canónico:** el gremio es la **institución central** que organiza la vida del
+  aventurero: emite las **misiones en 3 capas** (del día, contratos, evento
+  semanal — G-01), tiene **tablón** y **Maestre** (NPC), y agrupa a los miembros
+  por **membresía** (nobleza/plebeyo). En fase 1 es **asíncrono y sin chat
+  libre** (D-08).
+- **No es:** una taberna, un estamento feudal ni una sala de chat.
+- **Deuda medida:** la pantalla se llama "GUILD HALL" y hay 6 salas, pero
+  **0 participantes**, **0 mensajes** y **0 misiones** servidas desde el gremio
+  (`chat_room_participants` = 0; `chat_room_messages` = 0; `guild_quest_pool` =
+  199 sin UI). Además existe un **chat libre** en la sala de voz
+  (`voice_room_screen.dart:320,456`), que D-08 prohíbe en fase 1.
+- **Etiqueta:** `[PARCIAL]`.
+
+### 2.4 Maná = **coste de la IA**
+
+- **Canónico:** el maná es la **energía** que se consume al invocar IA. Cada
+  acción tiene un coste fijo en BD (`ai_action_costs`): Oráculo 15, mazmorra 12,
+  chat libre 8, evaluación 30, curaduría 2, lección generada 100. Se agota; **no
+  se regala** (D-06).
+- **Relación con el plan:** cada membresía incluye una **asignación mensual**
+  (`subscription_plans.mana_allowance`: 3.000 / 17.000 / 20.500). El plan
+  `plebeyo` tiene además **tope diario de 200** (`consume_mana`).
+- **No es:** una moneda que se compra suelta ni un ítem equipable. Los **ítems de
+  maná** se retiran (D-05).
+- **Deuda medida:** el CTA "Obtener maná" abre el **paywall de membresía**
+  (`dungeon_guardian_screen.dart:207-214`), lo que presenta el maná como producto
+  vendible. El **turno de gracia** documentado en `PRODUCT.md:123-137` **sí
+  existe** (`llm-proxy/index.ts:448-459` + `claim_mana_grace`), pero regala una
+  acción de IA al día: **contradice "no se regala maná" (D-06)**.
+- **Etiqueta:** `[PARCIAL]` (coste `[IMPLEMENTADO]`; alternativa gratuita
+  implementada **en conflicto** con D-06).
+
+### 2.5 Aura = **mérito sin tope**
+
+- **Canónico:** el Aura es el **mérito acumulado** al practicar. Se despierta al
+  superar la etapa básica (A1+A2) o con CEFR ≥ B1; crece **sin tope**
+  (`aura_xp`) y determina el **título de prestigio** (`prestige_ladder`, 21
+  escalones).
+- **No es:** una moneda, ni XP de nivel, ni el rango. El rango se gana con
+  examen; el Aura se acumula practicando.
+- **Deuda medida:** la UI mezcla Aura y título en la misma zona del HUD
+  (`aura_hud.dart:167` habla de "progresión de prestigio", `aura_system.dart:27-31`
+  expone `prestigeTitleName`). No hay contradicción funcional, sí de copy.
+- **Etiqueta:** `[IMPLEMENTADO]` (con deuda de copy).
+
+### 2.6 Nobleza = **membresía de pago**
+
+- **Canónico:** **nobleza** es la jerarquía de **miembros de pago** del gremio.
+  En datos se materializa como plan `noble` ($4.99, trial 7 días) y `realeza`
+  ($9.99). Comprar nobleza **no** da ventaja en el aprendizaje evaluado; da maná,
+  historial de informe y cosmética/títulos.
+- **Términos prohibidos:** "estamento" (retirado; hoy en
+  `app_localizations_es.dart:1655,3696` y en la descripción del plan `realeza`),
+  "élite" como nombre de la jerarquía.
+- **Deuda medida:** el copy de paywall y la descripción de `realeza` en BD siguen
+  diciendo "Estamento REALEZA: … mayor techo de prestigio". Debe decir
+  "membresía" y "techo de título".
+- **Etiqueta:** `[PARCIAL]`.
+
+### 2.7 Plebeyo = **plan gratuito**
+
+- **Canónico:** **plebeyo** es el nivel de membresía **gratuito** (3.000 maná/mes,
+  tope diario de 200). Es una posición en la jerarquía del gremio, **no** un
+  rango, no un insulto y no el estado "sin cuenta".
+- **Términos prohibidos:** "free", "básico" y "trial" como **nombre** del plan
+  (pueden describir una condición, no sustituir el nombre).
+- **Deuda medida:** los planes retirados (`free`, `monthly`, `annual`,
+  `lifetime`, `divino`) siguen en `subscription_plans` con `is_active = false`;
+  conviven nombres distintos ("Plan Gratuito (Trial)", "Plan Mensual") que ya no
+  se muestran, pero confunden al leer la BD.
+- **Etiqueta:** `[IMPLEMENTADO]` (limpieza de filas retiradas pendiente).
+
+---
+
+## 3. Términos retirados (no usar en copy nuevo)
+
+| Término retirado | Por qué | Sustituto canónico | Decisión |
 |---|---|---|---|
-| **El Gran Reino** | Metáfora del backend; el splash "se conecta" a él | `app_es.arb:510-511`, `splash_screen.dart:224` | `[IMPLEMENTADO]` (texto) |
-| **Gremio** | El hub social: 2.ª pestaña del dashboard | `app_es.arb:57`, `dashboard_screen.dart:373-374` | `[IMPLEMENTADO]` |
-| **Salón del Gremio** | Pantalla del gremio (`ChatRoomsScreen`) | `app_es.arb:192`, `chat_rooms_screen.dart:48` | `[IMPLEMENTADO]` |
-| **Mesa** | Una sala de voz del gremio (= fila en `chat_rooms`) | `app_es.arb:262-265`; `public.chat_rooms` (6) | `[IMPLEMENTADO]` |
-| **Mazmorra** | Un escenario de práctica; se entra a `/conversation` | `app_es.arb:172`, `learning_path_roadmap.dart:721,774` | `[IMPLEMENTADO]` |
-| **Mapa de Mazmorras** | La ruta de lecciones por etapas | `app_es.arb:1004`, `learning_path_roadmap.dart` | `[IMPLEMENTADO]` |
-| **Portal** | Entrada de nivel: "ELIGE UN PORTAL SEGÚN TU RANGO" | `app_es.arb:1063-1065` | `[IMPLEMENTADO]` (texto + fondo) |
-| **Bioma por banda** | Bosque (PRE-A1/A1), ruinas (A2), viento (B1), portal (B2), arena (C1/C2) | `cyber_manhwa_background.dart:145-156` | `[IMPLEMENTADO]` |
-| **Santuario de Maná** | Pantalla de energía agotada/compra. Antes "Guardián" | `app_es.arb:521-529`, `dungeon_guardian_screen.dart:156` | `[IMPLEMENTADO]` |
-| **Rusty Flagon** | La posada de Mira, única con escena propia | `mini_conversation_script.dart:28,53` | `[IMPLEMENTADO]` |
-| **La Taberna** | La sala del gremio, con música en loop | `tavern_music_service.dart:8`, `app_es.arb:705` | `[IMPLEMENTADO]` |
-| **Núcleo Arcano** | Energía antigua del Oráculo, sustituida por el maná. **Texto muerto** | `app_es.arb:219-221,288,428-430` (0 usos en widgets) | `[CONCEPTUAL]` |
-| **Taberna del Aprendiz · Mesa Redonda de Tácticas · Consejo Supremo** | Mesas que el Maestre recomienda y que **no existen en la BD** | `app_es.arb:705-711` | `[CONCEPTUAL]` |
+| **Estamento** | Metáfora feudal paralela; el jugador no pertenece a un estamento, pertenece a una **membresía** del gremio | "membresía" / "nobleza" / "plebeyo" | D-01 |
+| **Hunter / cazador** | Metáfora de caza de mazmorras paralela al gremio | "aventurero" | D-01 |
+| **Usuario del Aura** | Nombre adicional para el jugador dentro de la ficción | "aventurero" (el Aura se *tiene*, no se *es*) | D-01 |
+| **HIERRO / PLATA / ORO** | Segunda escala de rango sin respaldo en BD | F–SSS | D-01 / D-07 |
+| **PRESTIGIO {nivel}** (battle pass) | Tercera escala, sistema retirado | "título de prestigio" (Aura) | D-04 |
+| **Temporada** (como battle pass) | El battle pass se retira | — (no hay temporadas) | D-04 |
+| **Ítem de maná / poción** | Recurso equipable retirado | "maná" (asignación del plan) | D-05 |
 
 ---
 
-## 3. Niveles y rangos
+## 4. Reglas de copy (para `.arb` y BD)
 
-| Término | Significado | Dónde vive | Etiqueta |
+1. Un término, un significado: si una palabra necesita dos definiciones, se parte
+   en dos palabras.
+2. El jugador es **aventurero**; nunca "Hunter", "cazador" ni "usuario".
+3. El rango se escribe **F–SSS** y solo con esa escala.
+4. La membresía se llama **nobleza** o **plebeyo**; el conjunto es **membresía**.
+5. El maná **se gasta**, no se "vende"; la membresía **incluye** maná.
+6. El **Aura** se acumula; el **título** se luce; el **rango** se gana con examen.
+7. Los `.arb` se editan **solo con la herramienta de edición** y después
+   `flutter gen-l10n` (regla del repo).
+
+---
+
+## 5. Estado de cumplimiento
+
+| Término | Canónico definido | Aplicado en copy | Deuda |
 |---|---|---|---|
-| **CEFR** | Escala de nivel: PRE-A1, A1, A2, B1, B2, C1, C2 | `docs/PRODUCT.md:70`; `cefr_rank.dart:10`; tabla `cefr_levels` (7) | `[IMPLEMENTADO]` |
-| **Rango del gremio (F–SSS)** | Traducción lúdica del CEFR: PRE-A1=F, A1=E, A2=D, B1=C, B2=B, C1=A, C2=S (+SS, SSS) | `cefr_rank.dart:13-35,73` | `[IMPLEMENTADO]` |
-| **SS / SSS** | Rangos superiores sin flujo que los asigne (C2 ya es S) | `cefr_rank.dart:33-34` | `[PARCIAL]` |
-| **Placement** | Evaluación oral inicial con el Oráculo que fija CEFR y rango | `placement_service.dart:45` → `evaluate-placement` → `apply_placement_as` | `[IMPLEMENTADO]` |
-| **Nivel de cazador** | Nivel numérico por XP: `1 + XP/1000`; desbloquea cosméticos y paga oro | `docs/PRODUCT.md:58`; `hunter_level_test.dart` | `[IMPLEMENTADO]` |
-| **Etapa Básica** | PRE-A1 + A1 + A2: requisito para despertar el Aura | `app_es.arb:485,487`; `aura_system.dart:102-115` | `[IMPLEMENTADO]` |
-| **Racha (streak)** | Días consecutivos practicando | `app_es.arb:122,204`; `player_streaks`; `streak_rules.dart:5` | `[IMPLEMENTADO]` |
-| **Freeze de racha** | Compra con gemas que protege un día perdido (máx. 3) | `app_es.arb:605-609`; RPC `purchase_streak_freeze` (`economy_repository_impl.dart:675`) | `[IMPLEMENTADO]` |
+| Jugador | ✅ | ❌ ("Hunter") | Reescribir claves de UI y textos de onboarding |
+| Rango | ✅ | ❌ (3 escalas) | Retirar HIERRO/PLATA/ORO y PRESTIGIO N |
+| Gremio | ✅ | 🟡 (pantalla sí, misiones no) | Tablón + retirar chat libre |
+| Maná | ✅ | 🟡 (coste sí, venta ambigua) | CTA del Santuario; turno de gracia |
+| Aura | ✅ | 🟡 | Copy del HUD |
+| Nobleza | ✅ | ❌ ("estamento") | `.arb` + `subscription_plans.description` |
+| Plebeyo | ✅ | ✅ | Limpiar planes retirados |
 
----
-
-## 4. Jerarquía social y prestigio
-
-| Término | Significado | Dónde vive | Etiqueta |
-|---|---|---|---|
-| **Estamento** | Clase social comprada = plan: `plebeyo`, `noble`, `realeza` | `app_es.arb:987,968`; `subscription_plans.class_name` | `[IMPLEMENTADO]` |
-| **Techo de prestigio** | Título máximo alcanzable según el estamento (`ceiling_class`) | `prestige_ladder.ceiling_class`; `compute_prestige_title` (migración `20260813_mana_aura_redesign.sql:365-374`) | `[IMPLEMENTADO]` |
-| **Título de prestigio** | Escalón ganado por Aura + radar dentro del techo (21 niveles) | `public.prestige_ladder`; `get_prestige_title` (`economy_repository_impl.dart:956`) | `[IMPLEMENTADO]` |
-| **Segmento** | Agrupación del escalón: `comun`, `noble`, `real` | `prestige_ladder.segment` | `[IMPLEMENTADO]` |
-| **Prestigio (chip)** | El título mostrado en el HUD del gremio | `app_es.arb:395` (`PRESTIGIO {level}`), `chat_rooms_screen.dart:1048-1075` | `[PARCIAL]` (el chip usa nivel de battle pass, no el título) |
-| **Aura** | Poder 0–1 calculado con radar, racha y CEFR; también "Aura XP", mérito acumulado sin tope | `aura_system.dart:126-159`, `app_es.arb:483-495` | `[IMPLEMENTADO]` |
-| **Usuario del Aura** | Estado desbloqueado al superar la Etapa Básica o ser acreditado ≥B1 | `app_es.arb:486`; `aura_system.dart:78-81` | `[IMPLEMENTADO]` |
-| **Tiers de Aura** | `latente · revelada · abierta · dominante · abisal` (cortes 0,25/0,45/0,65/0,85) | `aura_system.dart:19,153-158`; `app_es.arb:489-493` | `[IMPLEMENTADO]` |
-| **Título de habilidad** | 25 títulos en 6 líneas (fluidez, fonética, léxico, precisión, constancia, carisma) | `hunter_skill_titles.dart`; `hunter_titles` (24); `app_es.arb:889-966` | `[IMPLEMENTADO]` (hardcodeado; la tabla no se lee) |
-| **Matriz de 11 atributos** | FUE/DEX/INT/SUE… **no existe**: el radar real es de 5–6 ejes | `app_es.arb:269,1073-1079` (0 usos) | `[CONCEPTUAL]` |
-| **Liga de Nivel** | Clasificación por ligas: **texto sin widget**; el leaderboard real es "Rango de XP" | `app_es.arb:884-887`; `progress_tab_view.dart:535-541` | `[CONCEPTUAL]` |
-
----
-
-## 5. Personajes
-
-| Término | Significado | Dónde vive | Etiqueta |
-|---|---|---|---|
-| **El Oráculo** | Examinador y jefe: hace el placement y la promoción de nivel | Prompt `conversation_providers.dart:1263-1300`; `app_es.arb:211,503`; avatar `assets/images/avatars/oracle_01.png` | `[IMPLEMENTADO]` |
-| **Mira, la posadera** | NPC de la prueba de 60 s (2 turnos, sin maná) | `mini_conversation_script.dart:28,53-70`; `app_es.arb:1286` | `[IMPLEMENTADO]` |
-| **Maestre de Mesa** | NPC consejero del gremio por chat | `guild_master_floating_banner.dart:130-137`; `app_es.arb:712` | `[IMPLEMENTADO]` |
-| **Maestro del Gremio** | Cargo que solo existe en la clave duplicada `guild_master` | `app_es.arb:258` | `[CONCEPTUAL]` |
-| **Bibliotecaria del Gremio · Escriba Real · Cónsul del Debate** | "NPC" de misión: solo etiqueta, sin agente | `app_es.arb:743-745` | `[CONCEPTUAL]` |
-| **Tutor** | El interlocutor de las mazmorras; rol definido por escenario | `lesson_catalog.dart` (`assistantRole`); `conversation_repository_impl.dart` | `[IMPLEMENTADO]` |
-
----
-
-## 6. Pedagogía
-
-| Término | Significado | Dónde vive | Etiqueta |
-|---|---|---|---|
-| **Escenario** | Unidad de contenido: rol + metas + frases clave | `scenarios` (500), `scenario_goals`, `scenario_objectives`, `scenario_phrases`; `lesson_catalog.dart` | `[IMPLEMENTADO]` |
-| **Meta / objetivo** | Condición de comunicación a cumplir en la conversación | `scenario_goals`/`user_scenario_goals`; evaluadas por LLM (`evaluate_placement`/`goal_eval`) | `[IMPLEMENTADO]` |
-| **Estrella** | Calificación de la lección (1–5); la 4.ª/5.ª exigen "chat oculto" | `app_es.arb:1048` (`convo_hidden_chat`); `lesson_completion_stars` (RPC) | `[IMPLEMENTADO]` |
-| **Chat oculto** | Modo sin texto visible: obliga a escuchar | `app_es.arb:1048,1058` | `[IMPLEMENTADO]` |
-| **Camino / Ruta** | Secuencia desbloqueada de escenarios por nivel | `lesson_unlock_service.dart:37`; `get_recommended_path` | `[IMPLEMENTADO]` |
-| **Centro de descubrimiento** | Vista de catálogo filtrable (nivel, interés, meta) | `app_es.arb:1180-1200` | `[IMPLEMENTADO]` |
-| **SRS / repaso espaciado** | Repaso de vocabulario por vencimiento (SM-2) | `srs_review_card.dart`, `srs_flashcard_modal.dart`; `record_vocabulary_review` (`dashboard_repository_impl.dart:682`); `vocabulary_reviews` | `[IMPLEMENTADO]` |
-| **Retención a 7 días** | % de palabras recordadas; única métrica "dura" de aprendizaje | `app_es.arb:415` (`srs_retention`) | `[IMPLEMENTADO]` |
-| **Corrección** | Sugerencia "Escribiste / Mejor" con tipo (gramática, vocabulario, elección, pronunciación, STT) | `app_es.arb:1010-1025`; `corrections` (0 filas) | `[PARCIAL]` |
-| **Mis errores** | Historial agrupado por tipo y recurrencia | `my_errors_screen.dart:20`; `corrections_repository.dart:72-88` | `[IMPLEMENTADO]` (sin datos todavía) |
-| **Lección de refuerzo** | Lección generada a partir de errores/metas falladas; cuesta 100 de maná | `lesson_generator_service.dart:32`; `lesson_generation` (100); `app_es.arb:793-801` | `[IMPLEMENTADO]` |
-| **Comprensión auditiva** | Diálogo TTS + preguntas corregidas en servidor | `listening_quiz_screen.dart:26`; `submit_listening_attempt` (`listening_repository.dart:128`) | `[IMPLEMENTADO]` (0 intentos) |
-| **Informe semanal** | Resumen calculado en servidor con historial según plan | `weekly_report_service.dart:26`; `get_weekly_report`; `app_es.arb:1351-1377` | `[IMPLEMENTADO]` |
-| **Meta diaria** | Objetivo de minutos/día elegido en el onboarding | `get_daily_goal_progress` (`dashboard_providers.dart:45`); `DailyGoalRingCard` (`dashboard_screen.dart:399`) | `[IMPLEMENTADO]` |
-| **Precisión (est.) / Fluidez (est.)** | Métricas **estimadas** por el modelo, no acústicas | `app_es.arb:806-809`; `docs/PRODUCT.md:63-64` | `[IMPLEMENTADO]` con salvedad |
-| **Huella de voz / Speech DNA** | Métricas por escenario de pronunciación | `app_es.arb:255,1060`; `speech_dna_metrics` | `[PARCIAL]` |
-
----
-
-## 7. IA y su coste
-
-| Término | Significado | Dónde vive | Etiqueta |
-|---|---|---|---|
-| **Maná** | Energía que consume cada acción de IA; expira con el ciclo | `app_es.arb:518-533`; `user_subscriptions.mana_*`; `consume_mana` (`economy_repository_impl.dart:785`) | `[IMPLEMENTADO]` |
-| **Coste por acción** | Precio en maná de cada llamada, decidido en servidor | `public.ai_action_costs` (7 acciones, §00 §7.2) | `[IMPLEMENTADO]` |
-| **Acción exenta (`FREE_ACTIONS`)** | Llamadas que no gastan maná: `goal_eval`, `carisma_eval`, `guild_chat`, `stt_transcribe`, `correction_turn` | `supabase/functions/llm-proxy/validation.ts:23-29` | `[IMPLEMENTADO]` |
-| **Tope diario** | 200 de maná/día en el plan gratuito | `docs/PRODUCT.md:123-137` | `[IMPLEMENTADO]` |
-| **Turno de gracia** | Un cierre gratis al día cuando se agota el tope diario; lo reclama el servidor | `claim_mana_grace` (0 usos en cliente: es correcto, vive en `llm-proxy`) | `[IMPLEMENTADO]` |
-| **`llm-proxy`** | Edge Function única para STT y chat SSE | `supabase/functions/llm-proxy/index.ts` | `[IMPLEMENTADO]` |
-| **`evaluate-placement`** | Edge Function que decide CEFR/rango y escribe el intento | `supabase/functions/evaluate-placement/index.ts:492,518` | `[IMPLEMENTADO]` |
-| **`lesson-generator`** | Edge Function de lecciones de refuerzo | `supabase/functions/lesson-generator/`; `lesson_generator_service.dart:32` | `[IMPLEMENTADO]` |
-| **Jefe de mazmorra** | El examen de promoción (el propio Oráculo), con rúbrica de 6 dimensiones | `app_es.arb:1316-1350`; `boss_exam_rules.dart`; `boss_exam_attempts` | `[IMPLEMENTADO]` |
-| **Checkpoint de nivel** | Aviso al completar N lecciones para retar al Oráculo | `app_es.arb:1377-1381`; `level_checkpoint_banner.dart:117` | `[IMPLEMENTADO]` |
-| **Rúbrica** | 6 dimensiones: comprensión, fluidez, gramática, vocabulario, pronunciación, naturalidad | `app_es.arb:1334,1345-1350` | `[IMPLEMENTADO]` |
-| **NPC que recuerda** | Aviso de que el NPC retoma tu intento anterior | `app_es.arb:412-413` | `[PARCIAL]` |
-
----
-
-## 8. Economía
-
-| Término | Significado | Dónde vive | Etiqueta |
-|---|---|---|---|
-| **Oro** | Moneda de cosméticos | `app_es.arb:590`; `add_gold` (`economy_repository_impl.dart:862`) | `[IMPLEMENTADO]` |
-| **Gemas** | Moneda premium (cosméticos exclusivos, freeze de racha) | `app_es.arb:589`; `spend_gems` (`:420`), `add_gems` (`:221`) | `[IMPLEMENTADO]` |
-| **Fragmentos** | Moneda de crafteo | `app_es.arb:591`; `add_fragments` (`:734`), `craft_cosmetic` (`:653`) | `[IMPLEMENTADO]` |
-| **Pergaminos** | Recompensa de racha acumulable con tope | `app_es.arb:546-550`; tabla `player_pergaminos`; `increment_pergaminos_max` | `[IMPLEMENTADO]` |
-| **XP** | Puntos de nivel de cazador | `app_es.arb:121`; `add_xp` (`:944`) | `[IMPLEMENTADO]` |
-| **Bolsas de nivel / recompensas de nivel** | Oro que se cobra al subir de nivel | `app_es.arb:600-604`; UI en `shop_screen.dart:532-565`; `level_rewards`, `claim_level_rewards` (`:705`) | `[IMPLEMENTADO]` |
-| **Recompensa diaria** | Cofre diario escalado por racha | `app_es.arb:542-554`; `daily_reward_modal.dart` | `[IMPLEMENTADO]` |
-| **Tienda** | Cosmética por oro/gemas/fragmentos (no vende ventajas de aprendizaje) | `shop_screen.dart:29`; `cosmetic_catalog` (40); `purchase_cosmetic` (`:627`) | `[IMPLEMENTADO]` |
-| **Inventario** | Cosméticos poseídos y equipados | `inventory_screen.dart:18`; `player_inventory`; `equip_cosmetic` (`:376`) | `[IMPLEMENTADO]` |
-| **Elixir / Gema de maná** | Objeto equipable que da maná | `app_es.arb:527,997-1003`; `mana_items`, `equip_mana_item` (`:987`) | `[IMPLEMENTADO]` |
-| **Poción de maná** | Pack de maná (7 en catálogo) — **no se vende**. `docs/PRODUCT.md:60-61` | `mana_potions` (7) | `[PARCIAL]` |
-| **Battle Pass / Pase del Gremio** | Tabla con nivel y temporada fija (`season_2026_02`); **no hay pantalla de pase** | `economy_repository_impl.dart:508-536`; `guild_battle_pass` (23); `app_es.arb:618` | `[PARCIAL]` |
-| **Recompensa de sesión** | XP/oro/fragmentos al cerrar sesión; la calcula el servidor | `apply_session_rewards`; `close_session` (`:798`); `session_summary_screen.dart:22-24` | `[IMPLEMENTADO]` |
-| **Drop de sesión** | Objeto sorpresa de fin de sesión | `session_drop_controller.dart`; `claim_session_drop` (`:926`) | `[PARCIAL]` |
-
----
-
-## 9. Compras
-
-| Término | Significado | Dónde vive | Etiqueta |
-|---|---|---|---|
-| **Plebeyo** | Plan gratis por defecto | `subscription_plans.id='plebeyo'`; `app_es.arb` | `[IMPLEMENTADO]` |
-| **Noble** | Plan de $4.99 con 7 días de trial | `subscription_plans.id='noble'` (`trial_days=7`) | `[IMPLEMENTADO]` |
-| **Realeza** | Plan de $9.99, techo de prestigio completo | `subscription_plans.id='realeza'` | `[IMPLEMENTADO]` |
-| **Divino** | Plan retirado (`is_active=false`), conservado por integridad referencial | `subscription_plans.id='divino'`; `docs/PRODUCT.md:27-29` | `[PARCIAL]` |
-| **Entitlement** | `DungeonsSpeak Pro` en RevenueCat | `docs/PRODUCT.md:37`; `core/services/revenuecat_service.dart` | `[IMPLEMENTADO]` |
-| **`sync-entitlement`** | Reconciliación del entitlement al abrir sesión | `supabase/functions/sync-entitlement/` | `[IMPLEMENTADO]` |
-| **Paywall** | Pantalla de estamentos y compra | `paywall_screen.dart:32`; planes activos desde `subscription_plans` | `[IMPLEMENTADO]` |
-
----
-
-## 10. Claves en conflicto (no usar hasta resolver)
-
-| Clave | Valores en conflicto | Efecto | Evidencia |
-|---|---|---|---|
-| `guild_master` | "★ MAESTRO DEL GREMIO" vs "MAESTRE DE MESA" | Gana la última: el cargo mayor desaparece | `app_es.arb:258` vs `:712` |
-| `radar_title` | "Radar de Habilidades 5-D" vs "Radar Holográfico de Habilidades" | El "5-D" es incierto (el jefe mide 6) | `app_es.arb:113` vs `:445` |
-| `rank` | "Rango" vs "RANGO" | Inconsistencia tipográfica | `app_es.arb:176` vs `:372` |
-| `profile_vocab_empty` | Dos mensajes distintos | Copy arbitrario | `app_es.arb:475` vs `:845` |
-| `room_live` | Duplicado idéntico | Ruido | `app_es.arb:237` vs `:383` |
-| `path_roadmap_title`, `cancel`, `onboarding_start_eval` | Duplicados solo en `en` | paridad de claves rota | `app_en.arb` |
-
----
-
-## 11. Términos que **no** existen (falsos amigos)
-
-Evitan que diseño o marketing prometan algo que no hay:
-
-| Término | Por qué no existe |
-|---|---|
-| **Mazmorra de Vocabulario** | Solo en el diccionario muerto (`app_translations.dart:36`); el vocabulario se practica con SRS |
-| **Matriz de 11 atributos** | Texto huérfano; el radar es de 5–6 ejes |
-| **Liga** | Texto huérfano; hay leaderboard plano |
-| **Resonancia / mentoría** | Etiqueta de tipo de sala, sin flujo |
-| **Moderación por IA/creador/asignada** | `mod_*` sin usos; las salas son `moderator_type='ai'` pero no hay UI de moderación |
-| **Battle pass con tiers y recompensas** | Hay tabla y nivel; no hay pase jugable |
-| **Misiones secretas / eventos globales** | Tablas sin pantalla |
-| **63 títulos** | Hay 24 en BD y 25 en código |
-| **Núcleo Arcano** | 8 claves, 0 usos |
-| **Pase del Gremio** | Clave sin uso (`app_es.arb:653`) |
-| **Plan Divino** | Retirado |
-| **Enseñanza de lectura/escritura** | No hay ejercicios evaluados (`docs/PRODUCT.md:11-13`) |
-
----
-
-## 12. Siglas internas (para leer el código)
-
-| Sigla | Significado | Nota |
-|---|---|---|
-| **CEFR** | Marco Común Europeo de Referencia | 7 niveles, `cefr_rank.dart:10` |
-| **SRS** | Spaced Repetition System | SM-2, `vocabulary_reviews` |
-| **STT / TTS** | Speech-to-text (Groq Whisper) / text-to-speech (`flutter_tts`) | `docs/ARCHITECTURE.md:92-98` |
-| **RPC** | Función Postgres expuesta por Supabase | 82 en `public` |
-| **RLS** | Row Level Security | 130 políticas |
-| **P-NN** | Identificador de paquete de trabajo con issue de GitHub | p. ej. P-31 = #116 |
-| **Aura XP** | Mérito acumulado sin tope que decide el título de prestigio | ≠ XP de nivel |
+> **Mantenimiento.** Si aparece un término nuevo en el producto, se añade aquí
+> **antes** de escribirlo en un `.arb` o en una tabla de contenido. Si dos
+> documentos de `docs/` discrepan, este glosario y [`_decisions.md`](_decisions.md)
+> mandan sobre el vocabulario.

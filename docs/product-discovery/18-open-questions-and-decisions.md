@@ -1,16 +1,24 @@
-# 18 — Preguntas abiertas y decisiones pendientes
+# 18 — Preguntas abiertas y decisiones
 
-> Este documento no decide: **propone** y marca lo que necesita aprobación del
-> dueño del producto. Cada decisión incluye la opción recomendada y su coste.
-> Hasta que se apruebe, el comportamiento actual no cambia.
+> **Estado 2026-10-31: las decisiones ya están aprobadas por Isaac.** Este
+> documento conserva el **análisis histórico** (qué se preguntó, qué costaba cada
+> opción) y el registro. La **resolución canónica**, la coherencia contra el
+> código y el umbral de D-15 viven en
+> [`19-canon-and-decisions.md`](19-canon-and-decisions.md) y en
+> [`_decisions.md`](_decisions.md). Donde una recomendación de §1 contradiga el
+> canon (p. ej. D-01, D-05 o D-10), **manda el canon**.
 >
 > Contexto: [`12`](12-current-state-and-gaps.md) (estado),
 > [`14`](14-game-design-audit.md) (crítica), [`15`](15-improvement-proposals.md)
-> (propuestas).
+> (propuestas), [`19`](19-canon-and-decisions.md) (decisiones y brechas).
 
 ---
 
-## 1. Decisiones que bloquean trabajo
+## 1. Decisiones que bloqueaban trabajo (análisis histórico)
+
+> Las columnas "Opciones" y "Recomendación" son el material con el que se decidió.
+> **No son estado ni instrucción vigente.** La decisión aprobada está en §4 y en
+> [`19` §1](19-canon-and-decisions.md#1-registro-de-decisiones-aprobadas).
 
 | ID | Pregunta | Por qué ahora | Opciones | Recomendación | Coste de la recomendación | Bloquea a |
 |---|---|---|---|---|---|---|
@@ -40,8 +48,8 @@ experimento pequeño. Ninguna se usa como base de una propuesta sin marcarla.
 | ID | Hipótesis | Señal que la confirmaría | Cómo medirla | Coste | Si se falsa |
 |---|---|---|---|---|---|
 | **H-01** | El muro de maná es la principal causa de abandono de sesión | Muchos cierres justo al recibir `daily_limit_reached` | Evento de bloqueo + siguiente acción (`analytics_events`) | S | Revisar P-ECO-2 y el turno de gracia |
-| **H-02** | El rango solo motiva si abre contenido | Aumento de exámenes de jefe y de retorno tras subir de rango | Cohorte con P-GD-1 vs sin ella | M | Rango queda cosmético (D-07 opción b) |
-| **H-03** | Un gremio vacío resta más de lo que aporta | Ocultar el gremio no baja la retención (o la sube) | A/B de visibilidad de la pestaña | S | Apagar gremio (D-08 opción c) |
+| **H-02** | El rango solo motiva si abre contenido | Aumento de exámenes de jefe y de retorno tras subir de rango | Cohorte con P-GD-1 vs sin ella | M | Se ajusta la dificultad del examen (D-07 sigue vigente) |
+| **H-03** | Un gremio vacío resta más de lo que aporta | Ocultar el gremio no baja la retención (o la sube) | A/B de visibilidad de la pestaña | S | Se refuerza el tablón asíncrono de D-08, no se apaga |
 | **H-04** | Un resumen con evidencia aumenta el retorno al día siguiente | Más sesiones D1 en el grupo con nueva copy | A/B de `session_summary` | M | Volver al resumen actual |
 | **H-05** | Los cosméticos no motivan porque no expresan identidad | Tras ligar cosméticos a clase/rango, suben las compras | Cohorte con catálogo por clase | M | Retirar crafteo y simplificar tienda |
 | **H-06** | Las misiones no se completan por techos irreales | Con techos medidos (10 min/día) la tasa de completado sube | `mission_instances` completadas / activas | S | Revisar `MissionVisibility` |
@@ -52,7 +60,10 @@ experimento pequeño. Ninguna se usa como base de una propuesta sin marcarla.
 
 ---
 
-## 3. Riesgos de no decidir
+## 3. Riesgos de no decidir (histórico)
+
+> Ya no aplica como advertencia: las decisiones están tomadas. Se conserva para
+> explicar por qué se decidió cada cosa.
 
 | Riesgo | Consecuencia | Decisión que lo evita |
 |---|---|---|
@@ -66,24 +77,32 @@ experimento pequeño. Ninguna se usa como base de una propuesta sin marcarla.
 
 ## 4. Registro de decisiones
 
-| Fecha | ID | Decisión | Aprobada por | Nota |
-|---|---|---|---|---|
-| — | D-01 | Pendiente | — | — |
-| — | D-02 | Pendiente | — | — |
-| — | D-03 | Pendiente | — | — |
-| — | D-04 | Pendiente | — | — |
-| — | D-05 | Pendiente | — | — |
-| — | D-06 | Pendiente | — | — |
-| — | D-07 | Pendiente | — | — |
-| — | D-08 | Pendiente | — | — |
-| — | D-09 | Pendiente | — | — |
-| — | D-10 | Pendiente | — | — |
-| — | D-11 | Pendiente | — | — |
-| — | D-12 | Pendiente | — | — |
-| — | D-13 | Pendiente | — | — |
-| — | D-15 | Pendiente | — | — |
+> **Todas aprobadas el 2026-10-31 por Isaac.** El texto literal de cada decisión
+> está en [`_decisions.md`](_decisions.md); la auditoría de cumplimiento, en
+> [`19` Parte C](19-canon-and-decisions.md#2-parte-c--coherencia-código--decisión).
 
-**Cómo cerrar una decisión:** marcar la opción, escribir la fecha y el nombre, y
-abrir el issue de implementación correspondiente. Si la decisión contradice
-`docs/PRODUCT.md`, actualizar ese documento en el mismo cambio (es la fuente de
-verdad de producto).
+| Fecha | ID | Decisión aprobada (resumen) | Aprobada por | Estado | Detalle |
+|---|---|---|---|---|---|
+| 2026-10-31 | **D-01** | Gremio de aventureros como institución central; nobleza (pago) / plebeyo (gratis); un solo nombre para el jugador y una sola escala de rango | Isaac | ✅ Aprobada | [§2.1](19-canon-and-decisions.md#21-d-01--una-institución-un-nombre-una-escala) |
+| 2026-10-31 | **G-01** | Misiones solo del gremio, en 3 capas: del día, contratos y evento semanal | Isaac | ✅ Aprobada | [§2.16](19-canon-and-decisions.md#216-g-01--misiones-solo-del-gremio-en-3-capas) |
+| 2026-10-31 | **D-02** | Aprendizaje primero; métricas primarias: frases habladas/semana y retención léxica a 7 días | Isaac | ✅ Aprobada | [§2.2](19-canon-and-decisions.md#22-d-02--aprendizaje-primero-con-dos-métricas-primarias) |
+| 2026-10-31 | **D-03** | Una sola racha; el freeze se consume solo al faltar un día | Isaac | ✅ Aprobada | [§2.3](19-canon-and-decisions.md#23-d-03--una-racha-y-un-freeze-que-se-consume-al-faltar) |
+| 2026-10-31 | **D-04** | Se retira el battle pass; los títulos de prestigio son el único eje | Isaac | ✅ Aprobada | [§2.4](19-canon-and-decisions.md#24-d-04--retirar-el-battle-pass-títulos-como-único-eje) |
+| 2026-10-31 | **D-05** | El pergamino pasa a reintento de lección (el maná sigue cobrándose); se retiran los ítems de maná | Isaac | ✅ Aprobada | [§2.5](19-canon-and-decisions.md#25-d-05--pergamino--reintento-sin-ítems-de-maná) |
+| 2026-10-31 | **D-06** | No se regala maná; sin maná, alternativa gratuita sin coste de IA (SRS, listening, Mis errores) | Isaac | ✅ Aprobada | [§2.6](19-canon-and-decisions.md#26-d-06--no-se-regala-maná-y-las-alternativas-cuestan-cero) |
+| 2026-10-31 | **D-07** | El rango F–SSS se sube con examen de jefe y desbloquea contenido | Isaac | ✅ Aprobada | [§2.7](19-canon-and-decisions.md#27-d-07--rango-por-examen-y-con-desbloqueo) |
+| 2026-10-31 | **D-08** | Gremio asíncrono: tablón y Maestre NPC, sin chat libre en fase 1; voz solo con ≥20 activos/semana | Isaac | ✅ Aprobada | [§2.8](19-canon-and-decisions.md#28-d-08--gremio-asíncrono-sin-chat-libre) |
+| 2026-10-31 | **D-09** | La BD manda sobre el currículo; copia local de solo lectura e incremental; contenido y parámetros en BD, lógica en código | Isaac | ✅ Aprobada | [§2.9](19-canon-and-decisions.md#29-d-09--la-bd-manda-doble-currículo) |
+| 2026-10-31 | **D-10** | Listening se mantiene como alternativa sin coste; contenido por fases | Isaac | ✅ Aprobada | [§2.10](19-canon-and-decisions.md#210-d-10--listening-se-mantiene-por-fases) |
+| 2026-10-31 | **D-11** | Se mantienen precios y trial; se instrumenta para medir | Isaac | ✅ Aprobada | [§2.11](19-canon-and-decisions.md#211-d-11--precios-y-trial-con-instrumentación) |
+| 2026-10-31 | **D-12** | Solo inglés | Isaac | ✅ Aprobada | [§2.12](19-canon-and-decisions.md#212-d-12--solo-inglés) |
+| 2026-10-31 | **D-13** | Validación visual humana en dispositivo, por release | Isaac | ✅ Aprobada | [§2.13](19-canon-and-decisions.md#213-d-13--validación-visual-humana-por-release) |
+| 2026-10-31 | **D-14** | Solo Android | Isaac | ✅ Aprobada | [§2.14](19-canon-and-decisions.md#214-d-14--solo-android) |
+| 2026-10-31 | **D-15** | Umbral de continuar / iterar / pivotar definido con las métricas de D-02 | Isaac | ✅ Aprobada (umbral concretado) | [§3](19-canon-and-decisions.md#3-umbral-de-d-15-continuar--iterar--pivotar) |
+
+**Cómo se cambia una decisión (desde ahora):** no se reescribe la existente. Se
+abre una decisión nueva con fecha y aprobador, se registra en
+[`19` §1](19-canon-and-decisions.md#1-registro-de-decisiones-aprobadas) y en
+[`_decisions.md`](_decisions.md), y si contradice `../PRODUCT.md` se actualiza ese
+documento en el mismo cambio. Las tareas de implementación se abren en los issues
+de GitHub (`hiulett/TutorSaas`).

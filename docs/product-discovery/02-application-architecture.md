@@ -269,6 +269,8 @@ diferencia de nombres):
 > producción. Cualquier documento que cite "84/82/130/13" está citando el
 > estado de un día anterior. Este documento usa el baseline como referencia
 > histórica y producción como fuente de verdad, y lo dice explícitamente.
+> `docs/product-discovery/README.md` §1 y §6 siguen publicando las cifras del
+> baseline; al leerlos, aplicar la tabla de arriba.
 
 **Las 14 vistas** (producción): `ai_cost_by_session`, `ai_usage_by_session`,
 `ai_usage_daily`, `analytics_activation`, `analytics_onboarding_funnel`,
@@ -304,8 +306,10 @@ en `guard_language_profile`.
 
 ### 5.3 Cómo se cierra una sesión (importante y documentado a medias)
 
-`ConversationNotifier.endSession()` llama a `close_session(p_session_id uuid)`
-(`economy_repository_impl.dart:798`). Esa función, **en servidor**:
+`ConversationNotifier.endSession()` llama a
+`economyRepository.closeSession(sessionId)` (`conversation_providers.dart:2592-2601`;
+el RPC en sí está en `economy_repository_impl.dart:798-808`). Esa función, **en
+servidor**:
 
 - valida que la conversación sea del usuario y no esté borrada;
 - es **idempotente** vía `session_reward_ledger` (si ya existe, devuelve el
@@ -430,12 +434,13 @@ record (AAC-LC, 128 kbps, 16 kHz)          conversation_audio_recorder / mini_co
         │      client_capabilities=["server_mana"]
         │      → data: {choices[0].delta.content} … data: [DONE]
         │
-        └─► flutter_tts (on-device, rate 0.48, velocidad ajustable 0.75×/1×/1.25×)
+        └─► flutter_tts (on-device, language='en-US' fijo, rate 0.48 × 0.75/1/1.25, pitch 1.05)
 ```
 
 Evidencia: `conversation_repository_impl.dart:58-119` (STT),
 `:124-236` (chat SSE), `sse_chat_decoder.dart:18-47` (parser),
-`conversation_providers.dart:600-652` (preferencias TTS), `:2029` (`_speakTts`).
+`conversation_providers.dart:526-532, 589-592` (config TTS),
+`tts_preferences.dart:9-34` (`baseSpeechRate = 0.48`), `:2029` (`_speakTts`).
 
 **Notas que corrige la documentación antigua:**
 
@@ -445,6 +450,9 @@ Evidencia: `conversation_repository_impl.dart:58-119` (STT),
 - `generateTtsAudio` existe pero **devuelve cadena vacía**
   (`conversation_repository_impl.dart:239`): no hay TTS de servidor; el audio
   del tutor es siempre local.
+- El TTS está **fijado a `en-US`** (`conversation_providers.dart:526`) aunque el
+  producto declare idioma objetivo configurable y 3 idiomas de UI. `[PARCIAL]`
+  — no hay voz para otros idiomas objetivo.
 - Reintentos: 3 intentos con backoff `500 ms · 2^(n-1)` solo en
   429/500/502/503/timeout/connectionError (`:132-200`).
 
@@ -595,7 +603,7 @@ en dispositivo.
 | A-02 | **Ciclo `dashboard ↔ chat_rooms`** | `dashboard_screen.dart:374`, `chat_rooms_screen.dart` importa dashboard | Imposible separar el módulo de gremio |
 | A-03 | **`SettingsScreen` sin ruta** y embebida como pestaña | `router.dart` (no aparece) vs `dashboard_screen.dart:378` | No se puede enlazar desde notificación/widget; backlog UX-28 |
 | A-04 | **51 RPC distintas, 55 llamadas**, sin capa de "servicios" por dominio; la mitad de la economía vive en un solo repositorio de 1 000+ líneas | `economy_repository_impl.dart` | Difícil auditar qué escribe qué |
-| A-05 | **Dos criterios de "completada"** (catálogo Dart vs BD) | `docs/CONTEXT_MAP.md` ("dos currículos y dos criterios") | El resumen y el dashboard pueden discrepar |
+| A-05 | **Dos criterios de "completada"** (catálogo Dart vs BD) | señalado en `docs/CONTEXT_MAP.md`; el catálogo Dart está en `lesson_catalog.dart` y la BD tiene `lesson_completion_state`/`lesson_progress` | `[PENDIENTE DE VALIDAR]` en detalle: no se ejecutó la comparación lección a lección |
 | A-06 | **Catálogo de lecciones en el cliente** (4 621 líneas) mientras existe `lesson_catalog_index` en BD | `lesson_catalog.dart` vs tabla `lesson_catalog_index` | Fuente de verdad duplicada |
 | A-07 | **Cifras de BD desactualizadas** en baseline y `DATA_MODEL.md` | §5.1 | Documentación que envejece sin aviso |
 | A-08 | **`core/ai/placement_ai.dart` citado en `ARCHITECTURE.md:121` no existe** | `lib/core/ai/` solo contiene `sse_chat_decoder.dart` | Referencia rota en la documentación de arquitectura |
