@@ -275,7 +275,7 @@ no está. `[PARCIAL]` — la ficción y los datos divergen.
 | 21 títulos de prestigio | Los de §4.3 | `[IMPLEMENTADO]` |
 | 4 anuncios del gremio | *"El Gremio caza en equipo: únete a una mesa y practica en voz."* · *"Raid de vocabulario esta semana: gana doble XP."* · *"El Oráculo recomienda: 15 min de práctica diaria."* · *"Nuevos cazadores han despertado hoy. ¡Bienvenidos!"* | `[IMPLEMENTADO]` — `guild_announcements` (4), rotan en `chat_rooms_screen.dart:113-128` |
 | Música de taberna | `assets/music/tavermusic.mp3` en loop, con toggle | `[IMPLEMENTADO]` — `tavern_music_service.dart:8,67` |
-| 9 avatares + Oráculo | 8 clases + `oracle_01.png` + `Mision.png` | `[IMPLEMENTADO]` — `assets/images/avatars/` |
+| 9 avatares + fondo de misión | 8 clases + `oracle_01.png` + `Mision.png` (10 PNG en total) | `[IMPLEMENTADO]` — `assets/images/avatars/` |
 | 12 fondos diegéticos | taberna/gremio/estado/portal/bosque/ruinas/viento/arena | `[IMPLEMENTADO]` — `assets/images/` |
 
 **Conclusión del inventario:** el universo tiene **mucho arte y mucho

@@ -206,21 +206,30 @@ referencial, tal como documenta `docs/PRODUCT.md:27-29`. `[IMPLEMENTADO]`
 
 Medido en `public.ai_action_costs` (7 acciones) `[IMPLEMENTADO]`:
 
-| Acción | Maná |
+| Acción | Maná (tabla) |
 |---|---|
 | `lesson_generation` (lección de refuerzo) | 100 |
 | `oracle_eval` (cierre del examen del Oráculo) | 30 |
 | `oracle_turn` (turno del Oráculo) | 15 |
 | `dungeon_turn` (turno de mazmorra) | 12 |
 | `free_chat_turn` | 8 |
-| `correction_turn` | 3 |
+| `correction_turn` | 3 en tabla, **pero gratis** (ver abajo) |
 | `vocabulary_curation` | 2 |
-| `guild_chat` / `stt_transcribe` / `goal_eval` | 0 (gratis / fuera de catálogo) |
 
 Coincide con `docs/PRODUCT.md:50` y explica el tope diario de 200
 (≈16 turnos de mazmorra). El turno de gracia (`claim_mana_grace`) es
 `[IMPLEMENTADO]` en servidor y no reclamable por el cliente
 (`docs/PRODUCT.md:123-137`).
+
+**Acciones exentas** `[IMPLEMENTADO]`: `supabase/functions/llm-proxy/validation.ts:23-29`
+declara `FREE_ACTIONS = { goal_eval, carisma_eval, guild_chat, stt_transcribe, correction_turn }`.
+Dos consecuencias:
+
+- `stt_transcribe`, `goal_eval` y `carisma_eval` se registran en
+  `ai_usage_logs` pero no están en `ai_action_costs` (no cuestan maná).
+- **`correction_turn` está exenta en el proxy aunque `ai_action_costs` le pone 3.**
+  La tabla y el código no coinciden; manda el código. `[PARCIAL]` (deuda de
+  coherencia entre BD y función).
 
 ### 7.3 Monedas
 
@@ -252,8 +261,10 @@ máquina que usuarios.
 ### 8.2 Uso medido en la base de datos
 
 Fecha de la medición: 30-oct-2026. Son volúmenes absolutos de toda la vida del
-proyecto; **el proyecto es un entorno de desarrollo/pruebas, no un producto
-lanzado** (ver 8.3).
+proyecto. **Los datos son compatibles con un entorno de desarrollo/pruebas más
+que con un producto lanzado** (68 usuarios, 0 pagos, 70 conversaciones);
+confirmarlo exige acceso a Play Console y RevenueCat
+([`17`](17-evidence-and-traceability.md) §5).
 
 | Señal | Valor | Interpretación |
 |---|---|---|
@@ -270,7 +281,7 @@ lanzado** (ver 8.3).
 | `listening_attempts` | **0** | Comprensión auditiva: sin uso (existe desde 29-oct) |
 | `corrections` | **0** | "Mis errores" nunca ha tenido datos |
 | `chat_room_messages` / `chat_room_participants` | **0 / 0** | Gremio y salas de voz: **nunca** usados (salas desde 19-ago) |
-| `weekly_stats` | **0** | El informe semanal calcula al vuelo, no acumula |
+| `weekly_stats` | **0** | El informe **no** la usa: `get_weekly_report` agrega al vuelo desde `user_vocabulary`, `vocabulary_reviews` y `corrections` |
 
 ### 8.3 Interpretación honesta (la parte que importa)
 

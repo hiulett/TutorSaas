@@ -52,7 +52,7 @@ fila lo dice y se etiqueta `[PENDIENTE DE VALIDAR]` en lugar de darlo por bueno.
 | TTS del tutor | `conversation_screen.dart` + sheet TTS | `flutter_tts` on-device (`app_es.arb:1031-1035`) | `conversation_tts_notifier_test.dart`, `tts_preferences_test.dart`, `tts_settings_sheet_test.dart` | `[IMPLEMENTADO]` |
 | Prompt adaptativo por perfil | `conversation_repository_impl.dart` | `user_ai_profiles` | `tutor_prompt_builder_test.dart` (11), `tutor_adaptation_test.dart`, `conversation_flow_test.dart` | `[IMPLEMENTADO]` |
 | Evaluación de metas | `conversation_providers.dart` (`evaluateGoals`) | acción `goal_eval`; `user_scenario_goals`, `scenario_goals` | `goal_evaluation_gate_test.dart` (8), `goal_evaluation_golden_test.dart`, `goal_evaluation_robustness_test.dart` | `[IMPLEMENTADO]` |
-| Correcciones por turno | `correction_chip.dart`, `corrections_providers.dart:14` | `corrections` (**0 filas**), acción `correction_turn` (3 de maná) | `corrections_logic_test.dart` (22), `correction_turn_policy_test.dart`, `correction_chip_test.dart` | `[PARCIAL]` |
+| Correcciones por turno | `correction_chip.dart`, `corrections_providers.dart:14` | `corrections` (**0 filas**), acción `correction_turn` (exenta: `FREE_ACTIONS`) | `corrections_logic_test.dart` (22), `correction_turn_policy_test.dart`, `correction_chip_test.dart` | `[PARCIAL]` |
 | Mis errores | `my_errors_screen.dart:20` | `corrections` (SELECT con RLS, `corrections_repository.dart:72-88`) | **Sin test de pantalla** | `[PARCIAL]` |
 | Resumen de sesión | `session_summary_screen.dart:31` | `close_session` (`economy_repository_impl.dart:798`) → `apply_session_rewards`; `get_session_learned_summary` | `session_learned_summary_test.dart` (12), `session_drop_result_test.dart` | `[IMPLEMENTADO]` |
 | Drop de fin de sesión | `session_drop_controller.dart` | `claim_session_drop` (`:926`), `session_drops` | `session_drop_result_test.dart` (5) | `[PARCIAL]` |
@@ -71,7 +71,7 @@ fila lo dice y se etiqueta `[PENDIENTE DE VALIDAR]` en lugar de darlo por bueno.
 | Maná (saldo, coste, presupuesto) | `oracle_mana_bar.dart:131`, `dungeon_guardian_screen.dart:25` | `get_mana_state` (`:809`), `consume_mana` (`:785`), `refund_failed_turn` (`:877`), `ai_action_costs` (7) | `mana_budget_test.dart` (8) | `[IMPLEMENTADO]` |
 | Turno de gracia | Sin UI propia (aviso de 3 turnos) | `claim_mana_grace` (server-side, service role) | **Sin test en el repo Flutter** | `[IMPLEMENTADO]` según `docs/PRODUCT.md:123-137` |
 | Recompensa diaria | `daily_reward_modal.dart` | `player_pergaminos`, `increment_pergaminos_max`, `daily_stats` | `economy_repository_helpers_test.dart` (15) | `[IMPLEMENTADO]` |
-| Recompensas de nivel | `level_rewards_*` | `level_rewards`, `level_reward_status` (`:690`), `claim_level_rewards` (`:705`) | — | `[IMPLEMENTADO]` |
+| Recompensas de nivel | `shop_screen.dart:532-565` (banner + reclamo) | `level_rewards`, `level_reward_status` (`:690`), `claim_level_rewards` (`:705`) | — (sin test dedicado) | `[IMPLEMENTADO]` |
 | Tienda de cosméticos | `shop_screen.dart:29` | `cosmetic_catalog` (40), `purchase_cosmetic` (`:627`), `craft_cosmetic` (`:653`) | `shop_screen_test.dart`, `economy_purpose_test.dart` (21) | `[IMPLEMENTADO]` |
 | Inventario y equipado | `inventory_screen.dart:18` | `player_inventory`, `equip_cosmetic` (`:376`) | `economy_repository_helpers_test.dart` | `[IMPLEMENTADO]` |
 | Paywall y planes | `paywall_screen.dart:32` | `subscription_plans` (3 activos de 8) | `paywall_plans_test.dart` (3), `subscription_plan_test.dart` (5) | `[IMPLEMENTADO]` |
@@ -96,7 +96,7 @@ fila lo dice y se etiqueta `[PENDIENTE DE VALIDAR]` en lugar de darlo por bueno.
 | Meta diaria (anillo) | `dashboard_screen.dart:399` | `get_daily_goal_progress` (`dashboard_providers.dart:45`), `claim_daily_goal_celebration` (`:71`) | `daily_goal_progress_test.dart` (6) | `[IMPLEMENTADO]` |
 | Retorno tras inactividad | `WelcomeBackCard` (`dashboard_screen.dart:397`) | `learning_evidence` (`dashboard_providers.dart:183`) | `welcome_back_test.dart` (4) | `[IMPLEMENTADO]` |
 | Feedback sensorial | `core/` (vibración/sonido) | local | `sensory_feedback_test.dart` (6) | `[IMPLEMENTADO]` |
-| Analítica de eventos | `core/services/retention_analytics.dart` | `retention_events`/`analytics_events` | `analytics_taxonomy_test.dart` (8) | `[IMPLEMENTADO]` |
+| Analítica de eventos | `core/services/retention_analytics.dart` | `analytics_events` (`retention_analytics.dart:35`) | `analytics_taxonomy_test.dart` (8) | `[IMPLEMENTADO]` |
 | Navegación y contrato de rutas | `lib/app/router.dart:33-140` | — | `router_contract_test.dart` (5), `router_routes_test.dart` (2), `navigation_decision_test.dart` (4) | `[IMPLEMENTADO]` |
 
 ---
@@ -155,7 +155,7 @@ Consultas de solo lectura a `public` en el proyecto `sipiumfdpvnszthykyog`.
 | `listening_attempts` | **0** | Creada 29-oct |
 | `corrections` | **0** | Creada 29-oct; escritura best-effort (`corrections_repository.dart:57-68`) |
 | `chat_room_messages` / `chat_room_participants` | **0 / 0** | Salas sembradas 19-ago, nunca usadas |
-| `weekly_stats` | **0** | El informe calcula al vuelo |
+| `weekly_stats` | **0** | No interviene: `get_weekly_report` agrega al vuelo (`user_vocabulary`, `vocabulary_reviews`, `corrections`) |
 
 Catálogos (para dimensión del contenido): `scenarios` 500 · `lesson_catalog_index`
 140 · `guild_quest_pool` 199 · `mission_templates` 35 · `hunter_titles` 24 ·
@@ -214,7 +214,6 @@ gracia ni la evaluación.
 | **Ingresos** | Play Console + RevenueCat (`payments` = 0 no distingue "no vendido" de "no configurado") |
 | **Rangos SS/SSS** | Revisar la intención de producto: ¿umbral de precisión o resto de una escala antigua? |
 | **`corrections` = 0** | Reproducir una sesión con corrección y verificar que el `upsert` llega (la escritura traga errores: `corrections_repository.dart:66-68`) |
-| **`weekly_stats` = 0** | Confirmar que `get_weekly_report` calcula en vivo y no depende de esa tabla |
 | **Mesas fantasma del Maestre** | ¿Se decide leer `chat_rooms` o se acepta la ficción? (§01 §6.1) |
 | **`practice_sessions` = 2** | Entender por qué la tabla "oficial" no registra lo que sí registra `aura_session_awards` (12) |
 | **Lectura/escritura evaluadas** | Sigue sin existir; `docs/PRODUCT.md:11-13` lo declara fuera de alcance |

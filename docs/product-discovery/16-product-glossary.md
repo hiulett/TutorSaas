@@ -140,6 +140,7 @@
 |---|---|---|---|
 | **Maná** | Energía que consume cada acción de IA; expira con el ciclo | `app_es.arb:518-533`; `user_subscriptions.mana_*`; `consume_mana` (`economy_repository_impl.dart:785`) | `[IMPLEMENTADO]` |
 | **Coste por acción** | Precio en maná de cada llamada, decidido en servidor | `public.ai_action_costs` (7 acciones, §00 §7.2) | `[IMPLEMENTADO]` |
+| **Acción exenta (`FREE_ACTIONS`)** | Llamadas que no gastan maná: `goal_eval`, `carisma_eval`, `guild_chat`, `stt_transcribe`, `correction_turn` | `supabase/functions/llm-proxy/validation.ts:23-29` | `[IMPLEMENTADO]` |
 | **Tope diario** | 200 de maná/día en el plan gratuito | `docs/PRODUCT.md:123-137` | `[IMPLEMENTADO]` |
 | **Turno de gracia** | Un cierre gratis al día cuando se agota el tope diario; lo reclama el servidor | `claim_mana_grace` (0 usos en cliente: es correcto, vive en `llm-proxy`) | `[IMPLEMENTADO]` |
 | **`llm-proxy`** | Edge Function única para STT y chat SSE | `supabase/functions/llm-proxy/index.ts` | `[IMPLEMENTADO]` |
@@ -161,7 +162,7 @@
 | **Fragmentos** | Moneda de crafteo | `app_es.arb:591`; `add_fragments` (`:734`), `craft_cosmetic` (`:653`) | `[IMPLEMENTADO]` |
 | **Pergaminos** | Recompensa de racha acumulable con tope | `app_es.arb:546-550`; tabla `player_pergaminos`; `increment_pergaminos_max` | `[IMPLEMENTADO]` |
 | **XP** | Puntos de nivel de cazador | `app_es.arb:121`; `add_xp` (`:944`) | `[IMPLEMENTADO]` |
-| **Bolsas de nivel / recompensas de nivel** | Oro que se cobra al subir de nivel | `app_es.arb:600-604`; `level_rewards`, `claim_level_rewards` (`:705`) | `[IMPLEMENTADO]` |
+| **Bolsas de nivel / recompensas de nivel** | Oro que se cobra al subir de nivel | `app_es.arb:600-604`; UI en `shop_screen.dart:532-565`; `level_rewards`, `claim_level_rewards` (`:705`) | `[IMPLEMENTADO]` |
 | **Recompensa diaria** | Cofre diario escalado por racha | `app_es.arb:542-554`; `daily_reward_modal.dart` | `[IMPLEMENTADO]` |
 | **Tienda** | Cosmética por oro/gemas/fragmentos (no vende ventajas de aprendizaje) | `shop_screen.dart:29`; `cosmetic_catalog` (40); `purchase_cosmetic` (`:627`) | `[IMPLEMENTADO]` |
 | **Inventario** | Cosméticos poseídos y equipados | `inventory_screen.dart:18`; `player_inventory`; `equip_cosmetic` (`:376`) | `[IMPLEMENTADO]` |

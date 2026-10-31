@@ -170,7 +170,7 @@ Puntos delicados:
 |---|---|---|---|---|---|
 | Maná mensual | 3.000 | 17.000 | 20.500 | **Sí**, `consume_mana` lee `subscription_plans.mana_allowance` | `20260819_fix_mana_consume.sql:52-58` |
 | Tope diario de maná | **200** | sin tope | sin tope | **Sí**, solo si `plan_id='plebeyo'` | `20260819_fix_mana_consume.sql:86-94` |
-| Turno de gracia diario | 1/día | 1/día (no aplica) | 1/día | **Sí**, `claim_mana_grage` solo `service_role`, invocado por `llm-proxy` cuando `daily_limit_reached` | `20261029080000_mana_grace_turn.sql:20-45`; `llm-proxy/index.ts:452` |
+| Turno de gracia diario | 1/día | 1/día (no aplica) | 1/día | **Sí**, `claim_mana_grace` solo `service_role`, invocado por `llm-proxy` cuando `daily_limit_reached` | `20261029080000_mana_grace_turn.sql:20-45`; `llm-proxy/index.ts:452` |
 | Semanas de historial del informe | 1 | 4 | 52 | **Sí**, `get_weekly_report` devuelve `locked=true` fuera del rango | `20261030005704…sql:157-199` |
 | Cosméticos exclusivos | 0 | 0 | **2** (`title_leyenda_viva`, `aura_sombras`) | **Sí**, `purchase_cosmetic` / `craft_cosmetic` devuelven `plan_required` | `20261030005704…sql:354-357`, `:438-441` |
 | Trial | — | **7 días** | — | **No en la BD**: `trial_days` solo alimenta el texto del paywall; la oferta real vive en Play/RevenueCat | `paywall_screen.dart:593-615`; `PROPUESTA-P44-P48.md` §P-45 |
