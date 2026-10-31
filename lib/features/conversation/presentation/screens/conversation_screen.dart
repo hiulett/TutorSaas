@@ -114,6 +114,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         .endSession(practiceMinutes: minutesToSave);
     ref.read(sessionResultProvider.notifier).confirm(sessionResult);
 
+    // Refresco del dashboard al salir (aqui `ref` sigue siendo valido; en
+    // dispose() modificarlo lanzaba listeners ya destruidos).
+    ref.read(dashboardRefreshProvider.notifier).state++;
+    ref.invalidate(userProgressProvider);
+    ref.invalidate(skillsRadarProvider);
+    ref.invalidate(practiceHeatmapProvider);
+    ref.invalidate(fluencyTrendsProvider);
+    ref.invalidate(weeklyPracticeProvider);
+    ref.invalidate(learnedVocabularyProvider);
+
     if (!navigate || !mounted) return;
     if (showSummary) {
       final router = GoRouter.of(context);
@@ -152,7 +162,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     {'icon': 'ðŸ”®', 'title': 'Future Technology'},
   ];
 
-  @override
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -257,21 +266,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     }
     _textController.dispose();
     _chatScrollController.dispose();
-    try {
-      _container?.read(dashboardRefreshProvider.notifier).state++;
-      _container?.invalidate(userProgressProvider);
-      _container?.invalidate(skillsRadarProvider);
-      _container?.invalidate(practiceHeatmapProvider);
-      _container?.invalidate(fluencyTrendsProvider);
-      _container?.invalidate(weeklyPracticeProvider);
-      _container?.invalidate(learnedVocabularyProvider);
-    } catch (e, st) {
-      ErrorTracker.logSilent(
-        'lib/features/conversation/presentation/screens/conversation_screen.dart:205',
-        e,
-        stackTrace: st,
-      );
-    }
     super.dispose();
   }
 
