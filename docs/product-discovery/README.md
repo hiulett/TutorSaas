@@ -204,5 +204,6 @@ y evidencia en [`19`](19-canon-and-decisions.md):
 |---|---|
 | [`22-hardcoded-inventory.md`](22-hardcoded-inventory.md) | **67 hardcodes** (contenido 13, balance 21, lógica 10, seguridad 18, interfaz 5) con `archivo:línea`, equivalente en BD, divergencia y acción. |
 | [`23-visual-validation-checklist.md`](23-visual-validation-checklist.md) | Checklist de **37 ítems** para la sesión humana por release (D-13): 20 pantallas, estados, TalkBack, escalado 1.5×/2× y comandos de captura. |
+| [`24-mana-billing-report.md`](24-mana-billing-report.md) | **Facturación de maná (P0-3/#271)**: el **38,6 %** del gasto de IA se cobra a 0 (más 0,15 % por hueco de cliente). Causa, `MANA_CHARGE_MODE` efectivo (`capability`, el secreto no existe), tabla coste vs maná y propuesta con impacto. |
 
-Ambos se apoyan en [`19-canon-and-decisions.md`](19-canon-and-decisions.md) y en [`_decisions.md`](_decisions.md).
+Estos documentos se apoyan en [`19-canon-and-decisions.md`](19-canon-and-decisions.md) y en [`_decisions.md`](_decisions.md).
