@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_motion.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/quest_card.dart';
 import '../../../../core/widgets/system_snack.dart';
@@ -549,20 +550,28 @@ class _RoadmapNodeTileState extends State<_RoadmapNodeTile>
     _pulse = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-    if (widget.isMastered) {
-      _pulseController.repeat(reverse: true);
-    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncPulse();
   }
 
   @override
   void didUpdateWidget(covariant _RoadmapNodeTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isMastered && !_pulseController.isAnimating) {
-      _pulseController.repeat(reverse: true);
-    } else if (!widget.isMastered && _pulseController.isAnimating) {
-      _pulseController.stop();
-      _pulseController.value = 0;
-    }
+    _syncPulse();
+  }
+
+  /// UX-04: la pulsación dorada solo corre si el nodo está dominado **y** el
+  /// sistema permite animaciones; con reduce-motion no queda `Ticker` vivo.
+  void _syncPulse() {
+    AppMotion.syncLoop(
+      _pulseController,
+      allowed: widget.isMastered && AppMotion.loopsAllowed(context),
+      reverse: true,
+    );
   }
 
   @override
