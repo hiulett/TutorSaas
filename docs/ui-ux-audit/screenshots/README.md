@@ -4,7 +4,7 @@
 
 | Archivo | Estado |
 |---|---|
-| `01-arranque.png` | **NO VÁLIDO.** 58 222 bytes, cabecera `FF FE` (BOM UTF-16LE) en lugar de `89 50 4E 47`. Se generó con `adb exec-out screencap -p > archivo.png` en PowerShell, que re-codifica la salida como texto y corrompe el binario. No se puede abrir ni auditar. |
+| - | Sin capturas válidas todavía. La única intentada se corrompió y se ha eliminado del repo. |
 
 No existe ninguna otra captura. **No se ha generado ni nombrado ninguna captura
 falsa.** Cualquier revisión visual pendiente debe hacerse con capturas nuevas
@@ -24,7 +24,7 @@ $adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
 Get-Content -Encoding Byte -TotalCount 8 docs\ui-ux-audit\screenshots\02-welcome.png
 ```
 
-Alternativa equivalente: `cmd /c "adb exec-out screencap -p > archivo.png"`.
+Alternativa equivalente: `cmd /c "adb shell screencap -p /sdcard/s.png && adb pull /sdcard/s.png archivo.png"`.
 
 ## Nombres propuestos
 
