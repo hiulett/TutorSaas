@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/hud_icon_button.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/remedial_lesson.dart';
@@ -139,7 +140,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                   // ── Cabecera compacta ─────────────────────────────────────
                   Row(
                     children: [
-                      _RoundIconButton(
+                      HudIconButton(
                         icon: Icons.arrow_back_rounded,
                         onTap: goHome,
                       ),
@@ -521,10 +522,11 @@ class SessionSummaryScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const _RoundIconButton(
+              // Marcador visual (no interactivo): área de 48 dp por UX-03.
+              const HudIconButton(
                 icon: Icons.close_rounded,
                 color: AppColors.errorRed,
-                size: 24,
+                visualSize: 24,
                 iconSize: 14,
               ),
               const SizedBox(width: 10),
@@ -541,10 +543,11 @@ class SessionSummaryScreen extends ConsumerWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              const _RoundIconButton(
+              // Marcador visual (no interactivo): área de 48 dp por UX-03.
+              const HudIconButton(
                 icon: Icons.arrow_forward_rounded,
                 color: AppColors.manaCyan,
-                size: 24,
+                visualSize: 24,
                 iconSize: 14,
               ),
               const SizedBox(width: 10),
@@ -1029,44 +1032,6 @@ class _Tag extends StatelessWidget {
         style: AppTypography.tiny(
           context,
         ).copyWith(color: color, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-}
-
-/// Botón redondo compacto para cabeceras y chips.
-class _RoundIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-  final double size;
-  final double iconSize;
-  final Color? color;
-
-  const _RoundIconButton({
-    required this.icon,
-    this.onTap,
-    this.size = 40,
-    this.iconSize = 18,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipOval(
-      child: Material(
-        color: AppColors.onSurface.withValues(alpha: 0.06),
-        child: InkWell(
-          onTap: onTap,
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: Icon(
-              icon,
-              color: color ?? AppColors.onSurface,
-              size: iconSize,
-            ),
-          ),
-        ),
       ),
     );
   }

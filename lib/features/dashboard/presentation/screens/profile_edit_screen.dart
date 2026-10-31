@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/hud_icon_button.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
@@ -268,23 +269,21 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                 child: Row(
                   children: [
-                    Material(
-                      color: AppColors.onSurface.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(4.0),
-                      child: InkWell(
-                        onTap: () {
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.go('/home');
-                          }
-                        },
-                        child: const SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: Icon(Icons.arrow_back_rounded, color: AppColors.onSurface),
-                        ),
+                    HudIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      visualSize: 44,
+                      iconSize: 24,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      backgroundColor: AppColors.onSurface.withValues(
+                        alpha: 0.05,
                       ),
+                      onTap: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go('/home');
+                        }
+                      },
                     ),
                     const SizedBox(width: 16),
                     Expanded(

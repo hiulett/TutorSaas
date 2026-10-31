@@ -556,7 +556,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.royalGold,
                 foregroundColor: AppColors.voidBg,
-                minimumSize: const Size(48, 40),
+                minimumSize: const Size(48, 48),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),

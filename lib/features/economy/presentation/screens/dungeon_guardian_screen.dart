@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/hud_icon_button.dart';
 import '../../../../core/widgets/runic_button.dart';
 import '../../../../core/widgets/segmented_bar.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -144,7 +145,8 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
                     // ── Cabecera ──
                     Row(
                       children: [
-                        _RoundIconButton(
+                        HudIconButton(
+                          icon: Icons.arrow_back_rounded,
                           onTap: () {
                             if (context.canPop()) Navigator.pop(context);
                             context.go('/home');
@@ -734,32 +736,4 @@ class _RuneRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _RuneRingPainter oldDelegate) =>
       oldDelegate.color != color;
-}
-
-/// Botón redondo compacto de "volver".
-class _RoundIconButton extends StatelessWidget {
-  final VoidCallback? onTap;
-
-  const _RoundIconButton({this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipOval(
-      child: Material(
-        color: AppColors.onSurface.withValues(alpha: 0.06),
-        child: InkWell(
-          onTap: onTap,
-          child: const SizedBox(
-            width: 40,
-            height: 40,
-            child: Icon(
-              Icons.arrow_back_rounded,
-              color: AppColors.onSurface,
-              size: 18,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

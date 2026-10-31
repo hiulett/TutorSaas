@@ -126,7 +126,7 @@ class BossExamResultScreen extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.manaCyan,
                   side: const BorderSide(color: AppColors.manaCyan),
-                  minimumSize: const Size.fromHeight(46),
+                  minimumSize: const Size.fromHeight(48),
                 ),
               ),
               const SizedBox(height: 8),
@@ -138,7 +138,7 @@ class BossExamResultScreen extends StatelessWidget {
                     ? AppColors.emeraldGreen
                     : AppColors.royalGold,
                 foregroundColor: AppColors.voidBg,
-                minimumSize: const Size.fromHeight(46),
+                minimumSize: const Size.fromHeight(48),
               ),
               child: Text(l10n.boss_result_home),
             ),
