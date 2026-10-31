@@ -393,6 +393,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             icon: Icons.bolt_rounded,
             color: AppColors.runeViolet,
             value: '$manaRemaining',
+            label: l10n?.mana_label ?? 'MANÁ',
           ),
           const SizedBox(width: 8),
           IconButton(
@@ -405,32 +406,39 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     );
   }
 
+  /// UX-22 (#259): chip de moneda. El icono es la única pista visual del tipo
+  /// de moneda, así que lleva `Tooltip` (para quien ve) y `semanticLabel`
+  /// (para TalkBack), y el valor queda como texto del mismo nodo.
   Widget _balanceChip({
     required IconData icon,
     required Color color,
     required String value,
+    required String label,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.voidBg.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 14),
-          const SizedBox(width: 4),
-          Text(
-            value,
-            style: GoogleFonts.jetBrainsMono(
-              color: AppColors.onSurface,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+    return Tooltip(
+      message: label,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.voidBg.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 14, semanticLabel: label),
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: GoogleFonts.jetBrainsMono(
+                color: AppColors.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -487,18 +495,21 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             icon: Icons.monetization_on_rounded,
             color: AppColors.royalGold,
             value: '${wallet.gold}',
+            label: l10n?.shop_tab_gold ?? 'ORO',
           ),
           const SizedBox(width: 8),
           _balanceChip(
             icon: Icons.diamond_rounded,
             color: AppColors.runeViolet,
             value: '${wallet.gems}',
+            label: l10n?.shop_tab_gems ?? 'GEMAS',
           ),
           const SizedBox(width: 8),
           _balanceChip(
             icon: Icons.auto_awesome_mosaic_rounded,
             color: AppColors.emeraldGreen,
             value: '${wallet.fragments}',
+            label: l10n?.shop_tab_fragments ?? 'FRAGMENTOS',
           ),
         ],
       ),

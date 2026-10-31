@@ -26,6 +26,7 @@ class ConversationMicButton extends StatefulWidget {
     required this.onHoldTooShort,
     required this.onHoldCancel,
     this.semanticsLabel = 'Micrófono',
+    this.semanticsHint,
     this.clock = DateTime.now,
     this.minHoldDuration = HoldToTalkGesture.defaultMinHoldDuration,
   });
@@ -51,6 +52,11 @@ class ConversationMicButton extends StatefulWidget {
   final VoidCallback onHoldCancel;
 
   final String semanticsLabel;
+
+  /// UX-13 (#252): describe con palabras qué hace el botón, porque el gesto
+  /// principal (mantener pulsado) no se deduce de la etiqueta.
+  final String? semanticsHint;
+
   final DateTime Function() clock;
   final Duration minHoldDuration;
 
@@ -150,10 +156,20 @@ class _ConversationMicButtonState extends State<ConversationMicButton> {
     );
 
     if (!widget.holdToTalk) {
-      return GestureDetector(
-        key: const ValueKey('conversation-mic-button'),
+      // UX-13: el nodo semántico declara la acción real (un toque alterna la
+      // grabación). `excludeFromSemantics` evita duplicar la acción que ya
+      // aporta el `GestureDetector`.
+      return Semantics(
+        button: true,
+        label: widget.semanticsLabel,
+        hint: _semanticsHint,
         onTap: widget.onTap,
-        child: button,
+        child: GestureDetector(
+          key: const ValueKey('conversation-mic-button'),
+          excludeFromSemantics: true,
+          onTap: widget.onTap,
+          child: button,
+        ),
       );
     }
 
@@ -167,8 +183,21 @@ class _ConversationMicButtonState extends State<ConversationMicButton> {
       child: Semantics(
         button: true,
         label: widget.semanticsLabel,
+        hint: _semanticsHint,
+        // UX-13 (#252): TalkBack no puede mantener pulsado y soltar, así que
+        // el nodo expone el mismo par de acciones que el puntero: mantener
+        // inicia la grabación y el toque la detiene y envía.
+        onTap: widget.onTap,
+        onLongPress: widget.isProcessing ? null : widget.onHoldStart,
         child: button,
       ),
     );
   }
+
+  /// Texto por defecto del hint; la pantalla pasa la traducción cuando la hay.
+  String get _semanticsHint =>
+      widget.semanticsHint ??
+      (widget.holdToTalk
+          ? 'Mantén pulsado para grabar y toca dos veces para detener y enviar.'
+          : 'Toca dos veces para empezar o detener la grabación.');
 }

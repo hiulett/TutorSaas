@@ -2050,6 +2050,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_seat => 'SEAT';
 
   @override
+  String get chat_seats_label => 'Seats';
+
+  @override
+  String get chat_standing_label => 'Standing';
+
+  @override
+  String get stats_stars_label => 'Stars';
+
+  @override
   String get voice_exit => 'EXIT';
 
   @override
@@ -2897,6 +2906,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get convo_mic_retry => 'Try again';
+
+  @override
+  String get convo_mic_hint_toggle => 'Double-tap to start or stop recording.';
+
+  @override
+  String get convo_mic_hint_hold =>
+      'Long press to record, then double-tap to stop and send.';
 
   @override
   String get convo_mic_manual_hint =>

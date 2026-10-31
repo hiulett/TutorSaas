@@ -3832,6 +3832,24 @@ abstract class AppLocalizations {
   /// **'SEAT'**
   String get voice_seat;
 
+  /// No description provided for @chat_seats_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Seats'**
+  String get chat_seats_label;
+
+  /// No description provided for @chat_standing_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Standing'**
+  String get chat_standing_label;
+
+  /// No description provided for @stats_stars_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars'**
+  String get stats_stars_label;
+
   /// No description provided for @voice_exit.
   ///
   /// In en, this message translates to:
@@ -5337,6 +5355,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get convo_mic_retry;
+
+  /// No description provided for @convo_mic_hint_toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap to start or stop recording.'**
+  String get convo_mic_hint_toggle;
+
+  /// No description provided for @convo_mic_hint_hold.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press to record, then double-tap to stop and send.'**
+  String get convo_mic_hint_hold;
 
   /// No description provided for @convo_mic_manual_hint.
   ///

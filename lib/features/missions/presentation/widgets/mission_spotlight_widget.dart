@@ -67,10 +67,13 @@ class MissionSpotlightWidget extends ConsumerWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        // UX-22 (#259): la llama solo trae un número al lado;
+                        // el nombre de la cifra va en la semántica del icono.
+                        Icon(
                           Icons.local_fire_department_rounded,
                           color: AppColors.royalGold,
                           size: 13,
+                          semanticLabel: l10n?.hud_streak ?? 'RACHA',
                         ),
                         const SizedBox(width: 3),
                         Text(

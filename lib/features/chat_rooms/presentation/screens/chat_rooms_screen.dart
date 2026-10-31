@@ -848,7 +848,8 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            const Icon(Icons.record_voice_over_rounded, size: 12, color: AppColors.manaCyan),
+                                            // UX-22 (#259): el icono era la única pista de la cifra.
+                                            Icon(Icons.record_voice_over_rounded, size: 12, color: AppColors.manaCyan, semanticLabel: AppLocalizations.of(context)?.chat_seats_label ?? 'ASIENTOS'),
                                             const SizedBox(width: 4),
                                             Flexible(
                                               child: Text('$seatsCount/$maxSeats', overflow: TextOverflow.ellipsis,
@@ -856,7 +857,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                               ),
                                             ),
                                             const Spacer(),
-                                            const Icon(Icons.accessibility_new_rounded, size: 12, color: AppColors.onSurfaceVariant),
+                                            Icon(Icons.accessibility_new_rounded, size: 12, color: AppColors.onSurfaceVariant, semanticLabel: AppLocalizations.of(context)?.chat_standing_label ?? 'DE PIE'),
                                             const SizedBox(width: 4),
                                             Flexible(
                                               child: Text('$standingCount', overflow: TextOverflow.ellipsis,

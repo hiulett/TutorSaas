@@ -2058,6 +2058,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get voice_seat => 'SILLA';
 
   @override
+  String get chat_seats_label => 'Asientos';
+
+  @override
+  String get chat_standing_label => 'De pie';
+
+  @override
+  String get stats_stars_label => 'Estrellas';
+
+  @override
   String get voice_exit => 'SALIR';
 
   @override
@@ -2911,6 +2920,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get convo_mic_retry => 'Reintentar';
+
+  @override
+  String get convo_mic_hint_toggle =>
+      'Toca dos veces para empezar o detener la grabación.';
+
+  @override
+  String get convo_mic_hint_hold =>
+      'Mantén pulsado para grabar y toca dos veces para detener y enviar.';
 
   @override
   String get convo_mic_manual_hint =>

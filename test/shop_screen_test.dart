@@ -185,4 +185,23 @@ void main() {
     FlutterError.onError = original;
     expect(overflows, isEmpty);
   });
+
+  testWidgets('los chips de moneda dicen qué moneda son (UX-22)', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pumpShop(tester);
+
+    // El icono era la única pista: ahora lleva Tooltip y semanticLabel.
+    for (final label in ['ORO', 'GEMAS', 'FRAGMENTOS']) {
+      expect(find.byTooltip(label), findsOneWidget, reason: 'tooltip $label');
+      expect(
+        find.bySemanticsLabel(RegExp(label)),
+        findsWidgets,
+        reason: 'semántica $label',
+      );
+    }
+
+    handle.dispose();
+  });
 }

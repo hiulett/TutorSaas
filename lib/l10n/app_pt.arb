@@ -699,6 +699,9 @@
   "voice_stand_up": "LEVANTAR",
   "voice_in_queue": "NA FILA #{pos}",
   "voice_seat": "CADEIRA",
+  "chat_seats_label": "Assentos",
+  "chat_standing_label": "Em pé",
+  "stats_stars_label": "Estrelas",
   "voice_exit": "SAIR",
 
   "guild_rec_beginner": "Recomendo a Taverna do Aprendiz: é a mesa perfeita para caçadores novatos.",
@@ -1036,6 +1039,8 @@
   "convo_mic_denied_body": "O Dungeon of English precisa do microfone para ouvir você. Ative-o nas configurações do Android e volte.",
   "convo_mic_open_settings": "Abrir configurações",
   "convo_mic_retry": "Tentar novamente",
+  "convo_mic_hint_toggle": "Toque duas vezes para iniciar ou parar a gravação.",
+  "convo_mic_hint_hold": "Mantenha pressionado para gravar e toque duas vezes para parar e enviar.",
   "convo_mic_manual_hint": "Abra Configurações > Apps > Dungeon of English > Permissões > Microfone.",
   "convo_mic_label": "Microfone",
   "convo_hold_too_short": "Muito curto: mantenha o microfone pressionado enquanto fala e solte para enviar.",

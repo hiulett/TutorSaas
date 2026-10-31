@@ -2055,6 +2055,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get voice_seat => 'CADEIRA';
 
   @override
+  String get chat_seats_label => 'Assentos';
+
+  @override
+  String get chat_standing_label => 'Em pé';
+
+  @override
+  String get stats_stars_label => 'Estrelas';
+
+  @override
   String get voice_exit => 'SAIR';
 
   @override
@@ -2904,6 +2913,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get convo_mic_retry => 'Tentar novamente';
+
+  @override
+  String get convo_mic_hint_toggle =>
+      'Toque duas vezes para iniciar ou parar a gravação.';
+
+  @override
+  String get convo_mic_hint_hold =>
+      'Mantenha pressionado para gravar e toque duas vezes para parar e enviar.';
 
   @override
   String get convo_mic_manual_hint =>

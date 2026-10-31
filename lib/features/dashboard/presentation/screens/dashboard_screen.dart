@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:tutorsaas/core/utils/player_identity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../providers/dashboard_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../widgets/learning_path_roadmap.dart';
+import '../widgets/dashboard_dock_item.dart';
 import '../widgets/hunter_hud_header.dart';
 import '../widgets/daily_goal_ring_card.dart';
 import '../widgets/welcome_back_card.dart';
@@ -566,97 +568,47 @@ class DashboardScreen extends ConsumerWidget {
                   blur: 30.0,
                   opacity: AppColors.glassOpacity,
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNavItem(
-                        icon: Icons.gps_fixed_rounded,
-                        label: l10n?.dungeons ?? 'MAZMORRAS',
-                        isActive: currentTab == 0,
-                        onTap: () =>
-                            ref.read(dashboardTabProvider.notifier).state = 0,
-                      ),
-                      _buildNavItem(
-                        icon: Icons.shield_rounded,
-                        label: l10n?.guild ?? 'GUILD',
-                        isActive: currentTab == 1,
-                        onTap: () =>
-                            ref.read(dashboardTabProvider.notifier).state = 1,
-                      ),
-                      _buildNavItem(
-                        icon: Icons.person_rounded,
-                        label: l10n?.status ?? 'ESTADO',
-                        isActive: currentTab == 2,
-                        onTap: () =>
-                            ref.read(dashboardTabProvider.notifier).state = 2,
-                      ),
-                      _buildNavItem(
-                        icon: Icons.settings_rounded,
-                        label: l10n?.config ?? 'CONFIG',
-                        isActive: currentTab == 3,
-                        onTap: () =>
-                            ref.read(dashboardTabProvider.notifier).state = 3,
-                      ),
-                    ],
+                  child: Semantics(
+                    role: SemanticsRole.tabBar,
+                    container: true,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        DashboardDockItem(
+                          icon: Icons.gps_fixed_rounded,
+                          label: l10n?.dungeons ?? 'MAZMORRAS',
+                          isActive: currentTab == 0,
+                          onTap: () =>
+                              ref.read(dashboardTabProvider.notifier).state = 0,
+                        ),
+                        DashboardDockItem(
+                          icon: Icons.shield_rounded,
+                          label: l10n?.guild ?? 'GUILD',
+                          isActive: currentTab == 1,
+                          onTap: () =>
+                              ref.read(dashboardTabProvider.notifier).state = 1,
+                        ),
+                        DashboardDockItem(
+                          icon: Icons.person_rounded,
+                          label: l10n?.status ?? 'ESTADO',
+                          isActive: currentTab == 2,
+                          onTap: () =>
+                              ref.read(dashboardTabProvider.notifier).state = 2,
+                        ),
+                        DashboardDockItem(
+                          icon: Icons.settings_rounded,
+                          label: l10n?.config ?? 'CONFIG',
+                          isActive: currentTab == 3,
+                          onTap: () =>
+                              ref.read(dashboardTabProvider.notifier).state = 3,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 48),
-          decoration: BoxDecoration(
-            color: isActive
-                ? AppColors.manaCyan.withValues(alpha: 0.12)
-                : Colors.transparent,
-            border: Border(
-              top: BorderSide(
-                color: isActive ? AppColors.manaCyan : Colors.transparent,
-                width: 4,
-              ),
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isActive
-                    ? AppColors.manaCyan
-                    : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
-                size: 24,
-              ),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 10,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive
-                      ? AppColors.manaCyan
-                      : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

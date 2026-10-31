@@ -737,6 +737,9 @@
   "voice_in_queue": "IN QUEUE #{pos}",
   "@voice_in_queue": {"placeholders": {"pos": {"type": "int"}}},
   "voice_seat": "SEAT",
+  "chat_seats_label": "Seats",
+  "chat_standing_label": "Standing",
+  "stats_stars_label": "Stars",
   "voice_exit": "EXIT",
 
   "guild_rec_beginner": "I recommend the Apprentice Tavern: the perfect table for novice hunters.",
@@ -1035,6 +1038,8 @@
     "convo_mic_denied_body": "Dungeon of English needs the microphone to hear you. Turn it on in Android settings, then come back.",
     "convo_mic_open_settings": "Open settings",
     "convo_mic_retry": "Try again",
+  "convo_mic_hint_toggle": "Double-tap to start or stop recording.",
+  "convo_mic_hint_hold": "Long press to record, then double-tap to stop and send.",
     "convo_mic_manual_hint": "Open Settings > Apps > Dungeon of English > Permissions > Microphone.",
     "convo_mic_label": "Microphone",
     "convo_hold_too_short": "Too short: keep the microphone pressed while you speak and release to send.",
