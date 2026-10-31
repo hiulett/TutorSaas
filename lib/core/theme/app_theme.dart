@@ -129,7 +129,10 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surfaceContainerLow,
         labelStyle: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant),
-        hintStyle: GoogleFonts.jetBrainsMono(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
+        // UX-18: 50% de alfa daba 3.50:1; al 70% sube a 7.77:1.
+        hintStyle: GoogleFonts.jetBrainsMono(
+          color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(4.0)),

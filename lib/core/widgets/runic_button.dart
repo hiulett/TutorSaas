@@ -22,7 +22,8 @@ class RunicButton extends StatefulWidget {
     this.icon,
     this.onPressed,
     this.backgroundColor = AppColors.runeViolet,
-    this.foregroundColor = AppColors.onSurface,
+    // UX-02: blanco sobre runeViolet = 4.60:1 (AA). onSurface daba 3.57:1.
+    this.foregroundColor = Colors.white,
     this.isBusy = false,
     this.semanticLabel,
     this.tooltip,

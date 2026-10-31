@@ -1534,7 +1534,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.crimsonRed,
-                foregroundColor: AppColors.onSurface,
+                // UX-05: onSurface daba 2.99:1; voidBg da 5.23:1.
+                foregroundColor: AppColors.voidBg,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
