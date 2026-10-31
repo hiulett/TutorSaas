@@ -122,6 +122,36 @@ Conteo sobre `lib/**/*.dart` (búsqueda de `context.go|push|pushReplacement|pop`
 Guardián de la Mazmorra (`pushReplacement` en `initState`, `Navigator.push` en
 un listener): el usuario llega al mismo sitio con pilas diferentes.
 
+### 3.1 Animación real de cada mecanismo
+
+Verificado por búsqueda de `PageRouteBuilder`, `CustomTransitionPage`,
+`PageTransitionsTheme`, `Hero` y `showGeneralDialog` en todo `lib/`: **0
+resultados**. No hay `pageBuilder:` en `router.dart:33-140` (todas las rutas usan
+`builder:`), y `app_theme.dart` no define `pageTransitionsTheme`.
+
+| Mecanismo | Animación efectiva | Duración / curva declarada | Evidencia |
+|---|---|---|---|
+| `context.go` / `push` / `pushReplacement` | transición de `MaterialPage` de Android (la del framework), **no elegida por la app** | **`[PENDIENTE DE VALIDAR]`**: no está en el repo; depende de la versión de Flutter y del `PageTransitionsTheme` por defecto | `router.dart:33-140` (sólo `builder`), `app_theme.dart:8-221` (sin `pageTransitionsTheme`) |
+| `Navigator.push(MaterialPageRoute)` (Guardián) | idéntica a la anterior | `[PENDIENTE DE VALIDAR]` | `conversation_screen.dart:1105-1108` |
+| `showModalBottomSheet` | hoja que sube desde abajo (framework) | `[PENDIENTE DE VALIDAR]`; sólo se declara `backgroundColor: transparent` y `isScrollControlled: true` | `conversation_screen.dart:349-351`, `:395-397` |
+| `showDialog` | diálogo con fade/escala del framework | `[PENDIENTE DE VALIDAR]` | `dashboard_screen.dart:667`, `settings_screen.dart:489,537`, `shop_screen.dart:53` |
+| Cambio de pestaña del dashboard | **instantáneo** (cambia `dashboardTabProvider`, no hay animación) | — | `dashboard_screen.dart:576-599` |
+| `PageView` del onboarding | **declarada**: `animateToPage` | **300 ms · `Curves.easeInOut`** | `onboarding_screen.dart:197-201`, `:220-224`, `:235-239` |
+| `TabBarView` de Misiones | animación de tab del framework | `[PENDIENTE DE VALIDAR]` | `missions_screen.dart:23-24, 57-72` |
+| Salida del splash | **declarada**: el `go` no anima, pero la barra sí | 500 ms `easeOutCubic` (progreso) + `easeInOut` (pulso) | `splash_screen.dart:37-46` |
+
+**Conclusión:** de 8 mecanismos de navegación, **sólo el `PageView` del onboarding
+declara duración y curva**. El resto hereda del framework y no es auditable desde
+el código de la app.
+
+### 3.2 Los tokens de movimiento no se usan para navegar
+
+`AppMotion` define `micro 150` · `fast 300` · `standard 600` · `reward 1200` ·
+`ambient 2000` ms y tres curvas (`app_motion.dart:10-32`). Ninguna transición de
+ruta los consulta: se usan en microinteracciones (pulsación de `GlassCard` 150 ms
+`easeInOut`, `glass_card.dart:56-59,91-93`; recompensas). Si se quiere una
+transición de producto, hoy **no hay token para ella**.
+
 ---
 
 ## 4. Flujos, uno a uno
@@ -581,12 +611,23 @@ El botón «volver» del Guardián hace `if (canPop) pop(); go('/home')`
 (`dungeon_guardian_screen.dart:147-152`) — en el segundo caso vuelve a la
 conversación sin maná, que volverá a abrir el Guardián.
 
-### 7.6 Redirección incompleta por diseño
+### 7.6 Redirección asimétrica (corregida contra el código)
 
-El `redirect` solo protege `'/'` cuando el destino es `home`
-(`router.dart:163-168`). Un usuario sin perfil que llegue a `/shop` por deep
-link **no** es enviado a onboarding; la app confía en que el flujo normal pase
-por `/`. No se observó ningún `redirect` por ruta protegida.
+El `redirect` hace dos cosas distintas según el destino resuelto
+(`router.dart:163-172`):
+
+- **Destino `home`** (sesión + perfil): sólo se fuerza la salida de `/`; **el
+  resto de rutas pasan libres** a propósito (`:163-168`). Es decir, con perfil no
+  hay guarda por ruta: `/paywall`, `/shop`, `/listening` son alcanzables sin
+  comprobaciones propias.
+- **Destino `welcome` u `onboarding`**: devuelve `target` para **cualquier** ruta
+  (`:170-172`). Un usuario sin sesión o sin perfil que abra `/shop` **sí** acaba
+  en `/` o `/onboarding`.
+
+> **Corrección a la versión anterior de este documento:** decía que un usuario
+> sin perfil no era enviado a onboarding desde `/shop`. El código devuelve
+> `target` cuando `target != '/home'`, así que **sí** lo es. Lo que **no** existe
+> es una guarda por ruta para usuarios **con** perfil (premium, nivel, etc.).
 
 ### 7.7 Idioma mezclado en la UI
 
@@ -596,6 +637,45 @@ Varias cadenas del dashboard y del resumen están **hardcodeadas en español**
 `learning_path_roadmap.dart:713-717`), mientras el resto usa `l10n`. Para el
 detalle visual, ver `docs/ui-ux-audit/03-ux-ui-audit.md` y el backlog
 `UX-01…UX-37` de `docs/ui-ux-audit/06-improvement-backlog.md`.
+
+### 7.8 Entradas externas a la navegación (notificación y widget)
+
+| Origen | Ruta | Mecanismo | Condición | Evidencia |
+|---|---|---|---|---|
+| Notificación de recordatorio | **siempre `/home`** | `router.go(route)` tras el tap | espera a que el router salga de `/splash` | `notification_providers.dart:98` · `app.dart:44-53` |
+| Widget de inicio | **siempre `/home`** | `router.go(route)` | reintenta hasta 12 veces × 350 ms si sigue en `/splash` (~4 s) | `home_widget_launch.dart:11` · `app.dart:84-96` |
+
+**Consecuencia:** no existe deep link a `/missions`, `/paywall` o
+`/conversation` desde fuera: cualquier entrada externa aterriza en `/home` y pasa
+por el motor de decisión, que **sí** redirige a `/onboarding` (sin perfil) o `/`
+(sin sesión) porque devuelve `target` para cualquier ruta distinta de `/home`
+(`router.dart:170-172`). El único agujero de acceso sin sesión es
+`/oracle-test`, exento del `redirect` (`router.dart:152-153`): abre, pero
+`evaluate-placement` responde 401.
+
+### 7.9 Puntos de bloqueo (dónde el flujo se corta)
+
+| Bloqueo | Condición exacta | Efecto | Salida que ofrece | Evidencia |
+|---|---|---|---|---|
+| Sesión | sin JWT | redirect a `/` | login | `navigation_resolver.dart:72-75` |
+| Perfil | sesión sin fila en `user_language_profiles` | redirect a `/onboarding` | completar onboarding | `:86-92` |
+| **Maná (entrada)** | `available < 12` (coste `dungeon_turn`) | `pushReplacement('/dungeon-guardian')` **antes** de iniciar sesión | paywall / elixir / repaso / chat de 8 | `conversation_screen.dart:208-223` |
+| **Maná (a mitad)** | error `AiErrorKind.quota` | abre el Guardián **encima** de la conversación | paywall / elixir | `:1101-1110` |
+| Nivel de lección | `LessonUnlockService.classify == locked` | snack «MAZMORRA BLOQUEADA», **no navega** | completar desafíos previos | `learning_path_roadmap.dart:711-718` · `lesson_unlock_service.dart:107` |
+| Jefe: listo | `status.isReady` o ≥ 80 % de progreso | tarjeta sin `onTap` si no está listo | seguir practicando | `boss_exam_card.dart:41-58` |
+| Jefe: cooldown | `isOnCooldown` (12 h de servidor) | tarjeta en cooldown, sin examen | esperar `next_attempt_at` | `boss_exam_card.dart:149-156` |
+| Plan (informe) | `_weekOffset >= maxWeekOffset`, donde `maxWeekOffset = historyWeeks - 1` y `historyWeeks` lo fija `subscription_plans.weekly_report_weeks` en servidor | flecha «anterior» deshabilitada + `_LockedWeekCard` | comprar plan | `weekly_report_screen.dart:116-130` · `weekly_report.dart:115-130` |
+| Plan (tienda) | `min_plan` del cosmético | `plan_required` con mensaje y plan exigido | paywall | `shop_screen.dart:180-186` · `economy_repository_impl.dart:609` |
+| Aura | `!aura.isAwakened` | botón EQUIPAR deshabilitado + «🔒 AURA BLOQUEADA» | superar etapa básica | `inventory_screen.dart:43-54`, `:419` |
+| Asiento (sala) | sin asiento concedido | micrófono bloqueado; sólo escucha | pedir asiento (FIFO) | `voice_room_screen.dart:148-253` |
+| **Paywall** | único camino a «obtener maná» | CTA del Guardián → `/paywall` (no a la tienda) | comprar Pro | `dungeon_guardian_screen.dart:208-214` |
+| Resumen | 0 mensajes de usuario | **no** se registra sesión ni se muestra resumen | — | `conversation_screen.dart:103-106` |
+| Onboarding | guardado falla | se queda en el wizard con snack | reintentar | `onboarding_screen.dart:371-386` |
+
+**Lectura:** hay **dos** bloqueos duros que cambian de pantalla (maná y
+sesión/perfil) y **el resto son bloqueos locales** (botón deshabilitado o snack).
+El maná es el único que **sustituye** la pantalla que el usuario pidió, y lo hace
+de dos formas distintas según el momento (§7.5).
 
 ---
 
@@ -615,3 +695,165 @@ detalle visual, ver `docs/ui-ux-audit/03-ux-ui-audit.md` y el backlog
 | Membresías | `[IMPLEMENTADO]` | paywall RevenueCat; sin retorno automático al origen |
 | Tienda | `[PARCIAL]` | 3 monedas, 0 compras históricas (`player_inventory` = 0 filas; ver §07) |
 | Ajustes | `[IMPLEMENTADO]` | sin ruta propia |
+
+---
+
+## 9. Grafo completo de transiciones (aristas, una por llamada)
+
+Todas las aristas verificadas en `lib/` (50 llamadas de navegación + 3 reglas de
+`redirect`). «Animación» = `MaterialPage` (framework) salvo que se indique otra;
+**ninguna** declara duración/curva propia (§3.1).
+
+### 9.1 Rutas (`go` / `push` / `pushReplacement` / `pop`)
+
+| # | Origen | Destino | Tipo | Declarado en | Condición / guarda |
+|---|---|---|---|---|---|
+| 1 | `/splash` | `/` | `go` | `splash_screen.dart:86` | tras `max(500 ms, warm-up ≤ 3 s)` |
+| 2 | `/` | `/home` | redirect | `router.dart:166` | sesión **con** perfil y `path == '/'` |
+| 3 | `/` | `/onboarding` | redirect | `router.dart:170-172` | sesión **sin** perfil |
+| 4 | `/` | `/` | redirect | `navigation_resolver.dart:72-75` | sin sesión |
+| 5 | `/` (registro email) | `/onboarding` | `go` | `welcome_screen.dart:684` | sesión creada |
+| 6 | `/` (Google registro) | `/onboarding` | `go` | `welcome_screen.dart:296` | `isRegistering = true` |
+| 7 | `/` (login) | `/home` o `/onboarding` | `go` | `welcome_screen.dart:73` | `NavigationDecisionEngine.resolve` |
+| 8 | `/onboarding` | `/oracle-test?target&native` | `push<Map>` | `onboarding_screen.dart:209-211` | paso 2 con idiomas elegidos |
+| 9 | `/oracle-test` | `/onboarding` (paso 3) | `pop<Map>` | `onboarding_screen.dart:212-219` | retorno del examen |
+| 10 | `/onboarding` | `/mini-conversation` | `go` | `onboarding_screen.dart:396` | `wasSeen == false` |
+| 11 | `/onboarding` | `/home` | `go` | `onboarding_screen.dart:396` | `wasSeen == true` |
+| 12 | `/mini-conversation` | `/home` | `go` | `mini_conversation_screen.dart:157` | cerrar / skip / continuar |
+| 13 | `/home` (tab 0) | `/conversation?scenarioId&scenarioTitle` | `push` | `dashboard_screen.dart:63-65` | ruta recomendada del servidor |
+| 14 | `/home` (tab 0) | `/conversation` | `push` | `welcome_back_card.dart:150-153` | hay lección pendiente |
+| 15 | `/home` (tab 0) | `/paywall` | `push` | `dashboard_screen.dart:418` | `!isPremium` |
+| 16 | `/home` (tab 0) | `/shop` | `push` | `dashboard_screen.dart:500` | — |
+| 17 | `/home` (tab 0) | `/oracle-test` | `push` | `dashboard_screen.dart:507` | — (placement libre) |
+| 18 | `/home` (tab 0) | `/my-errors` | `push` | `dashboard_screen.dart:528` | — |
+| 19 | `/home` (tab 0) | `/conversation?…` | `push` | `learning_path_roadmap.dart:720` | nodo `nextAvailable`/`unlockedByOracle` |
+| 20 | `/home` (tab 0) | `/conversation?…` | `push` | `learning_path_roadmap.dart:773` | sub-misión desbloqueada |
+| 21 | `/home` (tab 0) | `/oracle-test?mode=promotion&level=` | `push` | `boss_exam_card.dart:139` | `ready` (sin cooldown) |
+| 22 | `/home` (tab 0) | `/oracle-test?mode=promotion&level=` | `push` | `level_checkpoint_banner.dart:117` | checkpoint alcanzado |
+| 23 | `/home` (tab 0) | `/missions` | `push` | `mission_spotlight_widget.dart:90,120` | — |
+| 24 | `/home` (tab 0) | `/listening?exerciseId=` | `push` | `listening_path_card.dart:48` | nivel activo |
+| 25 | `/home` (tab 2) | `/profile-edit` | `push` | `progress_tab_view.dart:137` | — |
+| 26 | `/home` (tab 2) | `/weekly-report` | `push` | `weekly_report_card.dart:44` | — |
+| 27 | `/home` (tab 1) | `/voice-room?roomId=` | `push` | `chat_rooms_screen.dart:441,768,774,880` | sala existente |
+| 28 | `/home` (tab 1) | `/inventory` | `push` | `chat_rooms_screen.dart:602` | — |
+| 29 | `/home` (tab 1) | `/voice-room?roomId=` | `push` | `guild_master_floating_banner.dart:111,113` | hay mesas |
+| 30 | `/home` (logout) | `/` | `go` | `dashboard_screen.dart:710` | confirmación |
+| 31 | `/voice-room` | `/conversation` | `push` | `voice_room_screen.dart:1237` | **sin `scenarioId`** |
+| 32 | `/voice-room` | `/chat-rooms` | `go` | `voice_room_screen.dart:192` | fallback si no puede `pop` |
+| 33 | `/conversation` | `/summary` | `push` (GoRouter) | `conversation_screen.dart:131` | **sólo** salida por gesto/back (`PopScope`) y con ≥ 1 turno de usuario |
+| 34 | `/conversation` | `/dungeon-guardian` | **`pushReplacement`** | `conversation_screen.dart:220` | `available < 12` al entrar |
+| 35 | `/conversation` | `/dungeon-guardian` | **`Navigator.push`** | `conversation_screen.dart:1105-1108` | cuota agotada a mitad |
+| 36 | `/conversation` | `/boss-result` | `push` + `extra` | `conversation_screen.dart:1970-1973` | `oracleFinished` y `mode == boss` |
+| 37 | `/conversation` | `/home` | `go` | `conversation_screen.dart:1218,1980` | atrás sin pila / oráculo sin pila |
+| 38 | `/summary` | `/home` | `go` | `session_summary_screen.dart:90` | botón atrás o LISTO |
+| 39 | `/summary` | `/conversation?…` | `push` | `session_summary_screen.dart:767-769` | existe lección siguiente |
+| 40 | `/summary` | `/conversation?…` | `push` | `session_summary_screen.dart:905-907` | refuerzo jugable |
+| 41 | `/dungeon-guardian` | `/paywall` | `push` | `dungeon_guardian_screen.dart:211` | — |
+| 42 | `/dungeon-guardian` | `/conversation` | `push` | `dungeon_guardian_screen.dart:615` | `available >= 8` |
+| 43 | `/dungeon-guardian` | `/home` | `go` | `dungeon_guardian_screen.dart:150,231` | tras `pop` (siempre) |
+| 44 | `/shop` | `/inventory` | `push` | `shop_screen.dart:401` | — |
+| 45 | `/inventory` | `/shop` | `push` | `inventory_screen.dart:226` | inventario vacío |
+| 46 | `/boss-result` | `/home` | `go` | `boss_exam_result_screen.dart:43,123,135` | — |
+| 47 | `/profile-edit` | `/home` | `go` | `profile_edit_screen.dart:279,604` | fallback |
+| 48 | `/paywall` | `/home` | `go` | `paywall_screen.dart:237` | fallback |
+| 49 | `/settings` (tab 3) | `/` | `go` | `settings_screen.dart:525,570`, `:1524` | borrar cuenta / logout |
+| 50 | `/missions` | `/home` | `go` | `missions_screen.dart:99` | fallback |
+| 51 | `/listening` | `/home` | `go` | `listening_quiz_screen.dart:215,795` | fallback |
+| 52 | notificación | `/home` | `go` | `app.dart:52` | tap en recordatorio |
+| 53 | widget de inicio | `/home` | `go` | `app.dart:95` | tap en widget (espera ≤ 4 s) |
+
+**`pop` sin destino fijo (14):** `missions:97` · `shop:377` · `inventory:122` ·
+`my_errors:40` · `weekly_report:46` · `profile_edit:277,602` · `paywall:235` ·
+`voice_room:190` · `conversation:1216` · `listening:213,793` ·
+`chat_rooms:964` (AppBar de `/chat-rooms`).
+
+### 9.2 Modales, hojas y diálogos (no cambian de ruta)
+
+| Pantalla | Mecanismo | Qué abre | Evidencia |
+|---|---|---|---|
+| Conversación | `showModalBottomSheet` ×4 | ajustes TTS, frases de ayuda, objetivos de misión, temas | `conversation_screen.dart:349,395,460,890` |
+| Dashboard | `showDialog` | confirmación de logout | `dashboard_screen.dart:667` |
+| Dashboard | `showModalBottomSheet` | recompensa diaria | `daily_reward_modal.dart:16` (invocado en `dashboard_screen.dart:520`) |
+| Sala de voz | `showModalBottomSheet` | ajustes de la sala | `voice_room_screen.dart:352` |
+| Gremio | `showDialog` ×2 | crear mesa / confirmación de unión | `chat_rooms_screen.dart:264,321` |
+| Tienda | `showDialog` | confirmación de compra con precio | `shop_screen.dart:53` |
+| Perfil | `showModalBottomSheet` | elegir avatar (galería/cámara) | `profile_edit_screen.dart:170` |
+| Ajustes | `showModalBottomSheet` ×6 + `showDialog` ×2 | idioma, CEFR, corrección, personalidad, estilo, meta, borrar cuenta, logout | `settings_screen.dart:576,796,897,972,1047,1414`, `:489,537` |
+| Resumen | `showModalBottomSheet` | repaso SRS | `srs_flashcard_modal.dart:22` |
+| Resumen | `showDialog` | permiso de notificaciones | `notification_permission_prompt.dart:45` |
+| HUD | `showDialog` | detalle de nivel/logro | `hunter_hud_header.dart:50` |
+| Onboarding | `showDialog` | aviso de privacidad | `onboarding_screen.dart:157` |
+| Welcome | `showDialog` | reset de contraseña | `welcome_screen.dart:519` |
+
+### 9.3 Grafo completo (con tipo de arista)
+
+```mermaid
+flowchart TD
+  N[/"notificación · widget"/] -->|"go · app.dart:52,95"| H
+  S["/splash"] -->|"go · :86"| W["/ (welcome)"]
+  W -->|"redirect · router:166"| H["/home"]
+  W -->|"redirect · router:170"| O["/onboarding"]
+  W -->|"go registro · welcome:296,684"| O
+  O -->|"push · onboarding:209"| OT["/oracle-test"]
+  OT -->|"pop Map · onboarding:212"| O
+  O -->|"go · onboarding:396"| MC["/mini-conversation"]
+  O -->|"go · onboarding:396"| H
+  MC -->|"go · :157"| H
+
+  subgraph HOME["/home — 4 pestañas"]
+    T0["0 · Mazmorras"]:::tab
+    T1["1 · Guild"]:::tab
+    T2["2 · Estado"]:::tab
+    T3["3 · Config (sin ruta)"]:::tab
+  end
+
+  H --> T0
+  H --> T1
+  H --> T2
+  H --> T3
+
+  T0 -->|"push"| C["/conversation"]
+  T0 -->|"push"| MS["/missions"]
+  T0 -->|"push"| SH["/shop"]
+  T0 -->|"push"| OT
+  T0 -->|"push"| ME["/my-errors"]
+  T0 -->|"push · si free"| P["/paywall"]
+  T0 -->|"push"| LI["/listening"]
+  T0 -->|"push · ready"| OTB["/oracle-test?mode=promotion"]
+  T1 -->|"push"| VR["/voice-room"]
+  T1 -->|"push"| INV["/inventory"]
+  T2 -->|"push"| PE["/profile-edit"]
+  T2 -->|"push"| WR["/weekly-report"]
+  T3 -->|"go · logout/borrar"| W
+
+  C -->|"pushReplacement · maná < 12"| DG["/dungeon-guardian"]
+  C -->|"Navigator.push · cuota"| DG
+  C -->|"push · ≥1 turno"| SU["/summary"]
+  C -->|"push · mode=boss"| BR["/boss-result"]
+  DG -->|"push"| P
+  DG -->|"push · maná ≥ 8"| C
+  SU -->|"push · siguiente/refuerzo"| C
+  SU -->|"go"| H
+  SH -->|"push"| INV
+  INV -->|"push · vacío"| SH
+  VR -->|"push · sin escenario"| C
+  VR -->|"go · fallback"| CR["/chat-rooms (ruta muerta)"]
+  OTB --> BR
+  BR -->|"go"| H
+  ME -->|"pop"| T0
+  WR -->|"pop"| T2
+  LI -->|"pop / go"| T0
+
+  classDef tab fill:#1d1f27,stroke:#00E5FF,color:#E1E2ED;
+```
+
+**Lectura del grafo:**
+
+- **3 nodos de entrada** (`/splash`, notificación, widget) y **1 hub** (`/home`):
+  todo pasa por el dashboard salvo el onboarding.
+- **`/home` es el único nodo con 11 salidas**; el resto tiene 0–4.
+- **2 ciclos**: `shop ↔ inventory` (44/45) y `summary → conversation` (39/40),
+  ambos por `push` (la pila crece sin techo).
+- **1 ruta sin aristas de entrada**: `/chat-rooms` (sólo se alcanza por el
+  fallback de la sala de voz, §7.3).
+- **1 nodo con 2 mecanismos distintos**: `/dungeon-guardian` (34 y 35).

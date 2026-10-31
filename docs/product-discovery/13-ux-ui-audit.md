@@ -1,323 +1,404 @@
-# 13 — Auditoría UX/UI (resumen enlazado)
+# 13 — Auditoría UX/UI · Parte D (jerarquía, contraste, tacto, estados, a11y)
 
-> **Este documento no sustituye la auditoría.** La auditoría completa está en
-> `docs/ui-ux-audit/` y aquí sólo se **resume, actualiza y enlaza**:
+> **Este documento no sustituye la auditoría.** La auditoría completa (49
+> hallazgos, 39 entradas de backlog) vive en `docs/ui-ux-audit/`. Aquí se
+> **verifica contra el código de hoy** qué sigue siendo cierto, se calculan los
+> ratios y se marca lo que sólo puede cerrarse en dispositivo.
 >
-> | Documento | Contenido | Enlace |
-> |---|---|---|
-> | `01-project-analysis.md` | conteos de código, tipografía, espaciado | `docs/ui-ux-audit/01-project-analysis.md` |
-> | `02-screen-inventory.md` | inventario previo de pantallas | `docs/ui-ux-audit/02-screen-inventory.md` |
-> | **`03-ux-ui-audit.md`** | **los 49 hallazgos con evidencia** | `docs/ui-ux-audit/03-ux-ui-audit.md` |
-> | `04-design-system-proposal.md` | propuesta de sistema | `docs/ui-ux-audit/04-design-system-proposal.md` |
-> | `05-redesign-proposals.md` | propuestas de rediseño | `docs/ui-ux-audit/05-redesign-proposals.md` |
-> | **`06-improvement-backlog.md`** | **39 entradas accionables UX-01…UX-39** | `docs/ui-ux-audit/06-improvement-backlog.md` |
-> | `07-executive-summary.md` | resumen ejecutivo | `docs/ui-ux-audit/07-executive-summary.md` |
+> | Documento | Contenido |
+> |---|---|
+> | `docs/ui-ux-audit/01-project-analysis.md` | conteos de código, tipografía, espaciado |
+> | `docs/ui-ux-audit/02-screen-inventory.md` | inventario de pantallas |
+> | **`docs/ui-ux-audit/03-ux-ui-audit.md`** | **los 49 hallazgos con evidencia (C-, T-, K-, A-)** |
+> | `docs/ui-ux-audit/04-design-system-proposal.md` | propuesta de sistema |
+> | `docs/ui-ux-audit/05-redesign-proposals.md` | propuestas de rediseño |
+> | **`docs/ui-ux-audit/06-improvement-backlog.md`** | **UX-01…UX-39** (fuente de los issues #240–#261) |
+> | `docs/ui-ux-audit/07-executive-summary.md` | resumen ejecutivo |
+> | `docs/ui-ux-audit/screenshots/README.md` | método de captura y nombres |
+> | **`docs/product-discovery/23-visual-validation-checklist.md`** | **checklist ejecutable de la validación humana (D-13)** |
 >
-> Épica de trabajo: **issue #239**. Issues hijos: **#240–#261**.
->
-> ## Aviso metodológico
->
-> **No hay visión de imágenes** y el móvil está desconectado. Todo lo que sigue
-> se sostiene en: (a) lectura de widgets y tokens, (b) **contrastes calculados**
-> con la fórmula WCAG que implementa `lib/core/theme/app_contrast.dart:19-31`,
-> (c) estado real de los issues en GitHub consultado hoy. **No** hay juicio
-> visual: ni jerarquía, ni ritmo, ni legibilidad percibida, ni calidad de
-> animación.
+> Épica: **#239**. Hijos: **#240–#261**.
+
+## Aviso metodológico
+
+Medido el **31-oct-2026** sobre el worktree `p14-ai-usage` (base `origin/master`).
+Todo lo que sigue se sostiene en: (a) lectura de widgets y tokens, (b)
+**contrastes calculados** con la fórmula WCAG 2.1 que implementa
+`lib/core/theme/app_contrast.dart:19-36`, (c) conteos sobre `lib/` y `test/`.
+
+**No hay visión de imágenes y no hay dispositivo conectado.** Por eso no se
+emite juicio visual (jerarquía percibida, ritmo, alineación óptica, calidad del
+glow, animación): eso queda como `[PENDIENTE DE VALIDAR]` y se resuelve con
+`23-visual-validation-checklist.md` (D-13).
+
+**Estado de los issues:** la columna «GitHub» es la del **cierre de la
+auditoría** (4 cerrados / 18 abiertos); no se reconsultó la API en esta sesión.
+La columna «¿Vive la corrección?» es la **verificación en código** de hoy, que es
+lo que el cierre debía garantizar.
 
 ---
 
-## 1. Estado real del backlog #240–#261 (verificado hoy)
+## 1. Jerarquía visual
 
-Los 22 issues cubren las 39 entradas del backlog. **4 cerrados, 18 abiertos.**
+### 1.1 Medición objetiva (lo que sí se puede afirmar)
 
-| Issue | Entrada(s) | Sev. | Estado GitHub | ¿Resuelto en código? |
-|---|---|---|---|---|
-| **#240** | UX-01 design system no usado | P0 | OPEN | ❌ sigue: `AppSpacing` 4 refs / `AppElevation` 0 usos |
-| #241 | UX-02 botón primario y destructivos AA | P0 | CLOSED | ⚠️ **parcial**: `RunicButton` ya usa blanco (`runic_button.dart:26`), pero **13 call sites** siguen con `onSurface` sobre violeta (§2.1) |
-| #242 | UX-03 objetivos táctiles < 48 dp | P0 | CLOSED | ⚠️ **parcial**: `_RoundIconButton` sigue con `size = 40` por defecto (`session_summary_screen.dart:1048`), y la cabecera del resumen usa ese default |
-| #243 | UX-04 animaciones ignoran reduce-motion | P0 | CLOSED | ❌ **no resuelto**: 12 de 14 `repeat()` siguen sin gate (§3) |
-| #244 | UX-05 destructivos y avisos AA | P1 | CLOSED | ✅ corregido donde se tocó: `settings_screen.dart:1536-1538` usa `crimsonRed` + `voidBg` (5.23:1) |
-| #245 | UX-06 escala tipográfica | P1 | OPEN | ⚠️ mejoró: 31 → **21** tamaños; siguen 225 usos < 12 px y mínimo **7 px** |
-| #246 | UX-07 migrar `GoogleFonts.*` | P1 | OPEN | ❌ 384 `GoogleFonts.*` vs 114 `AppTypography.*` |
-| #247 | UX-08 espaciados fuera de rejilla | P1 | OPEN | ❌ 419 `EdgeInsets` literales |
-| #248 | UX-09 unificar botones | P1 | OPEN | ❌ `RunicButton` 12 vs 20 `ElevatedButton` + 38 `IconButton` + 41 `GestureDetector` + 24 `InkWell` |
-| #249 | UX-10 `SnackBar` crudos | P1 | OPEN | ❌ 48 `SystemSnack.show` vs 52 `SnackBar(` |
-| #250 | UX-11 `QuestCard` vs `MissionCard` | P1 | OPEN | ❌ ambos vivos |
-| #251 | UX-12 cobertura semántica | P1 | OPEN | ❌ 9 `Semantics(` en todo `lib/` |
-| #252 | UX-13 mic hold-to-talk sin acción semántica | P1 | CLOSED | ⚠️ **parcial**: `Semantics(button: true, label: …)` sigue **sin `onTap`/`onLongPress`** (`conversation_mic_button.dart:167-171`) |
-| #253 | UX-14 matriz responsive 20×2 | P1 | OPEN | ❌ 5/20 pantallas a 312 px, 0 `textScalerOf` |
-| #254 | UX-15 conversación sin widget tests | P1 | OPEN | ❌ 2 362 líneas sin test de pantalla |
-| #255 | UX-16 tienda: error = vacío | P1 | OPEN | ❌ `shop_screen.dart:657-665` no consulta `hasError` |
-| #256 | UX-17 dashboard miente en error | P1 | OPEN | ❌ `dashboard_screen.dart:194-231` |
-| #257 | UX-18 hint de inputs 3.50:1 | P1 | CLOSED | ✅ `app_theme.dart:132-134` sube a α 0.7 |
-| #258 | UX-19…21 superficies, radios, sheets | P2 | OPEN | ❌ `AppElevation` sin usar; 177 radios literales; 14 `showModalBottomSheet` |
-| **#259** | UX-22…28 accesibilidad y navegación | P2 | OPEN | ❌ 4 `pop()` sin fallback; 0 `Semantics(selected:)` en el dock |
-| **#260** | UX-24…30 layout, resumen e i18n | P2 | OPEN | ⚠️ **solapa con #259 en UX-24…28** (taxonomía duplicada) |
-| **#261** | UX-31…37 detalles estéticos | P3 | OPEN | ❌ `ChatRoomsScreen` sin `SafeArea`, `.toUpperCase()` sobre traducciones |
-
-**Lectura del tablero:**
-
-- De 6 entradas marcadas como cerradas, **3 están sólo parcialmente resueltas**
-  (#241, #242, #252) y **1 no está resuelta** (#243). El cierre se hizo por
-  "arreglé el componente", no por "no queda ningún call site".
-- **UX-38 y UX-39 no tienen issue** en el rango #240–#261, aunque están en
-  `06-improvement-backlog.md`. Quedan fuera de seguimiento.
-- **Criterio de cierre de la épica #239**: "0 hallazgos CRÍTICO y ALTO abiertos"
-  + "un test que impida la regresión de cada corrección". Hoy: **1 crítico
-  (UX-01) y 11 altos** siguen abiertos.
-
----
-
-## 2. Los 5 hallazgos más graves (con evidencia)
-
-### 2.1 El par violeta + `onSurface` sigue en 13 sitios pese a que #241 está cerrado
-
-`RunicButton` se corrigió (`runic_button.dart:25-26`: blanco sobre violeta =
-**4.60:1**, AA). Pero el par antiguo se replica a mano en pantallas de primer
-nivel:
-
-| Archivo:línea | Pantalla / control |
-|---|---|
-| `onboarding_screen.dart:536-537` | CTA «continuar» de los 4 pasos |
-| `session_summary_screen.dart:713-714` | botón **LISTO** del resumen |
-| `settings_screen.dart:289-290` | botón de guardar ajustes |
-| `welcome_screen.dart:309-310, 459-460, 582-583` | REGISTER WITH GOOGLE, login con email, confirmación |
-| `chat_rooms_screen.dart:643-644` | «CREAR MESA» |
-| `profile_edit_screen.dart:620-621` | guardar perfil |
-| `mini_conversation_screen.dart:460-461` | CTA de la prueba de valor |
-| `progress_tab_view.dart:230-231`, `ai_pick_hero_card.dart:222-223`, `paywall_screen.dart:394-395`, `welcome_back_card.dart:155,174` | acentos varios |
-
-**Ratio: 3.57:1** (`#E1E2ED` sobre `#9D4EDD`) < 4.5 → **falla AA** en texto de
-16 px. Con blanco serían 4.60. Es un cambio de **una propiedad por sitio**.
-
-**Por qué es grave:** son los botones que más se pulsan del embudo (crear
-cuenta, empezar el onboarding, terminar la sesión). El test de contraste
-(`app_contrast_test.dart:41`) valida el par del componente, **no** los call
-sites; por eso el issue se pudo cerrar con la regresión viva.
-
-### 2.2 `reduce-motion` no funciona en 12 de las 14 animaciones infinitas
-
-| Foco | Gate |
-|---|---|
-| `glass_card.dart:60` (esquinas rúnicas de **las 100 tarjetas**) | ❌ |
-| `cyber_manhwa_background.dart:55,60,65,70` (fondo de **16 archivos**) | ❌ |
-| `draggable_monster_widget.dart:46,52,58,64` | ❌ |
-| `voice_waveform_visualizer.dart:30` | ❌ |
-| `learning_path_roadmap.dart:553,561` | ❌ |
-| `dungeon_guardian_screen.dart:46,47` | ✅ |
-| `runic_button.dart:84` | ✅ |
-
-`AppMotion.reduceMotion` / `AppMotion.of` existen y están bien implementados
-(`app_motion.dart:53-66`), con **3 referencias reales** en todo `lib/`. #243
-está cerrado; la cobertura real es **2 de 14**.
-
-**Por qué es grave:** es la única preferencia de accesibilidad que el sistema
-operativo ofrece para usuarios con sensibilidad vestibular; incumplirla no es un
-detalle estético.
-
-### 2.3 Dos pantallas mienten sobre su estado (error pintado como vacío / como caché)
-
-| ID | Hallazgo | Evidencia | Efecto en el usuario |
+| ID | Hecho medido | Valor | Evidencia |
 |---|---|---|---|
-| **UX-16** (#255) | La tienda no consulta `hasError`: si la red falla, muestra «AÚN NO HAY OBJETOS» | `shop_screen.dart:657-665` (`catalog.isEmpty → _buildEmpty`) | Cree que la tienda está vacía y no reintenta. No hay forma de recuperarse salvo salir y volver |
-| **UX-17** (#256) | El dashboard dice «Mostrando el último progreso guardado» justo en la rama `hasError && !hasValue`, donde **no hay** progreso guardado | `dashboard_screen.dart:194-231` | Copy que promete datos que no existen |
+| J-01 | **No existe cabecera compartida** | 1 `AppBar(` en 24 `Scaffold(`; 14 archivos dibujan su propio «volver» a mano | `lib/core/widgets/` (14 archivos, ninguno de cabecera); conteo de `arrow_back` en `lib/` |
+| J-02 | **Cuatro tratamientos distintos del mismo control** | icono 18 vs 24 · color `onSurface` vs `medievalText` · padding `12/12/20/8` vs `24/16` vs `16/12/0` · tooltip sí/no | `my_errors_screen.dart:39-47` · `weekly_report_screen.dart:45-53` · `inventory_screen.dart:117-123` · `shop_screen.dart:372-378` |
+| J-03 | **20 pantallas, 6,35 niveles tipográficos de media; máximo 11** | `chat_rooms` 11 · `conversation` 10 · `dungeon_guardian` 10 · `settings` 9 · `dashboard`/`voice_room`/`shop` 8 · `summary`/`mini_conversation` 2 | conteo de `fontSize:` por `*_screen.dart` |
+| J-04 | **El `TextTheme` se usa 4 veces en toda la app** | 5 referencias a `textTheme`, 1 es la definición | `app_theme.dart:22` (def.) · usos en `configuration_error_widget.dart:28`, `conversation_screen.dart:1234`, `ai_pick_hero_card.dart:155`, `learning_path_roadmap.dart:242` |
+| J-05 | **Dos sistemas de superficie** | `GlassCard` **100** usos vs `SystemWindow` **4**; además 172 `BoxDecoration(` a mano | conteo `lib/`; `quest_card.dart`, `system_window.dart` |
+| J-06 | **La elevación no existe como lenguaje** | `AppElevation` declarado, **0 usos** | `core/theme/app_elevation.dart:4-5` |
+| J-07 | **Títulos por «más negrita»**: 23 `FontWeight.w900` y 133 `letterSpacing` sueltos | — | conteo `lib/` |
 
-**Por qué es grave:** no es un problema de píxeles: destruye la confianza en la
-cifra. El resto de pantallas sí distinguen estados (ver matriz en
-`docs/product-discovery/03-screen-inventory.md` §4.1), así que el patrón correcto
-ya existe y no se reutiliza: **no hay `HudState` compartido**.
+**Lectura:** la app tiene identidad (vidrio + esquinas rúnicas + mono para
+etiquetas), pero **no tiene gramática de jerarquía**: cada pantalla decide
+tamaños (J-03), la cabecera se reescribe (J-01/J-02) y el `TextTheme` se ignora
+(J-04). Los elementos que compiten en la misma pantalla usan escalas continuas
+(7, 8, 9, 10, 11, 11.5, 12, 12.5, 13, 14, 15, 16, 17, 18, 20, 22, 24, 26, 28,
+32, 40, 48) en lugar de 4–5 roles.
 
-### 2.4 Objetivos táctiles por debajo de 48 dp (y #242 cerrado con 40)
+### 1.2 Lo que no se puede afirmar
 
-`_RoundIconButton` de `session_summary_screen.dart:1038-1051` mantiene
-`size = 40` por defecto (`:1048`) y la cabecera del resumen lo usa así
-(`:142-145`). Otros restos medidos en la auditoría:
+`[PENDIENTE DE VALIDAR]` — si el ojo encuentra el CTA en < 2 s en cada pantalla,
+si el HUD superior (avatar + nombre + nivel + maná) domina sobre el contenido, si
+la densidad de `chat_rooms` (11 niveles) se lee o se ve como ruido. Requiere
+captura + revisión humana (ítems V-01…V-20 del checklist).
 
-| Control | Tamaño | Evidencia |
+---
+
+## 2. Contraste (ratios WCAG calculados)
+
+Fórmula: `app_contrast.dart:19-36`. Umbral AA texto normal **4.5**, texto grande
+**3.0** (≥ 24 px, o ≥ 18.66 px en negrita), **3.0** para componentes/bordes
+(1.4.11).
+
+### 2.1 Pares que el tema usa de verdad — todos pasan
+
+| Par | Ratio | Veredicto | Dónde |
+|---|---|---|---|
+| `onSurface` `#E1E2ED` / `voidBg` `#05070E` | **15.63** | AAA | texto base |
+| `onSurface` / `surface` `#11131B` | **14.39** | AAA | texto sobre tarjeta |
+| `onSurfaceVariant` `#BAC9CC` / `surface` | **10.87** | AAA | copy secundario (`bodyMedium`) |
+| `onSurfaceVariant` / `surfaceContainerLow` `#191B23` | **10.07** | AAA | dentro de tarjetas |
+| `outline` `#849396` / `surface` | **5.82** | AA | `labelLarge/Medium` |
+| `manaCyan` `#00E5FF` / `surface` | **12.05** | AAA | acentos, títulos de estado |
+| `royalGold` `#FFC700` / `surface` | **11.85** | AAA | recompensas |
+| `emeraldGreen` `#00E676` / `surface` | **11.11** | AAA | éxito |
+| `errorRed` `#FFB4AB` / `surfaceContainerHigh` | **8.45** | AAA | **texto de error correcto** |
+| `crimsonRed` `#FF1744` / `voidBg` | **5.23** | AA | destructivo de Ajustes |
+| blanco / `runeViolet` `#9D4EDD` | **4.60** | AA (justo) | `RunicButton` |
+| `outline` / `surfaceContainerHigh` `#272A32` | **4.51** | AA (justo) | etiquetas en diálogo |
+
+### 2.2 Pares que el código usa y fallan
+
+| Par | Ratio | Sitios | Evidencia |
+|---|---|---|---|
+| `onSurface` / `runeViolet` | **3.57** ❌ | **13** | §6.2 R-01 |
+| `onSurface` / `crimsonRed` | **2.99** ❌ | 1 | `progress_tab_view.dart:229-231` |
+| `onSurface` / `crimsonRed` (SnackBar hereda `snackBarTheme`) | **2.99** ❌ | 1 | `profile_edit_screen.dart:155-163` (blanco daría 3.85, también falla) |
+| `voidBg` / `runeViolet` | **4.38** ❌ (casi) | 1 | `shop_screen.dart:819-837` — el único call site «arreglado» **no llega a 4.5** |
+| `runeViolet` como **texto** / `surface` | **4.03** ❌ | varios | p. ej. `onboarding_screen.dart:1104` (los iconos a 4.03 sí pasan 3:1) |
+| `manaCyan` @ α 0.5 / `surface` | **3.78** ❌ | 1 | `voice_room_screen.dart:914` (7 px) |
+| `onSurface` / `manaCyan` | **1.19** ❌ | 0 (rol latente) | sería el par de un FAB cian; hoy nadie lo usa |
+| blanco / `royalGold` (`onSecondary`) | **1.56** ❌ | 0 (rol latente) | `app_theme.dart:19` |
+
+### 2.3 Contraste de componentes (no texto, umbral 3.0) — hallazgo nuevo
+
+| Elemento | Par | Ratio | Veredicto |
+|---|---|---|---|
+| Borde de input (`enabledBorder`) | `outlineVariant` `#3B494C` / `surfaceContainerLow` | **1.84** | ❌ 1.4.11 |
+| Borde de tarjeta/diálogo | `outlineVariant` / `surface` | **1.98** | ❌ |
+| Borde sobre fondo profundo | `outlineVariant` / `voidBg` | **2.15** | ❌ |
+
+Con el campo relleno a `#191B23` y borde a `#3B494C`, **el contorno del input se
+distingue un 1.84:1**: para baja visión o luz de día el campo se ve como una
+mancha. `app_theme.dart:139-144` es el sitio; el borde de foco (`manaCyan`,
+12.05) sí es correcto, así que el usuario sólo «ve» el campo cuando ya está
+dentro.
+
+### 2.4 Dos correcciones que la documentación da por buenas y no lo están
+
+| Afirmación previa | Verificación |
+|---|---|
+| «Hint al 70 % = **7.77:1**» (`app_theme.dart:132`, `06-improvement-backlog.md:39`) | **No se reproduce.** Compuesto real: `#BAC9CC`@0.7 sobre `#191B23` = `#8A9599` → **5.60:1** (pasa AA, pero no 7.77). Al 50 % sería **3.51** (coincide con el 3.50 original) |
+| «El test bloquea la regresión del hint» (`app_contrast_test.dart:56-64`) | **El test es ciego al alfa**: pasa `withValues(alpha: 0.7)` a `ratio()`, que lee sólo `r/g/b` (`app_contrast.dart:19-27`). Mide el color opaco (**10.07**), no el renderizado (5.60). No protege el par |
+
+### 2.5 Lo que no se puede afirmar
+
+`[PENDIENTE DE VALIDAR]` — contraste **sobre fondo animado**
+(`CyberManhwaBackground` pinta 35 partículas y 4 loops), sobre `BackdropFilter`
+real y con brillo de pantalla bajo. Los ratios de arriba asumen superficie plana.
+
+---
+
+## 3. Objetivos táctiles (mínimo 48 dp)
+
+| Control | Tamaño | Evidencia | Veredicto |
+|---|---|---|---|
+| Replay TTS de la burbuja del tutor | **20×20** | `conversation_screen.dart:2223-2232` (`constraints: BoxConstraints()` + `padding: zero`, icono 20) | ❌ **nuevo, el peor** |
+| «Volver» del resumen (cabecera) | **40×40** | `session_summary_screen.dart:1048` (default) usado en `:142-145` | ❌ |
+| «Volver» del guardián | **40×40** | `dungeon_guardian_screen.dart:752-754` | ❌ |
+| «Volver» de perfil | **44×44** | `profile_edit_screen.dart:282-284` | ❌ |
+| Botones del resultado de jefe | alto **46** | `boss_exam_result_screen.dart:129,141` | ❌ |
+| «RECLAMAR» de la tienda | **48×40** | `shop_screen.dart:559` | ❌ (alto) |
+| `IconButton` estándar (volver de tienda, ajustes, inventario…) | 48 | `shop_screen.dart:372`, `settings_screen.dart:113` | ✅ |
+| Micrófono hold-to-talk | 72 | `conversation_mic_button.dart:130-131` | ✅ |
+| Dock del dashboard | alto ≥ 48 | `dashboard_screen.dart:622` | ✅ |
+
+**Corrección a la auditoría previa:** los `_RoundIconButton` de **24×24** del
+resumen (`session_summary_screen.dart:524-529,544-549`) **no son objetivos
+táctiles** — se usan como marcas decorativas (`onTap` nulo). No cuentan como
+fallo de A-01; sí como ruido visual (parecen botones y no lo son).
+
+**Patrón:** el tamaño mínimo aparece donde el control es «de sistema»
+(`IconButton`, dock) y se pierde en cuanto alguien dibuja el control a mano
+(`InkWell` + `SizedBox`, `constraints: BoxConstraints()`). No es criterio: es
+copy-paste con números distintos.
+
+---
+
+## 4. Estados: cargando / vacío / error / sin red
+
+### 4.1 Matriz por pantalla (verificado)
+
+| Pantalla | Cargando | Vacío | Error | Reintento | Pull-to-refresh |
+|---|---|---|---|---|---|
+| Dashboard | ❌ (sin spinner propio) | ❌ | ⚠️ copy falso (`:194-231`) | ✅ botón | ❌ |
+| Conversación | ✅ indicador de escritura (`conversation_screen.dart:2172-2191`) | n/a | ✅ nunca se pinta como turno del tutor (`conversation_providers.dart:1867-1912`) | ✅ | n/a |
+| Resumen | ✅ `:631-649` | n/a | ✅ `:650-656` | ✅ | ❌ |
+| Tienda | ✅ `:660-664` | ✅ `:665` | ❌ **error pintado como vacío** | ❌ | ❌ |
+| Gremio (ChatRooms) | ✅ | ✅ | ✅ `.when` | ❌ | ✅ `:497` |
+| Misiones | ✅ | ✅ | ✅ `.when` | ❌ | ✅ `:174` |
+| Mis errores | ✅ | ✅ | ✅ `.when` | ❌ | ✅ `:127` |
+| Informe semanal | ✅ | ✅ | ✅ `.when` | ❌ | ❌ (la auditoría previa decía que sí) |
+| Inventario | ✅ | ✅ | ✅ `.when` | ❌ | ❌ |
+| Paywall | ✅ | n/a | ✅ `.when` | ❌ | ❌ |
+| Sala de voz | ✅ | ✅ | ✅ `.when` | ❌ | ❌ |
+| Listening | ✅ | ✅ | ✅ `hasError`/`isLoading` (7 referencias) | ✅ | ❌ |
+| Ajustes | ❌ (spinner sólo del botón guardar, `:300`) | n/a | ❌ | ❌ | ❌ |
+| Onboarding / MiniConv / Welcome / Splash / Perfil / Guardián / Resultado de jefe | ❌ | n/a | ❌ | ❌ | ❌ |
+
+### 4.2 Sin red
+
+- **No hay paquete de conectividad** en `pubspec.yaml` (ni `connectivity_plus`
+  ni equivalente): la app **infiere** el offline del fallo de consulta.
+- Ese estado sólo existe en el dashboard: `progressOfflineProvider`
+  (`dashboard_providers.dart:193-227`) + banner `royalGold` (`dashboard_screen.dart:270-298`,
+  contraste 10.13 ✅).
+- En el resto, «sin red» = «error de la consulta», y en la tienda eso significa
+  «no hay objetos».
+
+### 4.3 Hallazgos de estado
+
+| ID | Hallazgo | Evidencia | Estado |
+|---|---|---|---|
+| E-01 | Tienda: error = vacío; sin `hasError` | `shop_screen.dart:657-665` | **abierto** (#255) |
+| E-02 | Dashboard: «Mostrando el último progreso guardado» en la rama `hasError && !hasValue` (no hay caché) | `dashboard_screen.dart:194-231` | **abierto** (#256) |
+| E-03 | 4 `context.pop()` sin `canPop()` → deep-link sin salida | `shop_screen.dart:377`, `inventory_screen.dart:122`, `my_errors_screen.dart:40`, `weekly_report_screen.dart:46` | **abierto** (#259); los otros 10 sí tienen guarda |
+| E-04 | `RefreshIndicator` en **3** de 20 pantallas | gremio, misiones, mis errores | **abierto** |
+| E-05 | Ajustes sin estado de página | `settings_screen.dart:300` (spinner del botón) | **abierto** |
+| E-06 | Resumen distingue loading/error/pendiente **sin test de pantalla** | `session_summary_screen.dart:631-673` | **abierto** (#260) |
+| E-07 | **No hay `HudState` compartido**: cada pantalla reimplementa el trío | no existe `core/widgets/hud_state.dart`; 30 `CircularProgressIndicator`, 0 skeletons | **abierto** |
+
+**Bien resuelto y no se debe perder:** conversación (un fallo de IA nunca se
+narra como tutor, `conversation_providers.dart:1869-1876`), resumen
+(`:631-673`), mis errores, informe, inventario, misiones, listening.
+
+---
+
+## 5. Accesibilidad
+
+### 5.1 Cobertura semántica real
+
+| Métrica | Valor | Nota |
 |---|---|---|
-| Volver / siguiente del resumen | 40 | `session_summary_screen.dart:1048` |
-| Volver del guardián | 40 | `dungeon_guardian_screen.dart:740` (default fijo) |
-| Volver de perfil | 44 | `profile_edit_screen.dart:282-285` |
-| Botones del resultado de jefe | alto 46 | `boss_exam_result_screen.dart:129,141` |
-| Acción de la tienda | 48×40 | `shop_screen.dart:559` |
+| `Semantics(` en `lib/` | **9 ocurrencias** | pero **5 son widgets `Semantics` reales**; 4 son `ExcludeSemantics` de las esquinas de `GlassCard` |
+| Widgets con semántica | 5 | `RunicButton` (`runic_button.dart:73`), `GlassCard.semanticLabel` (`glass_card.dart:119`, opcional), chip de corrección (`correction_chip.dart:44`), anillo de meta (`daily_goal_ring_card.dart:98`, sólo label), micrófono (`conversation_mic_button.dart:167`) |
+| `tooltip:` (propiedad) | **19** | `Tooltip(` widget: 6 |
+| «Volver» con etiqueta | **4 de 14** | misiones `:106`, mis errores `:46`, informe `:52`, listening `:223`. El resto, icono mudo |
+| `Semantics(selected:)` | **0** | dock `dashboard_screen.dart:611-663` |
+| `textScalerOf` / clamp | **0** | el texto escala sin límite |
+| `SegmentedBar` | sin `value` ni rol | `segmented_bar.dart:23-42`: 7 barras de progreso invisibles para TalkBack |
+| `ExcludeSemantics` en tests | 4 | `test/overflow_test.dart:108,193,239,304` |
 
-**Por qué es grave:** 40 dp está por debajo del mínimo recomendado (48 dp) y del
-que el propio repo usa en otros sitios (p. ej. el dock del dashboard fuerza
-`minHeight: 48`, `dashboard_screen.dart:622`). Es inconsistencia, no criterio.
-
-### 2.5 La accesibilidad semántica es prácticamente inexistente
-
-| Métrica | Valor |
-|---|---|
-| `Semantics(` en `lib/` | **9** |
-| `Tooltip(` en `lib/` | **6** |
-| `textScalerOf` | **0** |
-| Botones de volver con etiqueta | sólo `missions_screen.dart:106` |
-| Dock del dashboard con `Semantics(selected:)` | 0 (`dashboard_screen.dart:611-663`) |
-| Micrófono hold-to-talk | `Semantics(button: true, label:)` **sin acción** (`conversation_mic_button.dart:167-171`) |
-
-Con TalkBack, un control icon-only sin etiqueta se anuncia como «botón» y nada
-más; el micrófono en modo mantener-para-hablar **se puede enfocar pero no
-activar** por doble toque (issue #252, cerrado, sigue igual).
-
-**Por qué es grave:** el micrófono es el control central del producto; si un
-usuario de lector de pantalla no puede usarlo, la app no le sirve para su función
-principal.
-
----
-
-## 3. Contraste: resultados calculados
-
-Resumen; tabla completa y pares de todos los tokens en
-`docs/product-discovery/04-ui-design-system.md` §9.
-
-| Par | Ratio | AA normal (4.5) | Dónde |
-|---|---|---|---|
-| `onSurface` / `voidBg` | 15.63 | ✅ AAA | texto base |
-| `onSurfaceVariant` / `surface` | 10.87 | ✅ AAA | copy secundario |
-| `manaCyan` / `surface` | 12.05 | ✅ AAA | acentos |
-| `royalGold` / `surface` | 11.85 | ✅ AAA | recompensas |
-| `errorRed` / `containerHigh` | 8.45 | ✅ AAA | texto de error (**usar este**) |
-| `outline` / `containerHigh` | 4.51 | ✅ (justo) | bordes/labels |
-| `crimsonRed` / `containerHigh` | 3.73 | ❌ | texto de error actual |
-| **`onSurface` / `runeViolet`** | **3.57** | ❌ | **13 call sites** (§2.1) |
-| **`onSurface` / `crimsonRed`** | **2.99** | ❌ | `progress_tab_view.dart:230` |
-| blanco / `crimsonRed` | 3.85 | ❌ | `profile_edit_screen.dart:160` |
-| `onSurface` / `manaCyan` | 1.19 | ❌ | rol latente (sin uso) |
-| blanco / `royalGold` (`onSecondary`) | 1.56 | ❌ | `app_theme.dart:19` (rol sin uso) |
-
-**Lo bueno:** la paleta base es AAA en todo el texto principal y el par
-`voidBg`/`manaCyan` del botón del tema es 13.09. **Lo malo:** los dos acentos
-"de peligro/magia" no funcionan como fondo de texto claro y el código los sigue
-usando.
-
----
-
-## 4. Accesibilidad
+### 5.2 Accesibilidad, punto por punto
 
 | ID | Hallazgo | Evidencia | Estado |
 |---|---|---|---|
-| A-01 | Objetivos táctiles < 48 dp | §2.4 | **parcial** |
-| A-02 | 12/14 animaciones ignoran reduce-motion | §2.2 | **abierto** |
-| A-03 | 9 `Semantics` en 20 pantallas | `lib/` | **abierto** (#251) |
-| A-04 | Mic hold-to-talk sin acción semántica | `conversation_mic_button.dart:167-171` | **abierto de facto** (#252 cerrado) |
-| A-05 | Volver sin etiqueta salvo en Misiones | 7 cabeceras | **abierto** |
-| A-06 | 0 `textScalerOf`: el texto escala sin límite | `lib/` | **abierto** (#253) |
-| A-07 | 6 `Tooltip` en toda la app | `lib/` | **abierto** (#259) |
+| A-01 | Objetivos táctiles < 48 dp | §3 (6 controles, incluido uno de 20×20) | **parcial**, con un caso nuevo |
+| A-02 | 12/14 `repeat()` ignoran reduce-motion | §6.2 R-02 | **abierto** (#243 cerrado) |
+| A-03 | 5 widgets con semántica en 20 pantallas | §5.1 | **abierto** (#251) |
+| A-04 | Micrófono: `Semantics(button)` **sin acción** | `conversation_mic_button.dart:160-172` | **abierto de facto** (#252 cerrado) |
+| A-05 | «Volver» sin etiqueta en 10 de 14 | §5.1 | **abierto** |
+| A-06 | 0 `textScalerOf`; sólo 3 pantallas probadas a 1.5× | `test/text_scale_test.dart:78-100` | **abierto** (#253) |
+| A-07 | `Tooltip` en 19 propiedades | mejoró desde 6 | **parcial** |
+| A-08 | Contraste: 13 call sites violeta + 2 destructivos + bordes 1.84 | §2 | **abierto** |
 | A-09 | Dock sin `Semantics(selected:)` | `dashboard_screen.dart:611-663` | **abierto** (#259) |
-| A-10 | `ExcludeSemantics` global en tests de overflow | `test/overflow_test.dart` | **abierto** (#261) |
+| A-10 | `ExcludeSemantics` global en tests de overflow | `overflow_test.dart:108,193,239,304` | **abierto** |
+| A-11 | **Texto mínimo 7 px** en 2 sitios | `chat_rooms_screen.dart:1063`, `voice_room_screen.dart:914` | **abierto** (#245) |
+| A-12 | **`.toUpperCase()` sobre 16 cadenas traducidas** | p. ej. `chat_rooms_screen.dart:627,890,967,1022`, `dashboard_screen.dart:691,698`, `splash_screen.dart:180` | **abierto** (#260/#261) |
 
-**Protección existente que sí funciona:** `RunicButton` declara
-`Semantics(button: true, label:)` (`runic_button.dart:73-75`) y `GlassCard`
-acepta `semanticLabel` (`glass_card.dart:118-124`); `SegmentedBar` no expone
-valor, así que una barra de progreso es invisible para TalkBack.
+### 5.3 Lo que sólo se comprueba con el lector
+
+`[PENDIENTE DE VALIDAR]` — orden de foco de TalkBack, anuncio de cambio de
+estado (grabando / pensando / error), activación del micrófono por doble toque,
+`switch access`, y si el escalado 1.5×/2× rompe las 17 pantallas sin test. Está
+en el checklist §7 (TalkBack) y §8 (escalado) de
+`23-visual-validation-checklist.md`.
 
 ---
 
-## 5. Responsive
+## 6. Estado real de #240–#261 (verificado en código)
 
-| Métrica | Valor |
+### 6.1 Tablero
+
+**4 cerrados / 18 abiertos** al cierre (cifra canónica de la épica). Ojo: la
+tabla heredada marca **6** como `CLOSED` (#241, #242, #243, #244, #252, #257) y
+**16** como `OPEN`, así que el recuento interno no cuadra y no se pudo
+reconsultar la API (§6.3). En cualquier caso, lo que importa es la columna
+«¿Vive?»: **1 corrección completa (#257)**, **3 parciales (#241, #242, #244)** y
+**2 sin arreglar aunque cerradas (#243, #252)**.
+
+| Issue | Entrada | GitHub | ¿Vive la corrección? | Evidencia |
+|---|---|---|---|---|
+| **#240** | UX-01 design system sin usar | OPEN | ❌ sigue | `AppSpacing`: **3 usos reales**, todos en `app_theme.dart:96,111,125`; `AppElevation`: **0** |
+| #241 | UX-02 primario y destructivos AA | CLOSED | ⚠️ **parcial** | `RunicButton` blanco ✅ (`runic_button.dart:25-26`) pero **13 call sites** con `onSurface`/violeta (§6.2 R-01) y el «arreglado» de tienda da 4.38 |
+| #242 | UX-03 objetivos táctiles | CLOSED | ⚠️ **parcial** | 6 controles < 48 dp, incluido uno nuevo de **20×20** (`conversation_screen.dart:2223-2232`) |
+| #243 | UX-04 reduce-motion | CLOSED | ❌ **no resuelto** | 12 de 14 `repeat()` sin gate (§6.2 R-02) |
+| #244 | UX-05 destructivos y avisos AA | CLOSED | ⚠️ **parcial** | Ajustes ✅ 5.23 (`settings_screen.dart:1536-1538`); siguen `progress_tab_view.dart:230` (2.99) y `profile_edit_screen.dart:160` (2.99) |
+| #245 | UX-06 escala tipográfica | OPEN | ⚠️ mejoró | 31 → **22** tamaños (sin contar `fontSize: 0` de los ejes); **247** usos < 12 px; mín **7 px**; 4 estilos del `TextTheme` ausentes → Roboto |
+| #246 | UX-07 migrar `GoogleFonts.*` | OPEN | ❌ | **384** vs **114** `AppTypography.*` |
+| #247 | UX-08 espaciados fuera de rejilla | OPEN | ❌ | **419** `EdgeInsets` literales |
+| #248 | UX-09 unificar botones | OPEN | ❌ | `RunicButton` 12 · `ElevatedButton` 20 · `IconButton` 38 · `GestureDetector` 41 · `InkWell` 24 |
+| #249 | UX-10 `SnackBar` crudos | OPEN | ❌ | 48 `SystemSnack.show` vs **53** `SnackBar(` |
+| #250 | UX-11 `QuestCard` vs `MissionCard` | OPEN | ❌ | `quest_card.dart:7` usado en `learning_path_roadmap.dart:699`; `MissionCard` en misiones |
+| #251 | UX-12 cobertura semántica | OPEN | ❌ | 5 widgets con `Semantics` (§5.1) |
+| #252 | UX-13 mic sin acción semántica | CLOSED | ❌ **no resuelto** | §6.2 R-04 |
+| #253 | UX-14 matriz responsive | OPEN | ❌ | 312 px: **5** pruebas (4 pantallas + 1 widget); 1.5×: **3** pantallas; 2.0×: **2**; `textScalerOf` **0** |
+| #254 | UX-15 conversación sin tests | OPEN | ❌ | 2 362 líneas; ningún test monta `ConversationScreen` |
+| #255 | UX-16 tienda: error = vacío | OPEN | ❌ | `shop_screen.dart:657-665` |
+| #256 | UX-17 dashboard miente en error | OPEN | ❌ | `dashboard_screen.dart:194-231` |
+| #257 | UX-18 hint 3.50:1 | CLOSED | ✅ **vive**, con matiz | α 0.7 en `app_theme.dart:132-135`; real **5.60**, no 7.77 (§2.4) |
+| #258 | UX-19…21 superficies, radios, sheets | OPEN | ❌ | `AppElevation` 0 · 177 `BorderRadius.circular` · 14 sheets, 12 `isScrollControlled`, **0** `useSafeArea` |
+| **#259** | UX-22…28 a11y y navegación | OPEN | ❌ | 4 `pop()` sin `canPop` · 0 `Semantics(selected:)` · 3 `RefreshIndicator` · **sin ruta `/settings`** (`dashboard_screen.dart:378`, es pestaña) |
+| **#260** | UX-24…30 layout, resumen e i18n | OPEN | ⚠️ solapa | Misma entrada que #259 en UX-24…28; 369 fallbacks `l10n?.clave ?? '…'` |
+| **#261** | UX-31…37 detalles estéticos | OPEN | ⚠️ parcial | `medievalText` en `my_errors_screen.dart:43` · 16 `toUpperCase()` sobre l10n · `ChatRoomsScreen` sin `SafeArea` propia, **pero** las dos rutas de entrada sí la cubren (ver §6.2) |
+
+**Lectura:** el patrón de cierre es «arreglé el componente», no «no queda ningún
+call site»: #241 corrigió `RunicButton` y dejó 13 usos a mano; #242 subió un
+botón y dejó 5; #252 añadió `Semantics` sin acción. #243 se cerró sin tocar los
+loops. Sólo #257 tiene la corrección viva y coherente con lo que pedía el issue.
+
+### 6.2 Regresiones: confirmadas y descartadas
+
+**Las cuatro que pedía verificar:**
+
+| ID | Regresión | Veredicto | Evidencia |
+|---|---|---|---|
+| **R-01** | `onSurface` sobre `runeViolet` en call sites | ✅ **CONFIRMADA — 13 sitios** | ver lista abajo |
+| **R-02** | `repeat()` sin gate de reduce-motion | ✅ **CONFIRMADA — 12 de 14** | ver lista abajo |
+| **R-03** | `_RoundIconButton` de 40 dp | ✅ **CONFIRMADA** | `session_summary_screen.dart:1048` (default) usado en `:142-145`; y `dungeon_guardian_screen.dart:752-754` (fijo) |
+| **R-04** | Micrófono con `Semantics` sin acción | ✅ **CONFIRMADA** | `conversation_mic_button.dart:160-172`: `Listener` (sólo puntero) + `Semantics(button: true, label:)` **sin `onTap`/`onLongPress`** |
+
+**R-01 — los 13 sitios (14 fondos violeta, 1 corregido):**
+
+| Archivo:línea | Control |
 |---|---|
-| Pantallas | 20 |
-| Con test a 312×800 o 312×576 | **5** (Dashboard, ChatRooms, Welcome, DungeonGuardian, Shop) |
-| Con test a `textScaler` 1.5× | **3** (Welcome, Dashboard, DungeonGuardian) |
-| Con test a 2.0× | **2** (Welcome, DungeonGuardian) |
-| `LayoutBuilder` en `lib/` | **2** |
-| `constraints.maxWidth` | **0** |
-| `SystemChrome` / bloqueo de orientación | **0** |
-| `RefreshIndicator` | **3** |
+| `welcome_screen.dart:308-317` | REGISTER WITH GOOGLE |
+| `welcome_screen.dart:458-460` | iniciar sesión con correo |
+| `welcome_screen.dart:581-583` | confirmar reset |
+| `onboarding_screen.dart:535-537` | CTA «continuar» de los 4 pasos |
+| `mini_conversation_screen.dart:459-461` | CTA de la prueba de valor |
+| `paywall_screen.dart:393-395` | CTA del paywall |
+| `session_summary_screen.dart:712-714` | botón LISTO del resumen |
+| `settings_screen.dart:288-290` | guardar ajustes |
+| `profile_edit_screen.dart:619-621` | guardar perfil |
+| `chat_rooms_screen.dart:642-644` | «CREAR MESA» |
+| `chat_rooms_screen.dart:451-458` | «inicializar mesa» (texto `onSurface`, sin `foregroundColor`) |
+| `ai_pick_hero_card.dart:221-223` | CTA de la tarjeta de héroe IA |
+| `srs_flashcard_modal.dart:193-206` | «cerrar» del repaso SRS (texto `onSurface`) |
 
-**Sin ninguna red de layout:** Splash, Onboarding, MiniConversation,
-**Conversación**, **Resumen**, Paywall, ProfileEdit, **Sala de voz**,
-Inventory, BossExamResult, MyErrors, WeeklyReport, ListeningQuiz, **Misiones**,
-**Ajustes** (15 pantallas). Las dos más grandes del producto (Conversación
-2 362 líneas y Resumen 1 325) están en ese grupo.
+Corregido: `shop_screen.dart:819-820` usa `voidBg` → **4.38**, sigue por debajo
+de 4.5 (el valor correcto es blanco, 4.60). **`progress_tab_view.dart:229-231`
+NO es violeta**: es `crimsonRed` + `onSurface` = 2.99 — la edición anterior lo
+contaba en este grupo; son dos fallos distintos.
 
-La conversación, además, fija anchos relativos y alturas absolutas
-(`conversation_screen.dart:897, 1622, 1657`) sin `LayoutBuilder`, y no hay
-diseño de landscape.
+**R-02 — los 12 loops sin gate:**
 
----
+| Foco | Gate | Evidencia |
+|---|---|---|
+| `glass_card.dart:60` (esquinas de las 100 tarjetas) | ❌ | `..repeat(reverse: true)` directo en `initState` |
+| `cyber_manhwa_background.dart:55,60,65,70` (fondo de 15 archivos) | ❌ | 4 `..repeat()` |
+| `draggable_monster_widget.dart:46,52,58,64` | ❌ | 4 `..repeat()` |
+| `voice_waveform_visualizer.dart:30` | ❌ | `..repeat()` |
+| `learning_path_roadmap.dart:553,561` | ❌ | `repeat` en `initState`/`didUpdateWidget` |
+| `dungeon_guardian_screen.dart:45-47` | ✅ | `if (!_reduceMotion)` con `disableAnimationsOf` |
+| `runic_button.dart:84` | ✅ | `reducedMotion ? 1.0 : _scale.value` (no es loop) |
 
-## 6. Estados y flujos
+`AppMotion.reduceMotion` está bien implementado (`app_motion.dart:37-38`) y tiene
+**3 referencias reales** (`runic_button.dart:68`, `mission_card.dart:139,504`).
 
-| ID | Hallazgo | Evidencia | Estado |
-|---|---|---|---|
-| E-01 | Tienda: error = vacío | `shop_screen.dart:657-665` | **abierto** (#255) |
-| E-02 | Dashboard: copy falso en error | `dashboard_screen.dart:194-231` | **abierto** (#256) |
-| E-03 | 4 `context.pop()` sin fallback | `shop_screen.dart:377`, `inventory_screen.dart:122`, `my_errors_screen.dart:40`, `weekly_report_screen.dart:46` | **abierto** (#259) |
-| E-04 | 1 solo `RefreshIndicator` en 20 pantallas | `chat_rooms_screen.dart` | **parcial** (Misiones e Informe ya lo tienen) |
-| E-05 | Ajustes sin estado de carga/error de página | `settings_screen.dart:300` | **abierto** |
-| E-06 | Resumen distingue loading/error/pendiente **sin test** | `session_summary_screen.dart:631-673` | **mejoró**, sigue sin test |
+**Regresiones descartadas / correcciones a la edición anterior:**
 
-**Bien resuelto y no se debe perder:** Mis errores (`:75-101`), Informe semanal
-(`:81-141`), Listening (`:241-266`), Inventario (`:194-258`), Misiones
-(`:152-236`), Resumen (`:631-673`), Conversación (error nunca se pinta como
-mensaje del tutor, `conversation_providers.dart:1867-1912`).
+| Afirmación previa | Veredicto | Por qué |
+|---|---|---|
+| «12 call sites violeta» incluyendo `progress_tab_view` | ❌ **descartada** | son **13** violeta y `progress_tab_view` es carmesí (2.99), no violeta |
+| «La tienda quedó corregida» | ❌ **descartada** | usa `voidBg` = **4.38** < 4.5 |
+| «Volver con etiqueta sólo en Misiones» | ❌ **descartada** | **4 de 14** tienen `tooltip` (misiones, mis errores, informe, listening) |
+| «`Tooltip(` = 6 en toda la app» | ⚠️ matiz | 6 widgets `Tooltip`, **19** propiedades `tooltip:` |
+| «1 solo `RefreshIndicator`, y el informe ya lo tiene» | ❌ **descartada** | hay **3** (gremio, misiones, mis errores); el informe **no** tiene |
+| «`Semantics(` = 9 en `lib/`» | ⚠️ matiz | 9 ocurrencias, **5 widgets reales** (4 son `ExcludeSemantics`) |
+| «Hint al 70 % = 7.77» | ❌ **descartada** | real **5.60**; el test no compone el alfa |
+| «Los 24×24 del resumen son objetivos táctiles» | ❌ **descartada** | son marcas decorativas sin `onTap` |
+| «El dashboard sí distingue loading» | ❌ **descartada** | no tiene rama de carga propia |
+| «`ChatRoomsScreen` sin `SafeArea` (UX-37)» | ⚠️ **no demostrable** | 0 `SafeArea(` propias, pero en pestaña va dentro del `SafeArea` del dashboard (`dashboard_screen.dart:267-268` con la pestaña en `:372-374`) y en ruta tiene `Scaffold` + `AppBar` (`chat_rooms_screen.dart:953-977`). Queda `[PENDIENTE DE VALIDAR]` en dispositivo (V-10) |
+| «La tipografía bajó a 21 tamaños / 239 usos < 12» | ⚠️ **desactualizada** | hoy **22** tamaños y **247** usos < 12 px (Δ +1 y +8 respecto a la medición previa; aparecen 11.5 y 12.5 en `dungeon_guardian_screen.dart:196,594`) |
 
----
-
-## 7. Qué cambió desde la auditoría (medido hoy)
-
-| Métrica | Auditoría (30-oct) | Hoy | Δ |
-|---|---|---|---|
-| Tamaños de `fontSize` distintos | 31 | **21** | −10 |
-| `EdgeInsets` literales | 419 | **419** | 0 |
-| `Color(0x…)` literales | 95 | **95** | 0 |
-| `GoogleFonts.*` | 384 | **384** | 0 |
-| `AppTypography.*` | 114 | **114** | 0 |
-| `Semantics(` | 9 | **9** | 0 |
-| `SystemSnack.show` | 48 | **48** | 0 |
-| `SnackBar(` crudos | 52 | **52** | 0 |
-| `AppElevation` usos | 0 | **0** | 0 |
-| `textScalerOf` | 0 | **0** | 0 |
-| `repeat()` con gate | 2/14 | **2/14** | 0 |
-
-**Conclusión:** lo único que se movió de forma medible es la **escala
-tipográfica** (de 31 a 21 tamaños) y los **pares de contraste del tema**
-(`RunicButton`, hint al 70 %, destructivo de ajustes). El resto del sistema sigue
-igual: los tokens existen y no se usan.
-
----
-
-## 8. Discrepancias entre documentación, issues y código
+### 6.3 Discrepancias documentación ↔ código
 
 | Discrepancia | Detalle |
 |---|---|
-| **#241, #242, #252 cerrados con regresión viva** | §1 y §2 |
-| **#243 cerrado sin arreglar** | 12/14 loops sin gate |
-| **#259 y #260 se solapan en UX-24…28** | la misma entrada está en dos issues; el cierre de una no cierra la otra |
-| **UX-38 y UX-39 sin issue** | están en el backlog pero fuera del rango #240–#261 |
-| **El épico #239 exige capturas** | `docs/ui-ux-audit/screenshots/README.md` documenta el método; no existen capturas válidas y este entorno tampoco puede generarlas |
-| **La auditoría dice "5/20 pantallas a 312 px"** | sigue siendo cierto hoy; no hay tests nuevos de layout |
+| **El recuento de la épica no cuadra con el tablero** | «4 cerrados / 18 abiertos» vs **6 `CLOSED` / 16 `OPEN`** en la tabla heredada. Sin acceso a la API en esta sesión: se registra, no se resuelve |
+| **#241, #242, #252 cerrados con regresión viva** | §6.2 |
+| **#243 cerrado sin arreglar** | 12/14 loops |
+| **#244 parcial**: dos de sus tres sitios siguen en 2.99 | `progress_tab_view.dart:230`, `profile_edit_screen.dart:160` |
+| **#259 y #260 se solapan en UX-24…28** | cerrar una no cierra la otra |
+| **UX-38 y UX-39 sin issue** | están en el backlog y fuera de #240–#261 |
+| **`docs/ui-ux-audit/screenshots/` sin capturas** | el épico #239 las exige; no existen y este entorno no puede generarlas |
+| **`app_theme.dart:132` documenta un ratio irreal (7.77)** | el test asociado es ciego al alfa |
+| **`SegmentedBar` no expone `value`** | 7 barras de progreso invisibles para TalkBack |
 
 ---
 
-## 9. Prioridad recomendada (y por qué)
+## 7. Prioridad recomendada
 
 | Orden | Trabajo | Por qué primero |
 |---|---|---|
-| **1** | Reemplazar `onSurface` por blanco en los **13 call sites** de §2.1 | Cambio de 1 propiedad; desbloquea AA en el embudo de entrada y salida |
-| **2** | Gate de `AppMotion.reduceMotion` en los 12 loops | Preferencia de accesibilidad del sistema ignorada; arreglo mecánico (`if (!reduce) …`) |
-| **3** | `HudState` compartido + usarlo en Tienda y Dashboard | Elimina dos mentiras de estado y evita la tercera |
-| **4** | `Semantics` en micrófono (acción), volver (label) y dock (`selected`) | El micrófono es la función principal |
-| **5** | Subir los 5 objetivos táctiles a 48 dp | Barato y medible |
-| **6** | Adoptar `AppSpacing`/`AppElevation` con lint de fuente | Sin esto, los 3 primeros se re-rompen |
+| **1** | `onTertiary = white` en el tema + sustituir los 13 call sites (y `shop` a blanco) | 1 propiedad por sitio; desbloquea AA en todo el embudo. Hoy **no existe token** para texto sobre violeta: ésa es la causa raíz |
+| **2** | Gate de `AppMotion.reduceMotion` en los 12 loops | Preferencia de accesibilidad del sistema ignorada; arreglo mecánico |
+| **3** | `HudState` + `HudHeader` compartidos; usarlos en Tienda, Dashboard y las 14 cabeceras | Elimina dos mentiras de estado y la deriva de jerarquía |
+| **4** | Semántica: acción en el micrófono, etiqueta en los 10 «volver», `selected` en el dock, `value` en `SegmentedBar` | El micrófono es la función principal del producto |
+| **5** | Objetivos táctiles: el replay de 20×20 y los 6 controles < 48 dp | Barato y medible |
+| **6** | Bordes `outlineVariant` a ≥ 3:1 y corregir el test de contraste para que componga alfa | Sin esto, el «arreglo» vuelve a ser cosmético |
+| **7** | Adoptar `AppSpacing`/`AppElevation` con lint de fuente | Sin esto, 1–6 se re-rompen |
 
 ---
 
-## 10. Qué no se puede afirmar desde este entorno
+## 8. Qué no se puede afirmar desde este entorno
 
-1. **Nada visual.** Jerarquía, ritmo vertical, alineación óptica, densidad,
-   legibilidad del glow, calidad de las animaciones: requieren revisión humana
-   sobre dispositivo.
-2. **TalkBack real:** orden de foco, anuncios de cambio de estado y activación
-   por switch access.
-3. **Escalado de texto real** a 1.5× y 2.0× en las 15 pantallas sin test.
-4. **Contraste sobre fondos animados**: los ratios asumen superficie plana y
-   `CyberManhwaBackground` dibuja partículas.
-5. **Rendimiento/jank**: 23 `AnimationController`, 14 `repeat()`, 8
+1. **Nada visual.** Jerarquía percibida, ritmo vertical, alineación óptica,
+   densidad, legibilidad del glow, calidad de animación → `[PENDIENTE DE VALIDAR]`.
+2. **TalkBack real:** orden de foco, anuncios de estado, activación por switch
+   access, doble toque en el micrófono.
+3. **Escalado real** a 1.5× y 2.0× en las 17 pantallas sin test.
+4. **Contraste sobre fondos animados** y con `BackdropFilter` real.
+5. **Jank / rendimiento:** 23 `AnimationController`, 14 `repeat()`, 8
    `BackdropFilter` (uno por `GlassCard`, hasta 100 instancias) son candidatos;
    sin perfilado no se afirma.
-6. **Estado del entitlement Pro en producción**: depende de RevenueCat y de
+6. **Estado del entitlement Pro en producción:** depende de RevenueCat y
    `sync-entitlement`; no se consultó.
+
+Todo lo anterior se cierra con **`23-visual-validation-checklist.md`**, que es la
+pieza operativa de D-13.

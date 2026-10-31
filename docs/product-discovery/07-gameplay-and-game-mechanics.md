@@ -1,42 +1,183 @@
-# 07 · Gameplay y mecánicas de juego
+# 07 · Gameplay y mecánicas de juego (A4)
 
-> Medido sobre `origin/master` del worktree `p14-ai-usage` (31-oct-2026).
-> Todas las cifras de economía, misiones y recompensas se verificaron con
-> consultas de **solo lectura** al proyecto `sipiumfdpvnszthykyog`.
-> No se duplican: `docs/product-audit/06-GAMEPLAY-Y-GAMIFICACION.md`,
-> `docs/runbooks/ECONOMY_SINKS.md` (sumideros y medición),
-> `docs/runbooks/MIGRATION_STATUS.md`.
-
-Etiquetas: `[IMPLEMENTADO]` · `[PARCIAL]` · `[CONCEPTUAL]` · `[PROPUESTA]` ·
-`[PENDIENTE DE VALIDAR]`.
+> Medido el **31-oct-2026** sobre `origin/master` del worktree `p14-ai-usage`
+> y contra producción `sipiumfdpvnszthykyog` con consultas de **solo lectura**
+> (MCP `supabase`). Baseline: [_baseline.md](_baseline.md). Decisiones:
+> [_decisions.md](_decisions.md).
+>
+> No se duplica lo ya auditado: `docs/product-audit/06-GAMEPLAY-Y-GAMIFICACION.md`,
+> `docs/runbooks/ECONOMY_SINKS.md` (sumideros), `08-guild-and-social-system.md`
+> (gremio social), `10-economy-and-resources.md` (misma materia en clave
+> económica) y `22-hardcoded-inventory.md` (dónde vive cada cifra).
+>
+> Etiquetas: `[HECHO]` (verificado en código o BD) · `[INFERENCIA]` (deducido de
+> la evidencia) · `[PROPUESTA]` · `[PENDIENTE DE VALIDAR]`.
 
 ---
 
-## 1. Capas de juego (y qué las mueve)
+## 1. Los bucles reales
 
-| Capa | Dato | Motor | Recompensa que la mueve |
+El producto promete «aprendizaje primero, el juego es el motor» (D-02). Hay
+**tres bucles** en el código y solo uno está cerrado de punta a punta.
+
+| Bucle | Entrada | Motor | Salida | ¿Cerrado? |
+|---|---|---|---|---|
+| **A · Conversación** | maná | `llm-proxy` → turno de IA (`dungeon_turn` 12) | metas evaluadas, correcciones, XP/oro/fragmentos/aura al cerrar | `[HECHO]` sí, con dos defectos (§7, §9) |
+| **B · Misión** | triggers de servidor | `advance_missions_for_user` | `claim_mission_reward` → XP + gemas | `[HECHO]` sí, pero sin caducidad ni rotación real (§4) |
+| **C · Prestigio** | aura | `add_aura_xp` → `compute_prestige_title` | título de 21 escalones | `[HECHO]` abierto: 60 de 65 perfiles con `prestige_title_code = null` y el máximo de aura es **35** |
+| **D · Gasto** | oro / gemas / fragmentos | `purchase_cosmetic`, `craft_cosmetic`, `purchase_streak_freeze` | cosméticos | `[HECHO]` **sin uso**: `player_inventory` = 0 filas |
+
+```mermaid
+flowchart LR
+    MANA["Maná del plan"] -->|12/turno| TURNO["Turno de conversación"]
+    TURNO --> METAS["Metas (goal_eval gratis)"]
+    METAS --> CIERRE["close_session + add_aura_xp"]
+    CIERRE --> XP["XP = min×10"]
+    CIERRE --> ORO["Oro = metas×(10+bonus)"]
+    CIERRE --> FRAG["Fragmentos = metas×(5+bonus)"]
+    CIERRE --> AURA["Aura = metas×(10+bonus)×factor"]
+    CIERRE --> RACHA["Racha (≥3 min o ≥1 meta)"]
+    XP --> NIVEL["Nivel = 1 + XP/1000"]
+    NIVEL --> BOLSA["level_rewards (6 bolsas)"]
+    AURA --> PREST["prestige_ladder (21 escalones)"]
+    ORO --> TIENDA["purchase_cosmetic"]
+    GEMAS["Misiones → gemas"] --> TIENDA
+    FRAG --> CRAFT["craft_cosmetic"]
+    TIENDA --> INV["player_inventory = 0"]
+```
+
+---
+
+## 2. Recursos: fuentes, sumideros y cifras
+
+Saldos reales de **65** perfiles (`user_language_profiles`):
+
+| Recurso | Vive en | Fuente (con cifra) | Sumidero (con cifra) | Saldo real |
+|---|---|---|---|---|
+| **Maná** | `user_subscriptions.used_audio_seconds` (+`purchased_mana_balance`) | plan mensual: 3.000 / 17.000 / 20.500 | turnos de IA: 2–100 por acción (`ai_action_costs`) | 3.298 consumidos en ~100 días (13 usuarios) |
+| **Oro** | `total_gold` | `close_session` = `metas×(10+bonus)`; `claim_session_drop` = `10×rareza`; `claim_level_rewards` = 100…800 | `purchase_cosmetic` 60–1.200 | media **103**, máx **180** |
+| **Gemas** | `total_gems` | `claim_mission_reward` = 2…75; recompensa diaria (rota, §10) | freeze 30; cosméticos 40–2.800 | media **3**, máx **96** |
+| **Fragmentos** | `fragments` | `close_session` = `metas×(5+bonus)` | `craft_cosmetic` 120/250/400 | máx **398** |
+| **XP** | `xp_points` | `close_session` = `min×10`; drop `15×rareza`; misión 20…400 | no se gasta | media **57**, máx **3.263** |
+| **Aura** | `aura_xp` | `add_aura_xp` = `metas×(10+bonus)×factor` | no se gasta | máx **35**; total histórico **63** en 12 sesiones premiadas |
+| **Pergaminos** | `player_daily_state.pergaminos_max` | recompensa diaria 2/5/8/15; consumibles | no hay consumidor | **0** filas en `player_pergaminos` |
+| **Invocaciones** | `player_daily_state.invocations_max` | 20 base + `(racha/7)×5` | `useInvocation` (nunca se llama) | cuota **muerta** |
+
+`[HECHO]` El único recurso con sumidero real y usado es el **maná**
+(222 filas en `mana_transactions`). El oro, las gemas y los fragmentos entran
+pero no salen: `player_inventory` = 0 y `currency_ledger` = 0.
+
+`[INFERENCIA]` El jugador no tiene nada que comprar que cambie su experiencia:
+40 cosméticos sin efecto mecánico y **23 «consumibles» heredados** (libros,
+llaves, modificadores, skins) que ninguna función lee.
+
+---
+
+## 3. Rangos, títulos y aura (tres escalas distintas)
+
+### 3.1 Rango del gremio F…SSS `[HECHO]`
+
+Escala en `lib/features/onboarding/domain/models/cefr_rank.dart:73`
+(`['F','E','D','C','B','A','S','SS','SSS']`) y en
+`supabase/functions/evaluate-placement/index.ts:33` (`RANK_SCALE`).
+
+| Rango | CEFR que lo produce | Cómo se alcanza | ¿Alcanzable hoy? |
 |---|---|---|---|
-| Nivel de cazador | `user_language_profiles.xp_points` | `economy_level(xp) = 1 + xp/1000` · `HunterLevel.xpPerLevel = 1000` | XP de sesión, XP de misión, XP de drop, recompensas de nivel |
-| Rango del gremio | `user_language_profiles.game_rank` | `apply_placement_as` (servidor) | examen del Oráculo (placement o promoción) |
-| Nivel CEFR | `cefr_level_id` | `apply_placement_as` | mismo examen |
-| Aura (mérito) | `aura_xp`, `skill_radar` | `add_aura_xp` | cierre de sesión con metas cumplidas |
-| Racha | `user_language_profiles.current_streak` | `register_practice` | sesiones de ≥3 min o ≥1 objetivo |
-| Oro | `total_gold` | `apply_session_rewards` | sesión + bolsas de nivel |
-| Gemas | `total_gems` | `claim_mission_reward`, recompensa diaria | misiones y racha |
-| Fragmentos | `fragments` | `apply_session_rewards` | cierre de sesión |
-| Maná | `mana_state` (RPC) | `consume_mana` en `llm-proxy` | plan / compra / elixires |
-| Cosméticos | `player_inventory` | `purchase_cosmetic` / `craft_cosmetic` | oro, gemas, fragmentos |
+| F | PRE-A1 | placement u omitir el Oráculo | sí |
+| E | A1 | placement | sí |
+| D | A2 | placement | sí |
+| C | B1 | placement | sí |
+| B | B2 | placement | sí |
+| A | C1 | placement | sí |
+| S | C2 | placement | sí |
+| SS / SSS | — | solo si el modelo los declara (`+2` de tolerancia) | `[INFERENCIA]` improbable: el prompt mapea C2→S |
 
-Fuente del nivel: `HunterLevel.levelFor` (`lib/features/dashboard/domain/models/hunter_level.dart:16-19`)
-y `economy_level` (SQL). Son la misma fórmula, duplicada en dos lenguajes.
+`[HECHO]` Descripciones narrativas por rango en `cefr_rank.dart:38-48`
+(«Leyenda Suprema», «Deidad del Idioma»): **no existen en BD**.
+
+### 3.2 Título de prestigio (21 escalones) `[HECHO]`
+
+Tabla `prestige_ladder` (**21 filas**, sembrada en
+`supabase/migrations/20260813_mana_aura_redesign.sql:485-508`). Sube con
+`aura_xp` **y** `min_radar` **y** techo de clase:
+
+| Tramo | Escalones | Aura necesaria | Radar mín. | Techo por plan |
+|---|---|---:|---:|---|
+| Común | Aventurero → Leyenda (1-7) | 0 → 12.000 | 0 → 65 | **Plebeyo** |
+| Noble | Barón → Gran Duque (8-13) | 16.000 → 53.000 | 70 → 82 | **Noble** |
+| Real | Príncipe → Ascendido (14-21) | 66.000 → 260.000 | 84 → 98 | **Realeza** |
+
+Techo aplicado en `compute_prestige_title` (`prestige_ladder.ceiling_class` vs
+`subscription_plans.class_name`, `20260813_mana_aura_redesign.sql` §3.6):
+
+```sql
+v_class_rank := CASE v_class WHEN 'realeza' THEN 2 WHEN 'noble' THEN 1 ELSE 0 END;
+... AND CASE ceiling_class WHEN 'plebeyo' THEN 0 WHEN 'noble' THEN 1 ELSE 2 END <= v_class_rank
+```
+
+Estado real: **5** perfiles en `aventurero`, **60** en `null`, ninguno por
+encima. Aura máxima **35** contra los **500** del segundo escalón.
+
+### 3.3 Títulos de habilidad (24) `[HECHO, duplicado]`
+
+`lib/features/dashboard/data/models/hunter_skill_titles.dart:91-122` define 24
+títulos (6 líneas × 4 tiers) con nombre, descripción y umbral. La tabla
+`hunter_titles` de BD contiene **las mismas 24 filas** (mismos códigos, nombres
+y umbrales) y **ninguna función la lee**. Los umbrales están **una tercera vez**
+en `title_evaluator.dart:13-20`.
+
+| Línea | Umbrales (tier 1→4) | Efecto |
+|---|---|---|
+| fluidez | 60 / 75 / 88 / 95 | ninguno |
+| fonetica | 55 / 70 / 85 / 94 | ninguno |
+| lexico | 20 / 80 / 200 / 500 | ninguno |
+| precision | 50 / 70 / 85 / 94 | ninguno |
+| constancia | 3 / 7 / 30 / 100 (días) | ninguno |
+| carisma | 55 / 70 / 85 / 94 | ninguno |
+
+`[INFERENCIA]` Es la señal de prestigio más visible del perfil
+(`user_titles` = 12 filas, 5 usuarios) y a la vez la que menos gobierno tiene:
+la otorga el **cliente** (`dashboard_repository_impl.dart:936`) calculando los
+umbrales en Dart.
+
+### 3.4 Aura: dos mecanismos distintos con el mismo nombre `[HECHO]`
+
+| Mecanismo | Dónde | Qué hace |
+|---|---|---|
+| `aura_xp` | SQL `add_aura_xp` | mérito acumulable, sin techo; idempotente por sesión; mueve `prestige_title_code` |
+| `AuraSystem.computePower` | `lib/features/dashboard/domain/models/aura_system.dart:126-150` | poder 0–1 **solo visual**: 0,25 fluidez + 0,25 vocab + 0,20 fonética + 0,10 gramática + 0,10 metas + 0,05 racha + 0,05 rango |
+| `AuraTier` | `:153-159` | 5 tiers por cortes 0,25 / 0,45 / 0,65 / 0,85 (no persistidos) |
+
+Los pesos del «poder» son parámetros de balance en Dart sin equivalente en BD.
 
 ---
 
-## 2. Misiones
+## 4. Todas las fuentes de misión y quién las produce
 
-### 2.1 Plantillas `[IMPLEMENTADO]`
+`[HECHO]` Hay **siete** fuentes declaradas y **dos** producen filas.
 
-`mission_templates` = **35 filas**, 6 tipos de objetivo y 3 tipos de misión:
+| # | Fuente | Tabla (filas) | Productor | Estado |
+|---|---|---|---|---|
+| 1 | Plantillas diarias/semanales | `mission_templates` (35) | migraciones (seed) | activo |
+| 2 | Rotación diaria | `mission_instances` (637) | cron `rotate-daily-missions` (00:05 UTC) → `missions-cron` → `rotate_daily_missions` | activo, **sin `expires_at`** |
+| 3 | Contratos del gremio | `guild_quest_pool` (**199** activas: 29 `daily`, 138 `weekly`, 32 `collaborative`) | seed de migración; **nadie los asigna** | **sin UI**: `getGuildQuestPool` no se usa en ninguna pantalla |
+| 4 | Contrato aceptado | `mission_instances` con `quest_id` (**2**) | cliente `acceptGuildQuest` (`mission_repository.dart:506`) | residual |
+| 5 | Misión colaborativa / raid | `guild_collaborative_missions` (**0**) | ninguno | vacío |
+| 6 | Evento global | `global_events` (**0**), `player_event_progress` (0) | ninguno | vacío |
+| 7 | Secretas y de emergencia | `secret_missions` (0), `emergency_missions` (0) | cliente (`mission_repository.dart:307`, `:329`) | vacío |
+
+### 4.1 Contraste con G-01 (tres capas) `[HECHO]`
+
+| Capa de G-01 | Existe en BD | Llega al jugador |
+|---|---|---|
+| Del día | `mission_templates` daily (15) + weekly (7) | sí, en 2 pestañas (Diarias / Semanales) |
+| Contratos del gremio | `guild_quest_pool` 199 | **no**: no hay pantalla ni tablón; solo 2 instancias históricas |
+| Evento semanal | `guild_collaborative_missions` + `global_events` | **no**: 0 filas |
+
+`[INFERENCIA]` La institución central de D-01 (el gremio) produce hoy **2 de
+las 637 instancias** (0,3 %). Las misiones que el jugador ve son 100 % del cron.
+
+### 4.2 Plantillas `[HECHO]`
 
 | `objective_type` | daily | weekly | secondary | `target_value` | XP | gemas |
 |---|---:|---:|---:|---|---|---|
@@ -48,343 +189,214 @@ y `economy_level` (SQL). Son la misma fórmula, duplicada en dos lenguajes.
 | `listening_items` | 1 | 1 | – | 3-5 | 45-120 | 5-20 |
 | **Total** | **15** | **7** | **13** | | | |
 
-`item_reward` está **vacío en todas** las plantillas: ninguna misión entrega un
-objeto, solo XP y gemas.
+- `item_reward` está **vacío en las 35**: ninguna misión entrega objeto.
+- Las 13 `secondary` **no se asignan nunca** (el cron solo inserta
+  `daily`/`weekly`).
+- `reward_multiplier` es **1 en las 637 instancias**.
 
-### 2.2 Qué ve el jugador `[PARCIAL]`
+### 4.3 Progreso y reclamo `[HECHO]`
 
-`MissionVisibility` (`lib/features/missions/domain/models/mission_visibility.dart:26-98`)
-decide visibilidad y **alcanzabilidad**:
+Los triggers de servidor llaman `advance_missions_for_user(user, type, delta)`,
+que sube **todas** las instancias activas de ese `objective_type` a la vez:
 
-| Regla | Valor |
+| Trigger | Objetivo |
 |---|---|
-| Tipos visibles | solo `daily` y `weekly` (`:30`) |
-| Objetivos que el servidor puede avanzar | `speak_minutes`, `conversation_turns`, `vocab_words`, `sessions`, `practice_session` (`:34-40`) |
-| Techo diario | 10 min · 5 turnos · 5 palabras · 1 sesión (`:43-49`) |
-| Techo semanal | 15 min · 15 turnos · 10 palabras · 3 sesiones (`:52-58`) |
-| Ocultos | `secondary`, `secret`, `emergency`, `guild`, `collaborative`, `event` (`:61-68`) |
-
-Los techos no son gusto: salen de la distribución real (auditoría del
-29-oct-2026 citada en `:14-21`). Por eso las plantillas semanales de 25 min o 20
-palabras se muestran como «no disponible» sin botón
-(`mission_card.dart:151`, `:323-339`).
-
-### 2.3 Cómo progresa una misión `[IMPLEMENTADO]`
-
-Todo por trigger de servidor → `advance_missions_for_user(user, type, delta)`:
-
-| Trigger | Objetivo que mueve |
-|---|---|
-| `on_message_advance_missions` (mensajes del alumno) | `conversation_turns` |
+| `on_message_advance_missions` | `conversation_turns` |
 | `on_session_reward_advance_missions` | `sessions`, `practice_session`, `speak_minutes` |
 | `on_vocabulary_advance_missions` | `vocab_words` |
 | `on_vocabulary_review_advance_missions` | `vocab_words` |
 
-`advance_missions_for_user` sube **todas** las instancias activas de ese
-`objective_type` a la vez (`least(target_value, current + delta)`, marca
-`completed`). No hay una misión “elegida”: si tienes 7 diarias, las 7 avanzan
-con el mismo turno.
+Estado: **629 activas / 8 completadas (1,26 %) / 0 con `expires_at`**. Las 8
+completadas están reclamadas (`reward_history` = 8 filas).
 
-### 2.4 Rotación: lo que la UI promete y lo que hace el cron `[PARCIAL, discrepancia]`
+### 4.4 Rotación: promesa vs. realidad `[HECHO]`
 
-`missions_screen.dart:122-123` promete «Renovación automática: 00:05 UTC».
-El cron real (`rotate-daily-missions`, `5 0 * * *` → `missions-cron` →
-`rotate_daily_missions`) hace:
-
-1. Borra instancias `completed` con más de 14 días, `expired` y misiones secretas.
-2. Calcula `v_slots := 10 - activas`.
-3. Rellena con plantillas `daily`/`weekly` activas **que el usuario no haya
-   tenido nunca** (`template_id NOT IN (… where user_id = …)`).
-4. Inserta con `status = 'active'` y **sin `expires_at`**.
-
-Consecuencias verificadas contra la BD:
-
-| Hecho | Dato |
-|---|---|
-| Instancias totales | **637** |
-| Instancias activas | **629** (442 diarias + 187 semanales) |
-| Instancias completadas | **8** (todas reclamadas) |
-| Instancias con `expires_at` | **0 de 637** |
-| Instancias por usuario | 7 diarias + 3 semanales = **10** (máximo histórico 12) |
-
-Es decir: **las misiones no se renuevan a diario**; se asignan una vez y
-permanecen activas para siempre. Un usuario con 10 activas no recibe ninguna
-nueva (`v_slots = 0 → CONTINUE`), y como `expires_at` es `null`, `isExpired`
-nunca es `true` (`mission_models.dart:99`). El rótulo «misiones diarias» es una
-etiqueta del tipo de plantilla, no un ciclo de reset.
+`missions_screen.dart:122-123` anuncia «Renovación automática: 00:05 UTC». El
+cron borra completadas >14 días, calcula `slots = 10 − activas`, rellena con
+plantillas que el usuario **no haya tenido nunca** e inserta `status='active'`
+**sin `expires_at`**. Con 10 activas, `slots = 0` y no entra nada más: las
+«diarias» no se renuevan.
 
 ```mermaid
 flowchart TD
     C["cron 00:05 UTC"] --> D["borra completed >14d · expired · secretas"]
-    D --> S["slots = 10 - activas"]
-    S -->|"0"| X["CONTINUE (no asigna nada)"]
-    S -->|">0"| T["plantillas daily/weekly<br/>que el usuario nunca tuvo"]
-    T --> I["INSERT status=active<br/>expires_at = NULL"]
-    I --> P["el jugador ve 10 misiones<br/>que no caducan"]
-    P --> A["triggers avanzan TODAS<br/>las del mismo objective_type"]
-    A -->|"llega al target"| K["completed"]
-    K --> R["claim_mission_reward<br/>+XP · +gemas"]
-    K -->|"14 días después"| D
+    D --> S["slots = 10 − activas"]
+    S -->|0| X["CONTINUE"]
+    S -->|">0"| T["plantillas daily/weekly nunca vistas"]
+    T --> I["INSERT active, expires_at = NULL"]
+    I --> A["los 4 triggers avanzan TODO el objective_type"]
+    A -->|target| K["completed"]
+    K --> R["claim_mission_reward: +XP +gemas"]
 ```
 
-### 2.5 Reclamo `[IMPLEMENTADO]`
+---
 
-`claim_mission_reward(p_instance_id)`:
+## 5. Gremio (mecánica, no sociabilidad)
 
-- exige `status = 'completed'` y `is_reward_claimed = false`;
-- multiplica por `reward_multiplier` (mínimo 1) — **columna siempre 1 en
-  producción** (`0 de 637` filas con multiplicador ≠ 1);
-- suma `xp_reward` a `xp_points` y `gem_reward` a **`total_gems`**;
-- escribe `reward_history` con `source_type = 'mission'`.
+La capa social está en `08-guild-and-social-system.md`. Aquí, solo lo que
+**produce juego**:
 
-`reward_history` tiene **8 filas**, todas de misión, con 20/50/100/80/300 XP y
-2/5/20/10/50 gemas: las misiones son hoy la única fuente de XP que el jugador ha
-reclamado manualmente.
+| Pieza | Tabla/archivo | Filas | Efecto mecánico |
+|---|---|---|---|
+| Tablón de contratos | `guild_quest_pool` | 199 | **ninguno** (sin UI; `acceptGuildQuest` sin llamador) |
+| Contratos aceptados | `mission_instances.quest_id` | 2 | cuota propia de **3** simultáneas (`mission_repository.dart:15`) |
+| Gate de rango del contrato | `CefrRank.canAcceptRank` | — | solo cliente (`mission_repository.dart:522`) |
+| Raid colaborativa | `guild_collaborative_missions` | 0 | contador en la sala de gremio |
+| Anuncios | `guild_announcements` | 4 | texto |
+| Maestre (NPC) | `guild_master_floating_banner.dart:133` | — | prompt/persona fija en Dart |
+| Battle pass de gremio | `guild_battle_pass` | 23 | **retirado por D-04**; sigue en BD y en `economy_repository_impl.dart:515-524` |
 
-**Inconsistencia de moneda:** la tarjeta dice «+X gemas» con icono de diamante
-(`mission_card.dart:418-433`) y el RPC acredita `total_gems`. Pero el resto de
-la economía habla de oro y fragmentos; el jugador recibe tres monedas distintas
-según la pantalla.
-
-### 2.6 Agujero de integridad `[PENDIENTE DE VALIDAR]`
-
-`advance_my_missions(p_type, p_delta)` es `SECURITY DEFINER` y tiene
-`EXECUTE` concedido a `authenticated`. Cualquier cliente autenticado puede
-avanzar sus propias misiones con el delta que quiera y luego reclamar. No se
-observó uso desde `lib/`, pero el permiso existe. `apply_session_rewards`,
-`add_xp` y `add_gems` **no** son ejecutables por `authenticated` (invariante
-correcta).
+`[HECHO]` El jugador **no puede** llegar al tablón: la ruta de contratos no
+está en `router.dart` ni hay tab en `missions_screen.dart` (solo 2 pestañas).
 
 ---
 
-## 3. XP, niveles y recompensas de nivel
+## 6. Qué recibe hoy cada estamento (capacidades **aplicadas**)
 
-### 3.1 Fórmulas reales de `apply_session_rewards`
+`[HECHO]` La única palanca real es `subscription_plans.class_name` + tres
+columnas. Todo lo demás que anuncia el paywall es texto.
 
-| Salida | Fórmula | Límites |
-|---|---|---|
-| XP | `minutos × 10` | `minutos` 0-240; `objetivos` 0-12 |
-| Oro | `objetivos × (10 + bonus)` | bonus = 0 (PRE-A1/A1), 1 (A2), 2 (B1), 3 (B2), 4 (C1), 5 (C2) |
-| Fragmentos | `objetivos × (5 + bonus)` | ídem |
-| Idempotencia | `session_reward_ledger.session_id` único; repetir devuelve los importes originales con `duplicated: true` | — |
-| Autorización | `auth.uid() = p_user_id`; la app **no** llama a esta RPC (no tiene `EXECUTE` para `authenticated`): entra por `close_session`, que sí está concedida y calcula objetivos/minutos desde la conversación | `has_function_privilege` |
-
-### 3.2 Niveles
-
-- 1 000 XP por nivel, nivel visible desde 1 (`hunter_level.dart:13-18`;
-  `economy_level` en SQL).
-- `level_rewards`: **6 filas** (niveles 2, 3, 5, 8, 12, 15) con bolsas de
-  **100, 150, 250, 400, 600 y 800 de oro**. Se reclaman con
-  `claim_level_rewards` (idempotente por `level_reward:<nivel>`).
-- El catálogo de cosméticos exige `required_level` entre **1 y 20**.
-
-### 3.3 La curva en la práctica
-
-| Hecho medido | Dato |
-|---|---|
-| XP máximo por perfil | **3 263** → nivel 4 |
-| Media de XP | 57 (65 perfiles) |
-| Sesión más larga registrada | **240 minutos** → 2 400 XP (2,4 niveles de golpe) |
-| Sesión con 0 objetivos y 240 min | 0 XP, 0 oro, 0 fragmentos (fila real del ledger) |
-
-El tope de `p_minutes` no es un tope de recompensa por sesión razonable: acepta
-4 horas y paga 10 XP/min, así que una sola sesión puede valer más que todo el
-resto del historial de un jugador (3 263 XP acumulados). `[PARCIAL]`
-
----
-
-## 4. Rangos F…SSS
-
-Escala completa en `cefr_rank.dart:73` (9 rangos) y en `evaluate-placement`
-(`RANK_SCALE`), con descripciones narrativas (`:38-48`: «Leyenda Suprema»,
-«Deidad del Idioma»).
-
-| Rango | CEFR que lo produce | Cómo se alcanza |
-|---|---|---|
-| F | PRE-A1 | placement, omitir el Oráculo |
-| E | A1 | placement |
-| D | A2 | placement |
-| C | B1 | placement |
-| B | B2 | placement |
-| A | C1 | placement |
-| S | C2 | placement |
-| SS | — | **solo** si el modelo lo declara (o pista declarada a ±2) |
-| SSS | — | ídem |
-
-El mapeo CEFR→rango es de 7 a 7 (`_cefrToRank`, `:13-21`); `SS` y `SSS`
-existen en la tabla inversa (`:33-34`) apuntando ambos a C2, sin peldaño propio.
-En promoción, el rango del servidor es el que devolvió el modelo
-(`rank = normalizeRank(evaluation?.game_rank)`) y solo se conserva el anterior si
-el nivel no cambia. `[PARCIAL]`
-
----
-
-## 5. Jefe de mazmorra (examen de promoción)
-
-| Regla | Valor | Fuente |
-|---|---|---|
-| Desbloqueo | `objetivos ≥ 6` **o** `minutos ≥ 30` **o** `racha ≥ 2` | `boss_exam_status` |
-| Requisito previo | perfil ya evaluado (`placement_assessed_at` no nulo) | `boss_exam_status` |
-| Evidencia mínima | 5 respuestas y 25 palabras | `evaluate-placement` |
-| Rúbrica | 6 dimensiones; media ≥ 65 y ninguna < 45 | `evaluate-placement` |
-| Cooldown tras fallo | 12 h | `boss_exam_status` / Edge Function |
-| Resultado | `promoted` · `maintained` · `initial` | `BossExamOutcome` |
-| Aviso de revisión | cada 10 lecciones superadas (`check_due`) | `boss_exam_status` |
-| Intentos en producción | **0** (`boss_exam_attempts`) | conteo |
-
-El `level` de la query (`?mode=promotion&level=B1`) **no se usa** para decidir
-nada en el cliente: es solo contexto visual; el servidor compara contra el
-perfil real.
-
----
-
-## 6. Racha y freezes
-
-| Regla | Valor | Fuente |
-|---|---|---|
-| Cuenta como práctica | `objetivos ≥ 1` **o** `minutos ≥ 3` | `register_practice` |
-| Zona horaria | `p_tz_offset_minutes` del cliente (clamp ±840) | `register_practice` |
-| Reinicio | si `last_practice_date < hoy - 1` → racha = 1 | `register_practice` |
-| Continuidad | si ayer → racha + 1 | ídem |
-| Mismo día | mantiene la racha | ídem |
-| Freeze de racha | **30 gemas**, tope **3** | `purchase_streak_freeze` |
-| Consumo del freeze | **no existe** | ver abajo |
-
-**Hallazgo grave:** `streak_freezes` solo lo leen `get_economy_wallet` (para
-mostrarlo), `guard_player_streak_freezes` (para proteger la escritura) y
-`purchase_streak_freeze` (para incrementarlo). **Ninguna función lo consume al
-calcular la racha**: `register_practice` compara fechas y reinicia sin mirar los
-freezes. Comprar un freeze por 30 gemas no protege nada. `[PARCIAL]`
-
-Estado real: `player_streaks` = 52 filas, racha máxima **2**, freezes
-comprados 0; `user_language_profiles.current_streak` máximo **1**.
-
----
-
-## 7. Drop de sesión
-
-`claim_session_drop(p_session_id, p_completed_goals)` — se dispara al abrir el
-resumen, una vez por sesión (`session_drop_controller.dart:34-64`).
-
-| Tirada (`floor(random()*100)`) | Rareza | Multiplicador | XP | Oro |
+| Capacidad | Plebeyo | Noble | Realeza | Dónde se aplica de verdad |
 |---|---|---|---|---|
-| 0-1 (2 %) | legendario | ×3,0 | 45 | 30 |
-| 2-9 (8 %) | épico | ×2,0 | 30 | 20 |
-| 10-34 (25 %) | raro | ×1,5 | 23 | 15 |
-| 35-99 (65 %) | común | ×1,0 | 15 | 10 |
+| Maná/mes | 3.000 | 17.000 | 20.500 | `subscription_plans.mana_allowance` → `consume_mana` |
+| Tope diario | 200 | sin tope | sin tope | `IF v_plan_id = 'plebeyo'` en `consume_mana` (la columna `daily_limit` es 200 también en noble, pero no se evalúa) |
+| Turno de gracia | 1/día | — | — | `claim_mana_grace` (solo `service_role`) |
+| Semanas de informe | 1 | 4 | 52 | `plan_weekly_report_weeks` dentro de `get_weekly_report` |
+| Techo de prestigio | escalón 7 | escalón 13 | escalón 21 | `compute_prestige_title` |
+| Cosméticos exclusivos | 0 | 0 | **2** (`title_leyenda_viva`, `aura_sombras`) | `cosmetic_catalog.min_plan` + `has_plan_tier` |
+| Trial anunciado | 0 días | 7 días | 0 días | `subscription_plans.trial_days` (solo UI) |
+| Misiones extra / slots | — | — | — | **no existe** |
+| Mesas de voz / chat | igual | igual | igual | sin gate por plan |
+| Ejercicios o modos extra | — | — | — | **no existe** |
 
-- Base: 15 XP y 10 oro. Valor esperado ≈ **18,8 XP y 12,5 oro** por sesión.
-- Requisitos: `completed_goals > 0` y `session_id` real; si no, `no_goals` /
-  `invalid_session`.
-- Idempotente por `(user_id, session_id)`.
-- En producción: **1** fila (`común`, 15 XP / 10 oro).
+`[INFERENCIA]` **NOBLE y REALEZA solo se diferencian en tres cosas medibles**:
++3.500 de maná, informe de 4→52 semanas y +8 escalones de prestigio. Los
+«títulos y auras exclusivos de REALEZA» son **2 ítems** (2.800 y 2.300 gemas)
+frente a un saldo máximo real de 96 gemas: inalcanzables.
 
----
-
-## 8. Cosméticos y tienda
-
-| Dato | Valor |
-|---|---|
-| Catálogo | **40 objetos** en 8 categorías (`frame`, `title`, `aura`, `pet`, `emote`, `table_theme`, `consumable`, `relic`) |
-| Precio en oro | 60-1 200 (solo `frame`, `title`, `aura`, `pet`, `emote`, `table_theme`) |
-| Precio en gemas | 40-2 800 |
-| Nivel requerido | 1-20 |
-| Recetas de fragmentos | 3 objetos con 120, 250 y 400 fragmentos |
-| Plan mínimo | columna `min_plan` (cosméticos exclusivos; error `plan_required`) |
-| Compras históricas | **0** (`player_inventory` = 0 filas) |
-| Movimientos de moneda | **0** (`currency_ledger` = 0 filas) |
-
-Saldos reales (65 perfiles): oro medio **103** (máx. 180), gemas medias **3**
-(máx. 96), fragmentos máximo **398**. Con esos saldos, el objeto más barato en
-oro (60) es alcanzable; casi todo lo demás no. Ver
-`docs/runbooks/ECONOMY_SINKS.md` §2-3 para el diagnóstico previo (idéntico).
+`[HECHO]` Suscripciones en producción: **14 plebeyo + 1 noble, 0 realeza**.
 
 ---
 
-## 9. Aprendizaje ↔ RPG: qué acción produce qué recompensa
+## 7. Coste de IA por acción (cifras reales, no estimaciones)
 
-Costes de `ai_action_costs` (7 filas, `cost_mana`):
+### 7.1 Precio en maná `[HECHO]`
 
-| Acción | Maná | ¿Se cobra de verdad? |
+`ai_action_costs` (7 filas):
+
+| Acción | Maná | ¿Cobra? |
 |---|---:|---|
 | `lesson_generation` | 100 | sí (tope 300 en `lesson-generator`) |
 | `oracle_eval` | 30 | sí |
 | `oracle_turn` | 15 | sí |
 | `dungeon_turn` | 12 | sí |
 | `free_chat_turn` | 8 | sí |
-| `correction_turn` | 3 | **no**: `is_active = false` y está en `FREE_ACTIONS` |
-| `vocabulary_curation` | 2 | sí, si `MANA_CHARGE_MODE ≠ off` |
-| `goal_eval` | — | gratis (`FREE_ACTIONS`) |
-| `carisma_eval` | — | gratis (`FREE_ACTIONS`) |
-| `guild_chat` | — | gratis (`FREE_ACTIONS`) |
-| `stt_transcribe` | — | gratis (`FREE_ACTIONS`) |
+| `correction_turn` | 3 | **no** (`is_active=false` + `FREE_ACTIONS`) |
+| `vocabulary_curation` | 2 | sí |
 
-Tabla de conversión (cifras reales de las fórmulas, no estimaciones):
+Gratis además por `FREE_ACTIONS` (`llm-proxy/validation.ts:23-29`):
+`goal_eval`, `carisma_eval`, `guild_chat`, `stt_transcribe`.
 
-| Acción del alumno | Coste | XP | Oro | Fragmentos | Aura | Gemas | Otros |
+### 7.2 Coste real en dólares `[HECHO]`
+
+`ai_usage_logs` = **54 filas**, 9 acciones:
+
+| Acción | Maná | Llamadas | $ medio | $ máx | $ total |
+|---|---:|---:|---:|---:|---:|
+| `dungeon_turn` | 12 | 13 | 0,000210 | 0,000402 | 0,0025 |
+| `oracle_turn` | 15 | 8 | 0,000340 | 0,000394 | 0,0027 |
+| `oracle_eval` | 30 | 3 | 0,000812 | 0,000847 | 0,0024 |
+| `goal_eval` | **0** | 6 | **0,000707** | 0,000932 | 0,0042 |
+| `carisma_eval` | **0** | 3 | 0,000212 | 0,000279 | 0,0006 |
+| `vocabulary_curation` | 2 | 3 | 0,000517 | 0,000786 | 0,0016 |
+| `free_chat_turn` | 8 | 1 | 0,000022 | 0,000022 | 0,0000 |
+| `guild_chat` | **0** | 1 | 0,000166 | 0,000166 | 0,0002 |
+| `stt_transcribe` | **0** | 16 | 0,000048 | 0,000150 | 0,0008 |
+| `lesson_generation` | 100 | 0 | — | — | — |
+
+Dos lecturas que importan:
+
+1. `[HECHO]` **El 38,7 % del gasto de IA ($0,0058 de $0,0150) se factura a 0
+   de maná** (`goal_eval` + `carisma_eval` + `guild_chat` + `stt_transcribe`).
+   `goal_eval` es la segunda llamada más cara por turno y es gratis.
+2. `[HECHO]` **`vocabulary_curation` es la acción más caras por unidad de
+   maná**: 2 de maná por $0,000517 = **$0,00026/maná**, 15× la tarifa del
+   `dungeon_turn` ($0,0000175/maná).
+
+`[INFERENCIA]` El maná no mide coste: mide ritmo. Cualquier decisión de
+«sostenibilidad» basada en el precio del maná está mirando el eje equivocado.
+
+---
+
+## 8. Tabla de conversión acción → recompensa `[HECHO]`
+
+| Acción del alumno | Coste maná | XP | Oro | Frag. | Aura | Gemas | Otros |
 |---|---:|---:|---:|---:|---:|---:|---|
 | Turno de lección (`dungeon_turn`) | 12 | — | — | — | — | — | avanza `conversation_turns` |
-| Cerrar sesión de 10 min, 4 metas, B1 | — | **100** | **48** | **28** | **48**¹ | — | racha +1, drop |
-| Cerrar sesión de 240 min, 1 meta | — | **2 400** | 10 | 5 | 10 | — | tope de minutos |
-| Drop de sesión (esperado) | 0 | 18,8 | 12,5 | — | — | — | 1 vez por sesión |
-| Misión diaria típica (`speak_minutes` 5) | 0 | 50-75 | — | — | — | 5-10 | trigger de servidor |
-| Misión semanal típica (`sessions` 3) | 0 | 350 | — | — | — | 60 | ídem |
-| Recompensa diaria (racha <7) | 0 | — | — | — | — | 5 | +2 «pergaminos» |
-| Recompensa diaria (racha ≥30) | 0 | — | — | — | — | 300 | +15 «pergaminos» |
-| Subir de nivel 2/3/5/8/12/15 | 0 | — | 100/150/250/400/600/800 | — | — | — | `claim_level_rewards` |
-| Repasar vocabulario | 0 | — | — | — | — | — | `vocabulary_reviews`, retención |
-| Escuchar (A1-B1) | 0 | — | — | — | — | — | `listening_attempts` |
-| Examen del Oráculo (placement) | 15/turno + 30 | — | — | — | — | — | nivel y rango |
-| Examen del jefe | 15/turno + 30 | — | — | — | — | — | `boss_exam_attempts` |
+| Cerrar sesión 10 min / 4 metas / B1 | — | **100** | **48** | **28** | **48** | — | racha +1, drop |
+| Cerrar sesión 240 min / 1 meta | — | **2.400** | 10 | 5 | 10 | — | tope de minutos |
+| Drop de sesión (esperado) | 0 | 18,8 | 12,5 | — | — | — | 1 por sesión |
+| Misión diaria `speak_minutes` 5 | 0 | 50-75 | — | — | — | 5-10 | trigger de servidor |
+| Misión semanal `sessions` 3 | 0 | 350 | — | — | — | 60 | idem |
+| Recompensa diaria (racha <7) | 0 | — | — | — | — | 5 (no paga) | +2 pergaminos |
+| Recompensa diaria (racha ≥30) | 0 | — | — | — | — | 300 (no paga) | +15 pergaminos |
+| Nivel 2/3/5/8/12/15 | 0 | — | 100/150/250/400/600/800 | — | — | — | `claim_level_rewards` |
+| Repaso SRS | 0 | — | — | — | — | — | sin IA (D-06 ok) |
+| Listening | 0 | — | — | — | — | — | TTS del dispositivo |
+| Examen del Oráculo | 15/turno + 30 | — | — | — | — | — | nivel y rango |
+| Examen del jefe | 15/turno + 30 | — | — | — | — | — | 0 intentos en BD |
 
-¹ `add_aura_xp`: `round(metas × (10 + bonus) × factor)`, con
-`factor = clamp(radar_medio / 50, 0,2 … 2,0)`. Con radar medio 50 y B1 (bonus 2):
-4 × 12 × 1 = 48.
-
-```mermaid
-flowchart LR
-    M["Maná (plan o compra)"] -->|"12 por turno"| T["Turno de conversación"]
-    T --> G["Metas cumplidas<br/>(goal_eval gratis)"]
-    G --> S["Cierre de sesión<br/>apply_session_rewards"]
-    S --> X["XP = min×10"]
-    S --> O["Oro = metas×(10+bonus)"]
-    S --> F["Fragmentos = metas×(5+bonus)"]
-    S --> A["Aura = metas×(10+bonus)×factor"]
-    S --> R["Racha (≥3 min o 1 meta)"]
-    S --> D["Drop 2/8/25/65 %"]
-    X --> L["Nivel = 1 + XP/1000"]
-    L --> LR["Bolsa de oro por nivel"]
-    O --> SH["Tienda: cosméticos"]
-    F --> CR["Crafteo"]
-    GEM["Misiones → gemas"] --> SH
-    GEM --> FR["Freeze de racha (sin efecto)"]
-    SH --> INV["player_inventory = 0"]
-```
+`Aura`: `round(metas × (10 + bonus) × factor)`, `factor = clamp(radar_medio/50,
+0,2…2,0)`. Con radar 50 y B1: `4 × 12 × 1 = 48`.
 
 ---
 
-## 10. Los cinco huecos más graves (resumen de este documento)
+## 9. Agujeros de integridad del bucle de misión `[HECHO]`
 
-| # | Promesa de la narrativa | Mecánica real | Evidencia |
+La cadena de custodia de una misión tiene **tres eslabones abiertos**:
+
+| Eslabón | Estado | Evidencia |
+|---|---|---|
+| Crear instancia | `authenticated` puede `INSERT` en `mission_instances` (política `insert_own_instances`) | `pg_policies` |
+| Blindaje del trigger | `guard_mission_instance` fuerza `status='active'`, `current_value=0`, `is_reward_claimed=false`… **pero no toca `xp_reward` ni `gem_reward`** | definición de `guard_mission_instance` |
+| Avanzar | `advance_my_missions(p_type, p_delta)` es `SECURITY DEFINER` con `EXECUTE` a `authenticated` y **sin tope superior** del delta | `routine_privileges`; sin `least(p_delta` en el cuerpo |
+
+`[INFERENCIA]` Cadena de abuso: insertar una misión propia con
+`xp_reward=99.999` → avanzarla con `advance_my_missions('sessions',1)` →
+`claim_mission_reward` la paga (el reclamo escribe saldo con `UPDATE` directo,
+saltándose `guard_language_profile`). **No se observó uso en `lib/`**, pero el
+permiso existe y no hay límite de recompensa.
+
+`[HECHO]` Permisos relacionados: `increment_pergaminos_max` (authenticated, sin
+tope), `spend_currency`/`spend_gems` (PUBLIC), `purchase_streak_freeze`
+(PUBLIC/anon), `consume_mana` (anon).
+
+---
+
+## 10. Los siete huecos más graves (resumen)
+
+| # | Promesa | Mecánica real | Evidencia |
 |---|---|---|---|
-| 1 | «Misiones que se renuevan cada día a las 00:05 UTC» | El cron asigna 10 plantillas **una vez**, sin `expires_at`; no hay reset ni reemplazo mientras sigan activas | `rotate_daily_missions`; 637/637 sin `expires_at`; `missions_screen.dart:122-123` |
-| 2 | «Cada mazmorra da su recompensa (nodo con +100 XP / +15 gemas)» | El nodo pinta cifras fijas; el pago real depende de minutos y metas de la sesión, y **no hay gemas por lección** | `learning_path_roadmap.dart:707-708` vs `apply_session_rewards` |
-| 3 | «El jefe de mazmorra mide tu progreso en el currículo» | Se desbloquea con 6 objetivos, 30 min o 2 días de racha; `lessons_passed` es informativo; 0 intentos en producción | `boss_exam_status` |
-| 4 | «Compra freezes para no perder la racha» | El freeze se cobra (30 gemas) y se guarda, pero **ninguna** función lo consume: la racha se reinicia igual | `purchase_streak_freeze` vs `register_practice`; `streak_freezes` solo en 3 funciones (ninguna de racha) |
-| 5 | «Gana gemas y gástalas en la tienda» | Las gemas entran por misiones y recompensa diaria, pero el catálogo exige hasta 2 800 y el saldo máximo real es 96; 0 compras y 0 movimientos de moneda | `reward_history` (8), `player_inventory` (0), `currency_ledger` (0), `cosmetic_catalog` |
+| 1 | «Misiones del gremio en 3 capas» (G-01) | 2 de 637 instancias del gremio; 199 contratos invisibles; raids y eventos en 0 | `guild_quest_pool` 199 / `quest_id` 2 / `guild_collaborative_missions` 0 |
+| 2 | «Renovación diaria a las 00:05» | 10 plantillas asignadas una vez, sin `expires_at`; no hay reset | `rotate_daily_missions`; 637/637 sin `expires_at` |
+| 3 | «La mazmorra da +100 XP y +15 gemas» | El nodo pinta cifras fijas; no hay gemas por lección | `learning_path_roadmap.dart:707-708` |
+| 4 | «Compra freezes para no perder la racha» | Se cobra y se guarda; **ninguna** función lo consume | `purchase_streak_freeze` vs `register_practice` |
+| 5 | «Títulos exclusivos de REALEZA» | 2 ítems a 2.300-2.800 gemas con saldo máximo de 96 | `cosmetic_catalog.min_plan`; `total_gems` |
+| 6 | «Aura y prestigio» | 21 escalones; el máximo de aura es 35 (escalón 1) | `prestige_ladder`; `max(aura_xp)=35` |
+| 7 | «Recompensa diaria por racha» | `add_gems` sin EXECUTE para `authenticated`; falla en silencio | `routine_privileges`; `economy_repository_impl.dart:242` |
 
-Huecos secundarios: XP sin tope práctico (240 min → 2 400 XP); rangos SS/SSS
-sin peldaño; `advance_my_missions` ejecutable por el cliente; «pergaminos»
-entregados sin consumidor (`docs/runbooks/ECONOMY_SINKS.md:133-135`).
+Huecos secundarios: XP sin tope práctico (240 min → 2.400 XP); SS/SSS sin
+peldaño propio; `advance_my_missions` ejecutable por el cliente; 23
+consumibles sin efecto; `DropLoot.roll` y `useInvocation` son código muerto.
 
 ---
 
-## 11. Lo no verificable
+## 11. No verificable
 
-| Afirmación | Por qué no se puede comprobar |
-|---|---|
-| Si el cobro de maná está activo para todas las builds | `MANA_CHARGE_MODE` es un secreto de la Edge Function (`off`/`capability`/`all`); con `capability` solo cobra a quien declare `server_mana` (la app lo declara: `conversation_repository_impl.dart:151`) |
-| Número real de misiones “diarias” que un usuario ve completables | Depende de la CEFR de cada perfil y de los techos; el cálculo está en `MissionVisibility` y no se ejecutó para cada usuario |
-| Efecto de la banda adaptativa en la tasa de “failed” | Requiere sesiones reales con metas evaluadas; en BD hay 32 filas de `lesson_progress` (muestra pequeña) |
-| Si los 0 drops/boss/listening son por falta de uso o por fallo | Los conteos son 0/1; no hay logs de error asociados consultables desde aquí |
-| Valor de `prestige_title_code` y su efecto | `compute_prestige_title` existe, pero no se auditó su tabla de títulos |
+| Afirmación | Por qué | Qué falta |
+|---|---|---|
+| Si `MANA_CHARGE_MODE` cobra en todas las builds | Es secreto de la Edge Function (`capability` por defecto) | Valor del secreto en producción |
+| Cuántas «diarias» ve completables cada usuario | Depende de CEFR y de los techos de `MissionVisibility` | Ejecutar el cálculo por perfil |
+| Si los 0 intentos de jefe / 0 raids son falta de uso o fallo | Los conteos son 0 y no hay logs asociados consultables | Logs de `evaluate-placement` y del cron |
+| Efecto del turno de gracia en retención | Se ha usado 1 vez | Más uso real |
+| Valor real de los 21 títulos de prestigio | `compute_prestige_title` existe; nadie pasó del escalón 1 | Uso con aura > 500 |
