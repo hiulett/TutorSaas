@@ -34,7 +34,7 @@ construida y qué ratios/tamaños produce.
 |---|---|
 | `flutter analyze` | **0 errores · 0 warnings · 126 infos** |
 | `flutter test` | **725 pruebas · todas en verde** (~1 min 44 s) |
-| Cambios en `lib/` o `test/` | **ninguno** (`git status` solo muestra `docs/ui-ux-audit/`) |
+| Cambios en `lib/` o `test/` | **ninguno**: `git diff --stat origin/master...HEAD` toca 9 archivos, todos bajo `docs/ui-ux-audit/` |
 
 > `AGENTS.md` dice "34 warnings + 129 infos / 171 pruebas" y `docs/HISTORY.md:42`
 > dice "127 infos y 530 pruebas". Ambas cifras están **desactualizadas**; las
