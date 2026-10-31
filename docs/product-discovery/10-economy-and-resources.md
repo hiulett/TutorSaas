@@ -27,6 +27,17 @@ Y el recurso escaso (maná) **no es escaso en la práctica**: 13 usuarios han
 gastado 3.298 de maná en ~100 días. El tope diario de 200 se ha alcanzado
 **una vez** en toda la historia del proyecto.
 
+### 1.1 Deriva corregida en esta pasada
+
+Estas afirmaciones de documentación previa ya no son ciertas; este documento
+las reemplaza:
+
+| Dónde | Decía | Realidad verificada |
+|---|---|---|
+| [`../product-audit/06-GAMEPLAY-Y-GAMIFICACION.md:64`](../product-audit/06-GAMEPLAY-Y-GAMIFICACION.md) | "`llm-proxy` no valida maná: un cliente modificado puede consumir IA sin pagar" | `llm-proxy` llama `consume_mana` y responde 402 (`llm-proxy/index.ts:205-236`, `:452`) |
+| [`README.md`](README.md) §5 | "Recompensa de sesión: RPC `apply_session_rewards`" | `apply_session_rewards` está **deprecada y sin EXECUTE** para `authenticated`; la vía real es `close_session(uuid)` (`20261029171705_claim_mission_reward_contract.sql:80-81`) |
+| [`../PRODUCT.md`](../PRODUCT.md) §3 | "Pociones" como fuente de maná | `mana_items` = **0 filas** y no hay producto consumible (P-46 cerrado) |
+
 ---
 
 ## 2. Mapa de recursos
@@ -288,7 +299,7 @@ Evidencia: `20261029171705_claim_mission_reward_contract.sql:13-74`.
 
 En producción: 637 instancias, **8 completadas (1,26 %)** y **8 reclamadas**
 (100 % de las completadas). Las 629 restantes siguen `active` con
-`expires_at = NULL`: **las misiones nunca caducan** (§7.2).
+`expires_at = NULL`: **las misiones nunca caducan** (D6 en §9).
 
 ### 6.4 `claim_level_rewards` — bolsas por nivel `[IMPLEMENTADO]`
 

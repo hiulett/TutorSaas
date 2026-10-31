@@ -50,7 +50,7 @@ flowchart TD
     B --> C[35 con al menos 1 conversación]
     C --> D[34 con mensajes propios]
     D --> E[13 gastaron maná]
-    E --> F[**1** cerró una sesión<br/>con recompensa]
+    E --> F[1 cerró una sesión<br/>con recompensa]
     D --> G[7 con vocabulario guardado]
     D --> H[6 con alguna lección pasada]
     F --> I[0 cumplieron la meta diaria]
@@ -168,7 +168,7 @@ motor no llega.
 
 ### 5.2 Catálogo
 
-| Tipo | Plantillas | Activas | Instancias en producción | Completadas |
+| Tipo | Plantillas | Activas | Instancias totales (incl. completadas) | Completadas |
 |---|---|---|---|---|
 | `daily` | 15 | 15 | **448** | **6** (1,3 %) |
 | `weekly` | 7 | 7 | **189** | **2** (1,1 %) |
@@ -378,8 +378,8 @@ mismo cuello de botella disfrazado de función nueva.
 ```mermaid
 flowchart LR
     A[Onboarding<br/>68 → 65] -->|bien| B[Primera conversación<br/>65 → 35]
-    B -->|**caída 46 %**| C{¿Cierra la sesión?}
-    C -->|**No: 34 usuarios**| D[Sin XP, sin racha,<br/>sin recompensa, sin resumen]
+    B -->|caída 46 %| C{¿Cierra la sesión?}
+    C -->|No: 34 usuarios| D[Sin XP, sin racha,<br/>sin recompensa, sin resumen]
     C -->|Sí: 1 usuario| E[Resumen + drop + práctica registrada]
     D --> F[Vuelve a abrir a veces<br/>13 gastan maná]
     F --> G[Abandona en 1-3 sesiones]

@@ -81,7 +81,7 @@ secundaria**. Nada más.
 
 | Mecánica | Dónde | Por qué importa |
 |---|---|---|
-| 8 sillas + audiencia ilimitada (8 de pie) | `chat_rooms.max_seats=8`, `max_standing=8` (`20260811_guild_table_states.sql:13-15`) | Crea "escenario": solo los sentados publican audio |
+| 8 sillas + hasta 8 de pie (audiencia) | `chat_rooms.max_seats=8`, `max_standing=8` (`20260811_guild_table_states.sql:13-15`) | Crea "escenario": solo los sentados publican audio |
 | `canPublish` decidido en servidor | `livekit-token/index.ts:71-89` | No se puede hablar sin silla: la restricción es de servidor, no cosmética |
 | Cola FIFO de silla | `request_seat` / `grant_next_seat` (`20260811_guild_table_states.sql`) | Turnos ordenados cuando la mesa está llena |
 | Una sola mesa activa por sesión | `join_table` borra la participación en otras mesas | Evita presencia fantasma multi-sala |
