@@ -202,4 +202,4 @@ reanudación, superficies tranquilas, camino único— nunca como plantillas.
 | `07-executive-summary.md` | Este documento |
 | `screenshots/README.md` | Estado real de la captura y cómo obtenerlas |
 
-**Pull request:** <!--PR_URL-->
+**Pull request:** https://github.com/hiulett/TutorSaas/pull/238 (`--base master`, sin merge)
