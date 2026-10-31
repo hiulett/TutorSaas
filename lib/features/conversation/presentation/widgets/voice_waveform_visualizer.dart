@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_motion.dart';
 
 class VoiceWaveformVisualizer extends StatefulWidget {
   final bool isAiSpeaking;
@@ -14,7 +15,8 @@ class VoiceWaveformVisualizer extends StatefulWidget {
   });
 
   @override
-  State<VoiceWaveformVisualizer> createState() => _VoiceWaveformVisualizerState();
+  State<VoiceWaveformVisualizer> createState() =>
+      _VoiceWaveformVisualizerState();
 }
 
 class _VoiceWaveformVisualizerState extends State<VoiceWaveformVisualizer>
@@ -27,7 +29,14 @@ class _VoiceWaveformVisualizerState extends State<VoiceWaveformVisualizer>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
-    )..repeat();
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // UX-04: la onda queda estática (sin `Ticker`) con reduce-motion.
+    AppMotion.syncLoop(_controller, allowed: AppMotion.loopsAllowed(context));
   }
 
   @override
@@ -41,7 +50,9 @@ class _VoiceWaveformVisualizerState extends State<VoiceWaveformVisualizer>
     final isActive = widget.isAiSpeaking || widget.isUserSpeaking;
     final waveColor = widget.isAiSpeaking
         ? AppColors.runeViolet
-        : (widget.isUserSpeaking ? AppColors.manaCyan : AppColors.onSurface.withValues(alpha: 0.24));
+        : (widget.isUserSpeaking
+              ? AppColors.manaCyan
+              : AppColors.onSurface.withValues(alpha: 0.24));
 
     return AnimatedBuilder(
       animation: _controller,
@@ -52,7 +63,9 @@ class _VoiceWaveformVisualizerState extends State<VoiceWaveformVisualizer>
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(16, (index) {
               final phase = (index / 16.0) * math.pi * 2;
-              final sinValue = math.sin(_controller.value * math.pi * 2 + phase).abs();
+              final sinValue = math
+                  .sin(_controller.value * math.pi * 2 + phase)
+                  .abs();
               final height = isActive ? (12 + sinValue * 32) : 6.0;
 
               return Container(

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 
 enum CyberBgMode {
   dynamicLevel,
@@ -52,24 +53,40 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
     _particleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
-    )..repeat();
+    );
 
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 25),
-    )..repeat();
+    );
 
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
+    );
 
     _cameraZoomController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 12),
-    )..repeat(reverse: true);
+    );
 
     _initParticles();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // UX-04: los 4 bucles ambientales se detienen con reduce-motion.
+    final allowed = AppMotion.loopsAllowed(context);
+    AppMotion.syncLoop(_particleController, allowed: allowed);
+    AppMotion.syncLoop(_rotationController, allowed: allowed);
+    AppMotion.syncLoop(
+      _pulseController,
+      allowed: allowed,
+      reverse: true,
+      stillValue: 0.5,
+    );
+    AppMotion.syncLoop(_cameraZoomController, allowed: allowed, reverse: true);
   }
 
   void _initParticles() {
@@ -84,8 +101,12 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
           color: i % 3 == 0
               ? baseColor.withValues(alpha: _random.nextDouble() * 0.7 + 0.3)
               : (i % 2 == 0
-                  ? AppColors.manaCyan.withValues(alpha: _random.nextDouble() * 0.6 + 0.2)
-                  : AppColors.runeViolet.withValues(alpha: _random.nextDouble() * 0.6 + 0.2)),
+                    ? AppColors.manaCyan.withValues(
+                        alpha: _random.nextDouble() * 0.6 + 0.2,
+                      )
+                    : AppColors.runeViolet.withValues(
+                        alpha: _random.nextDouble() * 0.6 + 0.2,
+                      )),
         ),
       );
     }
@@ -104,14 +125,22 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
         return AppColors.trophyGold;
       default:
         switch (widget.levelCode.toUpperCase()) {
-          case 'PRE-A1': return AppColors.cefrPreA1;
-          case 'A1': return AppColors.cefrA1;
-          case 'A2': return AppColors.cefrA2;
-          case 'B1': return AppColors.cefrB1;
-          case 'B2': return AppColors.cefrB2;
-          case 'C1': return AppColors.cefrC1;
-          case 'C2': return AppColors.cefrC2;
-          default: return AppColors.runeViolet;
+          case 'PRE-A1':
+            return AppColors.cefrPreA1;
+          case 'A1':
+            return AppColors.cefrA1;
+          case 'A2':
+            return AppColors.cefrA2;
+          case 'B1':
+            return AppColors.cefrB1;
+          case 'B2':
+            return AppColors.cefrB2;
+          case 'C1':
+            return AppColors.cefrC1;
+          case 'C2':
+            return AppColors.cefrC2;
+          default:
+            return AppColors.runeViolet;
         }
     }
   }
@@ -143,16 +172,24 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
       case CyberBgMode.hunterStatus:
         return 'assets/images/hunter_status_matrix_bg.jpg';
       case CyberBgMode.dynamicLevel:
-        if (widget.isBossArena) return 'assets/images/dungeon_boss_arena_bg.jpg';
+        if (widget.isBossArena)
+          return 'assets/images/dungeon_boss_arena_bg.jpg';
         switch (widget.levelCode.toUpperCase()) {
-          case 'PRE-A1': return 'assets/images/dungeon_forest_a1_bg.jpg';
-          case 'A1': return 'assets/images/dungeon_forest_a1_bg.jpg';
-          case 'A2': return 'assets/images/dungeon_ruins_a2_bg.jpg';
-          case 'B1': return 'assets/images/dungeon_wind_b1_bg.jpg';
-          case 'B2': return 'assets/images/cyber_manhwa_portal_bg.jpg';
+          case 'PRE-A1':
+            return 'assets/images/dungeon_forest_a1_bg.jpg';
+          case 'A1':
+            return 'assets/images/dungeon_forest_a1_bg.jpg';
+          case 'A2':
+            return 'assets/images/dungeon_ruins_a2_bg.jpg';
+          case 'B1':
+            return 'assets/images/dungeon_wind_b1_bg.jpg';
+          case 'B2':
+            return 'assets/images/cyber_manhwa_portal_bg.jpg';
           case 'C1':
-          case 'C2': return 'assets/images/dungeon_boss_arena_bg.jpg';
-          default: return 'assets/images/cyber_manhwa_portal_bg.jpg';
+          case 'C2':
+            return 'assets/images/dungeon_boss_arena_bg.jpg';
+          default:
+            return 'assets/images/cyber_manhwa_portal_bg.jpg';
         }
     }
   }
@@ -174,11 +211,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
     return Stack(
       children: [
         // 1. Dark Base Void
-        Positioned.fill(
-          child: Container(
-            color: AppColors.arenaVoid,
-          ),
-        ),
+        Positioned.fill(child: Container(color: AppColors.arenaVoid)),
 
         // 2. Dynamic Animated Floor Image Overlay
         Positioned.fill(
@@ -230,7 +263,10 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
         // 4. Animated Rotating Magic Circle & Glowing Rune Array
         Positioned.fill(
           child: AnimatedBuilder(
-            animation: Listenable.merge([_rotationController, _pulseController]),
+            animation: Listenable.merge([
+              _rotationController,
+              _pulseController,
+            ]),
             builder: (context, child) {
               return CustomPaint(
                 painter: AnimatedMagicCirclePainter(
@@ -259,9 +295,7 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
         ),
 
         // 6. Child Screen Content
-        Positioned.fill(
-          child: widget.child,
-        ),
+        Positioned.fill(child: widget.child),
       ],
     );
   }

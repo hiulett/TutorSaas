@@ -47,4 +47,33 @@ class AppMotion {
   /// Multiplicador de duración: 0 cuando reduce-motion está activo.
   static Duration scaled(BuildContext context, Duration duration) =>
       of(context, duration);
+
+  /// `true` cuando se permiten animaciones en bucle (lo contrario de
+  /// [reduceMotion]). Úsalo para decidir si arrancar un `repeat()`.
+  static bool loopsAllowed(BuildContext context) => !reduceMotion(context);
+
+  /// Sincroniza un bucle infinito ([AnimationController.repeat]) con
+  /// reduce-motion (UX-04).
+  ///
+  /// Con reduce-motion activo el controller queda **detenido** —sin `Ticker`
+  /// vivo— en [stillValue], de modo que el widget se dibuja estático sin
+  /// cambiar su aspecto base. Cuando el sistema vuelve a permitir animaciones
+  /// el bucle se reanuda.
+  ///
+  /// Debe llamarse desde `didChangeDependencies()` (nunca desde `initState()`:
+  /// allí `MediaQuery` todavía no es accesible) y tras cualquier cambio de
+  /// estado que encienda o apague el bucle.
+  static void syncLoop(
+    AnimationController controller, {
+    required bool allowed,
+    bool reverse = false,
+    double stillValue = 0.0,
+  }) {
+    if (!allowed) {
+      if (controller.isAnimating) controller.stop();
+      if (controller.value != stillValue) controller.value = stillValue;
+      return;
+    }
+    if (!controller.isAnimating) controller.repeat(reverse: reverse);
+  }
 }
