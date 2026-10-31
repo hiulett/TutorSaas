@@ -84,7 +84,7 @@ flowchart TD
     A["/oracle-test"] --> B["initOracleSession<br/>placement o boss"]
     B --> C["turnos de voz<br/>oracle_turn (15 maná)"]
     C --> D{"cierre"}
-    D -->|"modelo declara [RESULT:CEFR=..]"| E["_finalizeOracleEvaluation"]
+    D -->|"modelo declara RESULT CEFR"| E["_finalizeOracleEvaluation"]
     D -->|"sin cierre explícito"| F["tope de turnos/tiempo fuerza cierre"]
     E --> G["Edge Function evaluate-placement"]
     F --> G
@@ -197,7 +197,7 @@ recurrentes o metas falladas): `conversation_providers.dart:2513-2587`.
 
 | Aspecto | Implementación |
 |---|---|
-| Cuándo | `correction_turn` solo en chat libre, con ≥5 palabras y **máx. 6 por sesión** (`correction_turn_policy.dart:36`, `:52-65`) |
+| Cuándo | `correction_turn` solo en chat libre, con ≥5 palabras y **máx. 6 por sesión** (`correction_turn_policy.dart:36`, `:52-65`). En lecciones con metas, las correcciones llegan dentro de la misma respuesta de `goal_eval` (nunca una segunda llamada) |
 | Coste | **gratis** (`FREE_ACTIONS` en `llm-proxy/validation.ts`); la fila `ai_action_costs.correction_turn` (3 maná) está `is_active = false` |
 | Nivel `important_only` | no llama al modelo (ahorra la petición) |
 | Dónde se guarda | `public.corrections`, upsert idempotente por `(user_id, turn_ref, error_type, original_text)` (`corrections_repository.dart:31-69`) |

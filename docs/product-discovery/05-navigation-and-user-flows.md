@@ -108,13 +108,13 @@ Conteo sobre `lib/**/*.dart` (búsqueda de `context.go|push|pushReplacement|pop`
 
 | Mecanismo | Uso real | Dónde |
 |---|---|---|
-| `context.go` (**reemplaza** la pila) | 12 llamadas | salidas a `/home` y `/`; `conversation_screen.dart:1218`, `1980`; `dashboard_screen.dart:710`; `settings_screen.dart:570`; `boss_exam_result_screen.dart:43,123,135` |
-| `context.push` (**apila**) | 24 llamadas | toda entrada a secciones desde el dashboard, resumen, roadmap y gremio |
+| `context.go` (**reemplaza** la pila) | **25** llamadas | salidas a `/home` y `/`; `conversation_screen.dart:1218`, `1980`; `dashboard_screen.dart:710`; `settings_screen.dart:570`; `boss_exam_result_screen.dart:43,123,135` |
+| `context.push` (**apila**) | **30** llamadas | toda entrada a secciones desde el dashboard, resumen, roadmap y gremio |
 | `context.pushReplacement` | **1** | `conversation_screen.dart:220` (sin maná → Guardián) |
-| `context.pop` | 10 llamadas | cabeceras de pantallas hijas (`inventory_screen.dart:122`, `weekly_report_screen.dart:46`, `my_errors_screen.dart:40`) |
+| `context.pop` | **14** llamadas | cabeceras de pantallas hijas (`inventory_screen.dart:122`, `weekly_report_screen.dart:46`, `my_errors_screen.dart:40`) |
 | `Navigator.of(context).push(MaterialPageRoute)` | **1** | `conversation_screen.dart:1105-1108` → Guardián al agotarse el maná **con la conversación debajo** (≠ `pushReplacement` del arranque) |
-| `showModalBottomSheet` | 18 llamadas | recompensa diaria, SRS, ajustes del tutor, TTS, cambio de idioma, perfil |
-| `showDialog` | 9 llamadas | confirmaciones destructivas (logout, borrar cuenta, compra) y aviso de privacidad |
+| `showModalBottomSheet` | **14** llamadas | recompensa diaria, SRS, ajustes del tutor, TTS, cambio de idioma, perfil |
+| `showDialog` | **10** llamadas | confirmaciones destructivas (logout, borrar cuenta, compra) y aviso de privacidad |
 | `PopScope` con `onPopInvokedWithResult` | 1 (el importante) | `conversation_screen.dart:1161-1171` |
 
 **No hay transiciones de tipo modal-route, ni `Hero`, ni deep links con
