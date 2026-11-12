@@ -27,7 +27,6 @@ import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/conversation_scene_header.dart';
 import '../widgets/corrections_codex_panel.dart';
-import '../widgets/live_goals_tracker_bar.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
@@ -59,11 +58,24 @@ const double _kConversationManaRowLeftInset = 8;
 const double _kConversationManaBarGap = 16;
 
 /// #322: reserva vertical que el monstruo flotante deja bajo el safe-area
-/// superior para no montarse sobre la cabecera. Cubre la cabecera completa
-/// (título + objetivos + maná + chips de modo, ~200 px con la escala de fuente
-/// del reporte) más la tira vertical de la forma de onda (48 px).
-/// Es una reserva estática: si la cabecera gana filas, hay que subirla.
-const double _kConversationMonsterTopClearance = 248;
+/// superior para no montarse sobre la cabecera. Con la barra de objetivos
+/// ya fuera de esta pantalla, lo que hay que despejar es:
+/// - 8: padding superior del bloque de cabecera (`Padding` vertical 8).
+/// - 40: fila del botón de voz (`IconButton` compacto: 48 - 8 de densidad).
+/// - 178: `ConversationSceneHeader` (~176 documentados + 2 del borde del
+///   `GlassCard`).
+/// - 53: fila de maná + chips (`OracleManaBar` compacto:
+///   13 + 4 + 5 + 4 + 13 + 2 + 12).
+///   => 279, borde inferior de los chips de modo.
+/// - 5: amplitud del flotado del pill (`sin(_floatController) * 5`).
+/// - 12: holgura para que el borde del pill no roce los chips.
+///   => 296.
+///
+/// La barra de estado NO se suma aquí: `DraggableMonsterWidget` ya añade
+/// `MediaQuery.padding.top` en `_headerBottomY`, así que incluirla la contaría
+/// dos veces. Es una reserva estática: si la cabecera gana filas, hay que
+/// subirla.
+const double _kConversationMonsterTopClearance = 296;
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String? scenarioId;
@@ -496,7 +508,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             return Container(
               padding: const EdgeInsets.all(24.0),
               decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
+                color: AppColors.surfaceDim,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: SingleChildScrollView(
@@ -936,7 +948,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           ),
           padding: const EdgeInsets.all(20.0),
           decoration: const BoxDecoration(
-            color: Color(0xFF0F172A),
+            color: AppColors.surfaceDim,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: SingleChildScrollView(
@@ -1287,26 +1299,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       },
                     ),
                     ],
-                    if (!isOracle) ...[
-                      if (LessonCatalog.getLessonById(
-                          widget.scenarioId,
-                                  title: widget.scenarioTitle,
-                                ) !=
-                                null) ...[
-                              const SizedBox(height: 8),
-                              LiveGoalsTrackerBar(
-                                goals: LessonCatalog.getLessonById(
-                                  widget.scenarioId,
-                                  title: widget.scenarioTitle,
-                                )!.goals,
-                                goalEvaluationResults:
-                                    conversationState.goalEvaluationResults,
-                                onTapCompass: () =>
-                                    _showScenarioMissionModal(context),
-                              ),
-                            ],
-                            const SizedBox(height: 8),
-                          ],
                           if (isOracle && widget.oraclePromotion) ...[
                             const SizedBox(height: 6),
                             BossExamHealthBar(
@@ -1360,16 +1352,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: _isBlindListening
-                                            ? const Color(
-                                                0xFFFF00FF,
-                                              ).withValues(alpha: 0.2)
+                                            ? AppColors.runeViolet.withValues(
+                                                alpha: 0.2,
+                                              )
                                             : Colors.white.withValues(
                                                 alpha: 0.05,
                                               ),
                                         borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
                                           color: _isBlindListening
-                                              ? const Color(0xFFFF00FF)
+                                              ? AppColors.runeViolet
                                               : Colors.white24,
                                         ),
                                       ),
@@ -1382,7 +1374,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                                 : Icons.visibility_rounded,
                                             size: 12,
                                             color: _isBlindListening
-                                                ? const Color(0xFFFF00FF)
+                                                ? AppColors.runeViolet
                                                 : Colors.white70,
                                           ),
                                           const SizedBox(width: 4),
@@ -1400,7 +1392,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                               fontSize: 10,
                                               fontWeight: FontWeight.bold,
                                               color: _isBlindListening
-                                                  ? const Color(0xFFFF00FF)
+                                                  ? AppColors.runeViolet
                                                   : Colors.white70,
                                             ),
                                           ),
@@ -1736,7 +1728,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     if (_showTopicsBar)
                       Container(
                         height: 52,
-                        color: const Color(0xFF0F172A),
+                        color: AppColors.surfaceDim,
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -1794,7 +1786,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     // â”€â”€ Text Input Drawer (Icon 5: Keyboard) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     if (_showKeyboardDrawer)
                       Container(
-                        color: const Color(0xFF0F172A),
+                        color: AppColors.surfaceDim,
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                         child: Row(
                           children: [
