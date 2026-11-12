@@ -115,6 +115,10 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
       onTapCancel: () => _scaleController.reverse(),
       child: AnimatedBuilder(
         animation: Listenable.merge([_scaleAnimation, _runicController]),
+        // El contenido se pasa como `child` para que no se reconstruya en cada
+        // frame de la animación de runas. Reconstruirlo dentro del
+        // BackdropFilter dejaba un "fantasma" del texto a otra escala (#303).
+        child: widget.child,
         builder: (context, child) {
           final runeOpacity = 0.3 + (_runicController.value * 0.7);
           Widget card = Container(
@@ -153,7 +157,7 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
                           width: 1,
                         ),
                   ),
-                  child: widget.child,
+                  child: child,
                 ),
               ),
             ),
