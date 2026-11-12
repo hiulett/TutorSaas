@@ -17,7 +17,12 @@ import '../providers/dashboard_providers.dart';
 /// - Al cumplirla, el servidor concede la celebración una sola vez al día:
 ///   animación + háptica (el `claim` es idempotente).
 class DailyGoalRingCard extends ConsumerStatefulWidget {
-  const DailyGoalRingCard({super.key});
+  const DailyGoalRingCard({super.key, this.compact = false});
+
+  /// #312: modo compacto para incrustar solo el anillo en la tarjeta de
+  /// licencia del HUD. Mantiene la celebración (se dispara igual), pero no
+  /// pinta la tarjeta ni el banner.
+  final bool compact;
 
   @override
   ConsumerState<DailyGoalRingCard> createState() => _DailyGoalRingCardState();
@@ -84,6 +89,47 @@ class _DailyGoalRingCardState extends ConsumerState<DailyGoalRingCard>
     final done = progress.goalCompleted;
     final accent = done ? AppColors.emeraldGreen : AppColors.manaCyan;
     final percent = (progress.ratio * 100).round();
+
+    if (widget.compact) {
+      final minutesLabel =
+          l10n?.daily_goal_minutes(progress.minutesToday, progress.goalMinutes) ??
+          '${progress.minutesToday} / ${progress.goalMinutes} min';
+      return Semantics(
+        label: '${l10n?.daily_goal_title ?? 'META DIARIA'}: $percent%',
+        child: Tooltip(
+          message: minutesLabel,
+          child: SizedBox(
+            width: 42,
+            height: 42,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 42,
+                  height: 42,
+                  child: CircularProgressIndicator(
+                    value: progress.ratio,
+                    strokeWidth: 4,
+                    backgroundColor: AppColors.onSurfaceVariant.withValues(
+                      alpha: 0.18,
+                    ),
+                    valueColor: AlwaysStoppedAnimation<Color>(accent),
+                  ),
+                ),
+                Text(
+                  '${progress.minutesToday}',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: accent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

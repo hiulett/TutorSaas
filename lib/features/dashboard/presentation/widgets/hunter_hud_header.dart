@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'daily_goal_ring_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
@@ -202,14 +203,24 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '${headerTitle.toUpperCase()} · $languageEmoji',
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppColors.royalGold,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${headerTitle.toUpperCase()} · $languageEmoji',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.royalGold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // #312: la meta diaria vive dentro de la licencia, como en el
+              // diseño de referencia; deja de ser una tarjeta aparte.
+              const DailyGoalRingCard(compact: true),
+            ],
           ),
           const SizedBox(height: 14),
           // Barra de maná del Oráculo (única representación del maná).
