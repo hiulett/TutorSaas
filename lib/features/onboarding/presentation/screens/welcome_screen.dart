@@ -447,7 +447,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                label,
+                label.toUpperCase(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.jetBrainsMono(
