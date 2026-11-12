@@ -254,104 +254,34 @@ class ProgressTabView extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // Key Real DB Stats Grid
+            // #314: tiles compactos. El número va solo (la etiqueta ya dice la
+            // unidad), sin saltos de línea feos a 312 dp.
             Row(
               children: [
                 Expanded(
-                  child: GlassCard(
-                    blur: 20,
-                    opacity: AppColors.glassOpacity,
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.stars_rounded,
-                          color: AppColors.royalGold,
-                          size: 22,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '$xp XP',
-                          style: const TextStyle(
-                            color: AppColors.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          l10n.progress_xp_points,
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _StatTile(
+                    icon: Icons.stars_rounded,
+                    iconColor: AppColors.royalGold,
+                    value: '$xp',
+                    label: l10n.progress_xp_points,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: GlassCard(
-                    blur: 20,
-                    opacity: AppColors.glassOpacity,
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.local_fire_department_rounded,
-                          color: AppColors.royalGold,
-                          size: 22,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '$streak Días',
-                          style: const TextStyle(
-                            color: AppColors.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          l10n.progress_active_streak,
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _StatTile(
+                    icon: Icons.local_fire_department_rounded,
+                    iconColor: AppColors.royalGold,
+                    value: '$streak',
+                    label: l10n.progress_active_streak,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: GlassCard(
-                    blur: 20,
-                    opacity: AppColors.glassOpacity,
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.psychology_rounded,
-                          color: AppColors.manaCyan,
-                          size: 22,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Rango $gameRank',
-                          style: const TextStyle(
-                            color: AppColors.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          l10n.progress_active_rank,
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _StatTile(
+                    icon: Icons.psychology_rounded,
+                    iconColor: AppColors.manaCyan,
+                    value: gameRank,
+                    label: l10n.progress_active_rank,
                   ),
                 ),
               ],
@@ -481,6 +411,83 @@ class ProgressTabView extends ConsumerWidget {
             const SizedBox(height: 100),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Tile compacto de estadística (#314).
+///
+/// Número grande en una sola línea (se recorta con ellipsis antes que partirse)
+/// y etiqueta mono pequeña debajo. El padding vertical baja de 14 a 10 dp para
+/// que los tres tiles ocupen menos alto; a 312 dp caben en una fila.
+class _StatTile extends StatelessWidget {
+  const _StatTile({
+    required this.icon,
+    required this.iconColor,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    // Altura fija de dos líneas de etiqueta: los tres tiles quedan igual de
+    // altos aunque una etiqueta ("Rango del Gremio") ocupe dos líneas y las
+    // otras una. Se calcula con el `textScaler` real, no con un valor fijo.
+    final double labelLine = MediaQuery.textScalerOf(context).scale(8) * 1.2;
+
+    return GlassCard(
+      blur: 20,
+      opacity: AppColors.glassOpacity,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: iconColor, size: 18),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              value,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spaceGrotesk(
+                color: AppColors.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                height: 1.0,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          SizedBox(
+            height: labelLine * 2 + 0.5,
+            width: double.infinity,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.jetBrainsMono(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: 8,
+                  height: 1.2,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
