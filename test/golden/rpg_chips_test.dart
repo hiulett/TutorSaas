@@ -104,10 +104,11 @@ void main() {
       expect(
         border.top,
         BorderSide(
-          color: expected[i].withValues(alpha: AppColors.glassBorderAlpha),
+          // #327: los chips pasan un borderColor opaco → foco (0.5).
+          color: expected[i].withValues(alpha: 0.5),
           width: 1,
         ),
-        reason: 'el borde pintado debe ser el token al 80 % de alfa',
+        reason: 'el borde pintado de un color explícito es foco (0.5)',
       );
     }
   });

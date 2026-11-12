@@ -83,8 +83,10 @@ void main() {
     final shadow = painted[0].decoration! as BoxDecoration;
     expect(shadow.boxShadow, [
       BoxShadow(
-        color: AppColors.manaCyan.withValues(alpha: 0.3),
-        blurRadius: 8,
+        // #327: la sombra por defecto bajó a 0.12/6 para no competir con la
+        // acción primaria.
+        color: AppColors.manaCyan.withValues(alpha: 0.12),
+        blurRadius: 6,
       ),
     ]);
 
@@ -195,9 +197,8 @@ void main() {
     expect(
       glass.border,
       Border.all(
-        color: AppColors.royalGold.withValues(
-          alpha: AppColors.glassBorderAlpha,
-        ),
+        // #327: un borderColor opaco explícito se trata como foco (0.5).
+        color: AppColors.royalGold.withValues(alpha: 0.5),
         width: 1,
       ),
     );

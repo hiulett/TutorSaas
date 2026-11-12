@@ -36,6 +36,10 @@ class ContinueAdventureCard extends ConsumerWidget {
       blur: 20,
       opacity: AppColors.glassOpacity,
       padding: const EdgeInsets.all(18),
+      // #327 — es la CTA primaria del dashboard: la única tarjeta con foco
+      // cian y esquinas rúnicas, frente al vidrio neutro (borde 0.14).
+      borderColor: AppColors.manaCyan.withValues(alpha: 0.6),
+      showRunicCorners: true,
       onTap: () => _start(context, adventure),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
