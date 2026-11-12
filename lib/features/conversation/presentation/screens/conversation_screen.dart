@@ -28,11 +28,9 @@ import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/conversation_scene_header.dart';
 import '../widgets/corrections_codex_panel.dart';
 import '../widgets/conversation_corrections_row.dart';
-import '../../../../core/widgets/draggable_monster_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
-import '../../../dashboard/data/models/hunter_catalog.dart';
 import '../../../economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
@@ -57,26 +55,6 @@ const double _kConversationManaRowLeftInset = 8;
 /// modo (antes: padding 8 + `SizedBox(width: 8)` = 16). Evita que el texto del
 /// maná invada el chip de "Chat Visible".
 const double _kConversationManaBarGap = 16;
-
-/// #322: reserva vertical que el monstruo flotante deja bajo el safe-area
-/// superior para no montarse sobre la cabecera. Con la barra de objetivos
-/// ya fuera de esta pantalla, lo que hay que despejar es:
-/// - 8: padding superior del bloque de cabecera (`Padding` vertical 8).
-/// - 40: fila del botón de voz (`IconButton` compacto: 48 - 8 de densidad).
-/// - 178: `ConversationSceneHeader` (~176 documentados + 2 del borde del
-///   `GlassCard`).
-/// - 53: fila de maná + chips (`OracleManaBar` compacto:
-///   13 + 4 + 5 + 4 + 13 + 2 + 12).
-///   => 279, borde inferior de los chips de modo.
-/// - 5: amplitud del flotado del pill (`sin(_floatController) * 5`).
-/// - 12: holgura para que el borde del pill no roce los chips.
-///   => 296.
-///
-/// La barra de estado NO se suma aquí: `DraggableMonsterWidget` ya añade
-/// `MediaQuery.padding.top` en `_headerBottomY`, así que incluirla la contaría
-/// dos veces. Es una reserva estática: si la cabecera gana filas, hay que
-/// subirla.
-const double _kConversationMonsterTopClearance = 296;
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String? scenarioId;
@@ -1329,6 +1307,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                     child: OracleManaBar(
                                       showLabel: true,
                                       compact: true,
+                                      // En el chat basta la cabecera + barra:
+                                      // las dos líneas de detalle repetían el
+                                      // saldo y pesaban ~36 dp sobre el stream.
+                                      showSubLabels: false,
                                       costPerTurn:
                                           conversationState.activeScenarioId !=
                                               null
@@ -1660,8 +1642,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                         Flexible(child: bubbleContent),
                                         const SizedBox(width: 10),
                                         RpgAvatar(
+                                          // Sin foto de perfil caía al crest
+                                          // (borde rojo + icono por defecto),
+                                          // que se leía como caja de error.
+                                          // Pasamos la clase para que use el
+                                          // arte del avatar de esa clase.
                                           avatarUrl:
-                                              playerAvatarUrlOf(heroProfile),
+                                              playerAvatarUrlOf(heroProfile) ??
+                                              heroClass,
                                           hunterClass: heroClass,
                                           initials: 'HÉROE',
                                           size: 42,
@@ -2174,18 +2162,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   ),
                 ),
 
-              // Floating Draggable & Collapsible Monster Overlay
-              if (!isOracle)
-                DraggableMonsterWidget(
-                  monster: HunterCatalog.regularMonsters.first,
-                  // #322: arranca por debajo de la cabecera y el arrastre no
-                  // puede volver a meterlo en ella.
-                  headerClearance: _kConversationMonsterTopClearance,
-                  isSpeaking:
-                      conversationState.isPlaying ||
-                      conversationState.isProcessing,
-                  avatarAsset: 'assets/images/avatars/oracle_01.webp',
-                ),
+              // El Oráculo flotante (DraggableMonsterWidget) se retiró de esta
+              // pantalla: tapaba el stream de mensajes y no aportaba nada, ya
+              // que el tutor ya tiene avatar junto a cada burbuja.
             ],
           ),
         ),
