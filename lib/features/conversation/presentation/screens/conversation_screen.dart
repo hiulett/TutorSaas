@@ -34,6 +34,7 @@ import '../../../dashboard/data/models/hunter_catalog.dart';
 import '../../../economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
+import '../../../corrections/domain/models/turn_correction.dart';
 import '../../../corrections/presentation/providers/corrections_providers.dart';
 import '../../../corrections/presentation/widgets/correction_chip.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -2255,6 +2256,21 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         .toList(growable: false);
     final correctionLevel = ref.watch(correctionLevelProvider);
 
+    // #313: frase mejorada del turno para la tarjeta accionable bajo el chip.
+    // Se toma de la primera corrección visible; si el modelo no devolvió
+    // ninguna, no se pinta tarjeta y queda solo el texto actual.
+    String? betterPhrase;
+    for (final correction in correctionsForLevel(
+      messageCorrections,
+      correctionLevel,
+    )) {
+      final corrected = correction.corrected.trim();
+      if (corrected.isNotEmpty) {
+        betterPhrase = corrected;
+        break;
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -2284,6 +2300,57 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               corrections: messageCorrections,
               level: correctionLevel,
             ),
+          // #313: corrección accionable con la frase sugerida del modelo.
+          if (betterPhrase != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.royalGold.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: AppColors.royalGold.withValues(alpha: 0.6),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    size: 15,
+                    color: AppColors.royalGold,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'MEJOR: ',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.6,
+                              color: AppColors.royalGold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: betterPhrase,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.royalGoldLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (message.correctionExplanation != null) ...[
             const SizedBox(height: 10),
             Container(
