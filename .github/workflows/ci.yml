@@ -39,12 +39,14 @@ jobs:
         run: flutter gen-l10n
 
       # W0-4 (#277): ninguna clave del template puede quedarse sin traducir en
-      # es/pt. `l10n.yaml` vuelca las pendientes a build/l10n/untranslated.json.
+      # es/pt. `l10n.yaml` vuelca las pendientes a untranslated.json (raíz, ignorado
+      # por git). Va a la raíz y no a build/ porque en un checkout limpio build/ no
+      # existe y gen-l10n aborta al no poder crear el subdirectorio.
       - name: i18n gate (sin claves pendientes)
         run: |
           python3 - <<'PY'
           import json, sys
-          pending = {k: v for k, v in json.load(open('build/l10n/untranslated.json')).items() if v}
+          pending = {k: v for k, v in json.load(open('untranslated.json')).items() if v}
           if pending:
               print('Claves sin traducir:', pending)
               sys.exit(1)
