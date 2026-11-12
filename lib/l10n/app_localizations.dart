@@ -1132,6 +1132,42 @@ abstract class AppLocalizations {
   /// **'HUNTER VOCAL RECORD'**
   String get convo_hud_hunter;
 
+  /// No description provided for @convo_corrections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'CORRECTIONS'**
+  String get convo_corrections_title;
+
+  /// No description provided for @corr_type_grammar.
+  ///
+  /// In en, this message translates to:
+  /// **'GRAMMAR'**
+  String get corr_type_grammar;
+
+  /// No description provided for @corr_type_vocabulary.
+  ///
+  /// In en, this message translates to:
+  /// **'VOCAB'**
+  String get corr_type_vocabulary;
+
+  /// No description provided for @corr_type_word_choice.
+  ///
+  /// In en, this message translates to:
+  /// **'WORD CHOICE'**
+  String get corr_type_word_choice;
+
+  /// No description provided for @corr_type_pronunciation.
+  ///
+  /// In en, this message translates to:
+  /// **'PRONUNCIATION'**
+  String get corr_type_pronunciation;
+
+  /// No description provided for @corr_type_stt.
+  ///
+  /// In en, this message translates to:
+  /// **'STT'**
+  String get corr_type_stt;
+
   /// No description provided for @complete_onboarding.
   ///
   /// In en, this message translates to:

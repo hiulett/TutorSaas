@@ -545,6 +545,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get convo_hud_hunter => 'REGISTRO VOCAL DO CAÇADOR';
 
   @override
+  String get convo_corrections_title => 'CORREÇÕES';
+
+  @override
+  String get corr_type_grammar => 'GRAMÁTICA';
+
+  @override
+  String get corr_type_vocabulary => 'VOCABULÁRIO';
+
+  @override
+  String get corr_type_word_choice => 'ESCOLHA';
+
+  @override
+  String get corr_type_pronunciation => 'PRONÚNCIA';
+
+  @override
+  String get corr_type_stt => 'STT';
+
+  @override
   String get complete_onboarding => 'Completar Onboarding';
 
   @override

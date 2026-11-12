@@ -185,6 +185,12 @@
   "auth_password_mismatch": "The mana keys don't match.",
   "convo_hud_npc": "SPOKEN DIALOGUE // NPC",
   "convo_hud_hunter": "HUNTER VOCAL RECORD",
+  "convo_corrections_title": "CORRECTIONS",
+  "corr_type_grammar": "GRAMMAR",
+  "corr_type_vocabulary": "VOCAB",
+  "corr_type_word_choice": "WORD CHOICE",
+  "corr_type_pronunciation": "PRONUNCIATION",
+  "corr_type_stt": "STT",
   "complete_onboarding": "Complete Onboarding",
 
   "exam_timer": "Time Remaining",

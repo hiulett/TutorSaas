@@ -543,6 +543,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get convo_hud_hunter => 'HUNTER VOCAL RECORD';
 
   @override
+  String get convo_corrections_title => 'CORRECTIONS';
+
+  @override
+  String get corr_type_grammar => 'GRAMMAR';
+
+  @override
+  String get corr_type_vocabulary => 'VOCAB';
+
+  @override
+  String get corr_type_word_choice => 'WORD CHOICE';
+
+  @override
+  String get corr_type_pronunciation => 'PRONUNCIATION';
+
+  @override
+  String get corr_type_stt => 'STT';
+
+  @override
   String get complete_onboarding => 'Complete Onboarding';
 
   @override

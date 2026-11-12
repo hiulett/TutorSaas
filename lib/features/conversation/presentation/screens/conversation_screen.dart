@@ -27,6 +27,7 @@ import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../widgets/voice_waveform_visualizer.dart';
 import '../widgets/conversation_scene_header.dart';
 import '../widgets/corrections_codex_panel.dart';
+import '../widgets/conversation_corrections_row.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/system_snack.dart';
@@ -1641,24 +1642,51 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 .watch(userProfileProvider)
                                 .value;
                             final heroClass = playerClassOf(heroProfile);
+                            final turnCorrections = sessionCorrections
+                                .where((c) => c.messageText == message.text)
+                                .toList(growable: false);
                             bubble = Padding(
                               padding: const EdgeInsets.only(bottom: 24.0),
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Flexible(child: bubbleContent),
-                                    const SizedBox(width: 10),
-                                    RpgAvatar(
-                                      avatarUrl: playerAvatarUrlOf(heroProfile),
-                                      hunterClass: heroClass,
-                                      initials: 'HÉROE',
-                                      size: 42,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(child: bubbleContent),
+                                        const SizedBox(width: 10),
+                                        RpgAvatar(
+                                          avatarUrl:
+                                              playerAvatarUrlOf(heroProfile),
+                                          hunterClass: heroClass,
+                                          initials: 'HÉROE',
+                                          size: 42,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Opción B del análisis: las correcciones del
+                                  // turno se pliegan bajo la burbuja que las
+                                  // provocó, en vez de esconderse tras el icono
+                                  // del códex. El códex queda como historial.
+                                  if (turnCorrections.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth:
+                                            MediaQuery.of(context).size.width *
+                                                0.86,
+                                      ),
+                                      child: ConversationCorrectionsRow(
+                                        corrections: turnCorrections,
+                                      ),
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
                             );
                           }
