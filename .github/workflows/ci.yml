@@ -101,6 +101,44 @@ jobs:
           path: test/golden/goldens/
           if-no-files-found: error
 
+  android-build:
+    name: Android build (AAB debug)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      # W0-4 (#277): el pipeline validaba analyze y tests, pero no compilaba el
+      # bundle. Un error de Gradle, de assets o del manifest pasaba con CI en
+      # verde y se descubria al publicar.
+      - name: Build app bundle
+        run: flutter build appbundle --debug
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-aab
+          path: build/app/outputs/bundle/debug/app-debug.aab
+          if-no-files-found: error
+
   edge-functions:
     name: Edge Functions (deno check + test)
     runs-on: ubuntu-latest
@@ -154,8 +192,8 @@ jobs:
 
   summary:
     name: Pipeline summary
-    needs: [flutter, edge-functions, web-admin]
+    needs: [flutter, android-build, edge-functions, web-admin]
     runs-on: ubuntu-latest
     steps:
       - name: Echo status
-        run: echo "Flutter (0 warnings), Edge Functions y web_admin en verde."
+        run: echo "Flutter (0 warnings), AAB de Android, Edge Functions y web_admin en verde."
