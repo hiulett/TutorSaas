@@ -11,6 +11,7 @@ import 'package:tutorsaas/features/economy/presentation/providers/economy_provid
 import 'package:tutorsaas/features/dashboard/presentation/widgets/league_leaderboard_widget.dart';
 import 'package:tutorsaas/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:tutorsaas/features/onboarding/presentation/screens/welcome_screen.dart';
+import 'package:tutorsaas/features/conversation/presentation/screens/conversation_screen.dart';
 import 'package:tutorsaas/features/economy/presentation/screens/dungeon_guardian_screen.dart';
 import 'package:tutorsaas/l10n/app_localizations.dart';
 
@@ -320,5 +321,56 @@ void main() {
         .where((e) => e.toString().contains('overflowed'))
         .toList();
     expect(overflows, isEmpty, reason: 'No RenderFlex overflows on the guardian at 312x576');
+  });
+
+  // #308: montar /conversation sin scenarioId desbordaba 22 px en la primera
+  // pasada del arnés de rutas. Intermitente, así que aquí se fuerza el caso
+  // vacío (sin lección, sin metas) a 312x576: es el que fallaba.
+  testWidgets('ConversationScreen sin escenario no desborda a 312x576 (#308)', (WidgetTester tester) async {
+    tester.binding.window.physicalSizeTestValue = const Size(312 * 3.0, 576 * 3.0);
+    tester.binding.window.devicePixelRatioTestValue = 3.0;
+
+    final List<dynamic> exceptions = [];
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final msg = details.toString();
+      if (!msg.contains('NetworkImageLoadException') &&
+          !msg.contains('HTTP request failed') &&
+          !msg.contains('semantics') &&
+          !msg.contains('parentData')) {
+        exceptions.add(details.exception);
+        originalOnError?.call(details);
+      }
+    };
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('es'),
+          home: Scaffold(
+            body: SizedBox(
+              width: 312,
+              height: 576,
+              child: ExcludeSemantics(
+                child: ConversationScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    FlutterError.onError = originalOnError;
+
+    final overflows = exceptions
+        .where((e) => e.toString().contains('overflowed'))
+        .toList();
+    expect(overflows, isEmpty, reason: 'No RenderFlex overflows en /conversation sin escenario');
   });
 }

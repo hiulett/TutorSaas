@@ -123,7 +123,7 @@ class SessionSummaryScreen extends ConsumerWidget {
           // Drop sorpresa de fin de sesión (aplica XP + notificación épica).
           SessionDropController(completedGoals: view.goalsCompleted),
 
-          // Issue #106: tras la primera lecciÃ³n completada se ofrece el
+          // Issue #106: tras la primera lección completada se ofrece el
           // recordatorio diario (pantalla previa del permiso Android 13+).
           const NotificationPermissionPrompt(),
 

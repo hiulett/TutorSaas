@@ -685,40 +685,41 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> with SingleTi
                 // GUILD-01: Demo transparency — chip compacto (colapsable, se expande al tocar)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 2.0),
-                  child: GestureDetector(
+                  child: GlassCard(
+                    // Issue #279: el GestureDetector interno del GlassCard gana
+                    // la arena de gestos, así que el callback va aquí y no en un
+                    // GestureDetector padre (que nunca recibía el tap).
                     onTap: () => setState(() => _showDemoBanner = !_showDemoBanner),
-                    child: GlassCard(
-                      blur: 20,
-                      opacity: AppColors.glassOpacity,
-                      border: Border.all(color: AppColors.guildAmber.withValues(alpha: 0.45)),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.science_rounded, color: AppColors.guildAmber, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _showDemoBanner
-                                  ? (AppLocalizations.of(context)?.voice_demo_banner ??
-                                      'AUDIO DEL GREMIO: DEMO — cazadores conectados en vivo. La práctica de voz es 1:1.')
-                                  : (AppLocalizations.of(context)?.voice_demo_banner_alt ?? 'AUDIO DEMO · TOCA PARA VER DETALLE'),
-                              style: GoogleFonts.jetBrainsMono(
-                                color: AppColors.guildAmber,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.9,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                    blur: 20,
+                    opacity: AppColors.glassOpacity,
+                    border: Border.all(color: AppColors.guildAmber.withValues(alpha: 0.45)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.science_rounded, color: AppColors.guildAmber, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _showDemoBanner
+                                ? (AppLocalizations.of(context)?.voice_demo_banner ??
+                                    'AUDIO DEL GREMIO: DEMO — cazadores conectados en vivo. La práctica de voz es 1:1.')
+                                : (AppLocalizations.of(context)?.voice_demo_banner_alt ?? 'AUDIO DEMO · TOCA PARA VER DETALLE'),
+                            style: GoogleFonts.jetBrainsMono(
+                              color: AppColors.guildAmber,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.9,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          Icon(
-                            _showDemoBanner ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.guildAmber,
-                            size: 16,
-                          ),
-                        ],
-                      ),
+                        ),
+                        Icon(
+                          _showDemoBanner ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.guildAmber,
+                          size: 16,
+                        ),
+                      ],
                     ),
                   ),
                 ),

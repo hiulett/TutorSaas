@@ -192,7 +192,6 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
-  @override
   Future<Map<String, int>> claimDailyReward(String userId) async {
     try {
       final today = DateTime.now().toIso8601String().split('T').first;

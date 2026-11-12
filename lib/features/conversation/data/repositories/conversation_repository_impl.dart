@@ -119,7 +119,7 @@ class ConversationRepositoryImpl implements ConversationRepository {
   }
 
   /// Streams the AI tutor's response via the `llm-proxy` Edge Function
-  /// (DeepSeek SSE reenvÃ­ado), autenticado con el JWT de sesiÃ³n.
+  /// (DeepSeek SSE reenviado), autenticado con el JWT de sesión.
   @override
   Stream<String> getTutorResponseStream(
     List<Map<String, String>> history, {
@@ -473,9 +473,9 @@ No markdown, no explanation, no code blocks.
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ────────────────────────────────────────────────────────────────────────────
   // Database Persistence & Analysis Methods
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ────────────────────────────────────────────────────────────────────────────
 
   @override
   Future<Map<String, dynamic>> getOrCreateConversation(
@@ -1119,9 +1119,9 @@ $transcript
     }
   }
 
-  // â”€â”€ Auth helpers para el llm-proxy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Auth helpers para el llm-proxy ───────────────────────────────────────────
 
-  /// Token JWT de sesiÃ³n del usuario autenticado (el proxy valida con Ã©l).
+  /// Token JWT de sesión del usuario autenticado (el proxy valida con él).
   Future<String> _authToken() async {
     try {
       final session = _client.auth.currentSession;
@@ -1131,7 +1131,7 @@ $transcript
     }
   }
 
-  /// Headers con la sesiÃ³n del usuario + anon key para el llm-proxy.
+  /// Headers con la sesión del usuario + anon key para el llm-proxy.
   Future<Map<String, dynamic>> _proxyHeaders(String token) async {
     final headers = <String, dynamic>{'Content-Type': 'application/json'};
     if (token.isNotEmpty) {

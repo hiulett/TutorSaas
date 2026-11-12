@@ -152,3 +152,11 @@ cargues la auditoría completa).
 - No confíes en comentarios ni en `docs/archive/`: verifica contra código.
 - Si no puedes comprobarlo, escribe "no verificable" y qué falta.
 
+---
+
+## Economía de contexto
+
+Las reglas de economía de contexto son **globales**: viven en
+`~\.dsh\AGENTS.md` y DSH las inyecta en toda sesión, sea cual sea el proyecto.
+No las dupliques aquí: duplicarlas se paga en cada llamada.
+
