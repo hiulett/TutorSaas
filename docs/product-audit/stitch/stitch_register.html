@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>DUNGEON OF ENGLISH - Hunter Registration</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-bright": "#373942",
+            "secondary": "#e0b6ff",
+            "on-error-container": "#ffdad6",
+            "error-container": "#93000a",
+            "outline-variant": "#3b494c",
+            "on-secondary-container": "#d7a4ff",
+            "secondary-fixed": "#f2daff",
+            "primary-fixed-dim": "#00daf3",
+            "surface-dim": "#11131b",
+            "on-primary-fixed-variant": "#004f58",
+            "on-background": "#e1e2ed",
+            "tertiary-fixed": "#ffdf94",
+            "on-surface-variant": "#bac9cc",
+            "surface-variant": "#32343d",
+            "inverse-surface": "#e1e2ed",
+            "on-primary": "#00363d",
+            "surface-container-high": "#272a32",
+            "inverse-primary": "#006875",
+            "on-tertiary-fixed": "#251a00",
+            "background": "#11131b",
+            "outline": "#849396",
+            "on-secondary": "#4c007d",
+            "primary": "#c3f5ff",
+            "on-surface": "#e1e2ed",
+            "secondary-fixed-dim": "#e0b6ff",
+            "primary-fixed": "#9cf0ff",
+            "on-error": "#690005",
+            "surface-container": "#1d1f27",
+            "tertiary": "#ffebbf",
+            "secondary-container": "#6d11ad",
+            "surface-container-lowest": "#0b0e16",
+            "tertiary-container": "#ffc922",
+            "primary-container": "#00e5ff",
+            "surface-tint": "#00daf3",
+            "on-secondary-fixed-variant": "#6a0baa",
+            "error": "#ffb4ab",
+            "inverse-on-surface": "#2e3039",
+            "surface-container-low": "#191b23",
+            "on-tertiary": "#3e2e00",
+            "on-tertiary-fixed-variant": "#594400",
+            "on-primary-fixed": "#001f24",
+            "tertiary-fixed-dim": "#f5bf00",
+            "surface": "#11131b",
+            "on-secondary-fixed": "#2e004e",
+            "surface-container-highest": "#32343d",
+            "on-tertiary-container": "#6f5500",
+            "on-primary-container": "#00626e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1.5rem",
+            "space-xl": "2.5rem",
+            "gutter-mobile": "0.75rem",
+            "gutter": "1rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-xs": "0.25rem",
+            "margin-mobile": "1rem",
+            "space-lg": "1.5rem"
+          },
+          "fontFamily": {
+            "stat-xl": ["JetBrains Mono"],
+            "stat-md": ["JetBrains Mono"],
+            "headline-md": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "display-lg-mobile": ["Space Grotesk"],
+            "label-caps": ["JetBrains Mono"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "title-md": ["Space Grotesk"],
+            "body-lg": ["Inter"],
+            "label-code": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "display-lg": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "stat-xl": ["30px", { "lineHeight": "36px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "stat-md": ["18px", { "lineHeight": "24px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.12em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-code": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Material symbols helper */
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Subtle Cyber Tactical Grid Pattern */
+    .bg-tactical-grid {
+      background-size: 28px 28px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+    }
+
+    /* Tactical Corner Ticks */
+    .corner-tick-tl {
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid #00e5ff;
+      border-left: 2px solid #00e5ff;
+    }
+    .corner-tick-tr {
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid #00e5ff;
+      border-right: 2px solid #00e5ff;
+    }
+    .corner-tick-bl {
+      position: absolute;
+      bottom: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid #00e5ff;
+      border-left: 2px solid #00e5ff;
+    }
+    .corner-tick-br {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid #00e5ff;
+      border-right: 2px solid #00e5ff;
+    }
+
+    /* Ambient pulse glow */
+    @keyframes pulse-energy {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.03); }
+    }
+    .animate-energy-core {
+      animation: pulse-energy 3s infinite ease-in-out;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex justify-center items-start selection:bg-primary-container selection:text-surface-container-lowest">
+<!-- Mobile Screen Shell Container (Optimized for 390px viewport width) -->
+<div class="relative w-full max-w-[390px] min-h-screen bg-background bg-tactical-grid flex flex-col justify-between overflow-x-hidden border-x border-outline-variant/30 shadow-[0_0_50px_rgba(2,6,16,0.9)] pb-space-lg">
+<!-- Top Status Bar (Tactical Android Mobile HUD) -->
+<header class="w-full pt-space-xs px-margin-mobile flex justify-between items-center text-on-surface-variant font-label-code text-label-code select-none z-30">
+<div class="flex items-center gap-space-xs">
+<span class="text-primary-container font-bold tracking-tight">11:42</span>
+<span class="text-[9px] px-1 py-0.5 rounded-[2px] bg-primary-container/10 text-primary-container border border-primary-container/30">SYS_ON</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 text-[11px] text-tertiary-container">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+<span>SYNC 98%</span>
+</div>
+<div class="flex items-center space-x-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">wifi</span>
+<span class="material-symbols-outlined text-[15px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[16px] text-primary-container">battery_charging_full</span>
+</div>
+</div>
+</header>
+<!-- Top Protocol Status Chip -->
+<div class="px-margin-mobile pt-space-xs flex justify-between items-center">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] bg-surface-container-lowest/80 border border-primary-container/20">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+<span class="font-label-caps text-label-caps text-primary-container tracking-wider">// AWAKENING SEQUENCE</span>
+</div>
+<span class="font-label-code text-label-code text-tertiary-container tracking-widest">[GATE: E-RANK]</span>
+</div>
+<!-- Main Scrollable Core Content -->
+<main class="px-margin-mobile flex-1 flex flex-col pt-space-sm space-y-space-md z-10">
+<!-- Brand Header Block -->
+<section class="flex flex-col items-center text-center space-y-space-xs">
+<!-- Glowing Runic Crest / Insignia Glyph -->
+<div class="relative w-14 h-14 flex items-center justify-center my-0.5">
+<div class="absolute inset-0 rounded-[4px] bg-primary-container/10 border border-primary-container/40 rotate-45 animate-energy-core"></div>
+<div class="absolute inset-1 rounded-[4px] bg-secondary-container/20 border border-secondary/30 -rotate-12"></div>
+<div class="relative z-10 flex items-center justify-center text-primary-container drop-shadow-[0_0_12px_rgba(0,229,255,0.7)]">
+<span class="material-symbols-outlined text-[30px]" style="font-variation-settings: 'FILL' 1;">shield_person</span>
+</div>
+<span class="absolute -bottom-1 text-[8px] font-label-code text-tertiary-container bg-surface-container-lowest px-1 border border-tertiary-container/40 rounded-[2px]">SYS_CORE</span>
+</div>
+<!-- Title & Subtitle -->
+<div class="space-y-0.5">
+<h1 class="font-headline-lg text-headline-lg tracking-tight text-white flex items-center justify-center gap-1.5 drop-shadow-[0_0_16px_rgba(0,229,255,0.35)]">
+<span>DUNGEON</span>
+<span class="text-primary-container">OF</span>
+<span>ENGLISH</span>
+</h1>
+<p class="font-label-caps text-label-caps text-tertiary-container tracking-wider font-semibold">
+            // FORGE YOUR HUNTER • PROTOCOL INIT_01
+          </p>
+</div>
+<!-- Hero Subtext -->
+<div class="pt-0.5">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold tracking-wide">
+            CREATE YOUR HUNTER
+          </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-[290px] mx-auto leading-relaxed">
+            Register your vocal resonance pattern and awaken your personal Hunter System license.
+          </p>
+</div>
+</section>
+<!-- Main Glassmorphism Hunter Tactical Card -->
+<section class="relative bg-surface-container-low/90 backdrop-blur-md border border-primary-container/30 rounded-[4px] p-space-md shadow-[0_0_25px_rgba(0,229,255,0.08)]">
+<!-- Corner Brackets -->
+<div class="corner-tick-tl"></div>
+<div class="corner-tick-tr"></div>
+<div class="corner-tick-bl"></div>
+<div class="corner-tick-br"></div>
+<!-- Tactical Card Header -->
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-space-xs mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 bg-primary-container rounded-none"></span>
+<span class="font-label-caps text-[10px] text-primary-container tracking-wider">
+              // HUNTER CREDENTIAL REGISTRATION
+            </span>
+</div>
+<span class="font-label-code text-[10px] text-secondary font-medium">SYS_ID: NEW_RECRUIT</span>
+</div>
+<!-- Registration Form -->
+<form class="space-y-space-sm" onsubmit="event.preventDefault();">
+<!-- Input 1: Hunter Call-Sign / Email -->
+<div class="space-y-1">
+<div class="flex justify-between items-center">
+<label class="font-label-caps text-label-caps text-on-surface-variant tracking-wider flex items-center gap-1" for="hunter-email">
+<span class="material-symbols-outlined text-[13px] text-primary-container">fingerprint</span>
+                COGNITIVE ID / EMAIL
+              </label>
+<span class="font-label-code text-[9px] text-primary-container/80 tracking-widest">[RESONANCE ID]</span>
+</div>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-outline material-symbols-outlined text-[18px] pointer-events-none">alternate_email</span>
+<input class="w-full bg-surface-container-lowest/80 text-on-surface font-body-md text-body-md pl-10 pr-3 py-2 border border-outline-variant/50 rounded-[4px] focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all" id="hunter-email" placeholder="hunter.vocal@dungeon.io" type="email" value="hunter.vocal@dungeon.io"/>
+</div>
+</div>
+<!-- Input 2: Mana Lock / Password -->
+<div class="space-y-1">
+<div class="flex justify-between items-center">
+<label class="font-label-caps text-label-caps text-on-surface-variant tracking-wider flex items-center gap-1" for="hunter-password">
+<span class="material-symbols-outlined text-[13px] text-secondary">lock</span>
+                MANA KEY / PASSWORD
+              </label>
+<span class="font-label-code text-[9px] text-secondary tracking-widest">[MIN 8 RUNES]</span>
+</div>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-outline material-symbols-outlined text-[18px] pointer-events-none">shield</span>
+<input class="w-full bg-surface-container-lowest/80 text-on-surface font-body-md text-body-md pl-10 pr-10 py-2 border border-outline-variant/50 rounded-[4px] focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all tracking-wider" id="hunter-password" placeholder="••••••••••••" type="password" value="AbyssalSpeaker2025#"/>
+<button aria-label="Toggle password visibility" class="absolute right-3 text-on-surface-variant hover:text-primary-container transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+<!-- Segmented Neon Password Strength Meter -->
+<div class="pt-1 space-y-1">
+<div class="flex items-center gap-1.5">
+<!-- Bar 1: Weak (Filled Cyan) -->
+<div class="h-1.5 flex-1 rounded-[2px] bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.6)]"></div>
+<!-- Bar 2: Medium (Filled Cyan) -->
+<div class="h-1.5 flex-1 rounded-[2px] bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.6)]"></div>
+<!-- Bar 3: Strong (Filled Violet Arcane) -->
+<div class="h-1.5 flex-1 rounded-[2px] bg-secondary shadow-[0_0_8px_rgba(224,182,255,0.7)]"></div>
+</div>
+<div class="flex justify-between items-center font-label-code text-[9px]">
+<span class="text-primary-container font-semibold tracking-wider">SECURITY LEVEL: HIGH</span>
+<span class="text-secondary font-medium tracking-wide">// MANA STABLE</span>
+</div>
+</div>
+</div>
+<!-- Input 3: Confirm Mana Key -->
+<div class="space-y-1">
+<div class="flex justify-between items-center">
+<label class="font-label-caps text-label-caps text-on-surface-variant tracking-wider flex items-center gap-1" for="hunter-confirm">
+<span class="material-symbols-outlined text-[13px] text-primary-container">verified_user</span>
+                CONFIRM MANA KEY
+              </label>
+<span class="font-label-code text-[9px] text-tertiary-container tracking-widest">[RESONANCE VERIFIED]</span>
+</div>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-outline material-symbols-outlined text-[18px] pointer-events-none">vpn_key</span>
+<input class="w-full bg-surface-container-lowest/80 text-on-surface font-body-md text-body-md pl-10 pr-10 py-2 border border-primary-container/60 rounded-[4px] focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all tracking-wider" id="hunter-confirm" placeholder="••••••••••••" type="password" value="AbyssalSpeaker2025#"/>
+<!-- Match verification indicator tick -->
+<span class="absolute right-3 text-primary-container flex items-center">
+<span class="material-symbols-outlined text-[18px] drop-shadow-[0_0_6px_rgba(0,229,255,0.8)]">check_circle</span>
+</span>
+</div>
+</div>
+<!-- Checkbox: Hunter System Protocol -->
+<div class="pt-1 flex items-start gap-2.5">
+<div class="relative flex items-center mt-0.5">
+<input checked="" class="w-[18px] h-[18px] appearance-none rounded-[2px] bg-primary-container border border-primary-container checked:bg-primary-container focus:ring-0 focus:outline-none cursor-pointer flex items-center justify-center" id="protocol-checkbox" type="checkbox"/>
+<span class="material-symbols-outlined text-[14px] text-surface-container-lowest absolute left-0.5 top-0.5 pointer-events-none font-bold">check</span>
+</div>
+<label class="font-body-sm text-body-sm text-on-surface-variant leading-tight select-none" for="protocol-checkbox">
+              I agree to the 
+              <a class="text-primary-container hover:underline font-medium" href="#">Hunter Codex</a> 
+              &amp; 
+              <a class="text-secondary hover:underline font-medium" href="#">Terms of Trial Awakening</a>.
+            </label>
+</div>
+<!-- Primary CTA Button: START THE TRIAL -->
+<div class="pt-space-xs">
+<button class="w-full min-h-[48px] bg-primary-container hover:bg-primary-fixed-dim active:scale-[0.98] text-surface-container-lowest font-headline-sm text-headline-sm font-bold tracking-wider uppercase rounded-[4px] py-2.5 px-4 flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(0,229,255,0.45)] hover:shadow-[0_0_32px_rgba(0,229,255,0.7)] transition-all duration-150 group" type="submit">
+<span>START THE TRIAL</span>
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Tactical Divider: Archive Connect -->
+<div class="relative flex items-center justify-center my-space-sm">
+<div class="w-full border-t border-outline-variant/30"></div>
+<span class="absolute px-2 bg-surface-container-low font-label-code text-[10px] text-on-surface-variant tracking-wider whitespace-nowrap">
+            — // OR CONNECT VIA ARCHIVE // —
+          </span>
+</div>
+<!-- Secondary CTA: Google Auth Glass Button -->
+<button class="w-full min-h-[44px] bg-surface-container-lowest/80 hover:bg-surface-container/60 active:scale-[0.98] border border-outline-variant/50 hover:border-secondary/60 text-on-surface font-label-caps text-label-caps uppercase rounded-[4px] py-2 px-4 flex items-center justify-center gap-2.5 transition-all duration-150 shadow-[0_4px_16px_rgba(0,0,0,0.4)]" type="button">
+<!-- Stylized Tactical Google Glyph -->
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#00E5FF"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#BAC9CC"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#E0B6FF"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#FFC922"></path>
+</svg>
+<span class="tracking-wider">CONTINUE WITH GOOGLE</span>
+</button>
+</section>
+<!-- Verbal Resonance Radar Telemetry Badge (Atmospheric Audio-reactive HUD teaser) -->
+<section class="bg-surface-container-lowest/60 border border-outline-variant/30 rounded-[4px] px-space-sm py-2 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[18px]">mic</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-[9px] text-on-surface-variant">// VOCAL RESONANCE HUD</span>
+<span class="font-label-code text-[11px] text-on-surface font-semibold">MIC SENSING: ACTIVE</span>
+</div>
+</div>
+<!-- Mini Equalizer bars -->
+<div class="flex items-end gap-1 h-5">
+<span class="w-1 bg-primary-container h-2 rounded-[1px] animate-pulse"></span>
+<span class="w-1 bg-primary-container h-4 rounded-[1px] animate-pulse"></span>
+<span class="w-1 bg-secondary h-5 rounded-[1px] animate-pulse"></span>
+<span class="w-1 bg-primary-container h-3 rounded-[1px] animate-pulse"></span>
+<span class="w-1 bg-tertiary-container h-2 rounded-[1px] animate-pulse"></span>
+</div>
+</section>
+</main>
+<!-- Bottom Footer Navigation Link -->
+<footer class="px-margin-mobile pt-space-sm text-center z-10">
+<div class="inline-flex items-center justify-center gap-1.5 py-1 text-on-surface-variant font-label-code text-label-code">
+<span>ALREADY HAVE AN ACCOUNT?</span>
+<a class="text-primary-container hover:text-secondary transition-colors font-bold tracking-wider inline-flex items-center gap-0.5" href="#signin">
+<span>// SIGN IN</span>
+<span class="material-symbols-outlined text-[14px]">login</span>
+</a>
+</div>
+<div class="pt-1 text-[8px] font-label-caps text-outline/60 tracking-widest">
+        SYSTEM VER 4.19.0 // GUILD PROTOCOL SECURE
+      </div>
+</footer>
+</div>
+</body></html>

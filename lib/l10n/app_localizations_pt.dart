@@ -463,6 +463,82 @@ class AppLocalizationsPt extends AppLocalizations {
       'Seu e-mail ainda não foi confirmado. Verifique a caixa de entrada ou peça um novo envio.';
 
   @override
+  String get auth_protocol_login => '// PROTOCOLO AUTH';
+
+  @override
+  String get auth_protocol_awakening => '// SEQUÊNCIA DE DESPERTAR';
+
+  @override
+  String get auth_sys_on => '[SYS_ON]';
+
+  @override
+  String get auth_register_title => 'Crie seu Caçador';
+
+  @override
+  String get auth_register_subtitle =>
+      'Registre sua ressonância vocal e desperte sua licença de Caçador.';
+
+  @override
+  String get auth_label_email => 'ID COGNITIVA // EMAIL';
+
+  @override
+  String get auth_label_confirm => 'CONFIRME A CHAVE DE MANA';
+
+  @override
+  String get auth_toggle_visibility => 'Mostrar ou ocultar senha';
+
+  @override
+  String get auth_strength_weak => 'FRACA';
+
+  @override
+  String get auth_strength_medium => 'MÉDIA';
+
+  @override
+  String get auth_strength_strong => 'ALTA';
+
+  @override
+  String get auth_security_level => 'NÍVEL DE SEGURANÇA';
+
+  @override
+  String get auth_start_trial_cta => 'INICIAR O TESTE';
+
+  @override
+  String get auth_continue_cta => 'CONTINUAR // ENTRAR NA GUILDA';
+
+  @override
+  String get auth_gateway_login => '// PORTAL DE AUTENTICAÇÃO';
+
+  @override
+  String get auth_gateway_register => '// REGISTRO DE CREDENCIAIS';
+
+  @override
+  String get auth_sys_new_recruit => 'NOVO_RECRUTA';
+
+  @override
+  String get auth_sys_secure => 'SEGURO';
+
+  @override
+  String get auth_or_protocol => 'OU CONECTE VIA PROTOCOLO';
+
+  @override
+  String get auth_continue_google => 'CONTINUAR COM GOOGLE';
+
+  @override
+  String get auth_have_account => 'JÁ TEM CONTA?';
+
+  @override
+  String get auth_new_hunter => 'É NOVO AQUI?';
+
+  @override
+  String get auth_go_login => 'ENTRAR';
+
+  @override
+  String get auth_go_register => 'CRIE SUA CONTA DE CAÇADOR';
+
+  @override
+  String get auth_password_mismatch => 'As chaves de mana não coincidem.';
+
+  @override
   String get complete_onboarding => 'Completar Onboarding';
 
   @override

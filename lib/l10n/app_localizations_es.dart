@@ -463,6 +463,82 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tu correo aún no está confirmado. Revisa tu bandeja o pide un nuevo envío.';
 
   @override
+  String get auth_protocol_login => '// PROTOCOLO AUTH';
+
+  @override
+  String get auth_protocol_awakening => '// SECUENCIA DE DESPERTAR';
+
+  @override
+  String get auth_sys_on => '[SYS_ON]';
+
+  @override
+  String get auth_register_title => 'Crea tu Cazador';
+
+  @override
+  String get auth_register_subtitle =>
+      'Registra tu resonancia vocal y despierta tu licencia de Cazador.';
+
+  @override
+  String get auth_label_email => 'ID COGNITIVA // EMAIL';
+
+  @override
+  String get auth_label_confirm => 'CONFIRMA LA LLAVE DE MANÁ';
+
+  @override
+  String get auth_toggle_visibility => 'Mostrar u ocultar contraseña';
+
+  @override
+  String get auth_strength_weak => 'DÉBIL';
+
+  @override
+  String get auth_strength_medium => 'MEDIA';
+
+  @override
+  String get auth_strength_strong => 'ALTA';
+
+  @override
+  String get auth_security_level => 'NIVEL DE SEGURIDAD';
+
+  @override
+  String get auth_start_trial_cta => 'INICIAR LA PRUEBA';
+
+  @override
+  String get auth_continue_cta => 'CONTINUAR // ENTRAR AL GREMIO';
+
+  @override
+  String get auth_gateway_login => '// PORTAL DE AUTENTICACIÓN';
+
+  @override
+  String get auth_gateway_register => '// REGISTRO DE CREDENCIALES';
+
+  @override
+  String get auth_sys_new_recruit => 'NUEVO_RECLUTA';
+
+  @override
+  String get auth_sys_secure => 'SEGURO';
+
+  @override
+  String get auth_or_protocol => 'O CONECTA VÍA PROTOCOLO';
+
+  @override
+  String get auth_continue_google => 'CONTINUAR CON GOOGLE';
+
+  @override
+  String get auth_have_account => '¿YA TIENES CUENTA?';
+
+  @override
+  String get auth_new_hunter => '¿ERES NUEVO?';
+
+  @override
+  String get auth_go_login => 'INICIAR SESIÓN';
+
+  @override
+  String get auth_go_register => 'CREA TU CUENTA DE CAZADOR';
+
+  @override
+  String get auth_password_mismatch => 'Las llaves de maná no coinciden.';
+
+  @override
   String get complete_onboarding => 'Completar Onboarding';
 
   @override
