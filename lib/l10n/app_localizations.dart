@@ -970,6 +970,156 @@ abstract class AppLocalizations {
   /// **'Your email is not confirmed yet. Check your inbox or request a new link.'**
   String get login_email_not_confirmed;
 
+  /// No description provided for @auth_protocol_login.
+  ///
+  /// In en, this message translates to:
+  /// **'// AUTH PROTOCOL'**
+  String get auth_protocol_login;
+
+  /// No description provided for @auth_protocol_awakening.
+  ///
+  /// In en, this message translates to:
+  /// **'// AWAKENING SEQUENCE'**
+  String get auth_protocol_awakening;
+
+  /// No description provided for @auth_sys_on.
+  ///
+  /// In en, this message translates to:
+  /// **'[SYS_ON]'**
+  String get auth_sys_on;
+
+  /// No description provided for @auth_register_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your Hunter'**
+  String get auth_register_title;
+
+  /// No description provided for @auth_register_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register your vocal resonance and awaken your Hunter System license.'**
+  String get auth_register_subtitle;
+
+  /// No description provided for @auth_label_email.
+  ///
+  /// In en, this message translates to:
+  /// **'COGNITIVE ID // EMAIL'**
+  String get auth_label_email;
+
+  /// No description provided for @auth_label_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM MANA KEY'**
+  String get auth_label_confirm;
+
+  /// No description provided for @auth_toggle_visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Show or hide password'**
+  String get auth_toggle_visibility;
+
+  /// No description provided for @auth_strength_weak.
+  ///
+  /// In en, this message translates to:
+  /// **'WEAK'**
+  String get auth_strength_weak;
+
+  /// No description provided for @auth_strength_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'MEDIUM'**
+  String get auth_strength_medium;
+
+  /// No description provided for @auth_strength_strong.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH'**
+  String get auth_strength_strong;
+
+  /// No description provided for @auth_security_level.
+  ///
+  /// In en, this message translates to:
+  /// **'SECURITY LEVEL'**
+  String get auth_security_level;
+
+  /// No description provided for @auth_start_trial_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'START THE TRIAL'**
+  String get auth_start_trial_cta;
+
+  /// No description provided for @auth_continue_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE // ENTER GUILD'**
+  String get auth_continue_cta;
+
+  /// No description provided for @auth_gateway_login.
+  ///
+  /// In en, this message translates to:
+  /// **'// NEURAL AUTH GATEWAY'**
+  String get auth_gateway_login;
+
+  /// No description provided for @auth_gateway_register.
+  ///
+  /// In en, this message translates to:
+  /// **'// HUNTER CREDENTIAL REGISTRATION'**
+  String get auth_gateway_register;
+
+  /// No description provided for @auth_sys_new_recruit.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW_RECRUIT'**
+  String get auth_sys_new_recruit;
+
+  /// No description provided for @auth_sys_secure.
+  ///
+  /// In en, this message translates to:
+  /// **'SECURE'**
+  String get auth_sys_secure;
+
+  /// No description provided for @auth_or_protocol.
+  ///
+  /// In en, this message translates to:
+  /// **'OR CONNECT VIA PROTOCOL'**
+  String get auth_or_protocol;
+
+  /// No description provided for @auth_continue_google.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE WITH GOOGLE'**
+  String get auth_continue_google;
+
+  /// No description provided for @auth_have_account.
+  ///
+  /// In en, this message translates to:
+  /// **'ALREADY HAVE AN ACCOUNT?'**
+  String get auth_have_account;
+
+  /// No description provided for @auth_new_hunter.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW HERE?'**
+  String get auth_new_hunter;
+
+  /// No description provided for @auth_go_login.
+  ///
+  /// In en, this message translates to:
+  /// **'SIGN IN'**
+  String get auth_go_login;
+
+  /// No description provided for @auth_go_register.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE YOUR HUNTER ACCOUNT'**
+  String get auth_go_register;
+
+  /// No description provided for @auth_password_mismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The mana keys don\'t match.'**
+  String get auth_password_mismatch;
+
   /// No description provided for @complete_onboarding.
   ///
   /// In en, this message translates to:

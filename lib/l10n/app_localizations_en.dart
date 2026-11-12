@@ -461,6 +461,82 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your email is not confirmed yet. Check your inbox or request a new link.';
 
   @override
+  String get auth_protocol_login => '// AUTH PROTOCOL';
+
+  @override
+  String get auth_protocol_awakening => '// AWAKENING SEQUENCE';
+
+  @override
+  String get auth_sys_on => '[SYS_ON]';
+
+  @override
+  String get auth_register_title => 'Create your Hunter';
+
+  @override
+  String get auth_register_subtitle =>
+      'Register your vocal resonance and awaken your Hunter System license.';
+
+  @override
+  String get auth_label_email => 'COGNITIVE ID // EMAIL';
+
+  @override
+  String get auth_label_confirm => 'CONFIRM MANA KEY';
+
+  @override
+  String get auth_toggle_visibility => 'Show or hide password';
+
+  @override
+  String get auth_strength_weak => 'WEAK';
+
+  @override
+  String get auth_strength_medium => 'MEDIUM';
+
+  @override
+  String get auth_strength_strong => 'HIGH';
+
+  @override
+  String get auth_security_level => 'SECURITY LEVEL';
+
+  @override
+  String get auth_start_trial_cta => 'START THE TRIAL';
+
+  @override
+  String get auth_continue_cta => 'CONTINUE // ENTER GUILD';
+
+  @override
+  String get auth_gateway_login => '// NEURAL AUTH GATEWAY';
+
+  @override
+  String get auth_gateway_register => '// HUNTER CREDENTIAL REGISTRATION';
+
+  @override
+  String get auth_sys_new_recruit => 'NEW_RECRUIT';
+
+  @override
+  String get auth_sys_secure => 'SECURE';
+
+  @override
+  String get auth_or_protocol => 'OR CONNECT VIA PROTOCOL';
+
+  @override
+  String get auth_continue_google => 'CONTINUE WITH GOOGLE';
+
+  @override
+  String get auth_have_account => 'ALREADY HAVE AN ACCOUNT?';
+
+  @override
+  String get auth_new_hunter => 'NEW HERE?';
+
+  @override
+  String get auth_go_login => 'SIGN IN';
+
+  @override
+  String get auth_go_register => 'CREATE YOUR HUNTER ACCOUNT';
+
+  @override
+  String get auth_password_mismatch => 'The mana keys don\'t match.';
+
+  @override
   String get complete_onboarding => 'Complete Onboarding';
 
   @override

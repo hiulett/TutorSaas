@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>DUNGEON OF ENGLISH - Hunter Login</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-secondary": "#4c007d",
+            "tertiary": "#ffebbf",
+            "surface-container-highest": "#32343d",
+            "on-secondary-fixed-variant": "#6a0baa",
+            "on-secondary-container": "#d7a4ff",
+            "on-tertiary": "#3e2e00",
+            "secondary-container": "#6d11ad",
+            "on-error-container": "#ffdad6",
+            "inverse-on-surface": "#2e3039",
+            "on-primary": "#00363d",
+            "on-tertiary-fixed": "#251a00",
+            "on-tertiary-fixed-variant": "#594400",
+            "surface-variant": "#32343d",
+            "surface-tint": "#00daf3",
+            "primary-fixed-dim": "#00daf3",
+            "surface-container-lowest": "#0b0e16",
+            "primary-container": "#00e5ff",
+            "on-primary-fixed-variant": "#004f58",
+            "on-primary-fixed": "#001f24",
+            "secondary-fixed-dim": "#e0b6ff",
+            "surface-container": "#1d1f27",
+            "inverse-primary": "#006875",
+            "outline-variant": "#3b494c",
+            "primary": "#c3f5ff",
+            "surface-container-low": "#191b23",
+            "on-tertiary-container": "#6f5500",
+            "secondary-fixed": "#f2daff",
+            "tertiary-container": "#ffc922",
+            "error-container": "#93000a",
+            "on-primary-container": "#00626e",
+            "tertiary-fixed": "#ffdf94",
+            "error": "#ffb4ab",
+            "on-background": "#e1e2ed",
+            "on-secondary-fixed": "#2e004e",
+            "tertiary-fixed-dim": "#f5bf00",
+            "on-surface": "#e1e2ed",
+            "surface-dim": "#11131b",
+            "on-error": "#690005",
+            "on-surface-variant": "#bac9cc",
+            "surface": "#11131b",
+            "secondary": "#e0b6ff",
+            "primary-fixed": "#9cf0ff",
+            "inverse-surface": "#e1e2ed",
+            "outline": "#849396",
+            "background": "#11131b",
+            "surface-bright": "#373942",
+            "surface-container-high": "#272a32"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          spacing: {
+            "space-xs": "0.25rem",
+            "margin": "1.5rem",
+            "margin-mobile": "1rem",
+            "space-sm": "0.5rem",
+            "gutter": "1rem",
+            "gutter-mobile": "0.75rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.5rem",
+            "space-md": "1rem"
+          },
+          fontFamily: {
+            "stat-md": ["JetBrains Mono"],
+            "stat-xl": ["JetBrains Mono"],
+            "body-lg": ["Inter"],
+            "display-lg-mobile": ["Space Grotesk"],
+            "title-md": ["Space Grotesk"],
+            "label-caps": ["JetBrains Mono"],
+            "headline-md": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "display-lg": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "headline-sm": ["Space Grotesk"],
+            "label-code": ["JetBrains Mono"],
+            "body-sm": ["Inter"]
+          },
+          fontSize: {
+            "stat-md": ["18px", { "lineHeight": "24px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "stat-xl": ["30px", { "lineHeight": "36px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.12em", "fontWeight": "600" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "label-code": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Custom HUD grid background pattern */
+    .cyber-grid {
+      background-size: 24px 24px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+    }
+    .scanline {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 229, 255, 0.02) 50%,
+        rgba(0, 229, 255, 0.02)
+      );
+      background-size: 100% 4px;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex justify-center items-center selection:bg-primary-container selection:text-on-primary-fixed">
+<!-- Android Phone Simulator Viewport (390 x 844) -->
+<main class="relative w-[390px] h-[844px] max-h-[844px] bg-background cyber-grid scanline flex flex-col justify-between overflow-hidden shadow-2xl border border-outline-variant/30 rounded-lg">
+<!-- Ambient Glow Orbs -->
+<div class="pointer-events-none absolute -top-24 -left-20 w-64 h-64 bg-primary-container/10 blur-[90px] rounded-full"></div>
+<div class="pointer-events-none absolute top-1/2 -right-32 w-72 h-72 bg-secondary/10 blur-[100px] rounded-full"></div>
+<div class="pointer-events-none absolute -bottom-24 left-1/4 w-60 h-60 bg-primary-container/5 blur-[80px] rounded-full"></div>
+<!-- 1. ANDROID STATUS BAR -->
+<header class="relative z-20 w-full flex items-center justify-between px-space-md pt-space-xs pb-1 select-none">
+<span class="font-label-code text-label-code text-on-surface font-bold tracking-tight">09:41</span>
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="font-label-caps text-[10px] text-primary-container font-semibold">5G</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</header>
+<!-- CONTENT CONTAINER (Scrollable canvas if required, structured strictly within viewport) -->
+<div class="relative z-10 flex-1 px-margin-mobile flex flex-col justify-between overflow-y-auto no-scrollbar py-space-xs">
+<!-- 2. BRAND & TELEMETRY BLOCK -->
+<section class="flex flex-col items-center text-center mt-1">
+<!-- Runic Hunter Crest Icon -->
+<div class="relative mb-space-xs">
+<div class="w-11 h-11 rounded-lg bg-surface-container-lowest border border-primary-container/40 flex items-center justify-center shadow-[0_0_16px_rgba(0,229,255,0.2)]">
+<span class="material-symbols-outlined text-primary-container text-[24px]" style="font-variation-settings: 'FILL' 1;">shield_person</span>
+</div>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-primary-container rounded-full animate-ping"></div>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-primary-container rounded-full shadow-[0_0_6px_#00e5ff]"></div>
+</div>
+<!-- Brand Name -->
+<h1 class="font-stat-md text-stat-md tracking-[0.2em] text-primary-container drop-shadow-[0_0_10px_rgba(0,229,255,0.45)]">
+          DUNGEON OF ENGLISH
+        </h1>
+<!-- Sub-protocol line -->
+<div class="flex items-center space-x-2 mt-0.5">
+<span class="w-1.5 h-1.5 bg-secondary rounded-full"></span>
+<p class="font-label-caps text-label-caps text-secondary tracking-widest">
+            BACK TO THE GUILD // PROTOCOL AUTH_V2
+          </p>
+</div>
+</section>
+<!-- 3. HERO LINE -->
+<section class="mt-space-sm mb-space-xs text-center flex flex-col items-center">
+<div class="inline-flex items-center gap-1.5 px-space-sm py-0.5 mb-1.5 rounded-lg bg-surface-container-lowest border border-primary-container/30 shadow-[inset_0_0_8px_rgba(0,229,255,0.15)]">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span class="font-label-code text-[10px] text-primary-container tracking-wider">
+            STATUS: UNREGISTERED SESSION
+          </span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">
+          WELCOME BACK, HUNTER
+        </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-[280px]">
+          Synchronize your vocal core to continue dungeon raids.
+        </p>
+</section>
+<!-- 4. CENTRAL GLASSMORPHISM TACTICAL HUD CARD -->
+<section class="relative bg-surface-container-low/75 backdrop-blur-xl border border-primary-container/25 rounded-lg p-space-md shadow-[0_12px_32px_-4px_rgba(2,6,16,0.85)]">
+<!-- Tactical HUD Corner Ticks -->
+<div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary-container"></div>
+<div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-primary-container"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-primary-container"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-primary-container"></div>
+<!-- Card HUD Tag -->
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-space-xs mb-space-sm">
+<span class="font-label-code text-[10px] text-primary-container/80 tracking-widest">// NEURAL AUTH GATEWAY</span>
+<span class="font-label-code text-[10px] text-secondary">LVL.42 READY</span>
+</div>
+<form class="space-y-space-sm" onsubmit="event.preventDefault();">
+<!-- EMAIL FIELD -->
+<div class="space-y-1">
+<div class="flex items-center justify-between">
+<label class="font-label-caps text-[10px] text-primary tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-primary-container">fingerprint</span>
+                HUNTER IDENTIFIER // EMAIL
+              </label>
+<span class="font-label-code text-[9px] text-on-surface-variant">REQ</span>
+</div>
+<div class="relative flex items-center">
+<input class="w-full h-11 bg-surface-container-lowest text-on-surface font-body-md text-body-md pl-space-md pr-10 rounded-lg border border-outline-variant/40 focus:border-primary-container focus:ring-1 focus:ring-primary-container focus:shadow-[0_0_12px_rgba(0,229,255,0.25)] transition-all outline-none" placeholder="hunter@domain.com" type="email" value="sung.hunter@guild.io"/>
+<span class="material-symbols-outlined absolute right-3 text-outline text-[18px]">
+                mail
+              </span>
+</div>
+</div>
+<!-- PASSWORD FIELD -->
+<div class="space-y-1">
+<div class="flex items-center justify-between">
+<label class="font-label-caps text-[10px] text-primary tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-primary-container">lock</span>
+                PASSPHRASE KEY
+              </label>
+<button class="font-label-code text-[10px] text-secondary hover:text-primary transition-colors" type="button">
+                AUTO-FILL
+              </button>
+</div>
+<div class="relative flex items-center">
+<input class="w-full h-11 bg-surface-container-lowest text-on-surface font-body-md text-body-md pl-space-md pr-10 rounded-lg border border-error/50 focus:border-error focus:ring-1 focus:ring-error shadow-[0_0_8px_rgba(255,83,112,0.15)] transition-all outline-none" id="hunter-pass" placeholder="••••••••••••" type="password" value="AbyssVoice#2024"/>
+<button class="absolute right-3 flex items-center justify-center text-outline hover:text-primary transition-colors focus:outline-none" onclick="const p = document.getElementById('hunter-pass'); const i = document.getElementById('eye-icon'); if(p.type === 'password'){ p.type='text'; i.textContent='visibility_off'; } else { p.type='password'; i.textContent='visibility'; }" type="button">
+<span class="material-symbols-outlined text-[18px]" id="eye-icon">
+                  visibility
+                </span>
+</button>
+</div>
+</div>
+<!-- INLINE ERROR STATE / SYSTEM WARNING -->
+<div class="flex items-start gap-2 p-space-xs px-space-sm bg-error-container/20 border border-error/40 rounded-lg shadow-[inset_0_0_10px_rgba(255,83,112,0.15)]">
+<span class="material-symbols-outlined text-error text-[16px] shrink-0 mt-0.5">
+              warning
+            </span>
+<div class="flex flex-col">
+<p class="font-label-code text-[10px] text-error font-medium tracking-tight leading-tight">
+                INCORRECT PASSPHRASE HASH (ATTEMPT 1/5)
+              </p>
+<span class="font-label-code text-[9px] text-error/80">// PROTOCOL: RESYNC REQUIRED</span>
+</div>
+</div>
+<!-- PRIMARY ACTION BUTTON -->
+<button class="w-full h-11 mt-1 bg-primary-container text-on-primary-fixed font-headline-sm text-headline-sm uppercase tracking-wider rounded-lg font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,229,255,0.45)] hover:bg-primary-fixed hover:shadow-[0_0_26px_rgba(0,229,255,0.65)] active:scale-[0.98] transition-all" type="submit">
+<span>CONTINUE // ENTER GUILD</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<!-- OR DIVIDER -->
+<div class="relative flex items-center justify-center my-space-sm">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant/30"></div>
+</div>
+<span class="relative px-2 bg-surface-container-low font-label-code text-[10px] text-on-surface-variant tracking-wider">
+            // OR CONNECT VIA PROTOCOL //
+          </span>
+</div>
+<!-- SOCIAL AUTH BUTTON (GOOGLE) -->
+<button class="w-full h-10 bg-surface-container-lowest/80 border border-outline-variant/40 hover:border-primary-container/50 hover:bg-surface-container-high/40 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]" type="button">
+<!-- Clean Google G SVG Glyph -->
+<svg class="w-4 h-4" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+</svg>
+<span class="font-label-caps text-[11px] text-on-surface tracking-wider font-semibold">
+            CONTINUE WITH GOOGLE
+          </span>
+</button>
+<!-- FORGOT PASSPHRASE LINK -->
+<div class="text-center mt-space-sm">
+<a class="font-label-code text-label-code text-secondary hover:text-tertiary-container transition-colors tracking-wide" href="#recovery">
+            FORGOT PASSPHRASE? [INITIATE RECOVERY]
+          </a>
+</div>
+</section>
+<!-- 5. BOTTOM SECONDARY NAVIGATION (CREATION CALLOUT) -->
+<footer class="pt-space-xs pb-space-sm text-center">
+<p class="font-label-caps text-[10px] text-on-surface-variant tracking-wider">
+          NEW HERE? CREATE YOUR HUNTER ACCOUNT
+        </p>
+<a class="inline-flex items-center gap-1.5 mt-1 font-headline-sm text-headline-sm text-primary-container font-bold tracking-wider hover:text-primary transition-colors drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]" href="#awaken">
+<span>AWAKEN NOW</span>
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+</a>
+<!-- System HUD Telemetry Footer bar -->
+<div class="flex items-center justify-between pt-space-xs mt-space-xs border-t border-outline-variant/20 text-outline font-label-code text-[9px]">
+<span>GATE: ASIA-KR01</span>
+<span>LATENCY: 14MS</span>
+<span>SEC: QUANTUM-V8</span>
+</div>
+<!-- Android Home Navigation Indicator Bar -->
+<div class="w-32 h-1 bg-on-surface/30 rounded-full mx-auto mt-2"></div>
+</footer>
+</div>
+</main>
+</body></html>
