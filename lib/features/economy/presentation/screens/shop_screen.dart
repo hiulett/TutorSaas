@@ -52,8 +52,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     final l10n = AppLocalizations.of(context);
     final result = await showDialog<bool>(
       context: context,
+      // #331: sin `backgroundColor` propio, para que el diálogo herede el
+      // `dialogTheme` del tema (fondo + borde rúnico + radio 4) como el resto
+      // de modales de la app.
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.medievalStone,
         title: Row(
           children: [
             const Icon(
@@ -668,12 +670,14 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     final catalogAsync = ref.watch(shopCatalogProvider);
     final catalog = catalogAsync.value ?? const <ShopOffer>[];
 
-    if (catalogAsync.isLoading && catalog.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.manaCyan),
-      );
+    // #331: cargando, error y vacío son tres estados distintos. Antes, un
+    // fallo de red caía en el mismo copy del catálogo vacío y solo dejaba un
+    // spinner pelado, así que no se sabía si esperar o reintentar.
+    if (catalog.isEmpty) {
+      if (catalogAsync.isLoading) return _buildCatalogSkeleton(l10n);
+      if (catalogAsync.hasError) return _buildCatalogError(l10n);
+      return _buildEmpty(l10n);
     }
-    if (catalog.isEmpty) return _buildEmpty(l10n);
 
     final currency = _tabCurrency;
     final offers = catalog
@@ -1068,51 +1072,185 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     );
   }
 
+  /// Reintento real del catálogo (P-11f / #331): invalida el provider en vez
+  /// de enseñar un mensaje técnico.
+  void _retryCatalog() {
+    ref.invalidate(shopCatalogProvider);
+    ref.invalidate(economyWalletProvider);
+  }
+
+  /// Estado vacío: el catálogo cargó y no hay objetos todavía. Copy propio
+  /// (`gold_shop_unavailable`), separado del error de red.
   Widget _buildEmpty(AppLocalizations? l10n) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.storefront_rounded,
-              color: AppColors.onSurfaceVariant,
-              size: 48,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n?.gold_shop_unavailable ??
-                  'La Tienda de Oro aún no está disponible.\nVuelve a intentarlo en un momento.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 11,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              // P-11f: reintento real en vez de un mensaje técnico.
-              onPressed: () {
-                ref.invalidate(shopCatalogProvider);
-                ref.invalidate(economyWalletProvider);
-              },
-              icon: const Icon(
-                Icons.refresh_rounded,
-                color: AppColors.emeraldGreen,
-                size: 16,
-              ),
-              label: Text(
-                l10n?.retry ?? 'REINTENTAR',
+    return _buildStatus(
+      icon: Icons.storefront_rounded,
+      iconColor: AppColors.onSurfaceVariant,
+      message:
+          l10n?.gold_shop_unavailable ??
+          'La Tienda de Oro aún no está disponible.\nVuelve a intentarlo en un momento.',
+      retryLabel: l10n?.retry ?? 'REINTENTAR',
+      onRetry: _retryCatalog,
+    );
+  }
+
+  /// Estado de error: el catálogo no cargó (red, RLS, backend). Icono + copy
+  /// accionable + REINTENTAR, sin reutilizar el copy del estado vacío.
+  Widget _buildCatalogError(AppLocalizations? l10n) {
+    return _buildStatus(
+      icon: Icons.cloud_off_rounded,
+      iconColor: AppColors.errorRed,
+      message:
+          'No pudimos cargar el catálogo de la tienda.\n'
+          'Revisa tu conexión y vuelve a intentarlo.',
+      retryLabel: l10n?.retry ?? 'REINTENTAR',
+      onRetry: _retryCatalog,
+    );
+  }
+
+  /// Patrón de `dashboard_screen.dart` (icono + copy + reintento): en una
+  /// columna centrada y desplazable para que no desborde a 312 dp ni con el
+  /// texto ampliado.
+  Widget _buildStatus({
+    required IconData icon,
+    required Color iconColor,
+    required String message,
+    String? retryLabel,
+    VoidCallback? onRetry,
+  }) {
+    return SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: iconColor, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
                 style: GoogleFonts.jetBrainsMono(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.emeraldGreen,
+                  fontSize: 11,
+                  color: AppColors.onSurfaceVariant,
+                  height: 1.5,
                 ),
               ),
-            ),
-          ],
+              if (onRetry != null) ...[
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  label: Text(
+                    (retryLabel ?? 'REINTENTAR').toUpperCase(),
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  /// Estado de carga: esqueleto de las tarjetas con un rótulo, en vez de un
+  /// spinner sin contexto. Sin animación (reduce-motion y tests estables).
+  Widget _buildCatalogSkeleton(AppLocalizations? l10n) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.hourglass_empty_rounded,
+                color: AppColors.onSurfaceVariant,
+                size: 14,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  (l10n?.loading ?? 'Cargando...').toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.6,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        for (var i = 0; i < 3; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildOfferSkeleton(),
+          ),
+      ],
+    );
+  }
+
+  /// Bloque gris con la geometría de `_buildOfferCard` (icono 52 + textos +
+  /// acción) para que el salto al contenido real sea mínimo.
+  Widget _buildOfferSkeleton() {
+    Widget bar(double width) => Container(
+      width: width,
+      height: 8,
+      decoration: BoxDecoration(
+        color: AppColors.onSurface.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+    );
+
+    Widget block(double size) => Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.onSurface.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.onSurface.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.onSurface.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        children: [
+          block(52),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                bar(96),
+                const SizedBox(height: 8),
+                bar(72),
+                const SizedBox(height: 8),
+                bar(48),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          block(48),
+        ],
       ),
     );
   }

@@ -62,6 +62,10 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
   bool _musicPlaying = false;
   Timer? _announcementTimer;
 
+  /// #331: último fallo de carga ya escrito en el log. El detalle técnico va
+  /// aquí y no a la UI, y este guard evita repetirlo en cada rebuild.
+  String? _lastRoomsError;
+
   /// Conteo REAL de cazadores conectados en todas las mesas activas.
   int _connectedCount(List<Map<String, dynamic>> rooms) {
     var count = 0;
@@ -70,6 +74,17 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
       count += (r['standing_count'] as int? ?? 0);
     }
     return count;
+  }
+
+  /// #331: el detalle técnico de un fallo de carga va al log, nunca a la UI.
+  /// El guard evita repetir la misma entrada en cada rebuild.
+  void _logRoomsError(Object err) {
+    final message = err.toString();
+    if (_lastRoomsError == message) return;
+    _lastRoomsError = message;
+    debugPrint(
+      'chat_rooms_screen: error cargando las mesas del gremio: $message',
+    );
   }
 
   /// Inicial del nombre para el avatar, con fallback seguro (evita RangeError
@@ -900,21 +915,99 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                         },
                       );
                     },
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 40.0),
-                        child: CircularProgressIndicator(color: AppColors.runeViolet),
-                      ),
-                    ),
-                    error: (err, stack) => Center(
+                    loading: () => Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40.0),
-                        child: Text(
-                          'Error loading active gates: $err',
-                          style: const TextStyle(color: AppColors.errorRed),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                color: AppColors.runeViolet,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              l10n.loading.toUpperCase(),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.6,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
+                    // #331: el texto técnico (`$err`) ya no se pinta: va al log
+                    // en `_logRoomsError`. La UI ofrece el mismo patrón que el
+                    // resto del repo (icono + copy + reintento).
+                    error: (err, stack) {
+                      _logRoomsError(err);
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 32.0,
+                            horizontal: 8.0,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.cloud_off_rounded,
+                                color: AppColors.errorRed,
+                                size: 40,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No pudimos cargar las mesas del gremio.\n'
+                                'Revisa tu conexión y vuelve a intentarlo.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 11,
+                                  color: AppColors.onSurfaceVariant,
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () =>
+                                    ref.invalidate(chatRoomsListProvider),
+                                icon: const Icon(
+                                  Icons.refresh_rounded,
+                                  size: 16,
+                                ),
+                                label: Text(
+                                  l10n.retry.toUpperCase(),
+                                  style: GoogleFonts.jetBrainsMono(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.runeViolet,
+                                  foregroundColor: AppColors.onSurface,
+                                  minimumSize: const Size(48, 48),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(4.0),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 28),
