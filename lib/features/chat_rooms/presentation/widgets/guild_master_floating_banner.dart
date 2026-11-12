@@ -239,7 +239,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
         children: [
           ClipOval(
             child: Image.asset(
-              'assets/images/avatars/oracle_01.png',
+              'assets/images/avatars/oracle_01.webp',
               width: 30,
               height: 30,
               fit: BoxFit.cover,
@@ -299,7 +299,7 @@ class _GuildMasterFloatingBannerState extends ConsumerState<GuildMasterFloatingB
             children: [
               ClipOval(
                 child: Image.asset(
-                  'assets/images/avatars/oracle_01.png',
+                  'assets/images/avatars/oracle_01.webp',
                   width: 34,
                   height: 34,
                   fit: BoxFit.cover,
