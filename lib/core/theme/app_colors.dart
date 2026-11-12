@@ -19,7 +19,13 @@ class AppColors {
   static const Color surfaceGlass = Color(0xFF11131B);
   static const double glassOpacity = 0.94;
   static const double glassBlur = 4.0;
-  static const double glassBorderAlpha = 0.8;
+
+  /// Alfa del borde *neutro* de `GlassCard` (#327).
+  ///
+  /// El vidrio ya no compite con la acción principal: el borde por defecto es
+  /// casi invisible y el foco se expresa pasando `borderColor` a `GlassCard`
+  /// (que eleva el borde a alpha 0.5) o activando `showRunicCorners`.
+  static const double glassBorderAlpha = 0.14;
 
   static const Color manaCyan = Color(0xFF00E5FF);
   static const Color manaCyanDim = Color(0xFF00DAF3);

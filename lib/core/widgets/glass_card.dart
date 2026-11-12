@@ -105,9 +105,25 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
     );
   }
 
+  /// Alfa del borde cuando el llamador pide foco con `borderColor` (#327).
+  ///
+  /// Si el color recibido ya trae una alfa propia (< 1.0) se respeta, para que
+  /// una tarjeta pueda pedir más énfasis que el foco estándar (la CTA del
+  /// dashboard usa 0.6) sin tocar la API.
+  static const double _focusBorderAlpha = 0.5;
+
+  /// Alfa del halo (`boxShadow`) por defecto (#327): apenas separa la tarjeta
+  /// del fondo, sin robar atención a la acción principal.
+  static const double _defaultShadowAlpha = 0.12;
+  static const double _defaultShadowBlur = 6;
+
   @override
   Widget build(BuildContext context) {
+    final hasExplicitBorderColor = widget.borderColor != null;
     final bColor = widget.borderColor ?? AppColors.manaCyan;
+    final borderAlpha = !hasExplicitBorderColor
+        ? AppColors.glassBorderAlpha
+        : (bColor.a < 1.0 ? bColor.a : _focusBorderAlpha);
     return GestureDetector(
       onTap: widget.onTap,
       onTapDown: (_) => _scaleController.forward(),
@@ -127,8 +143,8 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
                   widget.shadow ??
                   [
                     BoxShadow(
-                      color: bColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
+                      color: bColor.withValues(alpha: _defaultShadowAlpha),
+                      blurRadius: _defaultShadowBlur,
                     ),
                   ],
             ),
@@ -151,9 +167,7 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
                     border:
                         widget.border ??
                         Border.all(
-                          color: bColor.withValues(
-                            alpha: AppColors.glassBorderAlpha,
-                          ),
+                          color: bColor.withValues(alpha: borderAlpha),
                           width: 1,
                         ),
                   ),
