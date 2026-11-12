@@ -17,6 +17,13 @@ import '../providers/economy_providers.dart';
 /// En el plan GRATUITO la barra refleja el MANÁ DIARIO (daily_limit=200):
 /// el consumo de lecciones descuenta `daily_used` y la barra muestra lo que
 /// queda del día, reiniciando cada día.
+///
+/// #338: el widget se monta a 150 dp de ancho en la conversación
+/// (`_kConversationManaBarWidth`, `compact: true`) y sin ancho fijo en el HUD
+/// del dashboard. Saldo y coste por turno son anclas intrínsecas (no se
+/// comprimen ni se eliden); lo único elástico es el texto de estado (elipsis)
+/// y la caducidad es lo primero que cede sitio: salta de línea en el `Wrap` y
+/// solo se elide si no cabe ni en una línea entera.
 class OracleManaBar extends ConsumerWidget {
   final bool showLabel;
   final bool compact;
@@ -98,6 +105,10 @@ class OracleManaBar extends ConsumerWidget {
                 size: 13,
               ),
               const SizedBox(width: 6),
+              // #338: la etiqueta es el `Expanded` que absorbe el hueco; la
+              // cifra queda intrínseca para que el saldo nunca se elida.
+              // A 150 dp y escala 1.1 la fila mide ~146 px (13 de icono + 6 +
+              // 28 de "MANÁ" + 8 + 91 de "16368 / 17000"): cabe.
               Expanded(
                 child: Text(
                   l10n?.mana_label ?? 'MANÁ',
@@ -140,6 +151,9 @@ class OracleManaBar extends ConsumerWidget {
         ),
         if (showLabel) ...[
           const SizedBox(height: 4),
+          // #338: solo quedan aquí dos piezas y no compiten: el saldo es un
+          // ancla intrínseca (≈35 px a escala 1.1 con 5 dígitos, nunca se
+          // comprime) y el estado es el único elástico, con elipsis.
           Row(
             children: [
               AnimatedCounter(
@@ -178,7 +192,20 @@ class OracleManaBar extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
+            ],
+          ),
+          const SizedBox(height: 2),
+          // #338: coste por turno y caducidad bajan a una tercera línea en un
+          // `Wrap` que no compite por ancho. A 150 dp caben juntos (≈128 px a
+          // escala 1.1: `12/turno` + `expira 12/11`); si el hueco se estrecha,
+          // la fecha salta de línea en vez de recortar el coste y solo se
+          // elide cuando no cabe ni en una línea entera. El coste nunca se
+          // elide: es ancla intrínseca.
+          Wrap(
+            spacing: 8,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
               Text(
                 l10n?.mana_cost_per_turn(budget.costPerTurn) ??
                     '${budget.costPerTurn}/turno',
@@ -187,18 +214,18 @@ class OracleManaBar extends ConsumerWidget {
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
-              if (!isFree && expiresAt != null) ...[
-                const SizedBox(width: 8),
+              if (!isFree && expiresAt != null)
                 Text(
                   l10n?.mana_expires(_formatDate(expiresAt)) ??
                       'expira ${_formatDate(expiresAt)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: titleSize,
                     fontWeight: FontWeight.bold,
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
-              ],
             ],
           ),
         ],
