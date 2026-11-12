@@ -2479,6 +2479,12 @@ ENDING:
       // Registro de superación de la lección (lesson_progress):
       //  - passed si cumple la regla única `LessonCompletion.isPassed`.
       //  - failed si no; permite reintentar gastando maná.
+      //
+      // `endSession` es async y ya ha cruzado varios `await`: si la pantalla se
+      // desmontó entretanto el notifier está liberado y leer `state` lanzaba
+      // "Tried to use ConversationNotifier after dispose was called". Sin nada
+      // que persistir cuando ya no hay sesión, se corta aquí.
+      if (!mounted) return null;
       final scenarioId = state.activeScenarioId;
       if (scenarioId != null && !state.isOracleEvaluation) {
         try {
