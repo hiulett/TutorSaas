@@ -12,6 +12,7 @@ import '../providers/dashboard_providers.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../widgets/learning_path_roadmap.dart';
+import '../widgets/continue_adventure_card.dart';
 import '../widgets/dashboard_dock_item.dart';
 import '../widgets/hunter_hud_header.dart';
 import '../widgets/daily_goal_ring_card.dart';
@@ -391,6 +392,17 @@ class DashboardScreen extends ConsumerWidget {
 
                                   // HUD Central del Cazador (paridad hunter_control_center_dashboard)
                                   const HunterHudHeader(),
+
+                                  const SizedBox(height: 12),
+
+                                  // #312: la práctica es la acción primaria, justo
+                                  // debajo de la identidad y antes de cualquier
+                                  // tarjeta secundaria.
+                                  ContinueAdventureCard(
+                                    levelCode:
+                                        (progress['level_code'] as String?) ??
+                                        '',
+                                  ),
 
                                   const SizedBox(height: 12),
 

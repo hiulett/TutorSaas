@@ -1534,5 +1534,7 @@
   "path_recommended_interest": "Based on your interests",
   "path_recommended_error": "Reinforces your mistakes",
   "path_recommended_review": "Review of what you learned",
+  "adventure_next_step": "NEXT STEP",
+  "adventure_speak_now": "SPEAK NOW",
   "path_recommended_next": "Next step"
 }

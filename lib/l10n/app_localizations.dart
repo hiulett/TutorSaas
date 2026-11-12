@@ -7876,6 +7876,18 @@ abstract class AppLocalizations {
   /// **'Review of what you learned'**
   String get path_recommended_review;
 
+  /// No description provided for @adventure_next_step.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT STEP'**
+  String get adventure_next_step;
+
+  /// No description provided for @adventure_speak_now.
+  ///
+  /// In en, this message translates to:
+  /// **'SPEAK NOW'**
+  String get adventure_speak_now;
+
   /// No description provided for @path_recommended_next.
   ///
   /// In en, this message translates to:
