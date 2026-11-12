@@ -482,7 +482,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     }
   }
 
-  // â”€â”€ Modal 1: Compass (Guía de Misión y Contexto) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Modal 1: Compass (Guía de Misión y Contexto) ───────────────────────────
 
   void _showScenarioMissionModal(BuildContext context) {
     final state = ref.read(conversationStateProvider);
@@ -776,7 +776,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     );
   }
 
-  // â”€â”€ Modal 2: Fingerprint (Huella de Voz y Diagnóstico) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Modal 2: Fingerprint (Huella de Voz y Diagnóstico) ─────────────────────
 
   void _showSpeechDnaModal(BuildContext context) {
     final messages = ref.read(conversationStateProvider).messages;
@@ -803,7 +803,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         ? 'N/A'
         : '${math.min(99, math.max(72, 80 + math.min(18, (wordCount / 5).round())))}%';
 
-    // Get real rank (Fâ†’SSS) and language from user profile
+    // Get real rank (F→SSS) and language from user profile
     final progressAsync = ref.read(userProgressProvider);
     final cefrCode = progressAsync.value?['level_code'] as String? ?? 'A1';
     final gameRank =
@@ -1142,7 +1142,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final holdToTalk = ref.watch(micModeHoldToTalkProvider);
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
-      // Maná agotado â†’ abrir el Guardián de la Mazmorra (compra/espera/equipar)
+      // Maná agotado → abrir el Guardián de la Mazmorra (compra/espera/equipar)
       // en vez de un snack.
       if (next.errorMessage != null &&
           next.errorMessage != prev?.errorMessage) {
@@ -1672,7 +1672,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       ),
                     ),
 
-                    // â”€â”€ 20 Topics Horizontal Bar (Icon 2: Hashtag) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    // ── 20 Topics Horizontal Bar (Icon 2: Hashtag) ────────────────
                     if (convError != null)
                       Container(
                         margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -1783,7 +1783,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         ),
                       ),
 
-                    // â”€â”€ Text Input Drawer (Icon 5: Keyboard) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    // ── Text Input Drawer (Icon 5: Keyboard) ────────────────────
                     if (_showKeyboardDrawer)
                       Container(
                         color: AppColors.surfaceDim,
@@ -1843,7 +1843,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         ),
                       ),
 
-                    // â”€â”€ Controls Row (5 Icons Layout) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    // ── Controls Row (5 Icons Layout) ───────────────────────────
                     // ── P-34e (#119): permiso de micrófono denegado ─────────
                     if (conversationState.micPermissionDenied)
                       MicPermissionCard(
@@ -1891,7 +1891,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          // Icon 1: Compass (Guía de Misión) â€” oculto en el examen del Oráculo
+                          // Icon 1: Compass (Guía de Misión) — oculto en el examen del Oráculo
                           if (!isOracle)
                             IconButton(
                               tooltip: 'Objetivos de la misión',
@@ -1904,7 +1904,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   _showScenarioMissionModal(context),
                             ),
 
-                          // Icon 2: Hashtag (20 Tópicos al azar) â€” oculto en el examen del Oráculo
+                          // Icon 2: Hashtag (20 Tópicos al azar) — oculto en el examen del Oráculo
                           if (!isOracle)
                             IconButton(
                               tooltip: 'Temas sugeridos',
@@ -1937,7 +1937,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             onPressed: () => _showCorrectionsCodex(context),
                           ),
 
-                          // Icon 3: Mic (Tap-to-Talk) â€” o botón CONTINUAR al terminar el Oráculo
+                          // Icon 3: Mic (Tap-to-Talk) — o botón CONTINUAR al terminar el Oráculo
                           if (isOracle && conversationState.oracleFinished)
                             GestureDetector(
                               onTap: () async {
