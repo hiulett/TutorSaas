@@ -125,12 +125,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           child: Text(
                             l10n?.settings_system_config ?? 'SYSTEM CONFIG',
                             style: GoogleFonts.spaceGrotesk(
-                              fontSize: 24,
+                              fontSize: 22,
                               fontWeight: FontWeight.w900,
                               color: AppColors.onSurface,
                               letterSpacing: 1.0,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
+                            softWrap: true,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -142,7 +143,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Expanded(
                     child: ListView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                      // #304: 112 dp de inset inferior para que el último ajuste
+                      // no quede debajo del dock flotante del dashboard.
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 112),
                       children: [
                         _SectionHeader(title: l10n?.settings_target_cefr ?? 'TARGET LANGUAGE & CEFR LEVEL'),
                         const SizedBox(height: 12),

@@ -75,7 +75,9 @@ class ProgressTabView extends ConsumerWidget {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        // #304: 112 dp de inset inferior para que el final de la pestaña no
+        // quede debajo del dock flotante del dashboard.
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 112),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
