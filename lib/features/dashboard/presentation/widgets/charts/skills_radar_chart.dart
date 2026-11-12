@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/widgets/glass_card.dart';
@@ -102,6 +103,45 @@ class SkillsRadarChart extends ConsumerWidget {
                   _score(radarMap['naturalness']),
                 ),
               ];
+
+              // #325: sin ninguna fuente con datos, un polígono vacío no dice
+              // nada. Se explica de dónde sale el radar y se ofrece el test.
+              if (entries.every((entry) => entry.$2 <= 0)) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tu radar se llena con la evaluación del Oráculo y con tus conversaciones.',
+                      style: const TextStyle(
+                        color: AppColors.onSurfaceVariant,
+                        fontSize: 12,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => context.push('/oracle-test'),
+                      icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                      label: Text(
+                        'HACER EL TEST DEL ORÁCULO',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.manaCyan,
+                        side: BorderSide(
+                          color: AppColors.manaCyan.withValues(alpha: 0.5),
+                        ),
+                        minimumSize: const Size.fromHeight(44),
+                      ),
+                    ),
+                  ],
+                );
+              }
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -494,8 +494,11 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((
           .maybeSingle(),
       supabase
           .from('user_language_profiles')
-          .select('cefr_levels')
+          .select('placement_scores')
           .eq('user_id', user.id)
+          .not('placement_scores', 'is', null)
+          .order('placement_assessed_at', ascending: false)
+          .limit(1)
           .maybeSingle(),
     ]);
 
@@ -576,24 +579,94 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((
 
     // Fallback por fuente: si el Oráculo no tiene datos, se usan las métricas
     // diarias (fluidez/daily, fonética/dna) para no mostrar 0 inventado.
-    final effFluency = oracleFluencyScore > 0
-        ? oracleFluencyScore
-        : fluencyScore;
-    final effPhonetics = pronunciationScore > 0
-        ? pronunciationScore
-        : phoneticsScore;
-    final effVocab = vocabularyScore > 0 ? vocabularyScore : vocabScore;
+    // #325: y antes que ellas, la evaluación del placement que YA guarda el
+    // servidor en `user_language_profiles.placement_scores` (10 dimensiones,
+    // escritas con service role). Era el dato fiable que nadie leía.
+    final placementRaw = (results[4] as Map<String, dynamic>?)?['placement_scores'];
+    final placement = <String, double>{};
+    if (placementRaw is Map) {
+      for (final entry in placementRaw.entries) {
+        final value = entry.value;
+        if (value is num) placement['${entry.key}'] = value.toDouble();
+      }
+    }
+
+    final effFluency = _firstPositive([
+      oracleFluencyScore,
+      placement['fluency'] ?? 0.0,
+      fluencyScore,
+    ]);
+    final effPhonetics = _firstPositive([
+      pronunciationScore,
+      placement['pronunciation'] ?? 0.0,
+      phoneticsScore,
+    ]);
+    final effVocab = _firstPositive([
+      vocabularyScore,
+      placement['vocabulary'] ?? 0.0,
+      vocabScore,
+    ]);
+    // #325: gramática a partir de la práctica real. El Oráculo y el placement
+    // pueden no tener datos (usuario que se auto-declaró el nivel), pero cada
+    // conversación deja correcciones: más correcciones por sesión, peor
+    // gramática estimada. Es una estimación honesta, no una medición.
+    double grammarFromPractice = 0;
+    try {
+      final conversations = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(50);
+      // Sin correcciones registradas no hay evidencia: dejarlo en 0 evita
+      // regalar un 100 de gramática a quien nunca ha recibido una corrección.
+      if (conversations.length >= 2) {
+        final corrections = await supabase
+            .from('corrections')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(300);
+        if (corrections.isNotEmpty) {
+          final perConversation = corrections.length / conversations.length;
+          grammarFromPractice = (100 - perConversation * 10).clamp(0, 100);
+        }
+      }
+    } catch (e) {
+      debugPrint('skillsRadarProvider: gramática de práctica no disponible: $e');
+    }
+
+    final effGrammar = _firstPositive([
+      grammarScore,
+      placement['grammar'] ?? 0.0,
+      grammarFromPractice,
+    ]);
+    // El placement mide "listening", no "comprensión": se usa como proxy.
+    final effComprehension = _firstPositive([
+      comprehensionScore,
+      placement['listening'] ?? 0.0,
+    ]);
+    final effNaturalness = _firstPositive([
+      naturalnessScore,
+      placement['naturalness'] ?? 0.0,
+    ]);
 
     return {
       'fluency': effFluency.clamp(0.0, 100.0),
       'vocab': effVocab.clamp(0.0, 100.0),
       'phonetics': effPhonetics.clamp(0.0, 100.0),
-      'grammar': grammarScore.clamp(0.0, 100.0),
+      'grammar': effGrammar.clamp(0.0, 100.0),
       'goals': goalsScore.clamp(0.0, 100.0),
-      'comprehension': comprehensionScore.clamp(0.0, 100.0),
-      'naturalness': naturalnessScore.clamp(0.0, 100.0),
+      'comprehension': effComprehension.clamp(0.0, 100.0),
+      'naturalness': effNaturalness.clamp(0.0, 100.0),
     };
-  } catch (_) {
+  } catch (e, st) {
+    // Antes este catch devolvía ceros sin decir nada: indistinguible de
+    // "el alumno no tiene datos". Ahora queda registrado (#325).
+    debugPrint('skillsRadarProvider: no se pudo leer el radar: $e');
+    ErrorTracker.logSilent(
+      'lib/features/dashboard/presentation/providers/dashboard_providers.dart:radar',
+      e,
+      stackTrace: st,
+    );
     return {
       'fluency': 0.0,
       'vocab': 0.0,
@@ -605,6 +678,17 @@ final skillsRadarProvider = FutureProvider.autoDispose<Map<String, double>>((
     };
   }
 });
+
+/// Primer valor mayor que 0 de la lista, o 0 si no hay ninguno (#325).
+///
+/// El radar combina tres fuentes por eje (turno del Oráculo, placement y
+/// métricas diarias); este helper expresa la precedencia sin anidar ternarios.
+double _firstPositive(List<double> candidates) {
+  for (final value in candidates) {
+    if (value > 0) return value;
+  }
+  return 0.0;
+}
 
 /// Fetches all completed lessons/scenarios history for the active user
 final completedLessonsProvider =

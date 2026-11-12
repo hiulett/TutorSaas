@@ -1154,7 +1154,20 @@ class ConversationNotifier extends StateNotifier<ConversationState> {
           .maybeSingle();
       if (turn == null) return;
 
-      await client.from('oracle_turns').update(row).eq('id', turn['id']);
+      // #325: `.select('id')` convierte el UPDATE silencioso en verificable.
+      // Sin esto, una política RLS que bloquee la escritura devolvía 0 filas
+      // sin error y el radar se quedaba a cero para siempre.
+      final updated = await client
+          .from('oracle_turns')
+          .update(row)
+          .eq('id', turn['id'])
+          .select('id');
+      if (updated.isEmpty) {
+        debugPrint(
+          'Oracle skill scores: UPDATE sin filas (oracle_turns ${turn['id']}). '
+          'Revisar RLS/ownership de la tabla.',
+        );
+      }
 
       if (pron != null) {
         await client.from('speech_dna_metrics').upsert({
@@ -1413,8 +1426,10 @@ ENDING:
       }
       _ref.invalidate(manaStateProvider);
 
-      // Issue #25: persistir las 6 dimensiones que lee el radar de habilidades.
-      unawaited(_persistSkillScores({'scores': outcome.scores}));
+      // Issue #25 / #325: persistir las 6 dimensiones que lee el radar de
+      // habilidades. Se espera (antes iba en `unawaited`): el resumen y el
+      // radar se leen justo después y la carrera dejaba turnos sin scores.
+      await _persistSkillScores({'scores': outcome.scores});
 
       final cefrLevel = outcome.cefrLevel;
       final gameRank = outcome.gameRank;
