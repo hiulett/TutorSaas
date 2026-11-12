@@ -44,6 +44,27 @@ import '../../../../core/analytics/analytics_taxonomy.dart';
 import '../../../../core/services/retention_analytics.dart';
 import '../../../../l10n/app_localizations.dart';
 
+/// #322: ancho reservado al medidor de maná dentro de la fila de modos.
+/// Estaba en 120 px y con escala de fuente 1.1 la línea `16380 / 17000` no
+/// cabía: se salía del `SizedBox` y caía sobre los chips de modo.
+const double _kConversationManaBarWidth = 150;
+
+/// #322: margen izquierdo explícito de la fila de maná. Sustituye al
+/// `Padding(horizontal: 8)` que envolvía al `SizedBox`.
+const double _kConversationManaRowLeftInset = 8;
+
+/// #322: separación explícita entre el medidor de maná y el primer chip de
+/// modo (antes: padding 8 + `SizedBox(width: 8)` = 16). Evita que el texto del
+/// maná invada el chip de "Chat Visible".
+const double _kConversationManaBarGap = 16;
+
+/// #322: reserva vertical que el monstruo flotante deja bajo el safe-area
+/// superior para no montarse sobre la cabecera. Cubre la cabecera completa
+/// (título + objetivos + maná + chips de modo, ~200 px con la escala de fuente
+/// del reporte) más la tira vertical de la forma de onda (48 px).
+/// Es una reserva estática: si la cabecera gana filas, hay que subirla.
+const double _kConversationMonsterTopClearance = 248;
+
 class ConversationScreen extends ConsumerStatefulWidget {
   final String? scenarioId;
   final String? scenarioTitle;
@@ -1343,27 +1364,29 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               physics: const BouncingScrollPhysics(),
                               child: Row(
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                    ),
-                                    child: SizedBox(
-                                      width: 120,
-                                      // P-26: el medidor muestra el coste del próximo
-                                      // turno de esta sesión (mazmorra 12 / chat 8).
-                                      child: OracleManaBar(
-                                        showLabel: true,
-                                        compact: true,
-                                        costPerTurn:
-                                            conversationState
-                                                    .activeScenarioId !=
-                                                null
-                                            ? 12
-                                            : 8,
-                                      ),
+                                  // #322: ancho y márgenes explícitos; dentro
+                                  // de un scroll horizontal no hay ancho finito,
+                                  // así que nunca `Expanded` aquí.
+                                  const SizedBox(
+                                    width: _kConversationManaRowLeftInset,
+                                  ),
+                                  SizedBox(
+                                    width: _kConversationManaBarWidth,
+                                    // P-26: el medidor muestra el coste del próximo
+                                    // turno de esta sesión (mazmorra 12 / chat 8).
+                                    child: OracleManaBar(
+                                      showLabel: true,
+                                      compact: true,
+                                      costPerTurn:
+                                          conversationState.activeScenarioId !=
+                                              null
+                                          ? 12
+                                          : 8,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(
+                                    width: _kConversationManaBarGap,
+                                  ),
                                   InkWell(
                                     onTap: () {
                                       setState(() {
@@ -2159,6 +2182,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               if (!isOracle)
                 DraggableMonsterWidget(
                   monster: HunterCatalog.regularMonsters.first,
+                  // #322: arranca por debajo de la cabecera y el arrastre no
+                  // puede volver a meterlo en ella.
+                  headerClearance: _kConversationMonsterTopClearance,
                   isSpeaking:
                       conversationState.isPlaying ||
                       conversationState.isProcessing,

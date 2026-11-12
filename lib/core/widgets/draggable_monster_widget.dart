@@ -6,12 +6,40 @@ import '../theme/app_motion.dart';
 import '../theme/app_radius.dart';
 import '../../features/dashboard/data/models/hunter_catalog.dart';
 
+/// Reserva vertical por defecto entre el safe-area superior y el borde
+/// superior del pill flotante (#322).
+///
+/// El widget vive dentro de un `Stack` que dibuja la cabecera de la pantalla
+/// (título, barra de maná, chips de modo) en la parte de arriba: si el pill
+/// arranca pegado al borde se monta encima de esa cabecera. La pantalla que lo
+/// hospeda puede pedir una reserva mayor con `headerClearance`.
+const double kDraggableMonsterHeaderClearance = 120;
+
+/// Separación mínima con los bordes laterales de la pantalla.
+const double kDraggableMonsterEdgeInset = 10;
+
+/// Ancho máximo estimado del pill colapsado (avatar + nombre + asa).
+const double kDraggableMonsterPillWidth = 160;
+
+/// Alto estimado del pill colapsado (avatar 34 + padding + borde).
+const double kDraggableMonsterPillHeight = 64;
+
+/// Espacio reservado en la parte inferior para la barra de voz/entrada: el
+/// pill nunca baja hasta taparla.
+const double kDraggableMonsterBottomReserve = 96;
+
 class DraggableMonsterWidget extends StatefulWidget {
   final DungeonMonsterItem monster;
   final bool isSpeaking;
   final double progress; // Value from 0.0 to 1.0 (deals damage to boss HP)
   final String? avatarAsset;
   final Function(bool isExpanded)? onExpandChanged;
+
+  /// #322: alto de cabecera que el pill debe respetar, medido desde el
+  /// safe-area superior (es decir, la Y mínima permitida es
+  /// `MediaQuery.padding.top + headerClearance`). Ni la posición inicial ni el
+  /// arrastre pueden subir por encima de esa línea.
+  final double headerClearance;
 
   const DraggableMonsterWidget({
     super.key,
@@ -20,6 +48,7 @@ class DraggableMonsterWidget extends StatefulWidget {
     this.progress = 0.0,
     this.avatarAsset,
     this.onExpandChanged,
+    this.headerClearance = kDraggableMonsterHeaderClearance,
   });
 
   @override
@@ -28,7 +57,11 @@ class DraggableMonsterWidget extends StatefulWidget {
 
 class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
     with TickerProviderStateMixin {
-  Offset _position = const Offset(20, 110);
+  // #322: `null` mientras el usuario no ha arrastrado el pill. La posición
+  // efectiva se calcula en cada `build` a partir de la cabecera (ver
+  // `_clampPosition`), así que un cambio de escala de fuente o de tamaño de
+  // pantalla no deja el pill clavado encima del header.
+  Offset? _position;
   bool _isExpanded = false;
 
   late AnimationController _floatController;
@@ -117,9 +150,54 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
     return const AssetImage('assets/images/avatars/oracle_01.webp');
   }
 
+  /// Y (en coordenadas del `Stack` que lo hospeda) donde termina la cabecera.
+  /// El pill nunca puede quedar por encima de esta línea.
+  double _headerBottomY(BuildContext context) {
+    return MediaQuery.paddingOf(context).top + widget.headerClearance;
+  }
+
+  /// Posición por defecto (antes de que el usuario arrastre): justo debajo de
+  /// la cabecera, alineada al margen izquierdo.
+  Offset _initialPosition(BuildContext context) {
+    return Offset(kDraggableMonsterEdgeInset, _headerBottomY(context));
+  }
+
+  /// Deja cualquier posición dentro de los límites seguros: por debajo de la
+  /// cabecera, dentro de la pantalla y con el borde inferior despejado.
+  Offset _clampPosition(BuildContext context, Offset desired, Size screenSize) {
+    final insets = MediaQuery.paddingOf(context);
+    final double minY = _headerBottomY(context);
+    // `max` protege el caso de pantallas muy bajas: si no cabe, manda la
+    // cabecera (nunca se solapa con ella).
+    final double maxY = max(
+      minY,
+      screenSize.height -
+          insets.bottom -
+          kDraggableMonsterPillHeight -
+          kDraggableMonsterBottomReserve,
+    );
+    final double maxX = max(
+      kDraggableMonsterEdgeInset,
+      screenSize.width -
+          kDraggableMonsterPillWidth -
+          kDraggableMonsterEdgeInset,
+    );
+    return Offset(
+      desired.dx.clamp(kDraggableMonsterEdgeInset, maxX).toDouble(),
+      desired.dy.clamp(minY, maxY).toDouble(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+
+    // #322: la posición se revalida en cada build contra la cabecera actual.
+    final Offset position = _clampPosition(
+      context,
+      _position ?? _initialPosition(context),
+      screenSize,
+    );
 
     if (_isExpanded) {
       // Expanded State: Fullscreen Dynamic Live Animated Monster Overlay behind chat
@@ -370,20 +448,18 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
 
     // Collapsed State: Floating Draggable Animated Pill (With Continuous Bounce)
     return Positioned(
-      left: _position.dx,
-      top: _position.dy,
+      left: position.dx,
+      top: position.dy,
       child: GestureDetector(
         onPanUpdate: (details) {
           setState(() {
-            final newX = (_position.dx + details.delta.dx).clamp(
-              10.0,
-              screenSize.width - 160.0,
+            // #322: el arrastre también pasa por el clamp, así que el pill no
+            // puede entrar en la franja de la cabecera ni salirse de pantalla.
+            _position = _clampPosition(
+              context,
+              (_position ?? position) + details.delta,
+              screenSize,
             );
-            final newY = (_position.dy + details.delta.dy).clamp(
-              60.0,
-              screenSize.height - 190.0,
-            );
-            _position = Offset(newX, newY);
           });
         },
         onTap: _toggleExpand,
