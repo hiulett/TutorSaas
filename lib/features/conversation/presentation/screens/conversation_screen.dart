@@ -69,7 +69,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
   final String? scenarioId;
   final String? scenarioTitle;
 
-  /// Cuando es true, esta pantalla ejecuta la EvaluaciÃ³n del OrÃ¡culo
+  /// Cuando es true, esta pantalla ejecuta la Evaluación del Oráculo
   /// (onboarding Paso 4): la IA conduce un examen oral conversacional
   /// reutilizando el mismo chat de voz y al final devuelve el resultado.
   final bool oracleMode;
@@ -103,13 +103,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   bool _isBlindListening = false;
   bool _isTypingMode = false;
   final TextEditingController _textController = TextEditingController();
-  // Auto-scroll de la conversaciÃ³n: baja hasta el Ãºltimo mensaje al avanzar.
+  // Auto-scroll de la conversación: baja hasta el último mensaje al avanzar.
   final ScrollController _chatScrollController = ScrollController();
 
-  /// Cierre centralizado de la sesiÃ³n: terminarla por CUALQUIER salida
+  /// Cierre centralizado de la sesión: terminarla por CUALQUIER salida
   /// (pop, back, go, dispose) persiste el progreso una sola vez (idempotente).
   ///
-  /// - [showSummary]: muestra `/summary` (solo en salida normal con interacciÃ³n).
+  /// - [showSummary]: muestra `/summary` (solo en salida normal con interacción).
   /// - [navigate]: si es false, solo persiste (dispose) sin navegar.
   Future<void> _handleExit({
     required bool isOracle,
@@ -119,10 +119,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     // Detener TTS siempre (antes del dispose, para no narrar en otra pantalla).
     ref.read(conversationStateProvider.notifier).stopTts(suppress: true);
 
-    // OrÃ¡culo: solo pop con el resultado (no registra sesiÃ³n normal).
+    // Oráculo: solo pop con el resultado (no registra sesión normal).
     if (isOracle) return;
 
-    // Solo hay registro/summary si hubo interacciÃ³n real (al menos un turno).
+    // Solo hay registro/summary si hubo interacción real (al menos un turno).
     final latest = ref.read(conversationStateProvider);
     final hasUserTurns = latest.messages.any((m) => m.sender == 'user');
     if (!hasUserTurns) return;
@@ -161,27 +161,31 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     }
   }
 
-  final List<Map<String, String>> _randomTopics = const [
-    {'icon': 'ðŸ’¼', 'title': 'Tech & AI'},
-    {'icon': 'âœˆï¸', 'title': 'Travel & Culture'},
-    {'icon': 'ðŸ”', 'title': 'Food & Recipes'},
-    {'icon': 'ðŸŽµ', 'title': 'Movies & Music'},
-    {'icon': 'âš½', 'title': 'Sports & Fitness'},
-    {'icon': 'ðŸ§ ', 'title': 'Philosophy & Science'},
-    {'icon': 'ðŸ“ˆ', 'title': 'Business & Careers'},
-    {'icon': 'ðŸ“š', 'title': 'Books & Stories'},
-    {'icon': 'ðŸš€', 'title': 'Space Exploration'},
-    {'icon': 'ðŸŽ¨', 'title': 'Art & Design'},
-    {'icon': 'ðŸŽ®', 'title': 'Video Games'},
-    {'icon': 'ðŸ¶', 'title': 'Pets & Animals'},
-    {'icon': 'ðŸŒ±', 'title': 'Environment & Nature'},
-    {'icon': 'ðŸ§˜', 'title': 'Wellness & Mindfulness'},
-    {'icon': 'ðŸ›ï¸', 'title': 'Fashion & Trends'},
-    {'icon': 'ðŸŒ', 'title': 'Global Cultures'},
-    {'icon': 'ðŸ–ï¸', 'title': 'Vacation Destinations'},
-    {'icon': 'ðŸŽ¬', 'title': 'Pop Culture'},
-    {'icon': 'ðŸš—', 'title': 'Electric Mobility'},
-    {'icon': 'ðŸ”®', 'title': 'Future Technology'},
+  /// #332: los temas usan `IconData` de Material en lugar de emoji. Los
+  /// literales viejos eran emoji que llegaban ya corruptos (UTF-8 leído
+  /// como Latin-1) y, aun cuando llegaran bien, el emoji depende de la
+  /// fuente del dispositivo.
+  final List<({IconData icon, String title})> _randomTopics = const [
+    (icon: Icons.memory_rounded, title: 'Tech & AI'),
+    (icon: Icons.flight_takeoff_rounded, title: 'Travel & Culture'),
+    (icon: Icons.restaurant_rounded, title: 'Food & Recipes'),
+    (icon: Icons.music_video_rounded, title: 'Movies & Music'),
+    (icon: Icons.sports_soccer_rounded, title: 'Sports & Fitness'),
+    (icon: Icons.psychology_rounded, title: 'Philosophy & Science'),
+    (icon: Icons.trending_up_rounded, title: 'Business & Careers'),
+    (icon: Icons.menu_book_rounded, title: 'Books & Stories'),
+    (icon: Icons.rocket_launch_rounded, title: 'Space Exploration'),
+    (icon: Icons.palette_rounded, title: 'Art & Design'),
+    (icon: Icons.sports_esports_rounded, title: 'Video Games'),
+    (icon: Icons.pets_rounded, title: 'Pets & Animals'),
+    (icon: Icons.eco_rounded, title: 'Environment & Nature'),
+    (icon: Icons.self_improvement_rounded, title: 'Wellness & Mindfulness'),
+    (icon: Icons.shopping_bag_rounded, title: 'Fashion & Trends'),
+    (icon: Icons.public_rounded, title: 'Global Cultures'),
+    (icon: Icons.beach_access_rounded, title: 'Vacation Destinations'),
+    (icon: Icons.theaters_rounded, title: 'Pop Culture'),
+    (icon: Icons.directions_car_rounded, title: 'Electric Mobility'),
+    (icon: Icons.auto_awesome_rounded, title: 'Future Technology'),
   ];
 
   @override
@@ -207,9 +211,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               promotion: widget.oraclePromotion,
             );
       } else {
-        // ðŸ° GuardiÃ¡n de la Mazmorra: sin manÃ¡ no se puede entrar a una
-        // lecciÃ³n/mazmorra. Espera a que el estado de manÃ¡ cargue (hasta ~6s)
-        // y, si no hay energÃ­a, bloquea el acceso en lugar de iniciar la sesiÃ³n.
+        // Guardián de la Mazmorra: sin maná no se puede entrar a una
+        // lección/mazmorra. Espera a que el estado de maná cargue (hasta ~6s)
+        // y, si no hay energía, bloquea el acceso en lugar de iniciar la sesión.
         Map<String, dynamic>? manaState;
         try {
           manaState = ref.read(manaStateProvider).value;
@@ -232,8 +236,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           final dailyRemaining =
               (manaState['daily_remaining'] as num?)?.toInt() ?? 0;
           final remaining = (manaState['remaining'] as num?)?.toInt() ?? 0;
-          // Coste mÃ­nimo para al menos UN turno de mazmorra (ai_action_costs:
-          // dungeon_turn = 12). Si el manÃ¡ no alcanza ni para eso, se bloquea.
+          // Coste mínimo para al menos UN turno de mazmorra (ai_action_costs:
+          // dungeon_turn = 12). Si el maná no alcanza ni para eso, se bloquea.
           const int minTurnCost = 12;
           final available = isFree ? dailyRemaining : remaining;
           final blocked = available < minTurnCost;
@@ -256,10 +260,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
   @override
   void dispose() {
-    // Detener cualquier narraciÃ³n TTS en curso (p.ej. la del OrÃ¡culo) al salir
-    // de la pantalla, para que no siga sonando en dashboard/otras pÃ¡ginas.
-    // `suppress` ademÃ¡s impide que un turno de la IA que termine despuÃ©s de la
-    // salida dispare una nueva narraciÃ³n.
+    // Detener cualquier narración TTS en curso (p.ej. la del Oráculo) al salir
+    // de la pantalla, para que no siga sonando en dashboard/otras páginas.
+    // `suppress` además impide que un turno de la IA que termine después de la
+    // salida dispare una nueva narración.
     try {
       _container?.read(conversationStateProvider.notifier).stopTts(suppress: true);
     } catch (e, st) {
@@ -269,8 +273,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         stackTrace: st,
       );
     }
-    // Red de seguridad: si la sesiÃ³n NO se cerrÃ³ por ninguna vÃ­a previa
-    // (app muerta, kill de widget, salida por go), persiste el progreso aquÃ­.
+    // Red de seguridad: si la sesión NO se cerró por ninguna vía previa
+    // (app muerta, kill de widget, salida por go), persiste el progreso aquí.
     // Idempotente: endSession solo guarda la primera vez (flag en el notifier).
     try {
       final notifier = _container?.read(conversationStateProvider.notifier);
@@ -466,7 +470,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     }
   }
 
-  // â”€â”€ Modal 1: Compass (GuÃ­a de MisiÃ³n y Contexto) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ Modal 1: Compass (Guía de Misión y Contexto) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _showScenarioMissionModal(BuildContext context) {
     final state = ref.read(conversationStateProvider);
@@ -523,7 +527,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         const SizedBox(width: 10),
                         Text(
                           AppLocalizations.of(context)?.convo_mission_guide ??
-                              'GuÃ­a de MisiÃ³n y Contexto',
+                              'Guía de Misión y Contexto',
                           style: GoogleFonts.spaceGrotesk(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -546,7 +550,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 (AppLocalizations.of(
                                       context,
                                     )?.convo_practice_title ??
-                                    'PrÃ¡ctica de ConversaciÃ³n'),
+                                    'Práctica de Conversación'),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -557,9 +561,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                           Text(
                             AppLocalizations.of(context)?.convo_objective(
                                   lesson?.mainObjective ??
-                                      'Practica tu conversaciÃ³n en el idioma seleccionado.',
+                                      'Practica tu conversación en el idioma seleccionado.',
                                 ) ??
-                                'Objetivo: ${lesson?.mainObjective ?? 'Practica tu conversaciÃ³n en el idioma seleccionado.'}',
+                                'Objetivo: ${lesson?.mainObjective ?? 'Practica tu conversación en el idioma seleccionado.'}',
                             style: const TextStyle(
                               color: AppColors.onSurfaceVariant,
                               fontSize: 13,
@@ -595,7 +599,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
                           AppLocalizations.of(context)?.convo_select_goals ??
-                              'Selecciona una lecciÃ³n para ver las metas especÃ­ficas.',
+                              'Selecciona una lección para ver las metas específicas.',
                           style: const TextStyle(
                             color: AppColors.onSurfaceVariant,
                             fontSize: 13,
@@ -634,7 +638,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
                           AppLocalizations.of(context)?.convo_select_phrases ??
-                              'Selecciona una lecciÃ³n para ver frases clave sugeridas.',
+                              'Selecciona una lección para ver frases clave sugeridas.',
                           style: const TextStyle(
                             color: AppColors.onSurfaceVariant,
                             fontSize: 13,
@@ -683,13 +687,25 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           if (hint != null && hint.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(left: 30, top: 2),
-              child: Text(
-                'ðŸ’¡ $hint',
-                style: const TextStyle(
-                  color: Colors.white38,
-                  fontSize: 11,
-                  fontStyle: FontStyle.italic,
-                ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.lightbulb_outline_rounded,
+                    color: Colors.white38,
+                    size: 11,
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      hint,
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
@@ -748,7 +764,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     );
   }
 
-  // â”€â”€ Modal 2: Fingerprint (Huella de Voz y DiagnÃ³stico) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ Modal 2: Fingerprint (Huella de Voz y Diagnóstico) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _showSpeechDnaModal(BuildContext context) {
     final messages = ref.read(conversationStateProvider).messages;
@@ -786,7 +802,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         progressAsync.value?['level'] as String? ?? 'Principiante';
     final cefrText = '$gameRank ($cefrLevel)';
     final languageName =
-        progressAsync.value?['language'] as String? ?? 'InglÃ©s';
+        progressAsync.value?['language'] as String? ?? 'Inglés';
     final cleanLanguage = languageName.toLowerCase();
 
     // Extract real phonemes to practice based on words present in actual user text
@@ -796,7 +812,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         .toLowerCase();
     final List<String> detectedPhonemes = [];
 
-    if (cleanLanguage.contains('francÃ©s') ||
+    if (cleanLanguage.contains('francés') ||
         cleanLanguage.contains('french') ||
         cleanLanguage.contains('fr')) {
       // French phonemes
@@ -825,7 +841,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       if (detectedPhonemes.isEmpty) {
         detectedPhonemes.add('/r/ (bistro, uvular)');
       }
-    } else if (cleanLanguage.contains('alemÃ¡n') ||
+    } else if (cleanLanguage.contains('alemán') ||
         cleanLanguage.contains('german') ||
         cleanLanguage.contains('de')) {
       // German phonemes
@@ -838,18 +854,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           fullUserText.contains('buch') ||
           fullUserText.contains('machen');
       final hasOe =
-          fullUserText.contains('Ã¶') ||
+          fullUserText.contains('ö') ||
           fullUserText.contains('oe') ||
-          fullUserText.contains('schÃ¶n');
+          fullUserText.contains('schön');
       final hasUe =
-          fullUserText.contains('Ã¼') ||
+          fullUserText.contains('ü') ||
           fullUserText.contains('ue') ||
-          fullUserText.contains('mÃ¼de');
+          fullUserText.contains('müde');
 
       if (!hasCh) detectedPhonemes.add('/ch/ (ich, sprechen)');
       if (!hasAch) detectedPhonemes.add('/ach/ (ach, buch)');
-      if (!hasOe) detectedPhonemes.add('/Ã¶/ (schÃ¶n, hÃ¶ren)');
-      if (!hasUe) detectedPhonemes.add('/Ã¼/ (mÃ¼de, fÃ¼nf)');
+      if (!hasOe) detectedPhonemes.add('/ö/ (schön, hören)');
+      if (!hasUe) detectedPhonemes.add('/ü/ (müde, fünf)');
       if (detectedPhonemes.isEmpty) {
         detectedPhonemes.add('/ch/ (ich, ach)');
       }
@@ -951,7 +967,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     Expanded(
                       child: Text(
                         AppLocalizations.of(context)?.convo_voice_print ??
-                            'Huella de Voz & PronunciaciÃ³n',
+                            'Huella de Voz & Pronunciación',
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -970,7 +986,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     Expanded(
                       child: _buildMetricCard(
                         AppLocalizations.of(context)?.convo_phonetic_clarity ??
-                            'Claridad FonÃ©tica',
+                            'Claridad Fonética',
                         phoneticClarityValue,
                         Icons.graphic_eq_rounded,
                         AppColors.manaCyan,
@@ -1114,7 +1130,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final holdToTalk = ref.watch(micModeHoldToTalkProvider);
 
     ref.listen<ConversationState>(conversationStateProvider, (prev, next) {
-      // ManÃ¡ agotado â†’ abrir el GuardiÃ¡n de la Mazmorra (compra/espera/equipar)
+      // Maná agotado â†’ abrir el Guardián de la Mazmorra (compra/espera/equipar)
       // en vez de un snack.
       if (next.errorMessage != null &&
           next.errorMessage != prev?.errorMessage) {
@@ -1137,13 +1153,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           );
         }
       }
-      // Examen del OrÃ¡culo terminado: mostrar botÃ³n para continuar
-      // (ya no hacemos pop automÃ¡tico; el usuario decide cuÃ¡ndo salir).
+      // Examen del Oráculo terminado: mostrar botón para continuar
+      // (ya no hacemos pop automático; el usuario decide cuándo salir).
       if (isOracle && next.oracleFinished && !(prev?.oracleFinished ?? false)) {
-        // Nada automÃ¡tico: la UI muestra el botÃ³n "CONTINUAR".
+        // Nada automático: la UI muestra el botón "CONTINUAR".
       }
       // Auto-scroll: al llegar un nuevo mensaje (o crecer el streaming),
-      // baja la conversaciÃ³n hasta el final para ver la Ãºltima respuesta.
+      // baja la conversación hasta el final para ver la última respuesta.
       final prevLen = prev?.messages.length ?? 0;
       final nextLen = next.messages.length;
       final lastChanged =
@@ -1157,14 +1173,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       }
     });
 
-    // Scroll inicial al Ãºltimo mensaje (reanudar conversaciÃ³n / entrar).
+    // Scroll inicial al último mensaje (reanudar conversación / entrar).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollChatToBottom();
     });
 
     // Progress ratio: objetivos completados (estado en memoria, persistido en
-    // user_scenario_goals en el mismo turno) / objetivos totales del catÃ¡logo.
-    // Fuente Ãºnica de verdad: MissionProgressService (ver Docs/MissionProgressAudit).
+    // user_scenario_goals en el mismo turno) / objetivos totales del catálogo.
+    // Fuente única de verdad: MissionProgressService (ver Docs/MissionProgressAudit).
     final currentLesson = LessonCatalog.getLessonById(
       conversationState.activeScenarioId,
       title: widget.scenarioTitle,
@@ -1186,7 +1202,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           canPop: true,
           onPopInvokedWithResult: (didPop, result) async {
             if (!didPop) return;
-            // Salida normal (back/gesto): cerrar sesiÃ³n y mostrar resumen.
+            // Salida normal (back/gesto): cerrar sesión y mostrar resumen.
             await _handleExit(
               isOracle: isOracle,
               showSummary: true,
@@ -1360,13 +1376,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(
+                                          Icon(
                                             _isBlindListening
-                                                ? 'ðŸ™ˆ'
-                                                : 'ðŸ‘ï¸',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                            ),
+                                                ? Icons.visibility_off_rounded
+                                                : Icons.visibility_rounded,
+                                            size: 12,
+                                            color: _isBlindListening
+                                                ? const Color(0xFFFF00FF)
+                                                : Colors.white70,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
@@ -1374,7 +1391,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                                 ? (AppLocalizations.of(
                                                         context,
                                                       )?.convo_hidden_chat ??
-                                                      'Chat Oculto (4Âª/5Âª Estrella ðŸŒŸ)')
+                                                      'Chat Oculto (4ª/5ª Estrella)')
                                                 : (AppLocalizations.of(
                                                         context,
                                                       )?.convo_visible_chat ??
@@ -1423,13 +1440,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(
+                                          Icon(
                                             _isTypingMode
-                                                ? 'âŒ¨ï¸'
-                                                : 'ðŸŽ™ï¸',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                            ),
+                                                ? Icons.keyboard_rounded
+                                                : Icons.mic_rounded,
+                                            size: 12,
+                                            color: _isTypingMode
+                                                ? AppColors.manaCyan
+                                                : Colors.white70,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
@@ -1594,8 +1612,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 conversationNotifier,
                               ),
                             );
-                            // El tutor (OrÃ¡culo) muestra su avatar junto a cada mensaje
-                            // en todas las conversaciones (misiones y evaluaciÃ³n).
+                            // El tutor (Oráculo) muestra su avatar junto a cada mensaje
+                            // en todas las conversaciones (misiones y evaluación).
                             bubble = Padding(
                               padding: const EdgeInsets.only(bottom: 24.0),
                               child: Align(
@@ -1644,7 +1662,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                     RpgAvatar(
                                       avatarUrl: playerAvatarUrlOf(heroProfile),
                                       hunterClass: heroClass,
-                                      initials: 'HÃ‰ROE',
+                                      initials: 'HÉROE',
                                       size: 42,
                                     ),
                                   ],
@@ -1729,7 +1747,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: InkWell(
-                                onTap: () => _onTopicSelected(topic['title']!),
+                                onTap: () => _onTopicSelected(topic.title),
                                 borderRadius: BorderRadius.circular(20),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
@@ -1750,13 +1768,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        topic['icon']!,
-                                        style: const TextStyle(fontSize: 14),
+                                      Icon(
+                                        topic.icon,
+                                        size: 14,
+                                        color: Colors.white,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        topic['title']!,
+                                        topic.title,
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
@@ -1788,7 +1807,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                       AppLocalizations.of(
                                         context,
                                       )?.convo_input_hint ??
-                                      'Escribe tu mensaje en inglÃ©s...',
+                                      'Escribe tu mensaje en inglés...',
                                   hintStyle: const TextStyle(
                                     color: Colors.white38,
                                   ),
@@ -1880,7 +1899,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          // Icon 1: Compass (GuÃ­a de MisiÃ³n) â€” oculto en el examen del OrÃ¡culo
+                          // Icon 1: Compass (Guía de Misión) â€” oculto en el examen del Oráculo
                           if (!isOracle)
                             IconButton(
                               tooltip: 'Objetivos de la misión',
@@ -1893,7 +1912,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   _showScenarioMissionModal(context),
                             ),
 
-                          // Icon 2: Hashtag (20 TÃ³picos al azar) â€” oculto en el examen del OrÃ¡culo
+                          // Icon 2: Hashtag (20 Tópicos al azar) â€” oculto en el examen del Oráculo
                           if (!isOracle)
                             IconButton(
                               tooltip: 'Temas sugeridos',
@@ -1926,11 +1945,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             onPressed: () => _showCorrectionsCodex(context),
                           ),
 
-                          // Icon 3: Mic (Tap-to-Talk) â€” o botÃ³n CONTINUAR al terminar el OrÃ¡culo
+                          // Icon 3: Mic (Tap-to-Talk) â€” o botón CONTINUAR al terminar el Oráculo
                           if (isOracle && conversationState.oracleFinished)
                             GestureDetector(
                               onTap: () async {
-                                // Cierra el TTS/sesiÃ³n OrÃ¡culo (no registra normal).
+                                // Cierra el TTS/sesión Oráculo (no registra normal).
                                 await _handleExit(
                                   isOracle: true,
                                   showSummary: false,
@@ -1966,10 +1985,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 height: 48,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(24),
-                                  color: AppColors.medievalAgedGold,
+                                  color: AppColors.royalGold,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.medievalAgedGold
+                                      color: AppColors.royalGold
                                           .withValues(alpha: 0.5),
                                       blurRadius: 12,
                                     ),
@@ -1980,7 +1999,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   children: [
                                     const Icon(
                                       Icons.auto_awesome_rounded,
-                                      color: AppColors.medievalBg,
+                                      color: AppColors.voidBg,
                                       size: 18,
                                     ),
                                     const SizedBox(width: 8),
@@ -1992,7 +2011,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                       style: GoogleFonts.jetBrainsMono(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.medievalBg,
+                                        color: AppColors.voidBg,
                                       ),
                                     ),
                                   ],
@@ -2045,7 +2064,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               ),
                             ),
 
-                          // Icon 4: Fingerprint (Huella de Voz & BiometrÃ­a)
+                          // Icon 4: Fingerprint (Huella de Voz & Biometría)
                           IconButton(
                             tooltip: 'Huella de voz',
                             icon: const Icon(
@@ -2082,7 +2101,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 ),
               ),
 
-              // Overlay: el OrÃ¡culo estÃ¡ evaluando la conversaciÃ³n
+              // Overlay: el Oráculo está evaluando la conversación
               if (isOracle && conversationState.oracleEvaluating)
                 Positioned(
                   left: 0,
@@ -2090,7 +2109,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   top: 0,
                   bottom: 0,
                   child: Container(
-                    color: AppColors.medievalBg.withValues(alpha: 0.82),
+                    color: AppColors.voidBg.withValues(alpha: 0.82),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -2099,7 +2118,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             width: 44,
                             height: 44,
                             child: CircularProgressIndicator(
-                              color: AppColors.medievalAgedGold,
+                              color: AppColors.royalGold,
                               strokeWidth: 3,
                             ),
                           ),
@@ -2108,13 +2127,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             AppLocalizations.of(
                                   context,
                                 )?.convo_oracle_evaluating ??
-                                'EL ORÃCULO ESTÃ EVALUANDO TU CONVERSACIÃ“N...',
+                                'EL ORÁCULO ESTÁ EVALUANDO TU CONVERSACIÓN...',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.jetBrainsMono(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1,
-                              color: AppColors.medievalText,
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -2122,11 +2141,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             AppLocalizations.of(
                                   context,
                                 )?.convo_analyzing_level ??
-                                'Analizando tu nivel de comunicaciÃ³n...',
+                                'Analizando tu nivel de comunicación...',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: AppColors.medievalTextDim,
+                              color: AppColors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -2187,13 +2206,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(20),
-          decoration: const BoxDecoration(
-            color: Color(0xFF1E60FF),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-              bottomLeft: Radius.circular(4),
+          // #329: la pantalla usa una sola superficie. La burbuja del tutor
+          // deja el azul plano #1E60FF y pasa a superficie con borde cian,
+          // radio 4 en las cuatro esquinas. Se sigue distinguiendo de la del
+          // alumno: borde cian (la del alumno lo lleva blanco al 8 %), texto
+          // claro y va a la izquierda junto al avatar del tutor.
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: AppColors.manaCyan.withValues(alpha: 0.25),
             ),
           ),
           child: Column(
