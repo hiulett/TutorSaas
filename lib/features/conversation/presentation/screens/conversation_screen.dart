@@ -1289,11 +1289,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
                           // Mana & Mode Controls Bar
                           if (!isOracle)
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              child: Row(
-                                children: [
+                            // #329 follow-up: era un scroll horizontal con
+                            // Row, así que el último chip («Modo voz») se
+                            // cortaba en el borde derecho. Con Wrap los chips
+                            // bajan de línea y nunca quedan partidos.
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
                                   // #322: ancho y márgenes explícitos; dentro
                                   // de un scroll horizontal no hay ancho finito,
                                   // así que nunca `Expanded` aquí.
@@ -1494,7 +1498,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                   ),
                                 ],
                               ),
-                            ),
                         ],
                       ),
                     ),
