@@ -65,6 +65,10 @@ class ConversationMicButton extends StatefulWidget {
 }
 
 class _ConversationMicButtonState extends State<ConversationMicButton> {
+  /// Tamaño fijo del control (72 dp) y de su icono.
+  static const double _diameter = 72;
+  static const double _iconSize = 36;
+
   late HoldToTalkGesture _gesture = _buildGesture();
 
   HoldToTalkGesture _buildGesture() =>
@@ -129,29 +133,57 @@ class _ConversationMicButtonState extends State<ConversationMicButton> {
     if (action == HoldToTalkAction.cancel) widget.onHoldCancel();
   }
 
+  /// #329: color e icono del botón según el estado, en la paleta del HUD.
+  ///
+  /// Prioridad: cancelación por arrastre > grabando > procesando >
+  /// reproduciendo > reposo. La cancelación gana porque al soltar se descarta
+  /// el clip; el resto de estados son mutuamente excluyentes en la pantalla.
+  _MicSkin _skinFor({required bool cancelling}) {
+    if (cancelling) {
+      return const _MicSkin(AppColors.crimsonRed, Icons.close_rounded);
+    }
+    if (widget.isRecording) {
+      return const _MicSkin(AppColors.runeViolet, Icons.stop_rounded);
+    }
+    if (widget.isProcessing) {
+      return const _MicSkin(AppColors.royalGold, Icons.mic_rounded);
+    }
+    if (widget.isPlaying) {
+      return const _MicSkin(AppColors.emeraldGreen, Icons.mic_rounded);
+    }
+    return const _MicSkin(AppColors.manaCyan, Icons.mic_rounded);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cancelling = widget.holdToTalk && _gesture.willCancel;
+    final skin = _skinFor(cancelling: cancelling);
     final button = Container(
-      width: 72,
-      height: 72,
+      width: _diameter,
+      height: _diameter,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: cancelling ? AppColors.runeViolet : Colors.white,
+        // Gradiente del propio color de estado: da volumen al bloque sin salir
+        // de la paleta (antes era un círculo blanco, único fuera del HUD).
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [skin.highlight, skin.color],
+        ),
+        // Glow del color de estado, no negro: el botón emite luz como el HUD.
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: skin.color.withValues(alpha: 0.35),
+            blurRadius: 22,
+            spreadRadius: 1,
           ),
         ],
       ),
       child: Icon(
-        cancelling
-            ? Icons.close_rounded
-            : (widget.isRecording ? Icons.stop_rounded : Icons.mic_rounded),
-        color: const Color(0xFF0F172A),
-        size: 36,
+        skin.icon,
+        // Contraste sobre cian/oro/violeta/esmeralda: tinta del fondo del HUD.
+        color: AppColors.voidBg,
+        size: _iconSize,
       ),
     );
 
@@ -200,4 +232,19 @@ class _ConversationMicButtonState extends State<ConversationMicButton> {
       (widget.holdToTalk
           ? 'Mantén pulsado para grabar y toca dos veces para detener y enviar.'
           : 'Toca dos veces para empezar o detener la grabación.');
+}
+
+/// #329: color e icono del HUD para un estado concreto del micrófono.
+class _MicSkin {
+  const _MicSkin(this.color, this.icon);
+
+  /// Color base del estado (siempre de `AppColors`, nunca blanco).
+  final Color color;
+
+  /// Icono que se dibuja sobre ese color.
+  final IconData icon;
+
+  /// Extremo claro del gradiente: el color base aclarado con blanco al 22 %.
+  Color get highlight =>
+      Color.alphaBlend(Colors.white.withValues(alpha: 0.22), color);
 }
