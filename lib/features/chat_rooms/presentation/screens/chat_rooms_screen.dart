@@ -101,7 +101,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
       child: Text(
         label,
         style: GoogleFonts.jetBrainsMono(
-          fontSize: 8,
+          fontSize: 10,
           fontWeight: FontWeight.bold,
           color: color,
           letterSpacing: 0.4,
@@ -504,7 +504,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Cabecera del gremio (F1: título + rango + prestigio compacto)
-                  const _GuildHallHeader(),
+                  _GuildHallHeader(isTab: widget.isTab),
 
                   const SizedBox(height: 10),
 
@@ -837,7 +837,7 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                                                   label,
                                                   style: TextStyle(
                                                     color: color,
-                                                    fontSize: 8,
+                                                    fontSize: 10,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
@@ -986,10 +986,14 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
   }
 }
 
-/// Cabecera del Guild Hall (F1 · UX-Audit): título + rango + prestigio compactos
-/// en una sola fila. El prestigio ya no ocupa una tarjeta completa.
+/// Cabecera del Guild Hall (F1 · UX-Audit): título + rango + prestigio compactos.
+/// En modo pestaña el título se omite (el dock ya nombra la sección). El
+/// prestigio ya no ocupa una tarjeta completa.
 class _GuildHallHeader extends ConsumerWidget {
-  const _GuildHallHeader();
+  /// En modo pestaña el dock ya rotula la sección: no se repite el título.
+  final bool isTab;
+
+  const _GuildHallHeader({this.isTab = false});
 
   (String, Color) _rankForCefr(String cefr, AppLocalizations l10n) {
     final band = cefr.isEmpty ? 'A' : cefr.substring(0, 1).toUpperCase();
@@ -1018,34 +1022,41 @@ class _GuildHallHeader extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Título en su propia línea: nunca se corta por el prestigio.
-        Text(
-          l10n.guild_hall.toUpperCase(),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            color: AppColors.onSurface,
-            letterSpacing: 0.8,
+        // En modo pestaña el dock ya nombra el gremio: aquí sobraría.
+        if (!isTab) ...[
+          // Título en su propia línea: nunca se corta por el prestigio.
+          Text(
+            l10n.guild_hall.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: AppColors.onSurface,
+              letterSpacing: 0.8,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        // Fila secundaria: rango + prestigio compacto.
-        Row(
+          const SizedBox(height: 4),
+        ],
+        // Fila secundaria: rango + prestigio compacto. `Wrap` porque con el
+        // piso tipográfico de 10 sp ambos ya no caben en una línea a 312 dp;
+        // así el chip baja a la segunda línea en vez de desbordar.
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
               l10n.chat_rank_line(rankLabel, cefr),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.jetBrainsMono(
-                fontSize: 9,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.8,
                 color: rankColor,
               ),
             ),
-            const SizedBox(width: 8),
             // Prestigio compacto (chip)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1059,9 +1070,9 @@ class _GuildHallHeader extends ConsumerWidget {
                 children: [
                   const Icon(Icons.military_tech_rounded, color: AppColors.royalGold, size: 12),
                   const SizedBox(width: 4),
-                  Text(l10n.room_prestige('$level'), style: GoogleFonts.jetBrainsMono(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.royalGold)),
+                  Text(l10n.room_prestige('$level'), style: GoogleFonts.jetBrainsMono(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.royalGold)),
                   const SizedBox(width: 4),
-                  Text(isPremium ? l10n.premium : l10n.chat_free, style: GoogleFonts.jetBrainsMono(fontSize: 7, color: isPremium ? AppColors.manaCyan : AppColors.onSurfaceVariant)),
+                  Text(isPremium ? l10n.premium : l10n.chat_free, style: GoogleFonts.jetBrainsMono(fontSize: 10, color: isPremium ? AppColors.manaCyan : AppColors.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -1268,7 +1279,7 @@ class _GuildTrophyTile extends StatelessWidget {
                 Text(
                   isUnlocked ? 'DESBLOQUEADO' : 'BLOQUEADO',
                   style: GoogleFonts.jetBrainsMono(
-                    fontSize: 8,
+                    fontSize: 10,
                     letterSpacing: 0.5,
                     color: isUnlocked ? AppColors.royalGold : AppColors.onSurfaceVariant,
                   ),
