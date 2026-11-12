@@ -114,7 +114,7 @@ class _DraggableMonsterWidgetState extends State<DraggableMonsterWidget>
       return NetworkImage(url);
     }
     // Fallback: avatar del catálogo cuando no hay ni asset ni URL.
-    return const AssetImage('assets/images/avatars/oracle_01.png');
+    return const AssetImage('assets/images/avatars/oracle_01.webp');
   }
 
   @override

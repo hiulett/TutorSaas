@@ -148,48 +148,48 @@ class _CyberManhwaBackgroundState extends State<CyberManhwaBackground>
   String _getFloorAssetPath() {
     switch (widget.bgMode) {
       case CyberBgMode.onboardingStep0:
-        return 'assets/images/onboarding_interview_bg.jpg';
+        return 'assets/images/onboarding_interview_bg.webp';
       case CyberBgMode.onboardingStep1:
-        return 'assets/images/dungeon_forest_a1_bg.jpg';
+        return 'assets/images/dungeon_forest_a1_bg.webp';
       case CyberBgMode.onboardingStep2:
-        return 'assets/images/dungeon_ruins_a2_bg.jpg';
+        return 'assets/images/dungeon_ruins_a2_bg.webp';
       case CyberBgMode.onboardingStep3:
-        return 'assets/images/dungeon_wind_b1_bg.jpg';
+        return 'assets/images/dungeon_wind_b1_bg.webp';
       case CyberBgMode.onboardingStep4:
-        return 'assets/images/cyber_manhwa_portal_bg.jpg';
+        return 'assets/images/cyber_manhwa_portal_bg.webp';
       case CyberBgMode.onboardingStep5:
-        return 'assets/images/dungeon_boss_arena_bg.jpg';
+        return 'assets/images/dungeon_boss_arena_bg.webp';
       case CyberBgMode.onboardingStep6:
-        return 'assets/images/dungeon_ruins_a2_bg.jpg';
+        return 'assets/images/dungeon_ruins_a2_bg.webp';
       case CyberBgMode.onboardingStep7:
-        return 'assets/images/onboarding_license_delivery_bg.jpg';
+        return 'assets/images/onboarding_license_delivery_bg.webp';
       case CyberBgMode.dashboardGate:
-        return 'assets/images/dashboard_dungeon_gate_bg.jpg';
+        return 'assets/images/dashboard_dungeon_gate_bg.webp';
       case CyberBgMode.guildHall:
-        return 'assets/images/guild_hall_adventurers_bg.jpg';
+        return 'assets/images/guild_hall_adventurers_bg.webp';
       case CyberBgMode.guildTable:
-        return 'assets/images/guild_table_adventurers_bg.jpg';
+        return 'assets/images/guild_table_adventurers_bg.webp';
       case CyberBgMode.hunterStatus:
-        return 'assets/images/hunter_status_matrix_bg.jpg';
+        return 'assets/images/hunter_status_matrix_bg.webp';
       case CyberBgMode.dynamicLevel:
         if (widget.isBossArena)
-          return 'assets/images/dungeon_boss_arena_bg.jpg';
+          return 'assets/images/dungeon_boss_arena_bg.webp';
         switch (widget.levelCode.toUpperCase()) {
           case 'PRE-A1':
-            return 'assets/images/dungeon_forest_a1_bg.jpg';
+            return 'assets/images/dungeon_forest_a1_bg.webp';
           case 'A1':
-            return 'assets/images/dungeon_forest_a1_bg.jpg';
+            return 'assets/images/dungeon_forest_a1_bg.webp';
           case 'A2':
-            return 'assets/images/dungeon_ruins_a2_bg.jpg';
+            return 'assets/images/dungeon_ruins_a2_bg.webp';
           case 'B1':
-            return 'assets/images/dungeon_wind_b1_bg.jpg';
+            return 'assets/images/dungeon_wind_b1_bg.webp';
           case 'B2':
-            return 'assets/images/cyber_manhwa_portal_bg.jpg';
+            return 'assets/images/cyber_manhwa_portal_bg.webp';
           case 'C1':
           case 'C2':
-            return 'assets/images/dungeon_boss_arena_bg.jpg';
+            return 'assets/images/dungeon_boss_arena_bg.webp';
           default:
-            return 'assets/images/cyber_manhwa_portal_bg.jpg';
+            return 'assets/images/cyber_manhwa_portal_bg.webp';
         }
     }
   }

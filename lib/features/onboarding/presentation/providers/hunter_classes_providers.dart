@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -88,7 +88,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'carmesí',
     rarity: 'comun',
     order: 1,
-    avatar: 'assets/images/avatars/avatar_berserker_01.png',
+    avatar: 'assets/images/avatars/avatar_berserker_01.webp',
     atk: 85, def: 55, mag: 20, spd: 60, sup: 35, surv: 70,
   );
   add(
@@ -103,7 +103,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'violeta',
     rarity: 'comun',
     order: 2,
-    avatar: 'assets/images/avatars/avatar_mage_01.png',
+    avatar: 'assets/images/avatars/avatar_mage_01.webp',
     atk: 35, def: 45, mag: 95, spd: 40, sup: 60, surv: 45,
   );
   add(
@@ -118,7 +118,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'azul oscuro',
     rarity: 'comun',
     order: 3,
-    avatar: 'assets/images/avatars/avatar_assassin_01.png',
+    avatar: 'assets/images/avatars/avatar_assassin_01.webp',
     atk: 80, def: 35, mag: 30, spd: 95, sup: 25, surv: 50,
   );
   add(
@@ -133,7 +133,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'dorada',
     rarity: 'comun',
     order: 4,
-    avatar: 'assets/images/avatars/avatar_knight_01.png',
+    avatar: 'assets/images/avatars/avatar_knight_01.webp',
     atk: 55, def: 95, mag: 15, spd: 35, sup: 70, surv: 90,
   );
   add(
@@ -148,7 +148,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'esmeralda',
     rarity: 'comun',
     order: 5,
-    avatar: 'assets/images/avatars/avatar_archer_01.png',
+    avatar: 'assets/images/avatars/avatar_archer_01.webp',
     atk: 65, def: 40, mag: 40, spd: 80, sup: 45, surv: 55,
   );
   add(
@@ -163,7 +163,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'magenta',
     rarity: 'comun',
     order: 6,
-    avatar: 'assets/images/avatars/avatar_summoner_01.png',
+    avatar: 'assets/images/avatars/avatar_summoner_01.webp',
     atk: 45, def: 40, mag: 85, spd: 55, sup: 75, surv: 45,
   );
   add(
@@ -178,7 +178,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'celeste',
     rarity: 'raro',
     order: 7,
-    avatar: 'assets/images/avatars/avatar_paladin_01.png',
+    avatar: 'assets/images/avatars/avatar_paladin_01.webp',
     atk: 60, def: 80, mag: 55, spd: 40, sup: 90, surv: 85,
   );
   add(
@@ -193,7 +193,7 @@ List<HunterClassData> _catalogFallback() {
     aura: 'púrpura',
     rarity: 'epico',
     order: 8,
-    avatar: 'assets/images/avatars/avatar_necromancer_01.png',
+    avatar: 'assets/images/avatars/avatar_necromancer_01.webp',
     atk: 50, def: 45, mag: 90, spd: 35, sup: 50, surv: 55,
   );
 

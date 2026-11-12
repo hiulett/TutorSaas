@@ -110,7 +110,7 @@ void main() {
         children: [
           DraggableMonsterWidget(
             monster: monster,
-            avatarAsset: 'assets/images/avatars/oracle_01.png',
+            avatarAsset: 'assets/images/avatars/oracle_01.webp',
           ),
         ],
       );
