@@ -92,32 +92,31 @@ class AuraHud extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        l10n?.aura_locked ?? 'AURA BLOQUEADA',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${l10n?.aura_basic_stage ?? 'ETAPA BÁSICA'} ${aura.basicObjectivesDone}/${aura.basicObjectivesTotal}',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.manaCyan,
-                      ),
-                    ),
-                  ],
+                // #333: la etiqueta y el contador iban en la misma fila y el
+                // contador truncaba «AURA BLOQUEADA». Ahora el contador baja a
+                // su propia línea, así la etiqueta se lee completa.
+                Text(
+                  l10n?.aura_locked ?? 'AURA BLOQUEADA',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${l10n?.aura_basic_stage ?? 'ETAPA BÁSICA'} '
+                  '${aura.basicObjectivesDone}/${aura.basicObjectivesTotal}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.manaCyan,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Tooltip(

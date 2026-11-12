@@ -483,7 +483,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 Text(
                   '${wallet.xpIntoLevel}/${wallet.xpPerLevel} XP',
                   style: GoogleFonts.jetBrainsMono(
-                    fontSize: 9,
+                    fontSize: 10,
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
@@ -695,7 +695,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       'LOS FRAGMENTOS CRAFTEAN COSMÉTICOS. ELIGE BIEN, CAZADOR.')
                   .toUpperCase(),
               style: GoogleFonts.jetBrainsMono(
-                fontSize: 9,
+                fontSize: 10,
                 color: AppColors.onSurfaceVariant,
                 height: 1.5,
               ),
@@ -746,7 +746,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       'PRÓXIMO DESBLOQUEO: ${next.name.toUpperCase()} · NV. ${next.requiredLevel}')
                   .toUpperCase(),
               style: GoogleFonts.jetBrainsMono(
-                fontSize: 9,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 color: AppColors.manaCyan,
               ),
@@ -914,7 +914,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.jetBrainsMono(
-                            fontSize: 9,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: color,
                             letterSpacing: 0.5,
@@ -937,7 +937,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                           child: Text(
                             'NV. ${offer.requiredLevel}',
                             style: GoogleFonts.jetBrainsMono(
-                              fontSize: 8,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: lockedByLevel
                                   ? AppColors.onSurfaceVariant
@@ -966,7 +966,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                           child: Text(
                             offer.requiredPlanLabel!,
                             style: GoogleFonts.jetBrainsMono(
-                              fontSize: 8,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: AppColors.runeViolet,
                             ),
@@ -1015,7 +1015,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                         Text(
                           '($balance)',
                           style: GoogleFonts.jetBrainsMono(
-                            fontSize: 9,
+                            fontSize: 10,
                             color: AppColors.onSurfaceVariant,
                           ),
                         ),

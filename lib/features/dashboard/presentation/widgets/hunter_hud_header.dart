@@ -317,7 +317,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
             l10n?.system_hunter_connected ?? 'SISTEMA DE CAZADOR — CONECTADO',
             textAlign: TextAlign.center,
             style: GoogleFonts.jetBrainsMono(
-              fontSize: 9,
+              fontSize: 10,
               letterSpacing: 2,
               color: AppColors.manaCyan.withValues(alpha: 0.6),
             ),

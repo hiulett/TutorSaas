@@ -439,7 +439,7 @@ class _StatTile extends StatelessWidget {
     // Altura fija de dos líneas de etiqueta: los tres tiles quedan igual de
     // altos aunque una etiqueta ("Rango del Gremio") ocupe dos líneas y las
     // otras una. Se calcula con el `textScaler` real, no con un valor fijo.
-    final double labelLine = MediaQuery.textScalerOf(context).scale(8) * 1.2;
+    final double labelLine = MediaQuery.textScalerOf(context).scale(10) * 1.2;
 
     return GlassCard(
       blur: 20,
@@ -480,7 +480,7 @@ class _StatTile extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.jetBrainsMono(
                   color: AppColors.onSurfaceVariant,
-                  fontSize: 8,
+                  fontSize: 10,
                   height: 1.2,
                   letterSpacing: 0.2,
                 ),
