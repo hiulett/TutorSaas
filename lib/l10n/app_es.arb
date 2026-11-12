@@ -189,6 +189,12 @@
   "auth_password_mismatch": "Las llaves de maná no coinciden.",
   "convo_hud_npc": "DIÁLOGO HABLADO // NPC",
   "convo_hud_hunter": "REGISTRO VOCAL DEL CAZADOR",
+  "convo_corrections_title": "CORRECCIONES",
+  "corr_type_grammar": "GRAMÁTICA",
+  "corr_type_vocabulary": "VOCABULARIO",
+  "corr_type_word_choice": "ELECCIÓN",
+  "corr_type_pronunciation": "PRONUNCIACIÓN",
+  "corr_type_stt": "STT",
   "complete_onboarding": "Completar Onboarding",
 
   "exam_timer": "Tiempo Restante",

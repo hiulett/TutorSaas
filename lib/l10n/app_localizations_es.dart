@@ -545,6 +545,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get convo_hud_hunter => 'REGISTRO VOCAL DEL CAZADOR';
 
   @override
+  String get convo_corrections_title => 'CORRECCIONES';
+
+  @override
+  String get corr_type_grammar => 'GRAMÁTICA';
+
+  @override
+  String get corr_type_vocabulary => 'VOCABULARIO';
+
+  @override
+  String get corr_type_word_choice => 'ELECCIÓN';
+
+  @override
+  String get corr_type_pronunciation => 'PRONUNCIACIÓN';
+
+  @override
+  String get corr_type_stt => 'STT';
+
+  @override
   String get complete_onboarding => 'Completar Onboarding';
 
   @override
