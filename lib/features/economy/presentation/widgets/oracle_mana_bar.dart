@@ -28,6 +28,12 @@ class OracleManaBar extends ConsumerWidget {
   final bool showLabel;
   final bool compact;
 
+  /// Oculta las dos líneas de detalle (saldo repetido + coste/caducidad) y
+  /// deja solo la cabecera `MANÁ 16364 / 17000` con la barra. La conversación
+  /// lo usa así: a pantalla completa esas dos líneas pesaban ~36 dp y
+  /// repetían un dato que ya está en la cabecera.
+  final bool showSubLabels;
+
   /// Coste de la próxima acción de IA (P-26). Permite mostrar los turnos que
   /// quedan: mazmorra 12, chat libre 8, Oráculo 15 (`ai_action_costs`).
   final int costPerTurn;
@@ -36,6 +42,7 @@ class OracleManaBar extends ConsumerWidget {
     super.key,
     this.showLabel = true,
     this.compact = false,
+    this.showSubLabels = true,
     this.costPerTurn = ManaBudget.defaultCostPerTurn,
   });
 
@@ -160,7 +167,7 @@ class OracleManaBar extends ConsumerWidget {
             color: exhausted ? AppColors.crimsonRed : AppColors.runeViolet,
           ),
         ),
-        if (showLabel) ...[
+        if (showLabel && showSubLabels) ...[
           const SizedBox(height: 4),
           // #338: solo quedan aquí dos piezas y no compiten: el saldo es un
           // ancla intrínseca (≈35 px a escala 1.1 con 5 dígitos, nunca se
