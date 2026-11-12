@@ -38,6 +38,19 @@ jobs:
       - name: Generate localizations
         run: flutter gen-l10n
 
+      # W0-4 (#277): ninguna clave del template puede quedarse sin traducir en
+      # es/pt. `l10n.yaml` vuelca las pendientes a build/l10n/untranslated.json.
+      - name: i18n gate (sin claves pendientes)
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          pending = {k: v for k, v in json.load(open('build/l10n/untranslated.json')).items() if v}
+          if pending:
+              print('Claves sin traducir:', pending)
+              sys.exit(1)
+          print('i18n OK: todas las claves traducidas')
+          PY
+
       # 0 errores y 0 warnings (P-17). Los infos no bloquean.
       - name: Analyze
         run: flutter analyze --no-fatal-infos
@@ -152,10 +165,58 @@ jobs:
       - name: Build
         run: npm run build
 
+  android-build:
+    name: Android (AAB debug)
+    # W0-4 (#277): un release puede romperse con el CI en verde. Este job compila
+    # el bundle en cada PR para que Gradle/Manifest/iconos fallen aquí, no al
+    # publicar. Va en debug para no depender de los secretos del keystore.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          cache: true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Build AAB
+        run: flutter build appbundle --debug
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-aab
+          path: build/app/outputs/bundle/debug/app-debug.aab
+          if-no-files-found: error
+
   summary:
     name: Pipeline summary
-    needs: [flutter, edge-functions, web-admin]
+    needs: [flutter, android-build, edge-functions, web-admin]
     runs-on: ubuntu-latest
     steps:
       - name: Echo status
-        run: echo "Flutter (0 warnings), Edge Functions y web_admin en verde."
+        run: echo "Flutter (0 warnings), AAB debug, Edge Functions y web_admin en verde."
