@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,20 +7,17 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/floating_reward.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
 import '../providers/dashboard_providers.dart';
 import '../../data/models/hunter_catalog.dart';
 import '../../data/models/hunter_skill_titles.dart';
 import '../../domain/models/aura_system.dart';
-import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../../domain/models/hunter_level.dart';
-import 'aura_hud.dart';
 
 /// HUD central del dashboard (paridad con PlantillaHtml/hunter_control_center_dashboard).
-/// Muestra: avatar + nombre + título, mana gem, barra de maná del Oráculo y
+/// Muestra: avatar + nombre + tÃ­tulo, mana gem, barra de manÃ¡ del OrÃ¡culo y
 /// notificaciones de misiones/racha. Reutiliza widgets core (GlassCard,
-/// RpgAvatar) y tipografía estándar.
+/// RpgAvatar) y tipografÃ­a estÃ¡ndar.
 class HunterHudHeader extends ConsumerStatefulWidget {
   const HunterHudHeader({super.key});
 
@@ -108,7 +105,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
       }
     });
 
-    // Títulos de habilidad recién ganados → banner "TÍTULO GANADO" (una vez).
+    // TÃ­tulos de habilidad reciÃ©n ganados â†’ banner "TÃTULO GANADO" (una vez).
     ref.listen<List<SkillTitle>>(newEarnedTitlesProvider, (prev, next) {
       if (next.isEmpty) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -123,7 +120,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
           FloatingReward.show(
             context,
             l10n?.title_earned_banner(t.name.toUpperCase()) ??
-                '🏅 TÍTULO GANADO: ${t.name.toUpperCase()}',
+                'ðŸ… TÃTULO GANADO: ${t.name.toUpperCase()}',
             icon: Icons.military_tech_rounded,
             color: color,
           );
@@ -132,18 +129,11 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
       });
     });
 
-    final String cefrCode = progress['level_code'] as String? ?? 'A1';
-    // Rango del juego (F→SSS) con fallback desde el nivel CEFR.
-    final String gameRank = (progress['game_rank'] as String?)?.isNotEmpty == true
-        ? (progress['game_rank'] as String)!
-        : CefrRank.gameRankFromCefr(cefrCode);
     final int xp = progress['xp'] as int? ?? 0;
-    final String languageEmoji = progress['language_emoji'] as String? ?? '🇺🇸';
+    final String languageEmoji = progress['language_emoji'] as String? ?? 'ðŸ‡ºðŸ‡¸';
 
-    // Maná (FASE B): única moneda de energía. Saldo = asignación del plan
-    // + comprado − usado. Se adquiere con dinero; nunca se gana jugando.
-    final manaState = ref.watch(manaStateProvider).value ?? const {};
-    final String manaClass = (manaState['class'] as String?) ?? 'plebeyo';
+    // ManÃ¡ (FASE B): Ãºnica moneda de energÃ­a. Saldo = asignaciÃ³n del plan
+    // + comprado âˆ’ usado. Se adquiere con dinero; nunca se gana jugando.
 
     final String equippedTitleCode =
         progress['equipped_title_code'] as String? ?? 'oido_halcon_abismo_c';
@@ -152,21 +142,21 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
       orElse: () => HunterCatalog.titles.first,
     );
 
-    // Título de habilidad: el de mayor tier ganado gana; si no hay ninguno,
-    // se muestra el título legacy equipado (fallback).
+    // TÃ­tulo de habilidad: el de mayor tier ganado gana; si no hay ninguno,
+    // se muestra el tÃ­tulo legacy equipado (fallback).
     final skillTitle = ref.watch(activeSkillTitleProvider);
     final String headerTitle = skillTitle?.localizedName(l10n) ?? activeTitle.localizedName(l10n);
 
-    // Mana gem: energía de práctica diaria (invocaciones restantes).
+    // Mana gem: energÃ­a de prÃ¡ctica diaria (invocaciones restantes).
 
-    // Detección de subida de nivel (AN-E): muestra recompensa flotante.
+    // DetecciÃ³n de subida de nivel (AN-E): muestra recompensa flotante.
     final currentLevel = xp ~/ _xpPerLevel;
     if (currentLevel > _lastLevel && _lastLevel >= 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           FloatingReward.show(
             context,
-            l10n?.level_up_banner(currentLevel) ?? '¡SUBIDA DE NIVEL! $currentLevel',
+            l10n?.level_up_banner(currentLevel) ?? 'Â¡SUBIDA DE NIVEL! $currentLevel',
             icon: Icons.arrow_upward_rounded,
             color: AppColors.royalGold,
           );
@@ -184,7 +174,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            '${headerTitle.toUpperCase()} · $languageEmoji',
+            '${headerTitle.toUpperCase()} Â· $languageEmoji',
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.spaceGrotesk(
               fontSize: 15,
@@ -193,7 +183,7 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
             ),
           ),
           const SizedBox(height: 14),
-          // Barra de maná del Oráculo (única representación del maná).
+          // Barra de manÃ¡ del OrÃ¡culo (Ãºnica representaciÃ³n del manÃ¡).
           const OracleManaBar(showLabel: true),
           const SizedBox(height: 4),
           Row(
@@ -205,31 +195,12 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.manaCyan.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.5)),
-                      ),
-                      child: Text(
-                        manaClass.toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.manaCyan,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
                         color: AppColors.royalGold.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
                       ),
                       child: Text(
-                        'RANGO $gameRank',
+                        'RACHA ${progress['streak'] ?? 0}D',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.jetBrainsMono(
@@ -266,10 +237,8 @@ class _HunterHudHeaderState extends ConsumerState<HunterHudHeader> {
             ],
           ),
           const SizedBox(height: 12),
-          const AuraHud(),
-          const SizedBox(height: 4),
           Text(
-            l10n?.system_hunter_connected ?? 'SISTEMA DE CAZADOR — CONECTADO',
+            l10n?.system_hunter_connected ?? 'SISTEMA DE CAZADOR â€” CONECTADO',
             textAlign: TextAlign.center,
             style: GoogleFonts.jetBrainsMono(
               fontSize: 9,
