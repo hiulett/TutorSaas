@@ -169,11 +169,10 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
               child: card,
             );
           }
-          if (!widget.showRunicCorners)
-            return Transform.scale(scale: _scaleAnimation.value, child: card);
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Stack(
+          final double scale = _scaleAnimation.value;
+          Widget content = card;
+          if (widget.showRunicCorners) {
+            content = Stack(
               clipBehavior: Clip.none,
               children: [
                 card,
@@ -210,8 +209,15 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
                   ),
                 ),
               ],
-            ),
-          );
+            );
+          }
+          // #303: la capa de transformación solo existe mientras se pulsa la
+          // tarjeta. Dejarla siempre (aunque fuese escala 1.0) hacía que
+          // Impeller rasterizara el texto a una escala fraccionaria y dejara un
+          // fantasma detrás del texto nítido.
+          return scale == 1.0
+              ? content
+              : Transform.scale(scale: scale, child: content);
         },
       ),
     );
