@@ -123,14 +123,25 @@ class OracleManaBar extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                '$barValue / $barMax',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: numSize,
-                  fontWeight: FontWeight.bold,
-                  color: exhausted
-                      ? AppColors.crimsonRed
-                      : AppColors.runeViolet,
+              // #338: a textScaler 2.0 la cifra no cabe junto al icono y la
+              // etiqueta (36 px de overflow). Se deja encoger con
+              // `FittedBox` antes que recortar el saldo: se lee más pequeño,
+              // pero se lee entero.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '$barValue / $barMax',
+                    maxLines: 1,
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: numSize,
+                      fontWeight: FontWeight.bold,
+                      color: exhausted
+                          ? AppColors.crimsonRed
+                          : AppColors.runeViolet,
+                    ),
+                  ),
                 ),
               ),
             ],
