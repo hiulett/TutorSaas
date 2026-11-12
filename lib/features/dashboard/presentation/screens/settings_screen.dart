@@ -39,21 +39,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final remoteSettings = ref.watch(userSettingsProvider);
+    final progressAsync = ref.watch(userProgressProvider);
 
-    // Initialize local copy from remote settings once they are ready
-    _localSettings ??= remoteSettings;
+    // #331: `userSettingsProvider` arranca en `UserSettings.initial()` y carga
+    // en segundo plano, y `userProgressProvider` es un `FutureProvider`. En el
+    // primer frame ninguno de los dos es un dato del cazador, así que no se
+    // pintan sus valores por defecto (B1, ENGLISH, 15 min) como si lo fueran.
+    final bool profileReady = progressAsync.hasValue;
+    // Fallo definitivo (no un reintento en vuelo): la pantalla ofrece reintento
+    // en vez de un esqueleto que nunca termina.
+    final bool profileFailed =
+        progressAsync.hasError && !progressAsync.isLoading && !profileReady;
 
-    // Issue #23: hidrata idioma/nivel desde el perfil real una sola vez, para
-    // no mostrar (y guardar) los valores por defecto en cada visita.
-    if (!_prefsHydrated) {
-      final progress = ref.watch(userProgressProvider).value;
-      final code = progress?['level_code'] as String?;
-      if (code != null && code.isNotEmpty) {
-        _selectedCefrLevel = code.toUpperCase();
+    // La fila real de `user_settings` puede llegar después del primer pintado:
+    // si la copia editable sigue siendo la que entregó el provider (nadie ha
+    // elegido nada todavía) se refresca; un borrador ya editado no se pisa.
+    ref.listen<UserSettings>(userSettingsProvider, (previous, next) {
+      if (_isSaving) return;
+      if (_localSettings == null || identical(_localSettings, previous)) {
+        setState(() => _localSettings = next);
       }
-      final learning = ref.watch(userLanguageProvider).learningLanguage;
-      if (learning.isNotEmpty) _selectedTargetLanguage = learning;
-      _prefsHydrated = true;
+    });
+
+    if (profileReady) {
+      // Initialize local copy from remote settings once they are ready
+      _localSettings ??= remoteSettings;
+
+      // Issue #23: hidrata idioma/nivel desde el perfil real una sola vez, para
+      // no mostrar (y guardar) los valores por defecto en cada visita.
+      if (!_prefsHydrated) {
+        final code = progressAsync.value?['level_code'] as String?;
+        if (code != null && code.isNotEmpty) {
+          _selectedCefrLevel = code.toUpperCase();
+        }
+        final learning = ref.watch(userLanguageProvider).learningLanguage;
+        if (learning.isNotEmpty) _selectedTargetLanguage = learning;
+        _prefsHydrated = true;
+      }
     }
 
     final currentSettings = _localSettings ?? remoteSettings;
@@ -141,81 +163,230 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   // Settings List
                   Expanded(
-                    child: ListView(
-                      physics: const BouncingScrollPhysics(),
-                      // #304: 112 dp de inset inferior para que el último ajuste
-                      // no quede debajo del dock flotante del dashboard.
-                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 112),
-                      children: [
-                        _SectionHeader(title: l10n?.settings_target_cefr ?? 'TARGET LANGUAGE & CEFR LEVEL'),
-                        const SizedBox(height: 12),
-                        _buildLanguageTile(context),
-                        const SizedBox(height: 12),
-                        _buildCefrLevelTile(context),
-                        const SizedBox(height: 24),
-
-                        _SectionHeader(title: l10n?.settings_language ?? 'LANGUAGE'),
-                        const SizedBox(height: 12),
-                        _buildDeviceLanguageTile(context),
-                        const SizedBox(height: 12),
-                        _buildInterfaceLanguageTile(context),
-                        const SizedBox(height: 24),
-
-                        _SectionHeader(title: l10n?.settings_ai_parameters ?? 'AI TUTOR PARAMETERS'),
-                        const SizedBox(height: 12),
-                        _buildCorrectionLevelTile(context, currentSettings.correctionLevel),
-                        const SizedBox(height: 12),
-                        _buildTutorPersonalityTile(context, currentSettings.tutorPersonality),
-                        const SizedBox(height: 12),
-                        _buildCorrectionStyleTile(context, currentSettings.correctionStyle),
-                        const SizedBox(height: 12),
-                        _buildDailyGoalTile(context, currentSettings.dailyGoalMinutes),
-                        const SizedBox(height: 24),
-
-                        _SectionHeader(title: l10n?.settings_audio_comms ?? 'AUDIO & COMMUNICATIONS'),
-                        const SizedBox(height: 12),
-                        // Issue #39: los controles de SFX siguen retirados porque no hay
-                        // audio de efectos en runtime. Issue #106: el recordatorio diario ya
-                        // existe de verdad (notificacion local), asi que recupera su tarjeta.
-                        const ReminderSettingsCard(),
-                        const SizedBox(height: 8),
-                        _buildSensoryTiles(context),
-                        const SizedBox(height: 24),
-
-                        _SectionHeader(title: l10n?.settings_account ?? 'ACCOUNT'),
-                        const SizedBox(height: 12),
-                        _buildAccountTile(
-                          context,
-                          icon: Icons.download_rounded,
-                          label: l10n?.settings_export_data ?? 'EXPORT MY DATA',
-                          color: AppColors.manaCyan,
-                          onTap: () => _exportData(context),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildAccountTile(
-                          context,
-                          icon: Icons.delete_forever_rounded,
-                          label: l10n?.settings_delete_account ?? 'DELETE MY ACCOUNT',
-                          color: AppColors.errorRed,
-                          onTap: () => _confirmDeleteAccount(context),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildLogoutTile(context),
-                        const SizedBox(height: 24),
-
-                        if (kDebugMode) ...[
-                          const _SectionHeader(title: 'DEVELOPER TOOLS'),
-                          const SizedBox(height: 12),
-                          _buildDevToolsTile(context),
-                          const SizedBox(height: 24),
-                        ],
-                        _buildSaveButton(context, currentSettings),
-                        const SizedBox(height: 100), // deja espacio bajo la barra flotante
-                      ],
-                    ),
+                    // #331: sin datos reales no hay controles que pintar.
+                    child: !profileReady
+                        ? (profileFailed
+                              ? _buildProfileError(l10n)
+                              : _buildSettingsSkeleton(l10n))
+                        : _buildSettingsList(context, l10n, currentSettings),
                   ),
 
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Lista de ajustes con datos reales. Solo se pinta cuando el perfil ya
+  /// cargó (#331); antes de eso su lugar lo ocupa `_buildSettingsSkeleton`.
+  Widget _buildSettingsList(
+    BuildContext context,
+    AppLocalizations? l10n,
+    UserSettings currentSettings,
+  ) {
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      // #304: 112 dp de inset inferior para que el último ajuste
+      // no quede debajo del dock flotante del dashboard.
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 112),
+      children: [
+        _SectionHeader(title: l10n?.settings_target_cefr ?? 'TARGET LANGUAGE & CEFR LEVEL'),
+        const SizedBox(height: 12),
+        _buildLanguageTile(context),
+        const SizedBox(height: 12),
+        _buildCefrLevelTile(context),
+        const SizedBox(height: 24),
+
+        _SectionHeader(title: l10n?.settings_language ?? 'LANGUAGE'),
+        const SizedBox(height: 12),
+        _buildDeviceLanguageTile(context),
+        const SizedBox(height: 12),
+        _buildInterfaceLanguageTile(context),
+        const SizedBox(height: 24),
+
+        _SectionHeader(title: l10n?.settings_ai_parameters ?? 'AI TUTOR PARAMETERS'),
+        const SizedBox(height: 12),
+        _buildCorrectionLevelTile(context, currentSettings.correctionLevel),
+        const SizedBox(height: 12),
+        _buildTutorPersonalityTile(context, currentSettings.tutorPersonality),
+        const SizedBox(height: 12),
+        _buildCorrectionStyleTile(context, currentSettings.correctionStyle),
+        const SizedBox(height: 12),
+        _buildDailyGoalTile(context, currentSettings.dailyGoalMinutes),
+        const SizedBox(height: 24),
+
+        _SectionHeader(title: l10n?.settings_audio_comms ?? 'AUDIO & COMMUNICATIONS'),
+        const SizedBox(height: 12),
+        // Issue #39: los controles de SFX siguen retirados porque no hay
+        // audio de efectos en runtime. Issue #106: el recordatorio diario ya
+        // existe de verdad (notificacion local), asi que recupera su tarjeta.
+        const ReminderSettingsCard(),
+        const SizedBox(height: 8),
+        _buildSensoryTiles(context),
+        const SizedBox(height: 24),
+
+        _SectionHeader(title: l10n?.settings_account ?? 'ACCOUNT'),
+        const SizedBox(height: 12),
+        _buildAccountTile(
+          context,
+          icon: Icons.download_rounded,
+          label: l10n?.settings_export_data ?? 'EXPORT MY DATA',
+          color: AppColors.manaCyan,
+          onTap: () => _exportData(context),
+        ),
+        const SizedBox(height: 8),
+        _buildAccountTile(
+          context,
+          icon: Icons.delete_forever_rounded,
+          label: l10n?.settings_delete_account ?? 'DELETE MY ACCOUNT',
+          color: AppColors.errorRed,
+          onTap: () => _confirmDeleteAccount(context),
+        ),
+        const SizedBox(height: 8),
+        _buildLogoutTile(context),
+        const SizedBox(height: 24),
+
+        if (kDebugMode) ...[
+          const _SectionHeader(title: 'DEVELOPER TOOLS'),
+          const SizedBox(height: 12),
+          _buildDevToolsTile(context),
+          const SizedBox(height: 24),
+        ],
+        _buildSaveButton(context, currentSettings),
+        const SizedBox(height: 100), // deja espacio bajo la barra flotante
+      ],
+    );
+  }
+
+  /// #331: esqueleto honesto mientras el perfil / `user_settings` cargan.
+  /// Sustituye a los valores por defecto pintados como si fueran del cazador.
+  Widget _buildSettingsSkeleton(AppLocalizations? l10n) {
+    Widget bar(double width, {double height = 10}) => Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: AppColors.onSurface.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+    );
+
+    Widget tile() => Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.onSurface.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(4.0),
+          border: Border.all(
+            color: AppColors.onSurface.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Row(
+          children: [
+            bar(24, height: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  bar(96, height: 12),
+                  const SizedBox(height: 8),
+                  bar(64),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 112),
+      children: [
+        Align(alignment: Alignment.centerLeft, child: bar(140)),
+        const SizedBox(height: 16),
+        tile(),
+        tile(),
+        tile(),
+        tile(),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.hourglass_empty_rounded,
+              color: AppColors.onSurfaceVariant,
+              size: 14,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                (l10n?.loading ?? 'Cargando...').toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.6,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// #331: el perfil no cargó. Copy accionable y reintento real en vez de un
+  /// esqueleto infinito (ni de valores por defecto como si fueran reales).
+  Widget _buildProfileError(AppLocalizations? l10n) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_rounded,
+              color: AppColors.errorRed,
+              size: 48,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No pudimos cargar tu perfil.\n'
+              'Revisa tu conexión y vuelve a intentarlo.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 11,
+                color: AppColors.onSurfaceVariant,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.invalidate(userProgressProvider);
+                ref.invalidate(userSettingsProvider);
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: Text(
+                (l10n?.retry ?? 'REINTENTAR').toUpperCase(),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(48, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                ),
               ),
             ),
           ],
@@ -492,7 +663,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surfaceDeep,
+        // #331: sin `backgroundColor` propio: hereda el `dialogTheme` del tema
+        // (fondo, borde rúnico y radio 4), igual que el resto de modales.
         title: Text(
           l10n?.settings_delete_confirm_title ?? 'Delete your account?',
           style: const TextStyle(
@@ -540,7 +712,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surfaceDeep,
+        // #331: hereda el `dialogTheme` (mismo modal que el resto de la app).
         title: Text(
           l10n?.logout_confirm_title ?? 'LOG OUT?',
           style: TextStyle(color: AppColors.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
