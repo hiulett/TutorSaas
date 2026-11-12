@@ -113,6 +113,40 @@ export const adminService = {
     }
   },
 
+  /// Usuarios online en la app (presencia real) + desglose por sección.
+  /// Un usuario cuenta como online si reportó last_seen_at hace < withinSeconds
+  /// (heartbeat de la app móvil cada ~30s). Una fila por usuario (PK user_id).
+  async getOnlineUsers({ withinSeconds = 180 } = {}) {
+    try {
+      const threshold = new Date(Date.now() - withinSeconds * 1000).toISOString();
+
+      const { count } = await supabase
+        .from('user_presence')
+        .select('user_id', { count: 'exact', head: true })
+        .gte('last_seen_at', threshold);
+
+      const { data: rows } = await supabase
+        .from('user_presence')
+        .select('section, user_id')
+        .gte('last_seen_at', threshold);
+
+      const sectionCounts = new Map();
+      (rows || []).forEach((r) => {
+        const s = r.section || 'app';
+        sectionCounts.set(s, (sectionCounts.get(s) || 0) + 1);
+      });
+
+      const bySection = [...sectionCounts.entries()]
+        .map(([section, count]) => ({ section, count }))
+        .sort((a, b) => b.count - a.count);
+
+      return { online: count || 0, bySection };
+    } catch (err) {
+      console.error('Error fetching online users:', err);
+      return { online: 0, bySection: [] };
+    }
+  },
+
   async saveScenario(scenarioObj) {
     const numericId = toNumericId(scenarioObj.id);
 

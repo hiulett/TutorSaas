@@ -9,16 +9,22 @@ function setError(table, error) {
   resultsByTable[table] = { data: null, error };
 }
 
-const chain = (table) => ({
-  select: () => chain(table),
-  order: () => chain(table),
-  eq: () => chain(table),
-  gt: () => chain(table),
+const chain = (table, opts = {}) => ({
+  select: (cols, countOpts) => chain(table, { ...opts, head: !!countOpts?.head }),
+  order: () => chain(table, opts),
+  eq: () => chain(table, opts),
+  gt: () => chain(table, opts),
+  gte: () => chain(table, opts),
+  in: () => chain(table, opts),
   maybeSingle: () => {
     const r = resultsByTable[table]?.data;
     return Promise.resolve(Array.isArray(r) ? (r[0] ?? null) : (r ?? null));
   },
-  then: (onFulfilled) => Promise.resolve(resultsByTable[table] ?? { data: [], error: null }).then(onFulfilled),
+  then: (onFulfilled) => {
+    const base = resultsByTable[table] ?? { data: [], error: null };
+    const result = opts.head ? { ...base, count: Array.isArray(base.data) ? base.data.length : 0 } : base;
+    return Promise.resolve(result).then(onFulfilled);
+  },
 });
 
 vi.mock('../lib/supabaseClient', () => ({
@@ -95,5 +101,28 @@ describe('adminService', () => {
       { code: 'A1', name: 'Principiante', color: '#fff', count: 2, pct: 67 },
       { code: 'A2', name: 'Elemental', color: '#eee', count: 1, pct: 33 },
     ]);
+  });
+
+  it('getOnlineUsers cuenta presencia activa y agrupa por sección', async () => {
+    setData('user_presence', [
+      { user_id: 'u1', section: 'dashboard' },
+      { user_id: 'u2', section: 'dashboard' },
+      { user_id: 'u3', section: 'voice_room' },
+      { user_id: 'u4', section: 'background' },
+    ]);
+
+    const result = await adminService.getOnlineUsers();
+    expect(result.online).toBe(4);
+    expect(result.bySection).toEqual([
+      { section: 'dashboard', count: 2 },
+      { section: 'voice_room', count: 1 },
+      { section: 'background', count: 1 },
+    ]);
+  });
+
+  it('getOnlineUsers devuelve 0 ante error', async () => {
+    setError('user_presence', new Error('boom'));
+    const result = await adminService.getOnlineUsers();
+    expect(result).toEqual({ online: 0, bySection: [] });
   });
 });

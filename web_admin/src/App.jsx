@@ -24,6 +24,7 @@ export default function App() {
   const [overviewMetrics, setOverviewMetrics] = useState(null);
   const [cefrDistribution, setCefrDistribution] = useState([]);
   const [aiSettings, setAiSettings] = useState(null);
+  const [onlineUsers, setOnlineUsers] = useState({ online: 0, bySection: [] });
   const [loading, setLoading] = useState(true);
 
   const isAdmin = (s) => s?.user?.app_metadata?.role === 'admin';
@@ -54,7 +55,7 @@ export default function App() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [fetchedMetrics, fetchedLessons, fetchedLevels, fetchedUsers, fetchedPlans, fetchedAi, fetchedDist] = await Promise.all([
+      const [fetchedMetrics, fetchedLessons, fetchedLevels, fetchedUsers, fetchedPlans, fetchedAi, fetchedDist, fetchedOnline] = await Promise.all([
         adminService.getOverviewMetrics(),
         adminService.getScenarios(),
         adminService.getCefrLevels(),
@@ -62,6 +63,7 @@ export default function App() {
         adminService.getSubscriptionPlans(),
         adminService.getAiSettings(),
         adminService.getCefrDistribution(),
+        adminService.getOnlineUsers(),
       ]);
 
       setOverviewMetrics(fetchedMetrics);
@@ -71,6 +73,7 @@ export default function App() {
       setPlans(fetchedPlans);
       setAiSettings(fetchedAi);
       setCefrDistribution(fetchedDist);
+      setOnlineUsers(fetchedOnline);
     } catch (err) {
       console.error('Error loading admin data:', err);
     } finally {
@@ -82,6 +85,16 @@ export default function App() {
     if (session) {
       loadAllData();
     }
+  }, [session]);
+
+  // Presencia online en vivo: refresco cada 30s (sin bloquear el resto).
+  useEffect(() => {
+    if (!session) return undefined;
+    const poll = async () => {
+      setOnlineUsers(await adminService.getOnlineUsers());
+    };
+    const id = setInterval(poll, 30000);
+    return () => clearInterval(id);
   }, [session]);
 
   const handleSaveLesson = async (newLesson) => {
@@ -249,7 +262,7 @@ export default function App() {
           ) : (
             <>
               {activeTab === 'overview' && (
-                <AdminOverview lessons={lessons} cefrLevels={cefrLevels} cefrDistribution={cefrDistribution} metrics={overviewMetrics} setActiveTab={setActiveTab} />
+                <AdminOverview lessons={lessons} cefrLevels={cefrLevels} cefrDistribution={cefrDistribution} metrics={overviewMetrics} onlineUsers={onlineUsers} setActiveTab={setActiveTab} />
               )}
               {activeTab === 'lessons' && (
                 <LessonManager lessons={lessons} cefrLevels={cefrLevels} onSaveLesson={handleSaveLesson} onDeleteLesson={handleDeleteLesson} />
