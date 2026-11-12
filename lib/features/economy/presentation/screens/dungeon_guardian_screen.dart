@@ -236,7 +236,7 @@ class _DungeonGuardianScreenState extends ConsumerState<DungeonGuardianScreen>
           children: [
             // Imagen de fondo
             Image.asset(
-              'assets/images/dungeon_guardian.jpg',
+              'assets/images/dungeon_guardian.webp',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                 color: AppColors.surfaceContainerLow,

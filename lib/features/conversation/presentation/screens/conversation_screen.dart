@@ -805,7 +805,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                             const SizedBox(width: 8),
                             ClipOval(
                               child: Image.asset(
-                                'assets/images/avatars/oracle_01.png',
+                                'assets/images/avatars/oracle_01.webp',
                                 width: 30,
                                 height: 30,
                                 fit: BoxFit.cover,
@@ -1045,7 +1045,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                 children: [
                                   ClipOval(
                                     child: Image.asset(
-                                      'assets/images/avatars/oracle_01.png',
+                                      'assets/images/avatars/oracle_01.webp',
                                       width: 42,
                                       height: 42,
                                       fit: BoxFit.cover,
@@ -1403,7 +1403,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               DraggableMonsterWidget(
                 monster: HunterCatalog.regularMonsters.first,
                 isSpeaking: conversationState.isPlaying || conversationState.isProcessing,
-                avatarAsset: 'assets/images/avatars/oracle_01.png',
+                avatarAsset: 'assets/images/avatars/oracle_01.webp',
               ),
           ],
         ),

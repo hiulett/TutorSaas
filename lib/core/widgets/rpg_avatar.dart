@@ -22,14 +22,14 @@ class RpgAvatar extends StatelessWidget {
 
   /// Mapa de clase → asset local del avatar (avatares del onboarding).
   static const Map<String, String> _classAssets = {
-    'warrior': 'assets/images/avatars/avatar_berserker_01.png',
-    'mage': 'assets/images/avatars/avatar_mage_01.png',
-    'assassin': 'assets/images/avatars/avatar_assassin_01.png',
-    'knight': 'assets/images/avatars/avatar_knight_01.png',
-    'archer': 'assets/images/avatars/avatar_archer_01.png',
-    'summoner': 'assets/images/avatars/avatar_summoner_01.png',
-    'paladin': 'assets/images/avatars/avatar_paladin_01.png',
-    'necromancer': 'assets/images/avatars/avatar_necromancer_01.png',
+    'warrior': 'assets/images/avatars/avatar_berserker_01.webp',
+    'mage': 'assets/images/avatars/avatar_mage_01.webp',
+    'assassin': 'assets/images/avatars/avatar_assassin_01.webp',
+    'knight': 'assets/images/avatars/avatar_knight_01.webp',
+    'archer': 'assets/images/avatars/avatar_archer_01.webp',
+    'summoner': 'assets/images/avatars/avatar_summoner_01.webp',
+    'paladin': 'assets/images/avatars/avatar_paladin_01.webp',
+    'necromancer': 'assets/images/avatars/avatar_necromancer_01.webp',
   };
 
   @override
