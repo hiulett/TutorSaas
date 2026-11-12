@@ -8,6 +8,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../missions/presentation/providers/mission_providers.dart';
+import '../../domain/srs_grade.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class SrsFlashcardModal extends ConsumerStatefulWidget {
@@ -271,7 +272,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                       // Issue #24: HARD es el único que debe contar como lapso.
                       // Antes NORMAL (2.5) también caía en `q < 3.0` y reiniciaba
                       // el intervalo, así que repasar bien no hacía progresar.
-                      onPressed: () => _evaluateWord(2.0),
+                      onPressed: () => _evaluateWord(SrsGrade.hard.quality),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.errorRed,
                         side: const BorderSide(color: AppColors.errorRed),
@@ -283,7 +284,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _evaluateWord(3.0),
+                      onPressed: () => _evaluateWord(SrsGrade.normal.quality),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.royalGold,
                         side: const BorderSide(color: AppColors.royalGold),
@@ -295,7 +296,7 @@ class _SrsFlashcardModalState extends ConsumerState<SrsFlashcardModal> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => _evaluateWord(5.0),
+                      onPressed: () => _evaluateWord(SrsGrade.easy.quality),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.easyGreen,
                         foregroundColor: AppColors.onSurface,
