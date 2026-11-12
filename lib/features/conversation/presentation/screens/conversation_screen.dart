@@ -25,6 +25,8 @@ import '../../../dashboard/data/models/lesson_catalog.dart';
 import '../../../dashboard/domain/models/mission_progress_service.dart';
 import '../../../onboarding/domain/models/cefr_rank.dart';
 import '../widgets/voice_waveform_visualizer.dart';
+import '../widgets/conversation_scene_header.dart';
+import '../widgets/corrections_codex_panel.dart';
 import '../widgets/live_goals_tracker_bar.dart';
 import '../../../../core/widgets/draggable_monster_widget.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
@@ -34,9 +36,7 @@ import '../../../dashboard/data/models/hunter_catalog.dart';
 import '../../../economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../economy/presentation/widgets/oracle_mana_bar.dart';
-import '../../../corrections/domain/models/turn_correction.dart';
 import '../../../corrections/presentation/providers/corrections_providers.dart';
-import '../../../corrections/presentation/widgets/correction_chip.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../boss_exam/domain/models/boss_exam_outcome.dart';
 import '../../../boss_exam/presentation/widgets/boss_exam_health_bar.dart';
@@ -1105,7 +1105,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final conversationState = ref.watch(conversationStateProvider);
     final conversationNotifier = ref.read(conversationStateProvider.notifier);
@@ -1177,6 +1176,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       totalGoals: currentLesson?.goals.length ?? 0,
     );
 
+    // #339: contador del CODIGO en el boton inferior.
+    final sessionCorrections = ref.watch(sessionCorrectionsProvider);
+
     return Scaffold(
       body: CyberManhwaBackground(
         levelCode: currentLesson?.level ?? 'A1',
@@ -1218,119 +1220,60 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                       ),
                       child: Column(
                         children: [
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                onPressed: () async {
-                                  // Cierra la sesiÃ³n (idempotente) antes de salir.
-                                  await _handleExit(
-                                    isOracle: isOracle,
-                                    showSummary: true,
-                                    navigate: false,
-                                  );
-                                  if (context.mounted) {
-                                    if (context.canPop()) {
-                                      context.pop();
-                                    } else {
-                                      context.go('/home');
-                                    }
-                                  }
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  isOracle
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!.oracle_title
-                                      : (widget.scenarioTitle ??
-                                            conversationState
-                                                .activeScenarioName ??
-                                            'PrÃ¡ctica de ConversaciÃ³n'),
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    height: 1.2,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                key: const Key(
-                                  'conversation-app-voice-settings',
-                                ),
-                                tooltip:
-                                    l10n?.convo_tts_title ?? 'Voz del tutor',
-                                visualDensity: VisualDensity.compact,
-                                icon: const Icon(
-                                  Icons.tune_rounded,
-                                  color: Colors.white70,
-                                  size: 20,
-                                ),
-                                onPressed: _showTtsSettingsSheet,
-                              ),
-                              ClipOval(
-                                child: Image.asset(
-                                  'assets/images/avatars/oracle_01.webp',
-                                  width: 30,
-                                  height: 30,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ],
+                    // #339/#322: con el teclado abierto, la cabecera epica se oculta
+                    // para que el campo y la barra inferior no desborden.
+                    if (!_showKeyboardDrawer) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          key: const Key('conversation-app-voice-settings'),
+                          tooltip: l10n?.convo_tts_title ?? 'Voz del tutor',
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(
+                            Icons.tune_rounded,
+                            color: Colors.white70,
+                            size: 20,
                           ),
-                          const SizedBox(height: 8),
-                          if (!isOracle) ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: Container(
-                                      height: 6,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: FractionallySizedBox(
-                                          widthFactor: realProgressRatio,
-                                          child: Container(
-                                            color: const Color(0xFFF1C40F),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: 36,
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '${(realProgressRatio * 100).round()}%',
-                                      style: const TextStyle(
-                                        color: Color(0xFFF1C40F),
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (LessonCatalog.getLessonById(
-                                  widget.scenarioId,
+                          onPressed: _showTtsSettingsSheet,
+                        ),
+                      ],
+                    ),
+                    // #339: cabecera de escena epica: el NPC como personaje.
+                    ConversationSceneHeader(
+                      title: isOracle
+                          ? (l10n?.oracle_title ?? 'Oraculo')
+                          : (widget.scenarioTitle ??
+                                conversationState.activeScenarioName ??
+                                'Practica de Conversacion'),
+                      level: currentLesson?.level ?? 'A1',
+                      npcName: (currentLesson?.assistantRole ?? 'TUTOR')
+                          .toUpperCase(),
+                      progress: realProgressRatio,
+                      completedGoals: conversationState.goalEvaluationResults
+                          .values
+                          .where((v) => v)
+                          .length,
+                      totalGoals: currentLesson?.goals.length ?? 0,
+                      onExit: () async {
+                        await _handleExit(
+                          isOracle: isOracle,
+                          showSummary: true,
+                          navigate: false,
+                        );
+                        if (context.mounted) {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/home');
+                          }
+                        }
+                      },
+                    ),
+                    ],
+                    if (!isOracle) ...[
+                      if (LessonCatalog.getLessonById(
+                          widget.scenarioId,
                                   title: widget.scenarioTitle,
                                 ) !=
                                 null) ...[
@@ -1969,6 +1912,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                               },
                             ),
 
+                          // #339: acceso al CODIGO DE ERRORES de la sesion.
+                          IconButton(
+                            tooltip: 'Codigo de errores',
+                            key: const Key('conversation-codex-button'),
+                            icon: Icon(
+                              Icons.auto_stories_rounded,
+                              color: sessionCorrections.isEmpty
+                                  ? Colors.white70
+                                  : AppColors.royalGold,
+                              size: 28,
+                            ),
+                            onPressed: () => _showCorrectionsCodex(context),
+                          ),
+
                           // Icon 3: Mic (Tap-to-Talk) â€” o botÃ³n CONTINUAR al terminar el OrÃ¡culo
                           if (isOracle && conversationState.oracleFinished)
                             GestureDetector(
@@ -2273,30 +2230,32 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     );
   }
 
+  /// #339: abre el CODIGO DE ERRORES con las correcciones de la sesion.
+  Future<void> _showCorrectionsCodex(BuildContext context) async {
+    final corrections = ref.read(sessionCorrectionsProvider);
+    final level = ref.read(correctionLevelProvider);
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceDim,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.62,
+        maxChildSize: 0.92,
+        builder: (context, controller) => SingleChildScrollView(
+          controller: controller,
+          padding: const EdgeInsets.only(bottom: 24),
+          child: CorrectionsCodexPanel(corrections: corrections, level: level),
+        ),
+      ),
+    );
+  }
+
   // User Bubble
   Widget _buildUserBubble(BuildContext context, ConversationMessage message) {
-    // P-29: chips de corrección anclados al texto del mensaje.
-    final sessionCorrections = ref.watch(sessionCorrectionsProvider);
-    final messageCorrections = sessionCorrections
-        .where((c) => c.messageText == message.text)
-        .toList(growable: false);
-    final correctionLevel = ref.watch(correctionLevelProvider);
-
-    // #313: frase mejorada del turno para la tarjeta accionable bajo el chip.
-    // Se toma de la primera corrección visible; si el modelo no devolvió
-    // ninguna, no se pinta tarjeta y queda solo el texto actual.
-    String? betterPhrase;
-    for (final correction in correctionsForLevel(
-      messageCorrections,
-      correctionLevel,
-    )) {
-      final corrected = correction.corrected.trim();
-      if (corrected.isNotEmpty) {
-        betterPhrase = corrected;
-        break;
-      }
-    }
-
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -2320,83 +2279,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               height: 1.4,
             ),
           ),
-          // P-29: chip discreto con la corrección real del turno.
-          if (messageCorrections.isNotEmpty)
-            CorrectionChip(
-              corrections: messageCorrections,
-              level: correctionLevel,
-            ),
-          // #313: corrección accionable con la frase sugerida del modelo.
-          if (betterPhrase != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.royalGold.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: AppColors.royalGold.withValues(alpha: 0.6),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    size: 15,
-                    color: AppColors.royalGold,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'MEJOR: ',
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.6,
-                              color: AppColors.royalGold,
-                            ),
-                          ),
-                          TextSpan(
-                            text: betterPhrase,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              height: 1.35,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.royalGoldLight,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          if (message.correctionExplanation != null) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.runeViolet.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.runeViolet.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Text(
-                message.correctionExplanation!,
-                style: const TextStyle(
-                  color: AppColors.runeVioletText,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
