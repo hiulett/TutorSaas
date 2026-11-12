@@ -4385,5 +4385,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get path_recommended_review => 'Revisão do que aprendeu';
 
   @override
+  String get adventure_next_step => 'PRÓXIMO PASSO';
+
+  @override
+  String get adventure_speak_now => 'FALAR AGORA';
+
+  @override
   String get path_recommended_next => 'Próximo passo';
 }

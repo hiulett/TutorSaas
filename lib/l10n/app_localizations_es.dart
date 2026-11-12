@@ -4392,5 +4392,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get path_recommended_review => 'Repaso de lo aprendido';
 
   @override
+  String get adventure_next_step => 'SIGUIENTE PASO';
+
+  @override
+  String get adventure_speak_now => 'HABLAR AHORA';
+
+  @override
   String get path_recommended_next => 'Siguiente paso';
 }

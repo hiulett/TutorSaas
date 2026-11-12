@@ -1421,5 +1421,7 @@
   "path_recommended_interest": "Pelos seus interesses",
   "path_recommended_error": "Reforça os seus erros",
   "path_recommended_review": "Revisão do que aprendeu",
+  "adventure_next_step": "PRÓXIMO PASSO",
+  "adventure_speak_now": "FALAR AGORA",
   "path_recommended_next": "Próximo passo"
 }

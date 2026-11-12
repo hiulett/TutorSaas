@@ -4369,5 +4369,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get path_recommended_review => 'Review of what you learned';
 
   @override
+  String get adventure_next_step => 'NEXT STEP';
+
+  @override
+  String get adventure_speak_now => 'SPEAK NOW';
+
+  @override
   String get path_recommended_next => 'Next step';
 }
