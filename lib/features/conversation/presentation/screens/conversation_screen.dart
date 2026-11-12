@@ -1307,6 +1307,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                     child: OracleManaBar(
                                       showLabel: true,
                                       compact: true,
+                                      // En el chat basta la cabecera + barra:
+                                      // las dos líneas de detalle repetían el
+                                      // saldo y pesaban ~36 dp sobre el stream.
+                                      showSubLabels: false,
                                       costPerTurn:
                                           conversationState.activeScenarioId !=
                                               null
@@ -1638,8 +1642,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                                         Flexible(child: bubbleContent),
                                         const SizedBox(width: 10),
                                         RpgAvatar(
+                                          // Sin foto de perfil caía al crest
+                                          // (borde rojo + icono por defecto),
+                                          // que se leía como caja de error.
+                                          // Pasamos la clase para que use el
+                                          // arte del avatar de esa clase.
                                           avatarUrl:
-                                              playerAvatarUrlOf(heroProfile),
+                                              playerAvatarUrlOf(heroProfile) ??
+                                              heroClass,
                                           hunterClass: heroClass,
                                           initials: 'HÉROE',
                                           size: 42,
