@@ -35,6 +35,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _selectedCefrLevel = 'B1';
   bool _prefsHydrated = false;
 
+  /// Alto del dock flotante del dashboard más su margen (`bottom: 24`
+  /// + ~88 dp de barra). Es el mismo inset que ya reservaba la lista.
+  static const double _dockReservedBottom = 112;
+
+  /// Alto real de la barra de guardado: 8 + 48 (mínimo táctil) + 8.
+  static const double _saveBarHeight = 64;
+
+  /// Aire entre la barra de guardado y el último tile.
+  static const double _saveBarGap = 12;
+
+  /// Inset inferior de la lista para que la barra fija no tape el último tile.
+  /// (El área segura inferior ya la consume el `SafeArea` que envuelve la
+  /// lista, por eso aquí no se suma.)
+  static const double _listBottomInset =
+      _dockReservedBottom + _saveBarHeight + _saveBarGap;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -79,12 +95,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
 
     final currentSettings = _localSettings ?? remoteSettings;
+    // Estado pendiente real para la barra fija. Solo tiene sentido con
+    // datos del cazador ya cargados (#331); antes de eso no hay nada editable.
+    final bool hasPendingChanges =
+        profileReady && _hasPendingChanges(currentSettings, remoteSettings);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      // El botón de guardar se inserta al final del ListView (no como footer fijo)
-      // porque el footer del Scaffold anidado queda oculto tras la barra flotante
-      // inferior del dashboard.
+      // el CTA de guardado ya no vive al final de la lista (~1.600 dp):
+      // se pinta en una barra fija anclada sobre el dock flotante del
+      // dashboard, como último hijo del `Stack` (ver más abajo), para que el
+      // usuario no tenga que bajar hasta el fondo ni para guardar ni para
+      // saber si tiene cambios pendientes.
       body: CyberManhwaBackground(
         child: Stack(
           children: [
@@ -174,6 +196,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
+
+            // Barra de guardado fija. Va como último hijo del `Stack`
+            // para quedar sobre el contenido y sobre los orbes. `bottom` suma
+            // el área segura inferior real (`MediaQuery.paddingOf`, fuera del
+            // `SafeArea` que envuelve la lista) más los 112 dp que ocupa el
+            // dock flotante: así no se solapa con la navegación ni con la
+            // barra de gestos del sistema.
+            if (profileReady)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom:
+                        _dockReservedBottom +
+                        MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: _buildSaveBar(
+                    context,
+                    currentSettings,
+                    hasPendingChanges,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -189,9 +236,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ) {
     return ListView(
       physics: const BouncingScrollPhysics(),
-      // #304: 112 dp de inset inferior para que el último ajuste
-      // no quede debajo del dock flotante del dashboard.
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 112),
+      // #304: inset inferior = dock flotante (112 dp) + barra de guardado
+      // fija (64 dp) + aire, para que el último ajuste no quede debajo de
+      // ninguno de los dos.
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, _listBottomInset),
       children: [
         _SectionHeader(title: l10n?.settings_target_cefr ?? 'TARGET LANGUAGE & CEFR LEVEL'),
         const SizedBox(height: 12),
@@ -255,8 +303,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _buildDevToolsTile(context),
           const SizedBox(height: 24),
         ],
-        _buildSaveButton(context, currentSettings),
-        const SizedBox(height: 100), // deja espacio bajo la barra flotante
+        // El botón de guardar se movió a la barra fija (eliminado de
+        // aquí para no duplicarlo). El `SizedBox` de 100 dp que lo seguía
+        // también salió: el inset inferior de la lista ya reserva la barra.
       ],
     );
   }
@@ -395,93 +444,180 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildSaveButton(BuildContext context, UserSettings currentSettings) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _isSaving
-              ? null
-              : () async {
-                  setState(() => _isSaving = true);
-                  try {
-                    // El recordatorio diario se guarda al instante desde su propia
-                    // tarjeta (Issue #106): se mezcla el estado vivo para que este boton
-                    // no lo pise con la copia local.
-                    final liveSettings = ref.read(userSettingsProvider);
-                    final toSave = currentSettings.copyWith(
-                        notificationsEnabled: liveSettings.notificationsEnabled,
-                        notificationTime: liveSettings.notificationTime,
-                        notificationDays: liveSettings.notificationDays,
-                    );
-                    await ref
-                        .read(userSettingsProvider.notifier)
-                        .updateAllSettings(toSave);
+  /// Guardado real. Es el mismo `onPressed` que tenía el botón del final
+  /// de la lista, sin cambios de lógica: se extrajo a método solo para que lo
+  /// invoque la barra fija. Sigue siendo la única ruta de escritura de aquí.
+  Future<void> _save(UserSettings currentSettings) async {
+    setState(() => _isSaving = true);
+    try {
+      // El recordatorio diario se guarda al instante desde su propia
+      // tarjeta (Issue #106): se mezcla el estado vivo para que este boton
+      // no lo pise con la copia local.
+      final liveSettings = ref.read(userSettingsProvider);
+      final toSave = currentSettings.copyWith(
+        notificationsEnabled: liveSettings.notificationsEnabled,
+        notificationTime: liveSettings.notificationTime,
+        notificationDays: liveSettings.notificationDays,
+      );
+      await ref.read(userSettingsProvider.notifier).updateAllSettings(toSave);
 
-                    final user = ref.read(currentUserProvider);
-                    if (user != null) {
-                      // Issue #23: solo se actualizan idioma y nivel. Antes
-                      // saveOnboardingData reseteaba XP/racha, el idioma
-                      // nativo y podía fijar el CEFR en B1.
-                      await ref
-                          .read(onboardingRepositoryProvider)
-                          .updateLanguagePreferences(
-                            userId: user.id,
-                            targetLanguageCode: _selectedTargetLanguage,
-                            cefrLevelCode: _selectedCefrLevel,
-                          );
-                    }
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        // Issue #23: solo se actualizan idioma y nivel. Antes
+        // saveOnboardingData reseteaba XP/racha, el idioma
+        // nativo y podía fijar el CEFR en B1.
+        await ref
+            .read(onboardingRepositoryProvider)
+            .updateLanguagePreferences(
+              userId: user.id,
+              targetLanguageCode: _selectedTargetLanguage,
+              cefrLevelCode: _selectedCefrLevel,
+            );
+      }
 
-                    ref.invalidate(recommendedLessonsProvider);
-                    ref.invalidate(userProgressProvider);
+      ref.invalidate(recommendedLessonsProvider);
+      ref.invalidate(userProgressProvider);
 
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            AppLocalizations.of(context)?.settings_aligned ?? 'CONFIGURATION ALIGNED SUCCESSFULLY',
-                            style: GoogleFonts.jetBrainsMono(fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
-                          backgroundColor: AppColors.emeraldGreen,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    debugPrint('Error saving settings: $e');
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(AppLocalizations.of(context)?.settings_save_error ?? 'Could not save settings.'), backgroundColor: AppColors.errorRed),
-                      );
-                    }
-                  } finally {
-                    if (mounted) setState(() => _isSaving = false);
-                  }
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.runeViolet,
-            foregroundColor: AppColors.onSurface,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))),
-            elevation: 8,
-            shadowColor: AppColors.runeViolet.withValues(alpha: 0.3),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.settings_aligned ??
+                  'CONFIGURATION ALIGNED SUCCESSFULLY',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: AppColors.emeraldGreen,
+            duration: const Duration(seconds: 2),
           ),
-          child: _isSaving
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(color: AppColors.onSurface, strokeWidth: 2),
-                )
-              : Text(
-                  AppLocalizations.of(context)?.settings_save ?? 'SAVE CONFIGURATION',
-                  style: GoogleFonts.jetBrainsMono(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
-                    fontSize: 16,
-                    letterSpacing: 1.0,
-                  ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error saving settings: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.settings_save_error ??
+                  'Could not save settings.',
+            ),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  /// ¿Hay cambios sin guardar? `UserSettings` no implementa `==`, así que
+  /// se comparan los cuatro campos que este borrador local puede cambiar y que
+  /// `_save` persiste de forma diferida (nivel de corrección, cadencia,
+  /// personalidad y meta diaria).
+  ///
+  /// Haptics, sonido, modo de micrófono y el recordatorio diario se escriben al
+  /// instante desde sus propias tarjetas, así que nunca quedan pendientes; el
+  /// idioma objetivo y el CEFR vienen hidratados del perfil (el CEFR está
+  /// bloqueado y solo existe inglés), por lo que tampoco cambian aquí.
+  bool _hasPendingChanges(UserSettings draft, UserSettings saved) {
+    return draft.correctionLevel != saved.correctionLevel ||
+        draft.correctionStyle != saved.correctionStyle ||
+        draft.tutorPersonality != saved.tutorPersonality ||
+        draft.dailyGoalMinutes != saved.dailyGoalMinutes;
+  }
+
+  /// Barra de guardado fija sobre el dock. `elevation: 0`, texto 12-13 sp
+  /// y alto ≥ 48 dp. Indica si hay cambios pendientes y solo habilita el CTA
+  /// cuando los hay (el handler es `_save`, el de siempre).
+  Widget _buildSaveBar(
+    BuildContext context,
+    UserSettings currentSettings,
+    bool hasPendingChanges,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final hintColor = hasPendingChanges
+        ? AppColors.royalGold
+        : AppColors.onSurfaceVariant;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GlassCard(
+        blur: 30,
+        opacity: AppColors.glassOpacity,
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            // Estado pendiente. Sin clave nueva de .arb: el texto es una
+            // etiqueta corta de estado, igual que el resto de microcopy
+            // hardcodeado de esta pantalla (p. ej. el error de #331).
+            Icon(
+              hasPendingChanges
+                  ? Icons.circle
+                  : Icons.check_circle_outline_rounded,
+              size: hasPendingChanges ? 8 : 14,
+              color: hintColor,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                hasPendingChanges
+                    ? 'CAMBIOS SIN GUARDAR'
+                    : 'SIN CAMBIOS PENDIENTES',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.6,
+                  color: hintColor,
                 ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: (!hasPendingChanges || _isSaving)
+                  ? null
+                  : () => _save(currentSettings),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.runeViolet,
+                foregroundColor: AppColors.onSurface,
+                disabledBackgroundColor:
+                    AppColors.runeViolet.withValues(alpha: 0.22),
+                disabledForegroundColor: AppColors.onSurfaceVariant,
+                // Barra plana, sin la sombra del botón de la lista.
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                minimumSize: const Size(0, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                ),
+              ),
+              child: _isSaving
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        color: AppColors.onSurface,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      // Clave existente `save` (GUARDAR / SAVE / SALVAR): la
+                      // etiqueta larga de `settings_save` no cabe aquí.
+                      (l10n?.save ?? 'GUARDAR').toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+            ),
+          ],
         ),
       ),
     );
