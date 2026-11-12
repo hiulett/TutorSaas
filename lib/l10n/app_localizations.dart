@@ -1120,6 +1120,18 @@ abstract class AppLocalizations {
   /// **'The mana keys don\'t match.'**
   String get auth_password_mismatch;
 
+  /// No description provided for @convo_hud_npc.
+  ///
+  /// In en, this message translates to:
+  /// **'SPOKEN DIALOGUE // NPC'**
+  String get convo_hud_npc;
+
+  /// No description provided for @convo_hud_hunter.
+  ///
+  /// In en, this message translates to:
+  /// **'HUNTER VOCAL RECORD'**
+  String get convo_hud_hunter;
+
   /// No description provided for @complete_onboarding.
   ///
   /// In en, this message translates to:

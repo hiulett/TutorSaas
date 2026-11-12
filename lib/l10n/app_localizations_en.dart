@@ -537,6 +537,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get auth_password_mismatch => 'The mana keys don\'t match.';
 
   @override
+  String get convo_hud_npc => 'SPOKEN DIALOGUE // NPC';
+
+  @override
+  String get convo_hud_hunter => 'HUNTER VOCAL RECORD';
+
+  @override
   String get complete_onboarding => 'Complete Onboarding';
 
   @override

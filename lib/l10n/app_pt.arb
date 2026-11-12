@@ -178,6 +178,8 @@
   "auth_go_login": "ENTRAR",
   "auth_go_register": "CRIE SUA CONTA DE CAÇADOR",
   "auth_password_mismatch": "As chaves de mana não coincidem.",
+  "convo_hud_npc": "DIÁLOGO FALADO // NPC",
+  "convo_hud_hunter": "REGISTRO VOCAL DO CAÇADOR",
   "complete_onboarding": "Completar Onboarding",
   "exam_timer": "Tempo Restante",
   "exam_pass": "APROVADO",
