@@ -76,3 +76,10 @@ secrets/
 **/*.keystore
 
 untranslated.json
+
+# Report de Gradle que se regenera en cada build (estaba versionado por error)
+android/build/reports/problems/problems-report.html
+# Evidencia local de issues
+evidencia_*.png
+# Certificado publico de subida (se deriva del keystore; el SHA-1 se documenta en docs/)
+android/app/upload_certificate.pem
