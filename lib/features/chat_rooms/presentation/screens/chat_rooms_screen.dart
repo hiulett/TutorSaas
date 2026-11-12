@@ -15,7 +15,6 @@ import '../providers/chat_rooms_providers.dart';
 import '../../../../core/widgets/cyber_manhwa_background.dart';
 import '../../../../core/widgets/rpg_avatar.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../widgets/guild_master_floating_banner.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../missions/presentation/providers/mission_providers.dart';
@@ -51,6 +50,67 @@ class ChatRoomsScreen extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<ChatRoomsScreen> createState() => _ChatRoomsScreenState();
+}
+
+/// Consejo del Maestre de Mesa como tarjeta fija del Gremio.
+///
+/// Antes vivía en `GuildMasterFloatingBanner`, un control flotante y
+/// arrastrable que se montaba en esta pantalla pero aparecía por encima de
+/// otras (el chat de misión), tapando contenido. El texto se conserva; lo que
+/// desaparece es la capa flotante.
+Widget _buildGuildRecommendation(AppLocalizations l10n, String level) {
+  final cefr = level.toUpperCase();
+  final String message;
+  if (cefr == 'PRE-A1' || cefr == 'A1' || cefr == 'A2') {
+    message = l10n.guild_rec_beginner;
+  } else if (cefr == 'B1' || cefr == 'B2') {
+    message = l10n.guild_rec_intermediate;
+  } else if (cefr == 'C1' || cefr == 'C2') {
+    message = l10n.guild_rec_master;
+  } else {
+    message = l10n.guild_rec_default;
+  }
+
+  return GlassCard(
+    blur: 20,
+    opacity: AppColors.glassOpacity,
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    child: Row(
+      children: [
+        const Icon(
+          Icons.auto_awesome_rounded,
+          color: AppColors.runeViolet,
+          size: 18,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.guild_master.toUpperCase(),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  color: AppColors.runeViolet,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                message,
+                style: const TextStyle(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: 12,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
@@ -488,6 +548,10 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
   Widget build(BuildContext context) {
     final roomsAsync = ref.watch(chatRoomsListProvider);
     final l10n = AppLocalizations.of(context)!;
+    final guildLevel =
+        (ref.watch(userProgressProvider).value ?? const {})['level_code']
+            as String? ??
+        'A1';
 
     final contentWidget = Stack(
       children: [
@@ -747,6 +811,12 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
                   }),
 
                   const SizedBox(height: 16),
+
+                  // El Maestre de Mesa ya no flota por encima de otras
+                  // pantallas: su consejo se queda aquí, como primera tarjeta
+                  // del Gremio, con el mismo texto que usaba el banner.
+                  _buildGuildRecommendation(l10n, guildLevel),
+                  const SizedBox(height: 14),
 
                   roomsAsync.when(
                     data: (rooms) {
@@ -1035,8 +1105,6 @@ class _ChatRoomsScreenState extends ConsumerState<ChatRoomsScreen> {
           ),
         ),
 
-        // NPC Maestre de Mesa — control flotante arrastrable (G-F).
-        const GuildMasterFloatingBanner(),
       ],
     );
 
