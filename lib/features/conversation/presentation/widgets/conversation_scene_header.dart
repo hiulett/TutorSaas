@@ -68,8 +68,8 @@ class ConversationSceneHeader extends StatelessWidget {
 
   /// Retrato: suficientemente grande para leerse como personaje sin romper el
   /// presupuesto de alto de la cabecera.
-  static const double _portraitWidth = 100;
-  static const double _portraitHeight = 120;
+  static const double _portraitWidth = 40;
+  static const double _portraitHeight = 48;
 
   String get _semanticLabel =>
       'Escena: ${title.trim().isEmpty ? 'conversación' : title.trim()}';
@@ -105,70 +105,64 @@ class ConversationSceneHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progressValue = _resolvedProgress;
+    final exit = onExit;
+    final replay = onReplay;
     return GlassCard(
       key: const Key('conversation-scene-header'),
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
       border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.32)),
       semanticLabel: _semanticLabel,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTopRow(),
-          const SizedBox(height: 8),
+          // Una sola fila: antes había nameplate arriba y retrato 100x120
+          // debajo, lo que se comía ~25 % de la pantalla antes del primer
+          // mensaje. Ahora el retrato va en línea a 40x48.
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (exit != null) ...[
+                _SceneIconButton(
+                  key: const Key('conversation-scene-exit'),
+                  icon: Icons.arrow_back_rounded,
+                  tooltip: 'Volver',
+                  color: Colors.white70,
+                  onTap: exit,
+                ),
+                const SizedBox(width: 6),
+              ],
               _buildPortrait(),
-              const SizedBox(width: 10),
-              Expanded(child: _buildMissionSummary(progressValue)),
+              const SizedBox(width: 8),
+              Expanded(child: _buildMissionSummary()),
+              const SizedBox(width: 4),
+              _buildLiveChip(),
+              if (replay != null) ...[
+                const SizedBox(width: 2),
+                _SceneIconButton(
+                  key: const Key('conversation-scene-replay'),
+                  icon: Icons.replay_rounded,
+                  tooltip: 'Repetir audio del NPC',
+                  color: AppColors.manaCyan,
+                  onTap: replay,
+                ),
+              ],
             ],
           ),
+          if (progressValue != null) ...[
+            const SizedBox(height: 6),
+            _buildProgressBar(progressValue),
+          ],
         ],
       ),
     );
   }
 
-  // ── Fila superior (encima del retrato) ─────────────────────────────────
-
-  Widget _buildTopRow() {
-    // Locales: los campos públicos no se promueven a no-null, así que se
-    // capturan aquí para que el análisis de flujo haga la promoción.
-    final exit = onExit;
-    final replay = onReplay;
-    return Row(
-      children: [
-        if (exit != null) ...[
-          _SceneIconButton(
-            key: const Key('conversation-scene-exit'),
-            icon: Icons.arrow_back_rounded,
-            tooltip: 'Volver',
-            color: Colors.white70,
-            onTap: exit,
-          ),
-          const SizedBox(width: 8),
-        ],
-        Flexible(child: _buildNameplate()),
-        const SizedBox(width: 6),
-        _buildLiveChip(),
-        if (replay != null) ...[
-          const SizedBox(width: 4),
-          _SceneIconButton(
-            key: const Key('conversation-scene-replay'),
-            icon: Icons.replay_rounded,
-            tooltip: 'Repetir audio del NPC',
-            color: AppColors.manaCyan,
-            onTap: replay,
-          ),
-        ],
-      ],
-    );
-  }
+  // ── Nameplate compacto (línea 2 del resumen) ───────────────────────────
 
   Widget _buildNameplate() {
     return Container(
       key: const Key('conversation-scene-nameplate'),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       decoration: BoxDecoration(
         color: AppColors.surfaceDeep.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -182,9 +176,9 @@ class ConversationSceneHeader extends StatelessWidget {
           const Icon(
             Icons.badge_outlined,
             color: AppColors.manaCyanDim,
-            size: 11,
+            size: 10,
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 4),
           Flexible(
             child: Text(
               _nameplateLabel,
@@ -192,7 +186,7 @@ class ConversationSceneHeader extends StatelessWidget {
               softWrap: false,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.jetBrainsMono(
-                fontSize: 9.5,
+                fontSize: 8.5,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.7,
                 color: AppColors.manaCyanText,
@@ -325,41 +319,45 @@ class ConversationSceneHeader extends StatelessWidget {
 
   // ── Resumen de misión (debajo del nameplate, a la derecha del retrato) ─
 
-  Widget _buildMissionSummary(double? progressValue) {
+  Widget _buildMissionSummary() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Semantics(
-          header: true,
-          child: Text(
-            title,
-            key: const Key('conversation-scene-title'),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              height: 1.15,
-              letterSpacing: 0.2,
-              color: AppColors.onSurface,
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 4,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        Row(
           children: [
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  key: const Key('conversation-scene-title'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    height: 1.1,
+                    letterSpacing: 0.2,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
             _buildLevelChip(),
-            if (totalGoals > 0) _buildGoalsLabel(),
           ],
         ),
-        if (progressValue != null) ...[
-          const SizedBox(height: 8),
-          _buildProgressBar(progressValue),
-        ],
+        const SizedBox(height: 3),
+        Row(
+          children: [
+            Flexible(child: _buildNameplate()),
+            if (totalGoals > 0) ...[
+              const SizedBox(width: 6),
+              Flexible(child: _buildGoalsLabel()),
+            ],
+          ],
+        ),
       ],
     );
   }
