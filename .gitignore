@@ -19,9 +19,8 @@ migrate_working_dir/
 .idea/
 
 # The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code. #274 decidió no versionarlo: es configuración de cada equipo.
+.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -76,3 +75,10 @@ secrets/
 **/*.keystore
 
 untranslated.json
+
+# Report de Gradle que se regenera en cada build (estaba versionado por error)
+android/build/reports/problems/problems-report.html
+# Evidencia local de issues
+evidencia_*.png
+# Certificado publico de subida (se deriva del keystore; el SHA-1 se documenta en docs/)
+android/app/upload_certificate.pem
