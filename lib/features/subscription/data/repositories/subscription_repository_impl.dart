@@ -25,15 +25,26 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
   }
 
   @override
-  @override
   Future<void> syncEntitlement() async {
     try {
       await _supabaseClient.functions
           .invoke('sync-entitlement')
           .timeout(const Duration(seconds: 12));
+    } on FunctionException catch (e) {
+      // #310: 401/403 significa que RevenueCat rechaza la credencial del
+      // servidor. No es una caída de red: no se reintenta ni se pinta como
+      // error, y se registra una sola línea accionable.
+      if (e.status == 401 || e.status == 403) {
+        debugPrint(
+          'sync-entitlement: RevenueCat no autorizado (${e.status}). '
+          'Revisar el secreto REVENUECAT_API_KEY del proyecto.',
+        );
+        return;
+      }
+      debugPrint('sync-entitlement failed: $e');
     } catch (e) {
-      // Si la función no está configurada (falta el secreto de RevenueCat) o no
-      // hay red, se sigue con el estado que ya tenga la base de datos.
+      // Si la función no está configurada o no hay red, se sigue con el estado
+      // que ya tenga la base de datos.
       debugPrint('sync-entitlement failed: $e');
     }
   }

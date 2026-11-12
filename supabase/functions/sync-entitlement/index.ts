@@ -87,8 +87,17 @@ Deno.serve(async (req: Request) => {
     return json({ synced: true, active: false });
   }
   if (!rcRes.ok) {
-    console.error('revenuecat status', rcRes.status, await rcRes.text());
-    return json({ error: 'revenuecat_error', status: rcRes.status }, 502);
+    const rcStatus = rcRes.status;
+    const body = (await rcRes.text()).slice(0, 200);
+    // #310: 401/403 es configuración (clave, project id o secreto), no una
+    // caída del proveedor. Viaja como 403 con código estable para que el
+    // cliente no lo trate como error transitorio ni lo reintente en bucle.
+    if (rcStatus === 401 || rcStatus === 403) {
+      console.error('revenuecat_unauthorized', rcStatus, body);
+      return json({ error: 'revenuecat_unauthorized', status: rcStatus }, 403);
+    }
+    console.error('revenuecat_error', rcStatus, body);
+    return json({ error: 'revenuecat_error', status: rcStatus }, 502);
   }
 
   const payload = await rcRes.json();
