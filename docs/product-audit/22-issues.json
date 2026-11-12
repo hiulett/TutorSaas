@@ -1,0 +1,31 @@
+{
+  "epic": 298,
+  "created": "2026-11-11",
+  "note": "Mapeo historia -> issue creada desde docs/product-audit/22-BACKLOG-UNIFICADO.md",
+  "issues": {
+    "W0-1": 274,
+    "W0-2": 275,
+    "W0-3": 276,
+    "W0-4": 277,
+    "W0-5": 278,
+    "W0-6": 279,
+    "W0-7": 280,
+    "SEC-1": 281,
+    "SEC-2": 282,
+    "SEC-3": 283,
+    "SEC-4": 284,
+    "SEC-5": 285,
+    "SEC-6": 286,
+    "DAT-1": 287,
+    "DAT-2": 288,
+    "DAT-3": 289,
+    "DAT-4": 290,
+    "DAT-5": 291,
+    "APP-1": 292,
+    "APP-2": 293,
+    "APP-3": 294,
+    "APP-4": 295,
+    "APP-5": 296,
+    "APP-6": 297
+  }
+}
