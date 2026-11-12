@@ -15,7 +15,6 @@ import '../widgets/learning_path_roadmap.dart';
 import '../widgets/continue_adventure_card.dart';
 import '../widgets/dashboard_dock_item.dart';
 import '../widgets/hunter_hud_header.dart';
-import '../widgets/daily_goal_ring_card.dart';
 import '../widgets/welcome_back_card.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
@@ -410,7 +409,8 @@ class DashboardScreen extends ConsumerWidget {
                                   // P-27 (#112): retorno tras inactividad.
                                   const WelcomeBackCard(),
 
-                                  const DailyGoalRingCard(),
+                                  // #312: la meta diaria se movió dentro de la
+                                  // licencia del HUD (anillo compacto).
 
                                   // Issue #24: repaso espaciado (solo si hay palabras vencidas).
                                   const SrsReviewCard(),
