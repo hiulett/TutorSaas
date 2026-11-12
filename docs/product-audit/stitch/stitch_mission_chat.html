@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>DUNGEON OF ENGLISH - Mission Dialogue</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#d7a4ff",
+            "tertiary-fixed": "#ffdf94",
+            "surface-container-low": "#191b23",
+            "inverse-surface": "#e1e2ed",
+            "surface-bright": "#373942",
+            "surface-dim": "#11131b",
+            "inverse-on-surface": "#2e3039",
+            "surface": "#11131b",
+            "on-background": "#e1e2ed",
+            "on-tertiary": "#3e2e00",
+            "on-primary-container": "#00626e",
+            "on-tertiary-fixed": "#251a00",
+            "on-tertiary-container": "#6f5500",
+            "on-primary": "#00363d",
+            "primary-container": "#00e5ff",
+            "secondary": "#e0b6ff",
+            "primary": "#c3f5ff",
+            "on-secondary-fixed": "#2e004e",
+            "surface-container-high": "#272a32",
+            "surface-container-lowest": "#0b0e16",
+            "surface-container": "#1d1f27",
+            "on-primary-fixed-variant": "#004f58",
+            "on-tertiary-fixed-variant": "#594400",
+            "error": "#ffb4ab",
+            "error-container": "#93000a",
+            "on-surface": "#e1e2ed",
+            "primary-fixed-dim": "#00daf3",
+            "on-error": "#690005",
+            "surface-variant": "#32343d",
+            "outline": "#849396",
+            "secondary-container": "#6d11ad",
+            "inverse-primary": "#006875",
+            "background": "#11131b",
+            "tertiary": "#ffebbf",
+            "tertiary-fixed-dim": "#f5bf00",
+            "primary-fixed": "#9cf0ff",
+            "on-primary-fixed": "#001f24",
+            "on-secondary-fixed-variant": "#6a0baa",
+            "on-error-container": "#ffdad6",
+            "on-secondary": "#4c007d",
+            "surface-container-highest": "#32343d",
+            "on-surface-variant": "#bac9cc",
+            "secondary-fixed-dim": "#e0b6ff",
+            "surface-tint": "#00daf3",
+            "secondary-fixed": "#f2daff",
+            "outline-variant": "#3b494c",
+            "tertiary-container": "#ffc922"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "gutter-mobile": "0.75rem",
+            "space-lg": "1.5rem",
+            "gutter": "1rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem",
+            "margin-mobile": "1rem",
+            "margin": "1.5rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "display-lg": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "label-caps": ["JetBrains Mono"],
+            "body-lg": ["Inter"],
+            "body-md": ["Inter"],
+            "title-md": ["Space Grotesk"],
+            "label-code": ["JetBrains Mono"],
+            "stat-xl": ["JetBrains Mono"],
+            "headline-sm": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "display-lg-mobile": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "stat-md": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.12em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-code": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "stat-xl": ["30px", { "lineHeight": "36px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "stat-md": ["18px", { "lineHeight": "24px", "letterSpacing": "0.04em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Corner tactical brackets styling */
+    .tactical-card {
+      position: relative;
+    }
+    .tactical-card::before, .tactical-card::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      pointer-events: none;
+    }
+    .corner-cyan::before {
+      top: -1px;
+      left: -1px;
+      border-top: 2px solid #00e5ff;
+      border-left: 2px solid #00e5ff;
+    }
+    .corner-cyan::after {
+      bottom: -1px;
+      right: -1px;
+      border-bottom: 2px solid #00e5ff;
+      border-right: 2px solid #00e5ff;
+    }
+    .corner-gold::before {
+      top: -1px;
+      left: -1px;
+      border-top: 2px solid #ffc922;
+      border-left: 2px solid #ffc922;
+    }
+    .corner-gold::after {
+      bottom: -1px;
+      right: -1px;
+      border-bottom: 2px solid #ffc922;
+      border-right: 2px solid #ffc922;
+    }
+
+    /* Pulse animation for voice invoke button */
+    @keyframes tacticalPulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4), inset 0 0 14px rgba(0, 229, 255, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 0 12px rgba(0, 229, 255, 0), inset 0 0 22px rgba(0, 229, 255, 0.8);
+      }
+    }
+    .pulse-glow {
+      animation: tacticalPulse 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    /* Waveform visualizer pulse */
+    @keyframes waveBar {
+      0%, 100% { height: 6px; }
+      50% { height: 24px; }
+    }
+    .wave-anim-1 { animation: waveBar 1.2s infinite ease-in-out; }
+    .wave-anim-2 { animation: waveBar 0.9s infinite ease-in-out 0.2s; }
+    .wave-anim-3 { animation: waveBar 1.4s infinite ease-in-out 0.4s; }
+    .wave-anim-4 { animation: waveBar 1.1s infinite ease-in-out 0.1s; }
+    .wave-anim-5 { animation: waveBar 0.8s infinite ease-in-out 0.3s; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
+<!-- HUD Grid Subtle Background Overlay -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.035] bg-[linear-gradient(to_right,#00e5ff_1px,transparent_1px),linear-gradient(to_bottom,#00e5ff_1px,transparent_1px)] bg-[size:24px_24px] z-0"></div>
+<!-- MAIN SCROLLABLE CONTAINER -->
+<div class="relative z-10 flex-1 flex flex-col w-full max-w-md mx-auto pb-44">
+<!-- 1) SLIM QUEST BAR -->
+<header class="sticky top-0 z-40 bg-surface-container-lowest/90 backdrop-blur-md px-margin-mobile py-space-sm border-b border-primary-container/20 flex items-center justify-between shadow-[0_4px_20px_-2px_rgba(2,6,16,0.9)]">
+<div class="flex items-center gap-space-xs">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-primary-container hover:bg-surface-container transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="text-[9px] font-label-code text-primary-container tracking-wider">DUNGEON // INSTANCE 04</span>
+<span class="w-1 h-1 rounded-full bg-primary-container animate-pulse"></span>
+</div>
+<h1 class="font-headline-sm text-[13px] leading-tight text-on-surface tracking-wide uppercase font-semibold">
+            ORDERING COFFEE AT A CAFE
+          </h1>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<div class="px-2 py-0.5 rounded-lg bg-primary-container/10 border border-primary-container/40">
+<span class="font-label-caps text-label-caps text-primary-container font-bold">STAGE 3/5</span>
+</div>
+<button class="w-7 h-7 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-primary-container transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]">volume_up</span>
+</button>
+<button class="w-7 h-7 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-primary-container transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+</div>
+</header>
+<!-- 2) COMPACT MANA BAR -->
+<section class="px-margin-mobile pt-space-xs pb-space-sm bg-surface-container-lowest/70 border-b border-primary-container/10">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary-container text-[14px]">bolt</span>
+<span class="font-label-code text-[11px] text-primary-container font-semibold tracking-wider">MANA 16,511 / 17,000 MP</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="font-label-code text-[10px] text-tertiary-container font-bold tracking-tight bg-tertiary-container/10 px-1.5 py-0.5 rounded border border-tertiary-container/30">
+            +45 EXP EARNED
+          </span>
+</div>
+</div>
+<!-- Thin glowing gradient progress bar -->
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden p-[1px] relative shadow-[0_0_8px_rgba(0,229,255,0.2)]">
+<div class="h-full bg-gradient-to-r from-secondary to-primary-container rounded-full relative" style="width: 97.1%;">
+<div class="absolute right-0 top-0 bottom-0 w-2 bg-white/70 shadow-[0_0_6px_#ffffff]"></div>
+</div>
+</div>
+</section>
+<!-- CHAT FLOW CANVAS -->
+<main class="px-margin-mobile pt-space-md flex flex-col gap-space-md">
+<!-- 3) NPC HEADER CARD -->
+<div class="tactical-card corner-cyan bg-surface-container-low/90 backdrop-blur-md rounded-lg p-space-sm border border-primary-container/30 shadow-[0_8px_24px_-4px_rgba(0,0,0,0.7)] flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<!-- NPC Square Thumbnail Portrait Area -->
+<div class="relative w-12 h-12 rounded-lg bg-surface-container-highest border border-primary-container/50 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-[inset_0_0_10px_rgba(0,229,255,0.25)]">
+<span class="material-symbols-outlined text-primary-container text-2xl">coffee_maker</span>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-primary-container rounded-tl-sm border-t border-l border-surface-dim"></div>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-[15px] font-bold text-on-surface tracking-wide">LYRA</span>
+<span class="font-label-caps text-[9px] px-1.5 py-0.2 rounded bg-secondary-container/30 border border-secondary/40 text-secondary tracking-widest font-semibold">
+                BARISTA // NPC LV.12
+              </span>
+</div>
+<div class="flex items-center gap-1 text-[11px] font-label-code text-on-surface-variant">
+<span class="material-symbols-outlined text-[13px] text-primary-container">near_me</span>
+<span>NEO-BREW GUILD • DISTRICT 04</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-8 h-8 rounded-lg bg-primary-container/10 border border-primary-container/40 text-primary-container flex items-center justify-center hover:bg-primary-container/20 transition-all active:scale-95" title="Replay voice">
+<span class="material-symbols-outlined text-[18px]">volume_up</span>
+</button>
+<button class="px-2 h-8 rounded-lg bg-surface-container-high border border-outline-variant text-[11px] font-label-code text-on-surface font-semibold hover:border-primary-container/50 transition-colors flex items-center justify-center">
+            1.0x
+          </button>
+</div>
+</div>
+<!-- 4) NPC SPEECH CARD (Thick Cyan Left Border) -->
+<article class="tactical-card corner-cyan bg-surface-container-low/85 backdrop-blur-md rounded-lg p-space-md border border-primary-container/30 border-l-[4px] border-l-primary-container shadow-[0_8px_20px_rgba(2,6,16,0.6)]">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-primary-container">SPOKEN DIALOGUE // NPC</span>
+</div>
+<span class="font-label-code text-[10px] text-on-surface-variant">TIMESTAMP: 00:14</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface font-medium leading-relaxed">
+          “Welcome to Neo-Brew! Would you like our cold brew elixir or a hot oat milk latte today?”
+        </p>
+<!-- Translation Collapsible -->
+<div class="mt-space-sm pt-space-xs border-t border-primary-container/15 flex items-start justify-between">
+<p class="font-body-sm text-[12px] text-on-surface-variant/90 italic leading-snug">
+            “¿Bienvenido a Neo-Brew! ¿Te gustaría hoy nuestro elixir frío o un café con leche de avena caliente?”
+          </p>
+<button class="text-on-surface-variant hover:text-primary-container ml-2 flex-shrink-0 transition-colors">
+<span class="material-symbols-outlined text-[18px]">unfold_less</span>
+</button>
+</div>
+</article>
+<!-- 5) HUNTER REPLY CARD (Gold Tinted / Sovereign Glow) -->
+<article class="tactical-card corner-gold bg-[#1d1b15]/90 backdrop-blur-md rounded-lg p-space-md border border-tertiary-container/60 shadow-[0_0_20px_rgba(255,201,34,0.12),0_12px_28px_rgba(0,0,0,0.7)]">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary-container text-[14px]">mic</span>
+<span class="font-label-caps text-label-caps text-tertiary-container font-bold">HUNTER VOCAL RECORD</span>
+</div>
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-tertiary-container/20 border border-tertiary-container/50 text-tertiary-fixed font-bold">
+            +45 MP RECOVERED
+          </span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface font-medium leading-relaxed mb-3">
+          “I'll take a large iced oat milk latte, please. How much is that?”
+        </p>
+<!-- Evaluation Badges and Listen CTA -->
+<div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-tertiary-container/20">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-tertiary-container/15 border border-tertiary-container/40 text-tertiary-fixed font-bold tracking-wider">
+              ★ 94% ACCURACY // RANK A
+            </span>
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface-variant">
+              CADENCE: 132 WPM
+            </span>
+</div>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded bg-tertiary-container/20 border border-tertiary-container/60 text-tertiary-container hover:bg-tertiary-container/30 transition-all text-[11px] font-label-code font-bold active:scale-95">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+<span>LISTEN</span>
+</button>
+</div>
+</article>
+<!-- 6) NPC FOLLOW-UP CARD -->
+<article class="tactical-card corner-cyan bg-surface-container-low/85 backdrop-blur-md rounded-lg p-space-md border border-primary-container/30 border-l-[4px] border-l-primary-container shadow-[0_8px_20px_rgba(2,6,16,0.6)]">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-primary-container">NPC RESPONSE // LYRA</span>
+</div>
+<span class="font-label-caps text-[10px] text-tertiary-container font-semibold animate-pulse">
+            AWAITING HUNTER RESPONSE
+          </span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface font-medium leading-relaxed">
+          “That comes out to four dollars and fifty cents. Would you like a toasted pastry or energizing snack with your order?”
+        </p>
+<!-- Collapsed translation trigger -->
+<button class="mt-space-sm flex items-center gap-1 text-[11px] font-label-code text-on-surface-variant hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[15px]">translate</span>
+<span>Mostrar traducción</span>
+<span class="material-symbols-outlined text-[15px]">expand_more</span>
+</button>
+</article>
+<!-- 7) CORRECTIONS SUMMARY ROW -->
+<div class="tactical-card bg-surface-container/70 border border-secondary/30 rounded-lg p- space-sm px-space-md py-2.5">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="font-label-code text-label-code text-secondary font-semibold">// SYSTEM FEEDBACK: 1 SUGGESTION</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[18px]">expand_less</span>
+</div>
+<!-- Feedback chips -->
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-primary-container/15 border border-primary-container/40 text-primary-container font-semibold">
+            SYNTAX: PERFECT
+          </span>
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-tertiary-container/15 border border-tertiary-container/50 text-tertiary-container font-semibold flex items-center gap-1">
+<span>▲ PHONEME: 'OAT' RESYNC</span>
+</span>
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-secondary/15 border border-secondary/40 text-secondary font-semibold">
+            AURA: NATURAL FLOW
+          </span>
+</div>
+</div>
+<!-- 8) TACTICAL RESPONSE ROUTE (Suggestion Pills) -->
+<section class="flex flex-col gap-2 mt-1">
+<div class="flex items-center justify-between px-1">
+<span class="font-label-code text-[11px] text-on-surface-variant tracking-wider">// TACTICAL RESPONSE ROUTE</span>
+<span class="font-label-code text-[10px] text-primary-container">SELECT PATH OR CHANT FREELY</span>
+</div>
+<!-- Option 1 -->
+<button class="tactical-card group w-full text-left bg-surface-container-low hover:bg-surface-container hover:border-primary-container transition-all border border-outline-variant/50 rounded-lg p-3 flex items-center justify-between active:scale-[0.99]">
+<div class="flex items-start gap-2.5">
+<span class="font-label-code text-[11px] font-bold text-primary-container bg-primary-container/10 px-1.5 py-0.5 rounded border border-primary-container/30 mt-0.5">
+              [1]
+            </span>
+<div class="flex flex-col">
+<span class="font-body-md text-on-surface font-medium group-hover:text-primary transition-colors">
+                “Just the latte, thank you. <span class="text-on-surface-variant text-[13px]">[Pay by card]</span>”
+              </span>
+<span class="font-label-code text-[10px] text-on-surface-variant/80 mt-0.5">Estimated difficulty: D-Rank • Quick Flow</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-colors text-[18px]">chevron_right</span>
+</button>
+<!-- Option 2 -->
+<button class="tactical-card group w-full text-left bg-surface-container-low hover:bg-surface-container hover:border-secondary transition-all border border-outline-variant/50 rounded-lg p-3 flex items-center justify-between active:scale-[0.99]">
+<div class="flex items-start gap-2.5">
+<span class="font-label-code text-[11px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/30 mt-0.5">
+              [2]
+            </span>
+<div class="flex flex-col">
+<span class="font-body-md text-on-surface font-medium group-hover:text-secondary transition-colors">
+                “Can I also get a chocolate muffin?”
+              </span>
+<span class="font-label-code text-[10px] text-on-surface-variant/80 mt-0.5">Bonus: +15 Vocab Mastery EXP</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors text-[18px]">chevron_right</span>
+</button>
+</section>
+</main>
+</div>
+<!-- 9) BOTTOM INPUT DOCK (Anchored Fixed Dock) -->
+<footer class="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-xl border-t border-primary-container/30 shadow-[0_-8px_32px_rgba(0,229,255,0.15)] flex flex-col items-center">
+<!-- Audio Waveform Monitor Strip -->
+<div class="w-full h-8 px-margin-mobile flex items-center justify-center gap-1.5 border-b border-primary-container/10 bg-surface-dim/80">
+<span class="font-label-code text-[9px] text-primary-container tracking-widest mr-2">VOX SENSOR:</span>
+<div class="w-[3px] rounded-full bg-primary-container/40 wave-anim-1"></div>
+<div class="w-[3px] rounded-full bg-primary-container wave-anim-2"></div>
+<div class="w-[3px] rounded-full bg-secondary wave-anim-3"></div>
+<div class="w-[3px] rounded-full bg-tertiary-container wave-anim-4"></div>
+<div class="w-[3px] rounded-full bg-primary-container wave-anim-5"></div>
+<div class="w-[3px] rounded-full bg-secondary wave-anim-2"></div>
+<div class="w-[3px] rounded-full bg-primary-container/50 wave-anim-1"></div>
+<div class="w-[3px] rounded-full bg-tertiary-container wave-anim-3"></div>
+<div class="w-[3px] rounded-full bg-primary-container wave-anim-4"></div>
+<div class="w-[3px] rounded-full bg-secondary/60 wave-anim-5"></div>
+<div class="w-[3px] rounded-full bg-primary-container wave-anim-2"></div>
+<span class="font-label-code text-[9px] text-on-surface-variant tracking-wider ml-2">READY (48kHz)</span>
+</div>
+<!-- Interactive Voice Invocation Trigger Area -->
+<div class="w-full max-w-md px-margin-mobile pt-3 pb-3 flex flex-col items-center">
+<!-- Voice Button with Pulsing Resonance -->
+<div class="relative flex items-center justify-center mb-1.5">
+<!-- Pulse ring halo -->
+<div class="absolute -inset-3 rounded-full bg-primary-container/15 blur-md animate-pulse"></div>
+<button class="pulse-glow relative w-16 h-16 rounded-full bg-primary-container/15 border-2 border-primary-container text-primary-container flex items-center justify-center transition-all duration-150 active:scale-90 active:bg-primary-container active:text-surface-lowest" id="voice-trigger-btn">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+</div>
+<!-- Action Tracking Labels -->
+<span class="font-label-caps text-label-caps text-primary-container font-bold tracking-[0.14em] text-center">
+        HOLD TO CHANT // ENGLISH VOICE INVOCATION
+      </span>
+<span class="font-label-code text-[10px] text-on-surface-variant/75 text-center mt-0.5">
+        Vocal resonance calibrated • Safe guild channel
+      </span>
+<!-- Bottom Safe Space Dock Indicator -->
+<div class="w-24 h-1 bg-surface-container-highest rounded-full mt-2 opacity-60"></div>
+</div>
+</footer>
+<!-- Light interactive script for mobile button feel -->
+<script>
+    const voiceBtn = document.getElementById('voice-trigger-btn');
+    if (voiceBtn) {
+      voiceBtn.addEventListener('mousedown', () => {
+        voiceBtn.classList.add('bg-primary-container', 'text-background');
+      });
+      voiceBtn.addEventListener('mouseup', () => {
+        voiceBtn.classList.remove('bg-primary-container', 'text-background');
+      });
+      voiceBtn.addEventListener('touchstart', () => {
+        voiceBtn.classList.add('bg-primary-container', 'text-background');
+      });
+      voiceBtn.addEventListener('touchend', () => {
+        voiceBtn.classList.remove('bg-primary-container', 'text-background');
+      });
+    }
+  </script>
+</body></html>

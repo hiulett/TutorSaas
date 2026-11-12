@@ -2193,54 +2193,82 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          // #329: la pantalla usa una sola superficie. La burbuja del tutor
-          // deja el azul plano #1E60FF y pasa a superficie con borde cian,
-          // radio 4 en las cuatro esquinas. Se sigue distinguiendo de la del
-          // alumno: borde cian (la del alumno lo lleva blanco al 8 %), texto
-          // claro y va a la izquierda junto al avatar del tutor.
-          decoration: BoxDecoration(
-            color: AppColors.surfaceGlass,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: AppColors.manaCyan.withValues(alpha: 0.25),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                message.text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  height: 1.4,
-                  fontWeight: FontWeight.w600,
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.22)),
+      ),
+      // Barra de acento cian a la izquierda (referencia Stitch
+      // `stitch_mission_chat.png`). IntrinsicHeight da altura al trazo sin
+      // fijarla a mano.
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 3, color: AppColors.manaCyan),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(13, 11, 10, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 5,
+                          height: 5,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.manaCyan,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n?.convo_hud_npc ?? 'SPOKEN DIALOGUE // NPC',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.3,
+                              color: AppColors.manaCyan,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.replay_rounded,
+                            color: AppColors.manaCyan,
+                            size: 18,
+                          ),
+                          onPressed: () => notifier.playTtsVoice(message.text),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      message.text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        height: 1.4,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.replay_rounded,
-                      color: Colors.white70,
-                      size: 20,
-                    ),
-                    onPressed: () => notifier.playTtsVoice(message.text),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -2270,30 +2298,65 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
   // User Bubble
   Widget _buildUserBubble(BuildContext context, ConversationMessage message) {
+    final l10n = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(18),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.surfaceDim.withValues(alpha: 0.9),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(4),
-        ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: AppColors.royalGold.withValues(alpha: 0.07),
+        // #329: el radio era 20 (fuera del sistema de 4 px). Ahora 4 y acento
+        // dorado, la marca del "registro vocal del cazador" en el rediseño.
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.45)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            message.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              height: 1.4,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 3, color: AppColors.royalGold),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.mic_none_rounded,
+                          size: 12,
+                          color: AppColors.royalGold,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n?.convo_hud_hunter ?? 'HUNTER VOCAL RECORD',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.3,
+                              color: AppColors.royalGold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      message.text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

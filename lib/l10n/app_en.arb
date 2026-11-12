@@ -183,6 +183,8 @@
   "auth_go_login": "SIGN IN",
   "auth_go_register": "CREATE YOUR HUNTER ACCOUNT",
   "auth_password_mismatch": "The mana keys don't match.",
+  "convo_hud_npc": "SPOKEN DIALOGUE // NPC",
+  "convo_hud_hunter": "HUNTER VOCAL RECORD",
   "complete_onboarding": "Complete Onboarding",
 
   "exam_timer": "Time Remaining",

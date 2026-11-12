@@ -187,6 +187,8 @@
   "auth_go_login": "INICIAR SESIÓN",
   "auth_go_register": "CREA TU CUENTA DE CAZADOR",
   "auth_password_mismatch": "Las llaves de maná no coinciden.",
+  "convo_hud_npc": "DIÁLOGO HABLADO // NPC",
+  "convo_hud_hunter": "REGISTRO VOCAL DEL CAZADOR",
   "complete_onboarding": "Completar Onboarding",
 
   "exam_timer": "Tiempo Restante",
