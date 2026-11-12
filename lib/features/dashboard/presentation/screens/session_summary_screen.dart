@@ -11,6 +11,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../../conversation/presentation/providers/conversation_providers.dart';
 import '../../../economy/presentation/widgets/session_drop_controller.dart';
+import '../../../notifications/presentation/widgets/notification_permission_prompt.dart';
 import '../providers/dashboard_providers.dart';
 
 /// Resumen post-sesión de conversación.

@@ -70,6 +70,32 @@ class ProgressTabView extends ConsumerWidget {
           children: [
             const SizedBox(height: 12),
 
+            // Issue #80: la clase de maná y el aura salieron de la cabecera del
+            // dashboard para dejar tres indicadores arriba. Viven acá para que
+            // el dato siga accesible, como pide el criterio 3.
+            GlassCard(
+              blur: 20,
+              opacity: AppColors.glassOpacity,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CLASE · ${((ref.watch(manaStateProvider).value ?? const {})['class'] ?? 'plebeyo').toString().toUpperCase()}',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      color: AppColors.manaCyan,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const AuraHud(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
             // Profile Header Card
             GlassCard(
               blur: 20,
