@@ -185,3 +185,12 @@ toque layout de pantallas, cabeceras o `GlassCard`. #308 (overflow intermitente
 de 22 px en `/conversation`) solo se veía aquí y solo en la primera pasada: si
 un fallo es intermitente, **repite el arnés 3 veces** antes de dar el fix por
 bueno.
+
+## 9. Integridad económica
+
+Antes de cada release, ejecutar las consultas de control de
+[ECONOMY_INTEGRITY.md](ECONOMY_INTEGRITY.md) (solo lectura, < 2 min). Cubren
+multiplicadores de recompensa fuera de rango, misiones reclamadas sin progreso,
+descuadres entre saldo y libro mayor, items retirados y recompensas duplicadas.
+
+Un resultado distinto del esperado **bloquea el release**.
