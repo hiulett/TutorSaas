@@ -30,6 +30,16 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       await _supabaseClient.functions
           .invoke('sync-entitlement')
           .timeout(const Duration(seconds: 12));
+      // #373: acredita la canasta mensual del plan. El servidor la entrega una
+      // sola vez por mes natural (idempotente por ref_key) y no hace nada si el
+      // plan no tiene canasta. Si falla, no debe tumbar el entitlement.
+      try {
+        await _supabaseClient
+            .rpc('grant_plan_allowance')
+            .timeout(const Duration(seconds: 8));
+      } catch (allowanceError) {
+        debugPrint('grant_plan_allowance failed: $allowanceError');
+      }
     } on FunctionException catch (e) {
       // #310: 401/403 significa que RevenueCat rechaza la credencial del
       // servidor. No es una caída de red: no se reintenta ni se pinta como
