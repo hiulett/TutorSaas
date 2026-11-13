@@ -1422,6 +1422,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sanctuary_failed => 'COULD NOT EXPAND';
 
   @override
+  String get sanctuary_garden => 'STREAK GARDEN';
+
+  @override
+  String get sanctuary_stage_seed => 'SEED';
+
+  @override
+  String get sanctuary_stage_sprout => 'SPROUT';
+
+  @override
+  String get sanctuary_stage_plant => 'PLANT';
+
+  @override
+  String get sanctuary_stage_tree => 'TREE';
+
+  @override
+  String get sanctuary_vitrine => 'DISPLAY CASE';
+
+  @override
+  String get sanctuary_vitrine_empty => 'NO RELICS YET';
+
+  @override
   String get inventory_visit_shop => 'VISIT THE SHOP →';
 
   @override

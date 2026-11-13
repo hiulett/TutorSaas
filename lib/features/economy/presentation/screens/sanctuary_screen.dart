@@ -11,6 +11,15 @@ import '../providers/economy_providers.dart';
 /// Coste de la siguiente ampliación (espeja `sanctuary_upgrade_cost` en SQL).
 const List<int> _upgradeCosts = [150, 250, 400, 600];
 
+/// Etapa del jardín según la racha (#380). Función pura para poder testearla.
+/// Devuelve una de: `seed`, `sprout`, `plant`, `tree`.
+String gardenStage(int days) {
+  if (days >= 30) return 'tree';
+  if (days >= 7) return 'plant';
+  if (days >= 3) return 'sprout';
+  return 'seed';
+}
+
 /// Santuario del cazador (#379): base persistente que crece pagando oro.
 class SanctuaryScreen extends ConsumerStatefulWidget {
   const SanctuaryScreen({super.key});
@@ -64,6 +73,13 @@ class _SanctuaryScreenState extends ConsumerState<SanctuaryScreen> {
     final level = (data['level'] as num?)?.toInt() ?? 1;
     final slots = (data['slots'] as num?)?.toInt() ?? 3;
     final cost = _costFor(level);
+    // #380: jardín (racha) y vitrina (reliquias ganadas, no compradas).
+    final streak = ref.watch(streakProvider).value ?? const {};
+    final streakDays = (streak['current_streak'] as num?)?.toInt() ?? 0;
+    final inventory = ref.watch(inventoryProvider).value ?? const [];
+    final relics = inventory
+        .where((item) => (item['item_type'] ?? '') == 'relic')
+        .toList();
 
     return Scaffold(
       body: CyberManhwaBackground(
@@ -137,6 +153,10 @@ class _SanctuaryScreenState extends ConsumerState<SanctuaryScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      _gardenCard(l10n, streakDays),
+                      const SizedBox(height: 12),
+                      _vitrineCard(l10n, relics),
                       const Spacer(),
                       SizedBox(
                         height: 48,
@@ -169,6 +189,79 @@ class _SanctuaryScreenState extends ConsumerState<SanctuaryScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// #380: el jardín crece con la racha; no se compra, se gana.
+  Widget _gardenCard(AppLocalizations l10n, int days) {
+    final stage = gardenStage(days);
+    final stageLabel = switch (stage) {
+      'tree' => l10n.sanctuary_stage_tree,
+      'plant' => l10n.sanctuary_stage_plant,
+      'sprout' => l10n.sanctuary_stage_sprout,
+      _ => l10n.sanctuary_stage_seed,
+    };
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.voidBg.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.emeraldGreen.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            l10n.sanctuary_garden,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 11,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            '$stageLabel · $days',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.emeraldGreen,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// #380: la vitrina solo muestra reliquias ganadas, nunca compradas.
+  Widget _vitrineCard(AppLocalizations l10n, List<Map<String, dynamic>> relics) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.voidBg.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.manaCyan.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.sanctuary_vitrine,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 11,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            relics.isEmpty
+                ? l10n.sanctuary_vitrine_empty
+                : relics.map((r) => r['item_code']).join(' · '),
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 12,
+              color: AppColors.manaCyan,
+            ),
+          ),
+        ],
       ),
     );
   }
