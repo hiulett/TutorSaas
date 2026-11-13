@@ -23,6 +23,23 @@ void main() async {
   // fuente del sistema).
   GoogleFonts.config.allowRuntimeFetching = false;
 
+  // #350: con las TTF empaquetadas como `assets`, google_fonts registra cada
+  // familia de forma ASÍNCRONA en el primer `Text` que la usa. En Impeller eso
+  // deja compuesta la capa del primer pintado (fuente de respaldo) debajo de la
+  // definitiva y el texto sale duplicado: «SPANTISH (FS)» en Ajustes. Se
+  // disparan las tres familias y se esperan ANTES de `runApp`, así que no hay
+  // cambio de fuente a mitad de frame.
+  try {
+    GoogleFonts.spaceGrotesk();
+    GoogleFonts.inter();
+    GoogleFonts.jetBrainsMono();
+    await GoogleFonts.pendingFonts();
+    debugPrint('App Main: tipografías precargadas.');
+  } catch (e) {
+    // Nunca bloquear el arranque por tipografías: peor es no abrir.
+    debugPrint('App Main: no se pudieron precargar las fuentes: $e');
+  }
+
   // Reporte de fallos: sin SENTRY_DSN queda desactivado (dev/tests).
   await CrashReporter.init();
 
