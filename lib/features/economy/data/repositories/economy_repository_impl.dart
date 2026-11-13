@@ -607,6 +607,8 @@ class EconomyRepositoryImpl implements EconomyRepository {
             'id, name, description, category, price_gold, price_gems, '
             'rarity, image_url, required_level, craft_cost_fragments, min_plan',
           )
+          // #368: los items retirados (sin efecto verificado) no se pintan.
+          .eq('is_active', true)
           .order('required_level', ascending: true)
           .order('price_gold', ascending: true);
       return List<Map<String, dynamic>>.from(data);
