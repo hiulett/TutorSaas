@@ -139,18 +139,20 @@ void main() {
       host(const GlassCard(child: SizedBox(width: 200, height: 80))),
     );
 
-    double scale() => tester
-        .widget<Transform>(
-          find
-              .descendant(
-                of: find.byType(GlassCard),
-                matching: find.byType(Transform),
-              )
-              .first,
-        )
-        // `getMaxScaleOnAxis` devuelve 1.0 por el eje Z: se lee la escala X.
-        .transform
-        .storage[0];
+    // #350: en reposo ya no se envuelve en Transform (evita el doble
+    // compuesto sobre el BackdropFilter). Sin Transform, la escala es 1.0.
+    double scale() {
+      final found = find.descendant(
+        of: find.byType(GlassCard),
+        matching: find.byType(Transform),
+      );
+      if (found.evaluate().isEmpty) return 1.0;
+      return tester
+          .widget<Transform>(found.first)
+          // `getMaxScaleOnAxis` devuelve 1.0 por el eje Z: se lee la escala X.
+          .transform
+          .storage[0];
+    }
 
     expect(scale(), moreOrLessEquals(1.0, epsilon: 0.001));
 
