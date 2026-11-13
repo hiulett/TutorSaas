@@ -194,50 +194,23 @@ class EconomyRepositoryImpl implements EconomyRepository {
   @override
   Future<Map<String, int>> claimDailyReward(String userId) async {
     try {
-      final today = DateTime.now().toIso8601String().split('T').first;
-      final state = await getDailyState(userId);
-      if (state['daily_reward_claimed'] == true) return const {};
-
-      final streak = await getStreak(userId);
-      final days = (streak['current_streak'] as int?) ?? 0;
-
-      // Calculate reward based on streak (fuente única de la recompensa).
-      int gems = 5;
-      int pergaminos = 2;
-      if (days >= 7) {
-        gems = 50;
-        pergaminos = 5;
+      // #405: el importe lo calcula el servidor (gemas por racha + pergaminos).
+      // El cliente ya no puede elegir cuántas gemas se acredita.
+      final data = await _client.rpc('claim_daily_reward');
+      if (data is! Map) return const {};
+      final result = Map<String, dynamic>.from(data);
+      if (result['success'] != true || result['already_claimed'] == true) {
+        return const {};
       }
-      if (days >= 14) {
-        gems = 100;
-        pergaminos = 8;
-      }
-      if (days >= 30) {
-        gems = 300;
-        pergaminos = 15;
-      }
-
-      await _client.rpc(
-        'add_gems',
-        params: {'p_user_id': userId, 'p_amount': gems},
-      );
-
-      await _client.rpc(
-        'increment_pergaminos_max',
-        params: {'p_user_id': userId, 'p_amount': pergaminos},
-      );
-
-      await _client
-          .from('player_daily_state')
-          .update({'daily_reward_claimed': true})
-          .eq('user_id', userId)
-          .eq('date', today);
 
       unawaited(_logEvent(userId, 'claim_daily'));
       unawaited(
         RetentionAnalytics.instance.track(userId, AnalyticsEvent.claimDaily),
       );
-      return {'gems': gems, 'pergaminos': pergaminos};
+      return {
+        'gems': (result['gems'] as num?)?.toInt() ?? 0,
+        'pergaminos': (result['pergaminos'] as num?)?.toInt() ?? 0,
+      };
     } catch (_) {
       return const {};
     }
