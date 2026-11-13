@@ -95,7 +95,7 @@ class _DailyGoalRingCardState extends ConsumerState<DailyGoalRingCard>
           l10n?.daily_goal_minutes(progress.minutesToday, progress.goalMinutes) ??
           '${progress.minutesToday} / ${progress.goalMinutes} min';
       return Semantics(
-        label: '${l10n?.daily_goal_title ?? 'META DIARIA'}: $percent%',
+        label: '${l10n?.daily_goal_title ?? 'META DIARIA'}: $minutesLabel',
         child: Tooltip(
           message: minutesLabel,
           child: SizedBox(
@@ -117,7 +117,9 @@ class _DailyGoalRingCardState extends ConsumerState<DailyGoalRingCard>
                   ),
                 ),
                 Text(
-                  '${progress.minutesToday}',
+                  widget.compact
+                      ? (done ? '✓' : '${progress.minutesToday}m')
+                      : '${progress.minutesToday}',
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -162,7 +164,9 @@ class _DailyGoalRingCardState extends ConsumerState<DailyGoalRingCard>
                           ),
                         ),
                         Text(
-                          '${progress.minutesToday}',
+                          widget.compact
+                      ? (done ? '✓' : '${progress.minutesToday}m')
+                      : '${progress.minutesToday}',
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
