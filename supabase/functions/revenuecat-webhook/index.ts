@@ -1,15 +1,15 @@
-// revenuecat-webhook — Procesa eventos de RevenueCat de forma segura.
+// revenuecat-webhook â€” Procesa eventos de RevenueCat de forma segura.
 //
-// RevenueCat envía eventos con `Authorization: Bearer <AUTH_TOKEN>`.
+// RevenueCat envÃ­a eventos con `Authorization: Bearer <AUTH_TOKEN>`.
 //
-// Modelo de producto (DungeonsSpeak) — 3 estamentos × 2 ciclos:
+// Modelo de producto (DungeonsSpeak) â€” 3 estamentos Ã— 2 ciclos:
 //   dungeonsspeak_noble_*    -> plan `noble`
 //   dungeonsspeak_realeza_*  -> plan `realeza`
 //   dungeonsspeak_divino_*   -> plan `divino`
 //
 // Issue #71: este webhook ya no escribe `user_subscriptions` a mano. Delega
 // todo en la RPC `sync_entitlement`, que es idempotente y no degrada (compara
-// expiraciones). Así el webhook y la reconciliación de la app (#69) usan el
+// expiraciones). AsÃ­ el webhook y la reconciliaciÃ³n de la app (#69) usan el
 // mismo camino y no pueden dejarse el estado a medias.
 //
 // Idempotencia: cada `event.id` se registra en `revenuecat_events`; si ya
@@ -35,8 +35,8 @@ const json = (body: unknown, status = 200) =>
 
 const PRO_ENTITLEMENT = 'DungeonsSpeak Pro';
 
-// Mapeo product_id → plan (id en subscription_plans). El product_id es la
-// fuente canónica (lo define el id del product en Google Play).
+// Mapeo product_id â†’ plan (id en subscription_plans). El product_id es la
+// fuente canÃ³nica (lo define el id del product en Google Play).
 function planIdForProduct(productId: string): string {
   const key = productId.toLowerCase();
   if (key.includes('divino') || key.includes('divine')) return 'divino';
@@ -44,7 +44,7 @@ function planIdForProduct(productId: string): string {
   return 'noble';
 }
 
-/// Aplica el estado del entitlement mediante la RPC única.
+/// Aplica el estado del entitlement mediante la RPC Ãºnica.
 async function applyEntitlement(params: {
   userId: string;
   productId: string;
@@ -76,7 +76,7 @@ async function setGrace(userId: string): Promise<void> {
   if (error) console.error('set grace error:', error);
 }
 
-/// Marca/desmarca la cancelación programada sin tocar el plan.
+/// Marca/desmarca la cancelaciÃ³n programada sin tocar el plan.
 async function setCancelAtPeriodEnd(userId: string, value: boolean): Promise<void> {
   const { error } = await supabase
     .from('user_subscriptions')
@@ -89,15 +89,15 @@ async function setCancelAtPeriodEnd(userId: string, value: boolean): Promise<voi
 }
 
 /// #388: registra el ingreso real en `payments` para poder calcular ARPU/ARPPU
-/// desde Supabase (antes los ingresos solo vivían en Play y RevenueCat).
+/// desde Supabase (antes los ingresos solo vivÃ­an en Play y RevenueCat).
 ///
 /// Idempotente por `revenuecat_event_id`: el webhook ya deduplica eventos, pero
-/// la restricción única evita duplicados aunque se reintente el insert.
+/// la restricciÃ³n Ãºnica evita duplicados aunque se reintente el insert.
 /// Un reembolso se registra como fila aparte con `status = 'refunded'`: las
 /// consultas de ingreso deben restar reembolsos.
 async function recordPayment(
   event: any,
-  status: 'succeeded' | 'refunded',
+  status: 'completed' | 'refunded',
 ): Promise<void> {
   const eventId = event['id'] ? String(event['id']) : '';
   const userId = event['app_user_id'] ? String(event['app_user_id']) : '';
@@ -112,27 +112,32 @@ async function recordPayment(
     ? Number(event['purchased_at_ms'])
     : null;
 
-  const { error } = await supabase
+  // Idempotencia explÃ­cita: PostgREST no reconoce `onConflict` sobre un Ã­ndice
+  // Ãºnico creado con `create unique index` (necesita una constraint), asÃ­ que
+  // se comprueba antes de insertar. El webhook ya deduplica por `event.id`.
+  const { data: existing } = await supabase
     .from('payments')
-    .upsert(
-      {
-        user_id: userId,
-        amount_usd: Number.isFinite(usd as number) ? usd : null,
-        amount: Number.isFinite(local as number) ? local : null,
-        currency: event['currency'] ? String(event['currency']) : 'USD',
-        status,
-        payment_method: 'play',
-        product_id: event['product_id'] ? String(event['product_id']) : null,
-        store_transaction_id: event['transaction_id']
-          ? String(event['transaction_id'])
-          : null,
-        revenuecat_event_id: eventId,
-        created_at: purchasedAtMs
-          ? new Date(purchasedAtMs).toISOString()
-          : new Date().toISOString(),
-      },
-      { onConflict: 'revenuecat_event_id', ignoreDuplicates: true },
-    );
+    .select('id')
+    .eq('revenuecat_event_id', eventId)
+    .maybeSingle();
+  if (existing) return;
+
+  const { error } = await supabase.from('payments').insert({
+    user_id: userId,
+    amount_usd: Number.isFinite(usd as number) ? usd : null,
+    amount: Number.isFinite(local as number) ? local : null,
+    currency: event['currency'] ? String(event['currency']) : 'USD',
+    status,
+    payment_method: 'play',
+    product_id: event['product_id'] ? String(event['product_id']) : null,
+    store_transaction_id: event['transaction_id']
+      ? String(event['transaction_id'])
+      : null,
+    revenuecat_event_id: eventId,
+    created_at: purchasedAtMs
+      ? new Date(purchasedAtMs).toISOString()
+      : new Date().toISOString(),
+  });
   if (error) console.error('recordPayment error:', error);
 }
 
@@ -142,7 +147,7 @@ Deno.serve(async (req: Request) => {
   }
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
-  // Validación de firma: Authorization Bearer == REVENUECAT_AUTH_TOKEN.
+  // ValidaciÃ³n de firma: Authorization Bearer == REVENUECAT_AUTH_TOKEN.
   const auth = req.headers.get('authorization') ?? '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : auth;
   if (!token || token !== authToken) {
@@ -151,7 +156,11 @@ Deno.serve(async (req: Request) => {
 
   let event: any;
   try {
-    event = await req.json();
+    const payload = await req.json();
+    // RevenueCat envÃ­a `{ api_version, event: { ... } }`. Antes se leÃ­a el
+    // objeto raÃ­z, asÃ­ que `app_user_id` y `type` eran undefined y TODOS los
+    // eventos reales acababan en `ignored: no app user` sin dejar rastro.
+    event = payload?.event ?? payload;
   } catch {
     return json({ error: 'Invalid JSON' }, 400);
   }
@@ -169,7 +178,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Issue #71: idempotencia. RevenueCat reintenta; un RENEWAL repetido no
-    // debe volver a reponer el maná.
+    // debe volver a reponer el manÃ¡.
     const eventId = event['id']
       ? String(event['id'])
       : `${type}:${appUserId}:${event['event_timestamp_ms'] ?? ''}`;
@@ -190,7 +199,7 @@ Deno.serve(async (req: Request) => {
     let handled = true;
 
     switch (type) {
-      // Compra, renovación, cambio de producto y reactivación.
+      // Compra, renovaciÃ³n, cambio de producto y reactivaciÃ³n.
       case 'INITIAL_PURCHASE':
       case 'RENEWAL':
       case 'PRODUCT_CHANGE':
@@ -206,19 +215,19 @@ Deno.serve(async (req: Request) => {
         }
         await setCancelAtPeriodEnd(appUserId, false);
         // #388: solo los eventos que mueven dinero generan fila de pago
-        // (reactivación y extensión no son un cobro nuevo).
+        // (reactivaciÃ³n y extensiÃ³n no son un cobro nuevo).
         if (
           type === 'INITIAL_PURCHASE' ||
           type === 'RENEWAL' ||
           type === 'PRODUCT_CHANGE'
         ) {
-          await recordPayment(event, 'succeeded');
+          await recordPayment(event, 'completed');
         }
         break;
 
       // Compra no recurrente (p. ej. paquetes de gemas de #387).
       case 'NON_RENEWING_PURCHASE': {
-        await recordPayment(event, 'succeeded');
+        await recordPayment(event, 'completed');
         if (grantsPro) {
           await applyEntitlement({
             userId: appUserId,
@@ -252,7 +261,7 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
-      // El usuario desactiva la renovación: conserva el acceso hasta expirar.
+      // El usuario desactiva la renovaciÃ³n: conserva el acceso hasta expirar.
       case 'CANCELLATION':
         await setCancelAtPeriodEnd(appUserId, true);
         break;
