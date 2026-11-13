@@ -41,11 +41,18 @@ class _DailyRewardModalState extends ConsumerState<DailyRewardModal> {
         ref.invalidate(dailyStateProvider);
         ref.invalidate(streakProvider);
         ref.invalidate(gemBalanceProvider);
-        if (mounted)
+        if (mounted) {
           setState(() {
             _claimed = true;
             _claimedReward = reward;
           });
+        }
+        // Tras reclamar el botón se deshabilita y no había salida evidente:
+        // el modal solo se cerraba con la X o tocando fuera. Se cierra solo
+        // dejando ver la recompensa acreditada.
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+        if (mounted) Navigator.pop(context);
+        return;
       }
     }
     if (mounted) setState(() => _isClaiming = false);
