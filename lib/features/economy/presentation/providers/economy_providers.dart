@@ -280,6 +280,12 @@ final economyWalletProvider = FutureProvider.autoDispose<EconomyWallet>((
   return EconomyWallet.fromMap(await repo.getWallet(user.id));
 });
 
+/// #379: estado del santuario (nivel y slots).
+final sanctuaryProvider =
+    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+      return ref.watch(economyRepositoryProvider).getSanctuary();
+    });
+
 /// #374: desglose del saldo por origen para una moneda
 /// (`gold`, `gems` o `fragments`): ganado jugando frente a canasta del plan.
 final walletOriginProvider =

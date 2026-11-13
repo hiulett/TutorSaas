@@ -1399,6 +1399,33 @@ class AppLocalizationsPt extends AppLocalizations {
   String get wallet_origin_spent => 'GASTO';
 
   @override
+  String get sanctuary_title => 'SANTUÁRIO';
+
+  @override
+  String get sanctuary_level_label => 'NÍVEL';
+
+  @override
+  String get sanctuary_slots_label => 'ESPAÇOS';
+
+  @override
+  String get sanctuary_cost_label => 'CUSTO';
+
+  @override
+  String get sanctuary_upgrade => 'AMPLIAR';
+
+  @override
+  String get sanctuary_max => 'NÍVEL MÁXIMO';
+
+  @override
+  String get sanctuary_upgraded => 'SANTUÁRIO AMPLIADO';
+
+  @override
+  String get sanctuary_insufficient => 'OURO INSUFICIENTE';
+
+  @override
+  String get sanctuary_failed => 'NÃO FOI POSSÍVEL AMPLIAR';
+
+  @override
   String get inventory_visit_shop => 'VISITE A LOJA →';
 
   @override

@@ -465,6 +465,48 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> getSanctuary() async {
+    // #379: fila propia; si no existe, el santuario nace en nivel 1 con 3 slots.
+    try {
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) return const {'level': 1, 'slots': 3};
+      final row = await _client
+          .from('player_sanctuary')
+          .select('level, slots')
+          .eq('user_id', uid)
+          .maybeSingle();
+      if (row == null) return const {'level': 1, 'slots': 3};
+      return Map<String, dynamic>.from(row);
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:getSanctuary',
+        e,
+        stackTrace: st,
+      );
+      return const {'level': 1, 'slots': 3};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> upgradeSanctuary(String refKey) async {
+    try {
+      final data = await _client.rpc(
+        'upgrade_sanctuary',
+        params: {'p_ref_key': refKey},
+      );
+      if (data is Map) return Map<String, dynamic>.from(data);
+      return null;
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:upgradeSanctuary',
+        e,
+        stackTrace: st,
+      );
+      return null;
+    }
+  }
+
+  @override
   Future<List<Map<String, dynamic>>> getLedgerRows(String userId) async {
     // #374: desglose del saldo por origen. Se leen los últimos movimientos y se
     // agregan en cliente; el saldo visible sigue siendo uno solo.

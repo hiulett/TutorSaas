@@ -49,6 +49,12 @@ abstract class EconomyRepository {
   /// Get the number of available streak freezes
   Future<int> getStreakFreezes(String userId);
 
+  /// #379: estado del santuario del jugador (`level`, `slots`).
+  Future<Map<String, dynamic>> getSanctuary();
+
+  /// #379: amplía el santuario pagando oro. Devuelve el resultado de la RPC.
+  Future<Map<String, dynamic>?> upgradeSanctuary(String refKey);
+
   /// #374: filas de `currency_ledger` del usuario, para desglosar el saldo por
   /// origen (ganado vs canasta del plan).
   Future<List<Map<String, dynamic>>> getLedgerRows(String userId);

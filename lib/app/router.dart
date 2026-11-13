@@ -15,6 +15,7 @@ import '../features/missions/presentation/screens/missions_screen.dart';
 import '../features/economy/presentation/screens/shop_screen.dart';
 import '../features/economy/presentation/screens/inventory_screen.dart';
 import '../features/economy/presentation/screens/review_session_screen.dart';
+import '../features/economy/presentation/screens/sanctuary_screen.dart';
 import '../features/economy/presentation/screens/dungeon_guardian_screen.dart';
 import '../features/corrections/presentation/screens/my_errors_screen.dart';
 import '../features/weekly_report/presentation/screens/weekly_report_screen.dart';
@@ -102,6 +103,11 @@ final List<RouteBase> appRoutes = <RouteBase>[
   GoRoute(
     path: '/review',
     builder: (context, state) => const ReviewSessionScreen(),
+  ),
+  // #379: santuario del cazador (sumidero de oro).
+  GoRoute(
+    path: '/sanctuary',
+    builder: (context, state) => const SanctuaryScreen(),
   ),
   GoRoute(
     path: '/dungeon-guardian',
