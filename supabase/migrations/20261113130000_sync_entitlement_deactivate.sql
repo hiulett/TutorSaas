@@ -82,8 +82,10 @@ begin
     end if;
   else
     -- Desactivación explícita: se aplica siempre, sin la guarda de expiración.
+    -- NO se toca `billing_cycle`: en producción es NOT NULL y ponerlo a null
+    -- reventaba el sync con 500 (detectado al ejecutar esta rama por primera vez).
     update public.user_subscriptions
-      set plan_id = 'plebeyo', status = 'expired', billing_cycle = null,
+      set plan_id = 'plebeyo', status = 'expired',
           rc_expires_at = least(coalesce(rc_expires_at, now()), now()),
           last_event_id = coalesce(p_event_id, last_event_id), updated_at = now()
       where user_id = p_user_id
