@@ -1619,6 +1619,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splash_system_hud => 'SYSTEM HUD · AWAKENING';
 
   @override
+  String get splash_opening_portal => 'OPENING THE PORTAL';
+
+  @override
   String splash_connecting(int pct) {
     return '$pct% · CONNECTING TO THE GREAT REALM';
   }

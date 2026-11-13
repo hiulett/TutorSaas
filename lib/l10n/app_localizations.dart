@@ -3148,6 +3148,12 @@ abstract class AppLocalizations {
   /// **'SYSTEM HUD · AWAKENING'**
   String get splash_system_hud;
 
+  /// No description provided for @splash_opening_portal.
+  ///
+  /// In en, this message translates to:
+  /// **'OPENING THE PORTAL'**
+  String get splash_opening_portal;
+
   /// No description provided for @splash_connecting.
   ///
   /// In en, this message translates to:

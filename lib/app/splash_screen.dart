@@ -25,6 +25,10 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _pulse;
   late final Animation<double> _progress;
 
+  /// Hito real del arranque: falso = despertando, verdadero = abriendo portal.
+  /// El splash no debe fingir progreso: refleja en qué paso está de verdad.
+  bool _portalOpen = false;
+
   /// P-19: la marca se ve un minimo, pero no se espera un tiempo fijo: se
   /// navega cuando el warm-up real termina (con tope de 3 s).
   static const Duration _minSplash = Duration(milliseconds: 500);
@@ -78,6 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
       }),
     ]);
     warmupWatch.stop();
+    if (mounted) setState(() => _portalOpen = true);
     StartupProbe.markReady(
       warmupMs: warmupWatch.elapsedMilliseconds,
       timedOut: timedOut,
@@ -167,7 +172,15 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  AppLocalizations.of(context)?.splash_system_hud ?? 'SISTEMA HUD · DESPERTANDO',
+                  _portalOpen
+                      ? (AppLocalizations.of(
+                                context,
+                              )?.splash_opening_portal ??
+                            'ABRIENDO EL PORTAL')
+                      : (AppLocalizations.of(
+                                context,
+                              )?.splash_system_hud ??
+                            'SISTEMA HUD · DESPERTANDO'),
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

@@ -1626,6 +1626,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get splash_system_hud => 'SISTEMA HUD · DESPERTANDO';
 
   @override
+  String get splash_opening_portal => 'ABRIENDO EL PORTAL';
+
+  @override
   String splash_connecting(int pct) {
     return '$pct% · CONECTANDO AL GRAN REINO';
   }

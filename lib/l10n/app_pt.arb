@@ -572,6 +572,7 @@
   "logout_confirm_desc": "Seu progresso fica salvo. Você precisará fazer login novamente para continuar.",
 
   "splash_system_hud": "SISTEMA HUD · DESPERTANDO",
+"splash_opening_portal": "ABRINDO O PORTAL",
   "splash_connecting": "{pct}% · CONECTANDO AO GRANDE REINO",
   "connecting_realm": "CONECTANDO AO GRANDE REINO...",
 
