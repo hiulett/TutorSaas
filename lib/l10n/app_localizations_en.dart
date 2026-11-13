@@ -1603,6 +1603,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mana_upsell_cta => 'SEE PLANS';
 
   @override
+  String get aura_upsell => 'Realeza includes exclusive cosmetics';
+
+  @override
   String get logout_confirm_title => 'LOG OUT?';
 
   @override

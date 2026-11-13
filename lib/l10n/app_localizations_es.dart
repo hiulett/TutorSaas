@@ -1610,6 +1610,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mana_upsell_cta => 'VER PLANES';
 
   @override
+  String get aura_upsell => 'Realeza incluye cosméticos exclusivos';
+
+  @override
   String get logout_confirm_title => '¿CERRAR SESIÓN?';
 
   @override

@@ -3118,6 +3118,12 @@ abstract class AppLocalizations {
   /// **'SEE PLANS'**
   String get mana_upsell_cta;
 
+  /// No description provided for @aura_upsell.
+  ///
+  /// In en, this message translates to:
+  /// **'Realeza includes exclusive cosmetics'**
+  String get aura_upsell;
+
   /// No description provided for @logout_confirm_title.
   ///
   /// In en, this message translates to:

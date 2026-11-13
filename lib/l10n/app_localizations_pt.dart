@@ -1607,6 +1607,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get mana_upsell_cta => 'VER PLANOS';
 
   @override
+  String get aura_upsell => 'Realeza inclui cosméticos exclusivos';
+
+  @override
   String get logout_confirm_title => 'SAIR?';
 
   @override
