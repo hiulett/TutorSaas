@@ -49,8 +49,10 @@ abstract class EconomyRepository {
   /// Get the number of available streak freezes
   Future<int> getStreakFreezes(String userId);
 
-  /// Generate daily pergaminos (batch content)
-  Future<void> generateDailyPergaminos(String userId);
+  /// #375: abre un repaso. El servidor consume 1 pergamino del cupo diario y
+  /// devuelve los ejercicios derivados de las correcciones recientes.
+  /// Mapa `{success, reason, remaining, items}` o `null` si falla la red.
+  Future<Map<String, dynamic>?> openReviewPergamino();
 
   /// Get or create the user's battle pass for the current season
   Future<Map<String, dynamic>> getBattlePass(String userId);

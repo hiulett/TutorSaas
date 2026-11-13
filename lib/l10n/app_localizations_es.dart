@@ -1366,6 +1366,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get inventory_empty => 'INVENTARIO VACÍO';
 
   @override
+  String get review_title => 'REPASO';
+
+  @override
+  String get review_cta => 'REPASAR SESIÓN';
+
+  @override
+  String get review_empty => 'No hay correcciones recientes que repasar.';
+
+  @override
+  String get review_no_pergaminos => 'Te quedaste sin pergaminos hoy.';
+
+  @override
+  String get review_reveal => 'VER CORRECCIÓN';
+
+  @override
+  String get review_next => 'SIGUIENTE';
+
+  @override
+  String get review_done => 'REPASO COMPLETO';
+
+  @override
+  String get review_error => 'No se pudo cargar el repaso.';
+
+  @override
   String get inventory_visit_shop => 'VISITA LA TIENDA →';
 
   @override

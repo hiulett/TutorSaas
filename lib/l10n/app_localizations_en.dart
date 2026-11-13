@@ -1359,6 +1359,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventory_empty => 'EMPTY INVENTORY';
 
   @override
+  String get review_title => 'REVIEW';
+
+  @override
+  String get review_cta => 'REVIEW SESSION';
+
+  @override
+  String get review_empty => 'No recent corrections to review.';
+
+  @override
+  String get review_no_pergaminos => 'You are out of parchments today.';
+
+  @override
+  String get review_reveal => 'REVEAL CORRECTION';
+
+  @override
+  String get review_next => 'NEXT';
+
+  @override
+  String get review_done => 'REVIEW COMPLETE';
+
+  @override
+  String get review_error => 'Could not load the review.';
+
+  @override
   String get inventory_visit_shop => 'VISIT THE SHOP →';
 
   @override

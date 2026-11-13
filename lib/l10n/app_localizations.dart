@@ -2638,6 +2638,54 @@ abstract class AppLocalizations {
   /// **'EMPTY INVENTORY'**
   String get inventory_empty;
 
+  /// No description provided for @review_title.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW'**
+  String get review_title;
+
+  /// No description provided for @review_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW SESSION'**
+  String get review_cta;
+
+  /// No description provided for @review_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent corrections to review.'**
+  String get review_empty;
+
+  /// No description provided for @review_no_pergaminos.
+  ///
+  /// In en, this message translates to:
+  /// **'You are out of parchments today.'**
+  String get review_no_pergaminos;
+
+  /// No description provided for @review_reveal.
+  ///
+  /// In en, this message translates to:
+  /// **'REVEAL CORRECTION'**
+  String get review_reveal;
+
+  /// No description provided for @review_next.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT'**
+  String get review_next;
+
+  /// No description provided for @review_done.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW COMPLETE'**
+  String get review_done;
+
+  /// No description provided for @review_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the review.'**
+  String get review_error;
+
   /// No description provided for @inventory_visit_shop.
   ///
   /// In en, this message translates to:
