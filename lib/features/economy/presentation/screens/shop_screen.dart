@@ -12,6 +12,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../providers/economy_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/models/economy_wallet.dart';
+import '../../domain/models/wallet_origin.dart';
 import '../../domain/models/shop_offer.dart';
 
 /// TIENDA ARCANO (P-32).
@@ -447,6 +448,92 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
   /// Nivel de cazador + las tres monedas, en una fila desplazable para que no
   /// haya overflow en pantallas estrechas.
+  /// #374: desglose informativo del saldo por origen. El saldo visible sigue
+  /// siendo uno solo; esto solo explica de dónde viene.
+  Future<void> _showOriginSheet(
+    BuildContext context,
+    String currency,
+    String label,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.voidBg,
+      builder: (ctx) => Consumer(
+        builder: (ctx, ref, _) {
+          final origin =
+              ref.watch(walletOriginProvider(currency)).value ??
+              const WalletOrigin();
+          final l10n = AppLocalizations.of(ctx);
+          Widget row(String name, int value, Color color) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  '$value',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          );
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.onSurface,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n?.wallet_origin_title ?? 'ORIGEN DEL SALDO',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                row(
+                  l10n?.wallet_origin_earned ?? 'GANADO',
+                  origin.earned,
+                  AppColors.manaCyan,
+                ),
+                row(
+                  l10n?.wallet_origin_plan ?? 'DE TU PLAN',
+                  origin.fromPlan,
+                  AppColors.royalGold,
+                ),
+                row(
+                  l10n?.wallet_origin_spent ?? 'GASTADO',
+                  origin.spent,
+                  AppColors.runeViolet,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildWalletRow(AppLocalizations? l10n, EconomyWallet wallet) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -493,25 +580,46 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          _balanceChip(
-            icon: Icons.monetization_on_rounded,
-            color: AppColors.royalGold,
-            value: '${wallet.gold}',
-            label: l10n?.shop_tab_gold ?? 'ORO',
+          GestureDetector(
+            onTap: () => _showOriginSheet(
+              context,
+              'gold',
+              l10n?.shop_tab_gold ?? 'ORO',
+            ),
+            child: _balanceChip(
+              icon: Icons.monetization_on_rounded,
+              color: AppColors.royalGold,
+              value: '${wallet.gold}',
+              label: l10n?.shop_tab_gold ?? 'ORO',
+            ),
           ),
           const SizedBox(width: 8),
-          _balanceChip(
-            icon: Icons.diamond_rounded,
-            color: AppColors.runeViolet,
-            value: '${wallet.gems}',
-            label: l10n?.shop_tab_gems ?? 'GEMAS',
+          GestureDetector(
+            onTap: () => _showOriginSheet(
+              context,
+              'gems',
+              l10n?.shop_tab_gems ?? 'GEMAS',
+            ),
+            child: _balanceChip(
+              icon: Icons.diamond_rounded,
+              color: AppColors.runeViolet,
+              value: '${wallet.gems}',
+              label: l10n?.shop_tab_gems ?? 'GEMAS',
+            ),
           ),
           const SizedBox(width: 8),
-          _balanceChip(
-            icon: Icons.auto_awesome_mosaic_rounded,
-            color: AppColors.emeraldGreen,
-            value: '${wallet.fragments}',
-            label: l10n?.shop_tab_fragments ?? 'FRAGMENTOS',
+          GestureDetector(
+            onTap: () => _showOriginSheet(
+              context,
+              'fragments',
+              l10n?.shop_tab_fragments ?? 'FRAGMENTOS',
+            ),
+            child: _balanceChip(
+              icon: Icons.auto_awesome_mosaic_rounded,
+              color: AppColors.emeraldGreen,
+              value: '${wallet.fragments}',
+              label: l10n?.shop_tab_fragments ?? 'FRAGMENTOS',
+            ),
           ),
         ],
       ),

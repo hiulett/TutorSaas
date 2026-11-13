@@ -2686,6 +2686,30 @@ abstract class AppLocalizations {
   /// **'Could not load the review.'**
   String get review_error;
 
+  /// No description provided for @wallet_origin_title.
+  ///
+  /// In en, this message translates to:
+  /// **'BALANCE ORIGIN'**
+  String get wallet_origin_title;
+
+  /// No description provided for @wallet_origin_earned.
+  ///
+  /// In en, this message translates to:
+  /// **'EARNED'**
+  String get wallet_origin_earned;
+
+  /// No description provided for @wallet_origin_plan.
+  ///
+  /// In en, this message translates to:
+  /// **'FROM YOUR PLAN'**
+  String get wallet_origin_plan;
+
+  /// No description provided for @wallet_origin_spent.
+  ///
+  /// In en, this message translates to:
+  /// **'SPENT'**
+  String get wallet_origin_spent;
+
   /// No description provided for @inventory_visit_shop.
   ///
   /// In en, this message translates to:

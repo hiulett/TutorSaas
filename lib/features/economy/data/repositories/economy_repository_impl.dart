@@ -465,6 +465,28 @@ class EconomyRepositoryImpl implements EconomyRepository {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getLedgerRows(String userId) async {
+    // #374: desglose del saldo por origen. Se leen los últimos movimientos y se
+    // agregan en cliente; el saldo visible sigue siendo uno solo.
+    try {
+      final data = await _client
+          .from('currency_ledger')
+          .select('currency, delta, reason')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(500);
+      return List<Map<String, dynamic>>.from(data);
+    } catch (e, st) {
+      ErrorTracker.logSilent(
+        'lib/features/economy/data/repositories/economy_repository_impl.dart:getLedgerRows',
+        e,
+        stackTrace: st,
+      );
+      return const [];
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>?> openReviewPergamino() async {
     // #375: el repaso se genera en servidor desde las correcciones de la sesión
     // y consume 1 pergamino del cupo diario. El cliente ya no inserta
