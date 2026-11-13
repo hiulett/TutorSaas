@@ -1387,6 +1387,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get review_error => 'Não foi possível carregar a revisão.';
 
   @override
+  String get wallet_origin_title => 'ORIGEM DO SALDO';
+
+  @override
+  String get wallet_origin_earned => 'GANHO';
+
+  @override
+  String get wallet_origin_plan => 'DO SEU PLANO';
+
+  @override
+  String get wallet_origin_spent => 'GASTO';
+
+  @override
   String get inventory_visit_shop => 'VISITE A LOJA →';
 
   @override

@@ -1383,6 +1383,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get review_error => 'Could not load the review.';
 
   @override
+  String get wallet_origin_title => 'BALANCE ORIGIN';
+
+  @override
+  String get wallet_origin_earned => 'EARNED';
+
+  @override
+  String get wallet_origin_plan => 'FROM YOUR PLAN';
+
+  @override
+  String get wallet_origin_spent => 'SPENT';
+
+  @override
   String get inventory_visit_shop => 'VISIT THE SHOP →';
 
   @override

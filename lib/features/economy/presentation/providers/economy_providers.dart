@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/repositories/economy_repository_impl.dart';
 import '../../domain/models/economy_wallet.dart';
+import '../../domain/models/wallet_origin.dart';
 import '../../domain/models/shop_offer.dart';
 import '../../domain/repositories/economy_repository.dart';
 
@@ -278,6 +279,17 @@ final economyWalletProvider = FutureProvider.autoDispose<EconomyWallet>((
   final repo = ref.watch(economyRepositoryProvider);
   return EconomyWallet.fromMap(await repo.getWallet(user.id));
 });
+
+/// #374: desglose del saldo por origen para una moneda
+/// (`gold`, `gems` o `fragments`): ganado jugando frente a canasta del plan.
+final walletOriginProvider =
+    FutureProvider.autoDispose.family<WalletOrigin, String>((ref, currency) async {
+      final user = ref.watch(currentUserProvider);
+      if (user == null) return const WalletOrigin();
+      final repo = ref.watch(economyRepositoryProvider);
+      final rows = await repo.getLedgerRows(user.id);
+      return WalletOrigin.fromRows(rows, currency);
+    });
 
 /// Recompensas de nivel (desbloqueadas y pendientes de reclamar).
 final levelRewardsProvider = FutureProvider.autoDispose<List<LevelReward>>((

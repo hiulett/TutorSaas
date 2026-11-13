@@ -49,6 +49,10 @@ abstract class EconomyRepository {
   /// Get the number of available streak freezes
   Future<int> getStreakFreezes(String userId);
 
+  /// #374: filas de `currency_ledger` del usuario, para desglosar el saldo por
+  /// origen (ganado vs canasta del plan).
+  Future<List<Map<String, dynamic>>> getLedgerRows(String userId);
+
   /// #375: abre un repaso. El servidor consume 1 pergamino del cupo diario y
   /// devuelve los ejercicios derivados de las correcciones recientes.
   /// Mapa `{success, reason, remaining, items}` o `null` si falla la red.

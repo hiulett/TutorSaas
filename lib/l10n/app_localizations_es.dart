@@ -1390,6 +1390,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get review_error => 'No se pudo cargar el repaso.';
 
   @override
+  String get wallet_origin_title => 'ORIGEN DEL SALDO';
+
+  @override
+  String get wallet_origin_earned => 'GANADO';
+
+  @override
+  String get wallet_origin_plan => 'DE TU PLAN';
+
+  @override
+  String get wallet_origin_spent => 'GASTADO';
+
+  @override
   String get inventory_visit_shop => 'VISITA LA TIENDA →';
 
   @override
