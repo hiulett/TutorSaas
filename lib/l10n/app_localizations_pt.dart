@@ -2733,8 +2733,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String missions_claim_success(int xp, int gems) {
-    return 'Recompensa resgatada: +$xp XP · +$gems gemas';
+  String missions_claim_success(int xp, int gold) {
+    return 'Recompensa resgatada: +$xp XP · +$gold ouro';
   }
 
   @override

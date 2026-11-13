@@ -130,8 +130,8 @@ class _MissionCardState extends ConsumerState<MissionCard> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          l10n?.missions_claim_success(result.xp, result.gems) ??
-              'Recompensa reclamada: +${result.xp} XP · +${result.gems} gemas',
+          l10n?.missions_claim_success(result.xp, result.gold) ??
+              'Recompensa reclamada: +${result.xp} XP · +${result.gold} oro',
         ),
         backgroundColor: AppColors.accentGreen,
       ),
