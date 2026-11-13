@@ -177,7 +177,7 @@ class AuraHud extends ConsumerWidget {
                 if (aura.hasRankMismatch) ...[
                   const SizedBox(height: 4),
                   Text(
-                    l10n?.aura_rank_mismatch ?? '�s� RANGO INCONSISTENTE CON CEFR',
+                    l10n?.aura_rank_mismatch ?? 'RANGO INCONSISTENTE CON CEFR',
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 8,
                       fontWeight: FontWeight.bold,
@@ -301,7 +301,7 @@ class AuraHud extends ConsumerWidget {
                 if (aura.hasRankMismatch) ...[
                   const SizedBox(height: 4),
                   Text(
-                    l10n?.aura_rank_mismatch ?? '�s� RANGO INCONSISTENTE CON CEFR',
+                    l10n?.aura_rank_mismatch ?? 'RANGO INCONSISTENTE CON CEFR',
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 8,
                       fontWeight: FontWeight.bold,
