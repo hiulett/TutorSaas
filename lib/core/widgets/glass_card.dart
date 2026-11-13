@@ -183,11 +183,11 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
               child: card,
             );
           }
-          if (!widget.showRunicCorners)
-            return Transform.scale(scale: _scaleAnimation.value, child: card);
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Stack(
+          if (!widget.showRunicCorners) {
+            return _withScale(card);
+          }
+          return _withScale(
+            Stack(
               clipBehavior: Clip.none,
               children: [
                 card,
@@ -229,5 +229,18 @@ class _GlassCardState extends State<GlassCard> with TickerProviderStateMixin {
         },
       ),
     );
+  }
+
+  /// Envuelve en `Transform.scale` solo cuando hay animación de pulsación.
+  ///
+  /// #350: envolver SIEMPRE el subárbol en un `Transform` —aunque la escala sea
+  /// 1.0— hacía que Impeller compusiera dos veces el contenido sobre el
+  /// `BackdropFilter` y el texto saliera duplicado («SPANTISH (FS)» en el tile
+  /// de idioma, mismo fantasma que #303). En reposo no hay transformación que
+  /// aplicar, así que se devuelve el hijo tal cual.
+  Widget _withScale(Widget child) {
+    final double scale = _scaleAnimation.value;
+    if ((scale - 1.0).abs() < 0.001) return child;
+    return Transform.scale(scale: scale, child: child);
   }
 }
