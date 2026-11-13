@@ -40,6 +40,15 @@ class DashboardScreen extends ConsumerWidget {
     final cosmetics = ref.watch(equippedCosmeticsProvider);
 
     final isPremium = ref.watch(isPremiumProvider);
+    // #417: disparador contextual de compra. Se muestra solo si hay margen
+    // real de fricción: plan gratuito y menos del 30 % del maná diario.
+    final manaState = ref.watch(manaStateProvider).value ?? const {};
+    final manaRemaining = (manaState['remaining'] as int?) ?? 0;
+    final manaDailyLimit = (manaState['daily_limit'] as int?) ?? 200;
+    final showManaUpsell =
+        !isPremium &&
+        manaDailyLimit > 0 &&
+        manaRemaining < manaDailyLimit * 0.3;
     final dailyStateAsync = ref.watch(dailyStateProvider);
     final dailyClaimed =
         (dailyStateAsync.value?['daily_reward_claimed'] as bool?) ?? false;
@@ -428,6 +437,13 @@ class DashboardScreen extends ConsumerWidget {
 
                                   const SizedBox(height: 28),
 
+                                  // #417: oferta contextual en el momento de
+                                  // fricción (maná bajo y plan gratuito).
+                                  if (showManaUpsell) ...[
+                                    _buildManaUpsellCard(context, l10n),
+                                    const SizedBox(height: 16),
+                                  ],
+
                                   const SizedBox(
                                     height: 100,
                                   ), // Spacing for bottom navigation
@@ -551,6 +567,68 @@ class DashboardScreen extends ConsumerWidget {
     if (name.trim().isNotEmpty)
       return name.trim().substring(0, 1).toUpperCase();
     return 'H';
+  }
+
+  /// #417: oferta contextual en el momento de fricción (maná bajo).
+  /// El maná ya está en el header; esto no lo repite, lo convierte en decisión.
+  Widget _buildManaUpsellCard(BuildContext context, AppLocalizations? l10n) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => context.push('/paywall'),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.royalGold.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: AppColors.royalGold.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.bolt_rounded,
+              color: AppColors.royalGold,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n?.mana_upsell_title ?? 'Te queda poco maná',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n?.mana_upsell_body ??
+                        'Con un plan tendrías mucho más cada mes.',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n?.mana_upsell_cta ?? 'VER PLANES',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.royalGold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildQuickAccess({

@@ -3100,6 +3100,24 @@ abstract class AppLocalizations {
   /// **'TRY FREE'**
   String get go_pro;
 
+  /// No description provided for @mana_upsell_title.
+  ///
+  /// In en, this message translates to:
+  /// **'You are running low on mana'**
+  String get mana_upsell_title;
+
+  /// No description provided for @mana_upsell_body.
+  ///
+  /// In en, this message translates to:
+  /// **'With a plan you would get much more every month.'**
+  String get mana_upsell_body;
+
+  /// No description provided for @mana_upsell_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'SEE PLANS'**
+  String get mana_upsell_cta;
+
   /// No description provided for @logout_confirm_title.
   ///
   /// In en, this message translates to:

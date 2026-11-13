@@ -564,6 +564,9 @@
   "oracle": "ORÁCULO",
   "pro_badge": "PRO",
   "go_pro": "PROBAR GRATIS",
+"mana_upsell_title": "Te queda poco maná",
+"mana_upsell_body": "Con un plan tendrías mucho más cada mes.",
+"mana_upsell_cta": "VER PLANES",
   "logout_confirm_title": "¿CERRAR SESIÓN?",
   "logout_confirm_desc": "Tu progreso queda guardado. Necesitarás volver a iniciar sesión para continuar.",
 

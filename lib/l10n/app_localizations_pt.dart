@@ -1598,6 +1598,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get go_pro => 'TESTAR GRÁTIS';
 
   @override
+  String get mana_upsell_title => 'Está com pouco maná';
+
+  @override
+  String get mana_upsell_body => 'Com um plano teria muito mais a cada mês.';
+
+  @override
+  String get mana_upsell_cta => 'VER PLANOS';
+
+  @override
   String get logout_confirm_title => 'SAIR?';
 
   @override
