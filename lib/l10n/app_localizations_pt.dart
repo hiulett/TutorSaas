@@ -1363,6 +1363,30 @@ class AppLocalizationsPt extends AppLocalizations {
   String get inventory_empty => 'INVENTÁRIO VAZIO';
 
   @override
+  String get review_title => 'REVISÃO';
+
+  @override
+  String get review_cta => 'REVISAR SESSÃO';
+
+  @override
+  String get review_empty => 'Não há correções recentes para revisar.';
+
+  @override
+  String get review_no_pergaminos => 'Você ficou sem pergaminhos hoje.';
+
+  @override
+  String get review_reveal => 'VER CORREÇÃO';
+
+  @override
+  String get review_next => 'PRÓXIMA';
+
+  @override
+  String get review_done => 'REVISÃO COMPLETA';
+
+  @override
+  String get review_error => 'Não foi possível carregar a revisão.';
+
+  @override
   String get inventory_visit_shop => 'VISITE A LOJA →';
 
   @override

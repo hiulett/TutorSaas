@@ -101,6 +101,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         : inventory.where((i) => i['item_type'] == _filter).toList();
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/review'),
+        backgroundColor: AppColors.manaCyan,
+        foregroundColor: AppColors.voidBg,
+        icon: const Icon(Icons.auto_stories_rounded),
+        label: Text(l10n.review_cta),
+      ),
       body: CyberManhwaBackground(
         bgMode: CyberBgMode.hunterStatus,
         child: SafeArea(
