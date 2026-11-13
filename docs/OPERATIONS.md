@@ -59,7 +59,7 @@ supabase secrets set NOMBRE=valor --project-ref ...
 | `REVENUECAT_SECRET_KEY` | `sync-entitlement` (API v1, `sk_…`) |
 | `CRON_SECRET` | `missions-cron` |
 | `AI_PRICE_INPUT_PER_1M`, `AI_PRICE_OUTPUT_PER_1M`, `AI_PRICE_STT_PER_MINUTE` | `llm-proxy` (estimación de coste; opcionales) |
-| `MANA_CHARGE_MODE` | `llm-proxy` (cobro de maná: `all` por defecto, `capability`, `off`) |
+| `MANA_CHARGE_MODE` | `llm-proxy` (cobro de maná: **`capability` por defecto** si el secreto no existe, `all`, `off`) |
 | `RESEND_API_KEY`, `RESEND_FROM` | `reactivation-email` (opcional `REACTIVATION_CTA_URL`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Todas |
 
