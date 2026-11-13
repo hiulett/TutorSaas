@@ -2710,6 +2710,60 @@ abstract class AppLocalizations {
   /// **'SPENT'**
   String get wallet_origin_spent;
 
+  /// No description provided for @sanctuary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'SANCTUARY'**
+  String get sanctuary_title;
+
+  /// No description provided for @sanctuary_level_label.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL'**
+  String get sanctuary_level_label;
+
+  /// No description provided for @sanctuary_slots_label.
+  ///
+  /// In en, this message translates to:
+  /// **'SLOTS'**
+  String get sanctuary_slots_label;
+
+  /// No description provided for @sanctuary_cost_label.
+  ///
+  /// In en, this message translates to:
+  /// **'COST'**
+  String get sanctuary_cost_label;
+
+  /// No description provided for @sanctuary_upgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPAND'**
+  String get sanctuary_upgrade;
+
+  /// No description provided for @sanctuary_max.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX LEVEL'**
+  String get sanctuary_max;
+
+  /// No description provided for @sanctuary_upgraded.
+  ///
+  /// In en, this message translates to:
+  /// **'SANCTUARY EXPANDED'**
+  String get sanctuary_upgraded;
+
+  /// No description provided for @sanctuary_insufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT ENOUGH GOLD'**
+  String get sanctuary_insufficient;
+
+  /// No description provided for @sanctuary_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'COULD NOT EXPAND'**
+  String get sanctuary_failed;
+
   /// No description provided for @inventory_visit_shop.
   ///
   /// In en, this message translates to:

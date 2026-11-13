@@ -101,12 +101,27 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         : inventory.where((i) => i['item_type'] == _filter).toList();
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/review'),
-        backgroundColor: AppColors.manaCyan,
-        foregroundColor: AppColors.voidBg,
-        icon: const Icon(Icons.auto_stories_rounded),
-        label: Text(l10n.review_cta),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'sanctuary',
+            onPressed: () => context.push('/sanctuary'),
+            backgroundColor: AppColors.royalGold,
+            foregroundColor: AppColors.voidBg,
+            icon: const Icon(Icons.castle_rounded),
+            label: Text(l10n.sanctuary_title),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'review',
+            onPressed: () => context.push('/review'),
+            backgroundColor: AppColors.manaCyan,
+            foregroundColor: AppColors.voidBg,
+            icon: const Icon(Icons.auto_stories_rounded),
+            label: Text(l10n.review_cta),
+          ),
+        ],
       ),
       body: CyberManhwaBackground(
         bgMode: CyberBgMode.hunterStatus,
