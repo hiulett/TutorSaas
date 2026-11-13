@@ -43,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
 
     final isPremium = ref.watch(isPremiumProvider);
     // #417: disparador contextual de compra. Se muestra solo si hay margen
-    // real de fricciÃƒÂ³n: plan gratuito y menos del 30 % del manÃƒÂ¡ diario.
+    // real de fricci�f³n: plan gratuito y menos del 30 % del man�f¡ diario.
     final manaState = ref.watch(manaStateProvider).value ?? const {};
     // El plan gratuito consume el cupo DIARIO (`daily_remaining`); `remaining`
     // es el saldo del ciclo y en free puede mostrar un valor alto que nunca se
@@ -71,14 +71,14 @@ class DashboardScreen extends ConsumerWidget {
           'streak': 0,
           'level_code': 'A1',
           'level': 'Principiante',
-          'language': 'InglÃƒÂ©s',
-          'language_emoji': 'Ã°Å¸â€¡ÂºÃ°Å¸â€¡Â¸',
+          'language': 'Ingl�f©s',
+          'language_emoji': 'ðŸ�?�ºðŸ�?�¸',
         };
     final String cefrCode = progress['level_code'] as String;
 
     // Issue #63: al abrirse el teclado el Scaffold encoge el body y el dock
-    // flotante subÃƒÂ­a con ÃƒÂ©l, superponiÃƒÂ©ndose al contenido. Se oculta desplazÃƒÂ¡ndolo
-    // fuera del ÃƒÂ¡rea visible (el Stack recorta con Clip.hardEdge).
+    // flotante sub�f­a con �f©l, superponi�f©ndose al contenido. Se oculta desplaz�f¡ndolo
+    // fuera del �f¡rea visible (el Stack recorta con Clip.hardEdge).
     final bool isKeyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
 
     final completedLessonsAsync = ref.watch(completedLessonsProvider);
@@ -189,7 +189,7 @@ class DashboardScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                  // Top App Bar Ã¢â‚¬â€ identidad del cazador (avatar + nombre + nivel)
+                  // Top App Bar â�,��?� identidad del cazador (avatar + nombre + nivel)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24.0,
@@ -261,7 +261,7 @@ class DashboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  // Body with 4 Tabs (0: Dungeons, 1: GuildÃ¢â€ â€™/chat-rooms, 2: Status, 3: Config)
+                  // Body with 4 Tabs (0: Dungeons, 1: Guildâ�?��?T/chat-rooms, 2: Status, 3: Config)
                   Expanded(
                     child: currentTab == 1
                         ? const ChatRoomsScreen(isTab: true)
@@ -285,7 +285,7 @@ class DashboardScreen extends ConsumerWidget {
 
                                   const SizedBox(height: 12),
 
-                                  // #312: la prÃƒÂ¡ctica es la acciÃƒÂ³n primaria, justo
+                                  // #312: la pr�f¡ctica es la acci�f³n primaria, justo
                                   // debajo de la identidad y antes de cualquier
                                   // tarjeta secundaria.
                                   ContinueAdventureCard(
@@ -300,7 +300,7 @@ class DashboardScreen extends ConsumerWidget {
                                   // P-27 (#112): retorno tras inactividad.
                                   const WelcomeBackCard(),
 
-                                  // #312: la meta diaria se moviÃƒÂ³ dentro de la
+                                  // #312: la meta diaria se movi�f³ dentro de la
                                   // licencia del HUD (anillo compacto).
 
                                   // Issue #24: repaso espaciado (solo si hay palabras vencidas).
@@ -309,7 +309,7 @@ class DashboardScreen extends ConsumerWidget {
                                   // Issue #109: mision del dia (1 principal + 2 secundarias).
                                   const MissionSpotlightWidget(),
 
-                                  // Acceso a suscripciÃƒÂ³n (la racha vive en Estado, #80)
+                                  // Acceso a suscripci�f³n (la racha vive en Estado, #80)
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
@@ -322,7 +322,7 @@ class DashboardScreen extends ConsumerWidget {
                                             // #417: medir el embudo por origen.
                                             _trackUpgrade(ref, 'header');
                                             // Siempre navega: la pantalla de
-                                            // suscripciÃƒÂ³n ya distingue premium
+                                            // suscripci�f³n ya distingue premium
                                             // (gestionar) de no premium (comprar).
                                             context.push('/paywall');
                                           },
@@ -368,7 +368,7 @@ class DashboardScreen extends ConsumerWidget {
                                                   const SizedBox(width: 4),
                                                   Text(
                                                     isPremium
-                                                        ? '${l10n?.pro_badge ?? 'PRO'} Ã‚Â· ${l10n?.paywall_manage_subscription ?? 'GESTIONAR'}'
+                                                        ? '${l10n?.pro_badge ?? 'PRO'} �,· ${l10n?.paywall_manage_subscription ?? 'GESTIONAR'}'
                                                         : (l10n?.go_pro ??
                                                               'PROBAR GRATIS'),
                                                     style: TextStyle(
@@ -392,7 +392,7 @@ class DashboardScreen extends ConsumerWidget {
 
                                   const SizedBox(height: 16),
 
-                                  // Accesos rÃƒÂ¡pidos del sistema
+                                  // Accesos r�f¡pidos del sistema
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceAround,
@@ -405,7 +405,7 @@ class DashboardScreen extends ConsumerWidget {
                                       ),
                                       _buildQuickAccess(
                                         icon: Icons.auto_awesome_rounded,
-                                        label: l10n?.oracle ?? 'ORÃƒÂCULO',
+                                        label: l10n?.oracle ?? 'OR�fCULO',
                                         color: AppColors.royalGold,
                                         onTap: () =>
                                             context.push('/oracle-test'),
@@ -445,7 +445,7 @@ class DashboardScreen extends ConsumerWidget {
                                   const SizedBox(height: 28),
 
                                   // #417: oferta contextual en el momento de
-                                  // fricciÃƒÂ³n (manÃƒÂ¡ bajo y plan gratuito).
+                                  // fricci�f³n (man�f¡ bajo y plan gratuito).
                                   if (showManaUpsell) ...[
                                     _buildManaUpsellCard(context, l10n, ref),
                                     const SizedBox(height: 16),
@@ -463,7 +463,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
 
-            // Floating Bottom Navigation Bar (4 Items: Dungeons, GuildÃ¢â€ â€™/chat-rooms, Status, Config)
+            // Floating Bottom Navigation Bar (4 Items: Dungeons, Guildâ�?��?T/chat-rooms, Status, Config)
             Positioned(
               bottom: isKeyboardOpen ? -160 : 24,
               left: 16,
@@ -527,7 +527,7 @@ class DashboardScreen extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surfaceDeep,
         title: Text(
-          l10n?.logout_confirm_title ?? 'Ã‚Â¿CERRAR SESIÃƒâ€œN?',
+          l10n?.logout_confirm_title ?? '�,¿CERRAR SESI�f�?oN?',
           style: const TextStyle(
             color: AppColors.onSurface,
             fontSize: 16,
@@ -536,7 +536,7 @@ class DashboardScreen extends ConsumerWidget {
         ),
         content: Text(
           l10n?.logout_confirm_desc ??
-              'Tu progreso queda guardado. NecesitarÃƒÂ¡s volver a iniciar sesiÃƒÂ³n para continuar.',
+              'Tu progreso queda guardado. Necesitar�f¡s volver a iniciar sesi�f³n para continuar.',
           style: const TextStyle(
             color: AppColors.onSurfaceVariant,
             fontSize: 13,
@@ -587,8 +587,8 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  /// #417: oferta contextual en el momento de fricciÃƒÂ³n (manÃƒÂ¡ bajo).
-  /// El manÃƒÂ¡ ya estÃƒÂ¡ en el header; esto no lo repite, lo convierte en decisiÃƒÂ³n.
+  /// #417: oferta contextual en el momento de fricci�f³n (man�f¡ bajo).
+  /// El man�f¡ ya est�f¡ en el header; esto no lo repite, lo convierte en decisi�f³n.
   Widget _buildManaUpsellCard(BuildContext context, AppLocalizations? l10n, WidgetRef ref) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -618,7 +618,7 @@ class DashboardScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n?.mana_upsell_title ?? 'Te queda poco manÃƒÂ¡',
+                    l10n?.mana_upsell_title ?? 'Te queda poco man�f¡',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -628,7 +628,7 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     l10n?.mana_upsell_body ??
-                        'Con un plan tendrÃƒÂ­as mucho mÃƒÂ¡s cada mes.',
+                        'Con un plan tendr�f­as mucho m�f¡s cada mes.',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: AppColors.onSurfaceVariant,
