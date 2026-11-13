@@ -1,10 +1,10 @@
 # Runbook — tests de calidad y red de regresión visual
 
-> Verificado el 30-oct-2026 sobre `feat/198-hold-talk` (base `origin/master`
-> `9897c4d`; Flutter 3.41.9 local, `ubuntu-latest` + stable en CI).
-> Números medidos, no heredados: `flutter test` → **699 pruebas en verde, 0
-> saltadas**; `flutter analyze --no-fatal-infos` → **0 errores, 0 warnings, 127
-> infos**. La cobertura la publica el CI en cada run (P-18).
+> Verificado el 29-oct-2026 sobre `origin/master` `995e958` (Windows local,
+> `ubuntu-latest` + stable en CI).
+> Números medidos, no heredados: `flutter test` → **725 pruebas en verde, 0
+> saltadas**; `flutter analyze` → **0 errores, 0 warnings, 126 infos**. La
+> cobertura la publica el CI en cada run (P-18).
 
 ---
 
@@ -16,7 +16,7 @@
 | Estructura de widgets | `test/golden/glass_card_test.dart` | 6 | Vidrio de `GlassCard`: color, alfa, blur, borde, radio, sombra, padding, tamaño, animación de prensado, `onTap`, semántica, esquinas rúnicas |
 | Estructura de widgets | `test/golden/rpg_chips_test.dart` | 4 | Chips del HUD: color de borde por token, tamaño, separación, estilo de texto |
 | Pixel-golden | `test/golden/segmented_bar_test.dart` | 1 | Píxeles reales de `SegmentedBar` (`test/golden/goldens/segmented_bar.png`) |
-| Resto del producto | `test/*.dart` | 683 | Lógica, pantallas, i18n, overflow, fuentes… |
+| Resto del producto | `test/*.dart` | 709 | Lógica, pantallas, i18n, overflow, fuentes… |
 
 `flutter test test/golden` ejecuta las 16 pruebas de esta carpeta en cualquier SO.
 

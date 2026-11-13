@@ -1,6 +1,6 @@
 # Estado de las migraciones (auditoría real)
 
-_Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
+_Actualizado: 29-oct-2026 (recuento de archivos, historial y cruce verificados ese día)._
 
 > Estado actual verificado: **106 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
@@ -14,15 +14,14 @@ _Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados 
 | Sin prefijo (el CLI los ignora) | **75** |
 | En subcarpetas (`archive/`, `audit/`) | 40 |
 | Migraciones aplicadas según `supabase_migrations.schema_migrations` | **106** |
-| Aplicadas **con** archivo correspondiente | 64 |
+| Aplicadas **con** archivo correspondiente | 67 |
 | Aplicadas **sin** archivo en el repo | **39** |
-| Archivos con prefijo que **no** están aplicados | 33 |
+| Archivos con prefijo que **no** están aplicados | 30 |
 
-> Recuento de archivos (172 totales, 97 con prefijo, 40 en subcarpetas),
-> migraciones aplicadas (106) y archivos con prefijo (97) reverificado por MCP
-> y shell el 30-oct-2026 (tras P-40a/P-40b). Las filas de correspondencia
-> archivo↔historial (64/39) se ajustaron con las migraciones nuevas y siguen
-> apoyadas en el desglose anterior: no se recontaron una a una.
+> Recontado por MCP y shell el 29-oct-2026 sobre `d75fc29`: 172 archivos en la
+> raíz (97 con prefijo), 40 en subcarpetas, 106 versiones en el historial y el
+> cruce archivo↔historial por nombre de archivo (67 / 39 / 30). Las 41 filas de
+> correspondencia de versiones anteriores se sustituyen por este recuento.
 
 ## Por qué el repo no reproduce el esquema
 
@@ -91,7 +90,7 @@ Con eso, un entorno nuevo se crea aplicando **un solo archivo**.
 
 ## Mientras tanto
 
-- No ejecutar `supabase db push` contra producción: intentaría aplicar los 26
+- No ejecutar `supabase db push` contra producción: intentaría aplicar los 30
   archivos con prefijo no registrados.
 - Los cambios de esquema se siguen aplicando por el SQL Editor o por MCP, y se
   guardan como archivo con la **versión real** del historial.
