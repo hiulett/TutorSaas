@@ -303,9 +303,12 @@ class DashboardScreen extends ConsumerWidget {
                                         child: GestureDetector(
                                           behavior: HitTestBehavior.opaque,
                                           onTap: () {
-                                            if (!isPremium) {
-                                              context.push('/paywall');
-                                            }
+                                            // Siempre navega: la pantalla de
+                                            // suscripción ya distingue premium
+                                            // (gestionar) de no premium (comprar).
+                                            // Antes, siendo premium el toque no
+                                            // hacía nada y el botón parecía muerto.
+                                            context.push('/paywall');
                                           },
                                           child: Center(
                                             child: Container(
@@ -320,10 +323,7 @@ class DashboardScreen extends ConsumerWidget {
                                                           .withValues(
                                                             alpha: 0.15,
                                                           )
-                                                    : AppColors.runeViolet
-                                                          .withValues(
-                                                            alpha: 0.15,
-                                                          ),
+                                                    : AppColors.royalGold,
                                                 borderRadius:
                                                     BorderRadius.circular(
                                                       AppRadius.lg,
@@ -331,7 +331,7 @@ class DashboardScreen extends ConsumerWidget {
                                                 border: Border.all(
                                                   color: isPremium
                                                       ? AppColors.manaCyan
-                                                      : AppColors.runeViolet,
+                                                      : AppColors.royalGold,
                                                   width: 1,
                                                 ),
                                               ),
@@ -346,24 +346,23 @@ class DashboardScreen extends ConsumerWidget {
                                                               .star_border_rounded,
                                                     color: isPremium
                                                         ? AppColors.manaCyan
-                                                        : AppColors.runeViolet,
+                                                        : AppColors.voidBg,
                                                     size: 16,
                                                   ),
                                                   const SizedBox(width: 4),
                                                   Text(
                                                     isPremium
-                                                        ? (l10n?.pro_badge ??
-                                                              'PRO')
+                                                        ? '${l10n?.pro_badge ?? 'PRO'} · ${l10n?.paywall_manage_subscription ?? 'GESTIONAR'}'
                                                         : (l10n?.go_pro ??
-                                                              'IR PRO'),
+                                                              'PROBAR GRATIS'),
                                                     style: TextStyle(
                                                       fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 11,
+                                                          FontWeight.w800,
+                                                      fontSize: 12,
+                                                      letterSpacing: 0.4,
                                                       color: isPremium
                                                           ? AppColors.manaCyan
-                                                          : AppColors
-                                                                .runeViolet,
+                                                          : AppColors.voidBg,
                                                     ),
                                                   ),
                                                 ],
