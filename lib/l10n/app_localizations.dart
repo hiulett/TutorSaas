@@ -5065,8 +5065,8 @@ abstract class AppLocalizations {
   /// No description provided for @missions_claim_success.
   ///
   /// In en, this message translates to:
-  /// **'Reward claimed: +{xp} XP · +{gems} gems'**
-  String missions_claim_success(int xp, int gems);
+  /// **'Reward claimed: +{xp} XP · +{gold} gold'**
+  String missions_claim_success(int xp, int gold);
 
   /// No description provided for @missions_claim_already.
   ///

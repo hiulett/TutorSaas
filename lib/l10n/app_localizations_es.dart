@@ -2736,8 +2736,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String missions_claim_success(int xp, int gems) {
-    return 'Recompensa reclamada: +$xp XP · +$gems gemas';
+  String missions_claim_success(int xp, int gold) {
+    return 'Recompensa reclamada: +$xp XP · +$gold oro';
   }
 
   @override
