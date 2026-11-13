@@ -322,6 +322,7 @@ class DashboardScreen extends ConsumerWidget {
                                             // (gestionar) de no premium (comprar).
                                             // Antes, siendo premium el toque no
                                             // hacía nada y el botón parecía muerto.
+                                            _trackUpgrade(ref, 'header');
                                             context.push('/paywall');
                                           },
                                           child: Center(
