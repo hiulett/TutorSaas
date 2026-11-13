@@ -3097,7 +3097,7 @@ abstract class AppLocalizations {
   /// No description provided for @go_pro.
   ///
   /// In en, this message translates to:
-  /// **'GO PRO'**
+  /// **'TRY FREE'**
   String get go_pro;
 
   /// No description provided for @logout_confirm_title.

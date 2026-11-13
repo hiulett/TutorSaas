@@ -1595,7 +1595,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pro_badge => 'PRO';
 
   @override
-  String get go_pro => 'IR PRO';
+  String get go_pro => 'TESTAR GRÁTIS';
 
   @override
   String get logout_confirm_title => 'SAIR?';
