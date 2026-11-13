@@ -134,6 +134,8 @@ jobs:
         run: |
           deno check supabase/functions/llm-proxy/index.ts
           deno check supabase/functions/lesson-generator/index.ts
+          deno check supabase/functions/revenuecat-webhook/index.ts
+          deno check supabase/functions/sync-entitlement/index.ts
 
       - name: Test
         run: deno test supabase/functions

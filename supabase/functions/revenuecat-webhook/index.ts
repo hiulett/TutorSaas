@@ -88,6 +88,54 @@ async function setCancelAtPeriodEnd(userId: string, value: boolean): Promise<voi
   if (error) console.error('set cancel_at_period_end error:', error);
 }
 
+/// #388: registra el ingreso real en `payments` para poder calcular ARPU/ARPPU
+/// desde Supabase (antes los ingresos solo vivían en Play y RevenueCat).
+///
+/// Idempotente por `revenuecat_event_id`: el webhook ya deduplica eventos, pero
+/// la restricción única evita duplicados aunque se reintente el insert.
+/// Un reembolso se registra como fila aparte con `status = 'refunded'`: las
+/// consultas de ingreso deben restar reembolsos.
+async function recordPayment(
+  event: any,
+  status: 'succeeded' | 'refunded',
+): Promise<void> {
+  const eventId = event['id'] ? String(event['id']) : '';
+  const userId = event['app_user_id'] ? String(event['app_user_id']) : '';
+  if (!eventId || !userId) return;
+
+  const usd = event['price'] != null ? Number(event['price']) : null;
+  const local =
+    event['price_in_purchased_currency'] != null
+      ? Number(event['price_in_purchased_currency'])
+      : null;
+  const purchasedAtMs = event['purchased_at_ms']
+    ? Number(event['purchased_at_ms'])
+    : null;
+
+  const { error } = await supabase
+    .from('payments')
+    .upsert(
+      {
+        user_id: userId,
+        amount_usd: Number.isFinite(usd as number) ? usd : null,
+        amount: Number.isFinite(local as number) ? local : null,
+        currency: event['currency'] ? String(event['currency']) : 'USD',
+        status,
+        payment_method: 'play',
+        product_id: event['product_id'] ? String(event['product_id']) : null,
+        store_transaction_id: event['transaction_id']
+          ? String(event['transaction_id'])
+          : null,
+        revenuecat_event_id: eventId,
+        created_at: purchasedAtMs
+          ? new Date(purchasedAtMs).toISOString()
+          : new Date().toISOString(),
+      },
+      { onConflict: 'revenuecat_event_id', ignoreDuplicates: true },
+    );
+  if (error) console.error('recordPayment error:', error);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'GET') {
     return json({ received: true }); // RevenueCat valida el endpoint con GET.
@@ -157,7 +205,30 @@ Deno.serve(async (req: Request) => {
           });
         }
         await setCancelAtPeriodEnd(appUserId, false);
+        // #388: solo los eventos que mueven dinero generan fila de pago
+        // (reactivación y extensión no son un cobro nuevo).
+        if (
+          type === 'INITIAL_PURCHASE' ||
+          type === 'RENEWAL' ||
+          type === 'PRODUCT_CHANGE'
+        ) {
+          await recordPayment(event, 'succeeded');
+        }
         break;
+
+      // Compra no recurrente (p. ej. paquetes de gemas de #387).
+      case 'NON_RENEWING_PURCHASE': {
+        await recordPayment(event, 'succeeded');
+        if (grantsPro) {
+          await applyEntitlement({
+            userId: appUserId,
+            productId,
+            expiresAt,
+            active: true,
+          });
+        }
+        break;
+      }
 
       // Cambio de titular: se revoca al origen y se concede al destino.
       case 'TRANSFER': {
@@ -195,6 +266,11 @@ Deno.serve(async (req: Request) => {
             productId: '',
             active: false,
           });
+        }
+        // #388: el reembolso queda registrado como fila aparte para poder
+        // descontarlo al calcular ingresos netos.
+        if (type === 'REFUND') {
+          await recordPayment(event, 'refunded');
         }
         break;
 
