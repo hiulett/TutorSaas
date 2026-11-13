@@ -158,3 +158,30 @@ El job `Edge Functions (deno check + test)` del CI ejecuta esos tres comandos.
 `deno check` importa el módulo real, así que un error de tipos en `index.ts` o
 un import roto rompe el build (antes no se comprobaba: `corsAllowedOrigin`
 `.isNotEmpty` —Dart— pasaba inadvertido).
+
+## 8. Arneses de integración en dispositivo
+
+Dos arneses que **no pueden correr en CI** (los runners no tienen Android). Son
+la única red para lo que depende de GPU, fuentes reales o estado real —Impeller,
+Supabase, sesión—, justo lo que los tests de widget no ven. Se ejecutan antes de
+un release, con un móvil conectado y autorizado:
+
+```sh
+flutter devices                                        # confirma el id
+flutter test integration_test/all_routes_test.dart -d <device>
+flutter test integration_test/sub_screens_test.dart -d <device>
+```
+
+- **`all_routes_test.dart`** — monta la app real (`TutorSaaSApp`), espera al
+  splash y recorre las **20 rutas** de `lib/app/router.dart` con `router.go`.
+  Por ruta avanza 6 frames (no `pumpAndSettle`: hay animaciones infinitas) y
+  anota `tester.takeException()`. Resumen esperado:
+  `RESUMEN rutas=20 fallos=0`.
+- **`sub_screens_test.dart`** — recorre **12 subpantallas**, hojas y modales que
+  el anterior no toca. Resumen esperado: `RESUMEN subpantallas=12 fallos=0`.
+
+**Cuándo ejecutarlos**: antes de compilar el AAB de release y siempre que se
+toque layout de pantallas, cabeceras o `GlassCard`. #308 (overflow intermitente
+de 22 px en `/conversation`) solo se veía aquí y solo en la primera pasada: si
+un fallo es intermitente, **repite el arnés 3 veces** antes de dar el fix por
+bueno.
