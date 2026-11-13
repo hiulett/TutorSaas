@@ -3,17 +3,17 @@ package com.tutorsaas.tutorsaas
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private val appSettingsChannel = "tutorsaas/app_settings"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // P-34e (#119): "Ir a ajustes" cuando el micrófono está denegado.
+        // P-34e (#119): "Ir a ajustes" cuando el micrÃ³fono estÃ¡ denegado.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, appSettingsChannel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
