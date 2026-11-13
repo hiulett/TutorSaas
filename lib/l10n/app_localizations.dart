@@ -2764,6 +2764,48 @@ abstract class AppLocalizations {
   /// **'COULD NOT EXPAND'**
   String get sanctuary_failed;
 
+  /// No description provided for @sanctuary_garden.
+  ///
+  /// In en, this message translates to:
+  /// **'STREAK GARDEN'**
+  String get sanctuary_garden;
+
+  /// No description provided for @sanctuary_stage_seed.
+  ///
+  /// In en, this message translates to:
+  /// **'SEED'**
+  String get sanctuary_stage_seed;
+
+  /// No description provided for @sanctuary_stage_sprout.
+  ///
+  /// In en, this message translates to:
+  /// **'SPROUT'**
+  String get sanctuary_stage_sprout;
+
+  /// No description provided for @sanctuary_stage_plant.
+  ///
+  /// In en, this message translates to:
+  /// **'PLANT'**
+  String get sanctuary_stage_plant;
+
+  /// No description provided for @sanctuary_stage_tree.
+  ///
+  /// In en, this message translates to:
+  /// **'TREE'**
+  String get sanctuary_stage_tree;
+
+  /// No description provided for @sanctuary_vitrine.
+  ///
+  /// In en, this message translates to:
+  /// **'DISPLAY CASE'**
+  String get sanctuary_vitrine;
+
+  /// No description provided for @sanctuary_vitrine_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'NO RELICS YET'**
+  String get sanctuary_vitrine_empty;
+
   /// No description provided for @inventory_visit_shop.
   ///
   /// In en, this message translates to:
