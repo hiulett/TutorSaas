@@ -1610,6 +1610,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get aura_upsell => 'Realeza inclui cosméticos exclusivos';
 
   @override
+  String get splash_connecting_realm => 'CONECTANDO AO GRANDE REINO';
+
+  @override
   String get logout_confirm_title => 'SAIR?';
 
   @override

@@ -3124,6 +3124,12 @@ abstract class AppLocalizations {
   /// **'Realeza includes exclusive cosmetics'**
   String get aura_upsell;
 
+  /// No description provided for @splash_connecting_realm.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTING TO THE GREAT KINGDOM'**
+  String get splash_connecting_realm;
+
   /// No description provided for @logout_confirm_title.
   ///
   /// In en, this message translates to:

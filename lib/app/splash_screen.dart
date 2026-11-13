@@ -130,43 +130,15 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 const Spacer(),
 
-                // Emblema rúnico pulsante
+                // Emblema: puerta de mazmorra trazada (variante B).
+                // Sin assets ni degradados: solo trazo, como el resto del HUD.
                 ScaleTransition(
                   scale: _pulse,
-                  child: Container(
-                    width: 128,
-                    height: 128,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.runeViolet, AppColors.manaCyan],
-                      ),
-                      border: Border.all(
-                        color: AppColors.onSurface.withValues(alpha: 0.25),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.manaCyan.withValues(
-                            alpha: 0.25 + 0.45 * _controller.value,
-                          ),
-                          blurRadius: 40,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, child) => Transform.rotate(
-                        angle: _controller.value * math.pi * 0.06,
-                        child: const Icon(
-                          Icons.auto_awesome,
-                          color: AppColors.voidBg,
-                          size: 58,
-                        ),
-                      ),
+                  child: SizedBox(
+                    width: 150,
+                    height: 150,
+                    child: CustomPaint(
+                      painter: _GatePainter(glow: _controller.value),
                     ),
                   ),
                 ),
@@ -221,8 +193,9 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          AppLocalizations.of(context)?.splash_connecting((_progress.value * 100).round()) ??
-                              '${(_progress.value * 100).round()}% · CONECTANDO AL GRAN REINO',
+                          AppLocalizations.of(context)
+                                  ?.splash_connecting_realm ??
+                              'CONECTANDO AL GRAN REINO',
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
@@ -242,6 +215,63 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+}
+
+/// Variante B: puerta de mazmorra trazada con líneas, sin assets ni degradados.
+/// Dos jambas, arco, umbral y un ojo central; el glow late con el controlador.
+class _GatePainter extends CustomPainter {
+  _GatePainter({required this.glow});
+
+  final double glow;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final w = size.width;
+
+    final halo = Paint()
+      ..color = AppColors.manaCyan.withValues(alpha: 0.14 + 0.18 * glow)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+    canvas.drawCircle(center, w * 0.30, halo);
+
+    final stroke = Paint()
+      ..color = AppColors.manaCyan
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+
+    final half = w * 0.17;
+    final top = center.dy - w * 0.24;
+    final bottom = center.dy + w * 0.22;
+    final shoulder = top + w * 0.26;
+
+    canvas.drawLine(
+      Offset(center.dx - half, bottom),
+      Offset(center.dx - half, shoulder),
+      stroke,
+    );
+    canvas.drawLine(
+      Offset(center.dx + half, bottom),
+      Offset(center.dx + half, shoulder),
+      stroke,
+    );
+    canvas.drawArc(
+      Rect.fromLTRB(center.dx - half, top, center.dx + half, top + w * 0.30),
+      math.pi,
+      math.pi,
+      false,
+      stroke,
+    );
+    canvas.drawLine(
+      Offset(center.dx - half - w * 0.05, bottom),
+      Offset(center.dx + half + w * 0.05, bottom),
+      stroke,
+    );
+    canvas.drawCircle(center, w * 0.030, stroke);
+  }
+
+  @override
+  bool shouldRepaint(_GatePainter oldDelegate) => oldDelegate.glow != glow;
 }
 
 class _GlowOrb extends StatelessWidget {
