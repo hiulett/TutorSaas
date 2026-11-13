@@ -45,7 +45,12 @@ class DashboardScreen extends ConsumerWidget {
     // #417: disparador contextual de compra. Se muestra solo si hay margen
     // real de fricciÃƒÂ³n: plan gratuito y menos del 30 % del manÃƒÂ¡ diario.
     final manaState = ref.watch(manaStateProvider).value ?? const {};
-    final manaRemaining = (manaState['remaining'] as int?) ?? 0;
+    // El plan gratuito consume el cupo DIARIO (`daily_remaining`); `remaining`
+    // es el saldo del ciclo y en free puede mostrar un valor alto que nunca se
+    // gasta. Usar el campo correcto decide si la oferta aparece o no (#417).
+    final manaRemaining = (manaState['daily_remaining'] as int?) ??
+        (manaState['remaining'] as int?) ??
+        0;
     final manaDailyLimit = (manaState['daily_limit'] as int?) ?? 200;
     final showManaUpsell =
         !isPremium &&
