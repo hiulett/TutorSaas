@@ -27,6 +27,9 @@ abstract final class AnalyticsEvent {
   static const correctionEval = 'correction_eval';
 
   static const paywallViewed = 'paywall_viewed';
+  // #417: clic en un CTA de mejora de plan. `source`:
+  // header | mana_card | lock_card.
+  static const upgradeCtaTapped = 'upgrade_cta_tapped';
   static const purchaseStarted = 'purchase_started';
   static const purchaseSucceeded = 'purchase_succeeded';
   static const purchaseCancelled = 'purchase_cancelled';
