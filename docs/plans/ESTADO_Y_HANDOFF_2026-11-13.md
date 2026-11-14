@@ -83,3 +83,34 @@ Orden recomendado, uno por sesión:
 5. **CUR-25** — rúbrica de colocación del Oráculo.
 
 Cada una tiene su historia en la épica [#419](https://github.com/hiulett/TutorSaas/issues/419).
+
+---
+
+## 7 · Cierre de la sesión de importación (CUR-03)
+
+Actualización al final del 13-nov, posterior a este traspaso. Lo de la sección 2
+que ya está hecho:
+
+| Pieza | Estado |
+|---|---|
+| PR #447 (CUR-01 + CUR-02) | ✅ mergeado (`eb0df3a`) |
+| `20261113150000_curriculum_schema.sql` | ✅ aplicada, con el `check` de `difficulty` normalizado a 1..6; reejecutarla repara una base ya creada |
+| CUR-03 · importación idempotente | ✅ mergeado (`2e7c894`, PR #448) |
+| Issues #420, #421, #422 | cerradas con su evidencia |
+
+Verificado contra `sipiumfdpvnszthykyog`: 140 lecciones, 540 objetivos y 539
+frases; 481 con `translation_status='identical'` y el texto sin corregir; ids
+del catálogo intactos; una segunda ejecución no escribe nada (`unchanged 140`,
+ni versiones ni filas nuevas).
+
+Dos defectos aparecieron al importar y quedaron corregidos: el catálogo real usa
+`difficulty` 1..6 (C2) y la lección `prea1_i_dont_understand` perdía el título por
+llevar comillas dobles.
+
+Siguiente bloque: **CUR-04** ([#423](https://github.com/hiulett/TutorSaas/issues/423))
+y **CUR-05** ([#424](https://github.com/hiulett/TutorSaas/issues/424)); ojo,
+CUR-05 pide motivo de revisión y no hay columna para él, así que necesita DDL.
+Después, **CUR-07** ([#426](https://github.com/hiulett/TutorSaas/issues/426)).
+
+Sigue pendiente la sección 2.4 y 2.5: rotar las claves expuestas y actualizar el
+header del webhook.
