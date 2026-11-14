@@ -245,13 +245,26 @@ class CurriculumActivity {
       );
 }
 
+/// Id de `curriculum_levels` a partir del CEFR que usa la pantalla (`PRE-A1`).
+String curriculumLevelIdForCefr(String cefr) =>
+    cefr.trim().toLowerCase().replaceAll('-', '_');
+
+/// Lecciones del catálogo empaquetado para un nivel, en su orden publicado.
+List<LessonData> catalogLessonsForLevel(String levelId) {
+  final level = _levelFromCatalogId(levelId);
+  return LessonCatalog.catalog
+      .where((lesson) => lesson.level.toLowerCase() == level.cefr.toLowerCase())
+      .toList(growable: false);
+}
+
 /// Adapta el catálogo empaquetado al mismo modelo, para el modo `dart`.
+///
+/// Conserva el orden del catálogo a propósito (CUR-24): es el orden pedagógico
+/// que hoy ve el alumno. Ordenarlo por id cambiaría la Ruta al encender el
+/// fallback, que es justo lo que la activación progresiva no puede permitirse.
 CurriculumPack curriculumPackFromDart(String levelId) {
   final level = _levelFromCatalogId(levelId);
-  final lessons = LessonCatalog.catalog
-      .where((lesson) => lesson.level.toLowerCase() == level.cefr.toLowerCase())
-      .toList()
-    ..sort((a, b) => a.id.compareTo(b.id));
+  final lessons = catalogLessonsForLevel(levelId);
 
   final units = <CurriculumUnit>[];
   for (var index = 0; index < lessons.length; index += 5) {

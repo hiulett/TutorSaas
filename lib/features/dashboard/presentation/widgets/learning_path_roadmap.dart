@@ -10,6 +10,8 @@ import '../../../../core/widgets/quest_card.dart';
 import '../../../../core/widgets/system_snack.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../boss_exam/presentation/widgets/boss_exam_card.dart';
+import '../../../curriculum/domain/models/curriculum_pack.dart';
+import '../../../curriculum/presentation/providers/curriculum_providers.dart';
 import '../../../listening/presentation/widgets/listening_path_card.dart';
 import '../../data/models/lesson_catalog.dart';
 import '../../domain/models/lesson_unlock_service.dart';
@@ -198,10 +200,22 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
     final recommendedPath =
         ref.watch(recommendedPathProvider).value ??
         const <RecommendedPathStep>[];
+    // CUR-24: la Ruta sale del origen activo (`curriculum_source`). Con el flag
+    // en `dart` el provider devuelve el mismo catálogo y el mismo orden, así que
+    // el comportamiento no cambia; mientras resuelve (o si falla) se usa el
+    // catálogo directamente para no dejar la pantalla vacía.
+    final remoteLessons = ref
+        .watch(curriculumLevelLessonsProvider(
+          curriculumLevelIdForCefr(_selectedLevel),
+        ))
+        .value;
+    final catalogLessons = LessonCatalog.catalog
+        .where((l) => l.level.toUpperCase() == _selectedLevel)
+        .toList();
     final stageLessons = PathOrder.apply(
-      LessonCatalog.catalog
-          .where((l) => l.level.toUpperCase() == _selectedLevel)
-          .toList(),
+      remoteLessons == null || remoteLessons.isEmpty
+          ? catalogLessons
+          : remoteLessons,
       recommendedPath,
     );
     final topRecommendation = _topRecommendation(stageLessons, recommendedPath);

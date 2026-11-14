@@ -34,60 +34,104 @@ class SupabaseCurriculumDataSource implements CurriculumRemoteDataSource {
   }
 }
 
-/// Repositorio del currículo con selector de origen (CUR-16).
+/// Repositorio del currículo con selector de origen (CUR-16) y activación
+/// progresiva (CUR-24).
 ///
 /// El flag `curriculum_source` decide si se lee de PostgreSQL o del catálogo
-/// Dart empaquetado. Cualquier fallo remoto cae al catálogo: quedarse sin
-/// currículo es peor que servir el contenido de la versión anterior.
+/// Dart empaquetado. Cualquier fallo remoto, o un pack incompleto, cae al
+/// catálogo: quedarse sin currículo es peor que servir el contenido de la
+/// versión anterior.
 class CurriculumRepository {
   CurriculumRepository({
     required CurriculumRemoteDataSource remote,
     this.isRemoteEnabled = true,
-  }) : _remote = remote;
+    DateTime Function()? now,
+    this.sourceTtl = const Duration(seconds: 60),
+  })  : _remote = remote,
+        _now = now ?? DateTime.now;
 
   final CurriculumRemoteDataSource _remote;
 
   /// Interruptor local de seguridad: con `false` no se llama a la red.
   final bool isRemoteEnabled;
 
+  /// Cuánto se recuerda el flag antes de volver a preguntarlo. Sesenta segundos
+  /// hacen que apagar el flag (rollback) surta efecto sin reiniciar la app y sin
+  /// preguntar en cada cambio de nivel.
+  final Duration sourceTtl;
+
+  final DateTime Function() _now;
+
   String? _lastSource;
+  String? _lastSourceReason;
+  String? _cachedSource;
+  DateTime? _cachedSourceAt;
 
   /// Último origen usado (`db` o `dart`), para diagnósticos y analítica.
   String? get lastSource => _lastSource;
 
+  /// Por qué se sirvió ese origen: `flag`, `flag_dart`, `remote_disabled`,
+  /// `empty_pack`, `incomplete_pack`, `network`. Útil para medir la activación.
+  String? get lastSourceReason => _lastSourceReason;
+
+  /// Fuerza a repreguntar el flag en la próxima lectura (rollback inmediato).
+  void invalidateSource() {
+    _cachedSource = null;
+    _cachedSourceAt = null;
+  }
+
+  Future<String> _resolveSource() async {
+    final cachedAt = _cachedSourceAt;
+    if (_cachedSource != null &&
+        cachedAt != null &&
+        _now().difference(cachedAt) < sourceTtl) {
+      return _cachedSource!;
+    }
+    final source = await _remote.fetchSource();
+    _cachedSource = source;
+    _cachedSourceAt = _now();
+    return source;
+  }
+
   Future<CurriculumPack> getLevelPack(String levelId, {int sinceVersion = 0}) async {
     if (!isRemoteEnabled) {
-      _lastSource = 'dart';
-      return curriculumPackFromDart(levelId);
+      return _fromDart(levelId, 'remote_disabled');
     }
 
     try {
-      final source = await _remote.fetchSource();
+      final source = await _resolveSource();
       if (source != 'db') {
-        _lastSource = 'dart';
-        return curriculumPackFromDart(levelId);
+        return _fromDart(levelId, 'flag_dart');
       }
 
       final pack = CurriculumPack.fromJson(
         await _remote.fetchPack(levelId, sinceVersion: sinceVersion),
       );
+      if (pack.level.id != levelId && pack.level.id.isNotEmpty) {
+        return _fromDart(levelId, 'wrong_level');
+      }
       if (pack.units.isEmpty) {
         // Un nivel sin unidades en la base es un error de contenido, no una
         // respuesta válida: mejor el catálogo que una pantalla vacía.
-        ErrorTracker.logSilent(
-          'curriculum.pack_empty',
-          StateError('el pack de $levelId llegó sin unidades'),
-        );
-        _lastSource = 'dart';
-        return curriculumPackFromDart(levelId);
+        _logFallback('curriculum.pack_empty', levelId);
+        return _fromDart(levelId, 'empty_pack');
+      }
+      if (sinceVersion <= 0) {
+        // `since_version` devuelve solo lo cambiado, así que la comparación de
+        // completitud solo tiene sentido en la carga completa.
+        final problem = _completenessProblem(pack, levelId);
+        if (problem != null) {
+          _logFallback('curriculum.pack_$problem', levelId);
+          return _fromDart(levelId, '${problem}_pack');
+        }
       }
 
       _lastSource = 'db';
+      _lastSourceReason = 'flag';
       return pack;
     } catch (error, stack) {
       ErrorTracker.logSilent('curriculum.getLevelPack', error, stackTrace: stack);
-      _lastSource = 'dart';
-      return curriculumPackFromDart(levelId);
+      return _fromDart(levelId, 'network');
     }
   }
 
@@ -95,6 +139,33 @@ class CurriculumRepository {
   Future<CurriculumLesson?> getLesson(String levelId, String lessonId) async {
     final pack = await getLevelPack(levelId);
     return pack.lessonById(lessonId);
+  }
+
+  /// `null` si el pack sirve exactamente las lecciones que la app ya sabe
+  /// renderizar para el nivel; si no, el nombre del problema.
+  ///
+  /// La base puede tener **más** contenido que el catálogo (ese es el objetivo
+  /// del plan), pero mientras los renderers vivan en código una lección que la
+  /// app no conoce no se puede enseñar: se considera pack incompleto y se sirve
+  /// el catálogo entero. Es la red de seguridad de la activación (CUR-24).
+  String? _completenessProblem(CurriculumPack pack, String levelId) {
+    final ids = pack.lessons.map((lesson) => lesson.id).toList(growable: false);
+    if (ids.toSet().length != ids.length) return 'duplicated';
+
+    final known = {for (final lesson in catalogLessonsForLevel(levelId)) lesson.id};
+    if (known.difference(ids.toSet()).isNotEmpty) return 'incomplete';
+    if (ids.toSet().difference(known).isNotEmpty) return 'unknown';
+    return null;
+  }
+
+  void _logFallback(String key, String levelId) {
+    ErrorTracker.logSilent(key, StateError('el pack de $levelId no es servible'));
+  }
+
+  CurriculumPack _fromDart(String levelId, String reason) {
+    _lastSource = 'dart';
+    _lastSourceReason = reason;
+    return curriculumPackFromDart(levelId);
   }
 }
 
