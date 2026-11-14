@@ -56,6 +56,14 @@ EXPECTED_OBJECTIVES = 540
 EXPECTED_PHRASES = 539
 EXPECTED_IDENTICAL = 481
 
+# Objetivos que no son verificables tal cual (CUR-05): 39 con una sola palabra
+# clave y 480 con el ejemplo igual al texto, sin solaparse.
+EXPECTED_WEAK_OBJECTIVES = 519
+
+# Motivos de revisión de un objetivo débil (CUR-05).
+REVIEW_SINGLE_KEYWORD = "single_keyword"
+REVIEW_EXAMPLE_EQUALS_TEXT = "example_equals_text"
+
 # El origen no trae `competency` por objetivo: el catálogo es conversacional.
 DEFAULT_COMPETENCY = "communication"
 
@@ -100,6 +108,32 @@ def objective_evidence(goal: dict) -> dict:
         "keywords": list(goal.get("keywords") or []),
         "example_phrase": goal.get("examplePhrase"),
     }
+
+
+def normalize_text(value) -> str:
+    """Colapsa espacios y unifica mayúsculas, sin tocar el texto guardado."""
+    return " ".join((value or "").split()).casefold()
+
+
+def objective_review_reasons(goal: dict) -> list:
+    """Motivos por los que el objetivo no es verificable tal cual (CUR-05).
+
+    - `single_keyword`: una sola palabra clave; cualquier aparición suya da el
+      objetivo por cumplido, así que el validador no distingue respuestas.
+    - `example_equals_text`: el ejemplo repite el texto del objetivo, luego no
+      demuestra nada nuevo.
+
+    El orden es fijo para que el motivo guardado no dependa del azar.
+    """
+    reasons = []
+    if len(goal.get("keywords") or []) == 1:
+        reasons.append(REVIEW_SINGLE_KEYWORD)
+
+    text = normalize_text(goal.get("text"))
+    example = normalize_text(goal.get("examplePhrase"))
+    if text and example and text == example:
+        reasons.append(REVIEW_EXAMPLE_EQUALS_TEXT)
+    return reasons
 
 
 def unit_title(level_id: str, unit_no: int) -> str:
@@ -168,8 +202,11 @@ def build_plan(lessons: list) -> dict:
                         "evidence_examples": objective_evidence(goal),
                         "is_required": True,
                         "order_index": position,
+                        "needs_review": bool(reasons),
+                        "review_reason": ",".join(reasons) or None,
                     }
                     for position, goal in enumerate(lesson.get("goals") or [], start=1)
+                    for reasons in [objective_review_reasons(goal)]
                 ],
                 "phrases": [
                     {
@@ -206,6 +243,12 @@ def summarize(plan: dict) -> dict:
             for phrase in row["phrases"]
             if phrase["translation_status"] == "identical"
         ),
+        "weak": sum(
+            1
+            for row in lessons
+            for objective in row["objectives"]
+            if objective["needs_review"]
+        ),
     }
 
 
@@ -217,6 +260,7 @@ def check_expected(summary: dict) -> list:
         ("objectives", EXPECTED_OBJECTIVES),
         ("phrases", EXPECTED_PHRASES),
         ("identical", EXPECTED_IDENTICAL),
+        ("weak", EXPECTED_WEAK_OBJECTIVES),
     ):
         if summary[key] != expected:
             problems.append(f"{key}: {summary[key]} != {expected}")
@@ -295,6 +339,10 @@ class RestClient:
                 body=chunk,
                 prefer="resolution=merge-duplicates,return=minimal",
             )
+
+    def patch(self, table: str, params: dict, body: dict) -> None:
+        """Actualiza solo las columnas del cuerpo, sin tocar el resto."""
+        self._call("PATCH", table, params, body=body, prefer="return=minimal")
 
 
 def lesson_row(row: dict, unit_id: str, version: int) -> dict:
@@ -403,6 +451,66 @@ def apply_plan(plan: dict, client: RestClient) -> dict:
     return stats
 
 
+def sync_objective_review(plan: dict, client: RestClient) -> int:
+    """Actualiza `needs_review` y `review_reason` sin crear versiones (CUR-05).
+
+    El motivo es metadato editorial, no contenido: cambiarlo no puede crear una
+    versión nueva, así que se escribe aparte del hash y solo en las filas que
+    difieren. Devuelve cuántas se actualizaron.
+    """
+    current = {
+        row["id"]: row["current_version"]
+        for row in client.select("lessons", "id,current_version")
+    }
+    stored = {}
+    for row in client.select(
+        "lesson_objectives", "lesson_id,version,code,needs_review,review_reason"
+    ):
+        if current.get(row["lesson_id"]) == row["version"]:
+            stored[(row["lesson_id"], row["code"])] = (
+                row["needs_review"],
+                row["review_reason"],
+            )
+
+    updates = []
+    for lesson in plan["lessons"]:
+        version = current.get(lesson["id"])
+        if version is None:
+            continue
+        for objective in lesson["objectives"]:
+            key = (lesson["id"], objective["code"])
+            wanted = (objective["needs_review"], objective["review_reason"])
+            if stored.get(key) != wanted:
+                updates.append(
+                    {
+                        "lesson_id": key[0],
+                        "version": version,
+                        "code": key[1],
+                        "needs_review": wanted[0],
+                        "review_reason": wanted[1],
+                    }
+                )
+
+    # PATCH y no upsert: `lesson_objectives` tiene columnas NOT NULL sin valor
+    # por defecto (`description`, `competency`), así que un upsert parcial
+    # falla al construir la fila antes de resolver el conflicto. Un PATCH toca
+    # solo el metadato y deja el contenido como esté en el portal.
+    for row in updates:
+        client.patch(
+            "lesson_objectives",
+            {
+                "lesson_id": f"eq.{row['lesson_id']}",
+                "version": f"eq.{row['version']}",
+                "code": f"eq.{row['code']}",
+            },
+            {
+                "needs_review": row["needs_review"],
+                "review_reason": row["review_reason"],
+            },
+        )
+    return len(updates)
+
+
 # ── Verificación ────────────────────────────────────────────────────────────
 
 
@@ -445,7 +553,10 @@ def verify_plan(plan: dict, client: RestClient) -> dict:
     current = {row["id"]: row["current_version"] for row in lessons}
     objectives = [
         row
-        for row in client.select("lesson_objectives", "lesson_id,version,code,description,competency")
+        for row in client.select(
+            "lesson_objectives",
+            "lesson_id,version,code,description,competency,needs_review,review_reason",
+        )
         if current.get(row["lesson_id"]) == row["version"]
     ]
     phrases = [
@@ -487,12 +598,28 @@ def verify_plan(plan: dict, client: RestClient) -> dict:
             if text_by_key.get(key) != (phrase["phrase"], phrase["translation"]):
                 problems.append(f"{row['id']} p{phrase['order_index']}: texto de frase alterado")
 
+    # Objetivos débiles (CUR-05): el motivo guardado debe ser el derivado.
+    review_by_key = {
+        (row["lesson_id"], row["code"]): (row["needs_review"], row["review_reason"])
+        for row in objectives
+    }
+    weak = sum(1 for row in objectives if row["needs_review"])
+    if weak != EXPECTED_WEAK_OBJECTIVES:
+        problems.append(f"objetivos débiles: {weak} != {EXPECTED_WEAK_OBJECTIVES}")
+    for lesson in plan["lessons"]:
+        for objective in lesson["objectives"]:
+            key = (lesson["id"], objective["code"])
+            wanted = (objective["needs_review"], objective["review_reason"])
+            if review_by_key.get(key) != wanted:
+                problems.append(f"{lesson['id']} {objective['code']}: needs_review/motivo distinto")
+
     return {
         "lessons": len(lessons),
         "units": len(client.select("curriculum_units", "id")),
         "objectives": len(objectives),
         "phrases": len(phrases),
         "identical": identical,
+        "weak": weak,
         "problems": problems,
     }
 
@@ -539,6 +666,9 @@ def main(argv: list) -> int:
             print("no se escribe: el origen no coincide con el inventario", file=sys.stderr)
             return 1
         stats = apply_plan(plan, client)
+        # CUR-05: el motivo de revisión es metadato, no contenido; se sincroniza
+        # aparte para no crear versiones nuevas.
+        stats["review_updated"] = sync_objective_review(plan, client)
         print_summary("aplicado", stats)
         report = verify_plan(plan, client)
         print_summary("verificado", {k: v for k, v in report.items() if k != "problems"})

@@ -31,6 +31,72 @@ class TranslationStatusTest(unittest.TestCase):
         self.assertEqual(ic.translation_status("Hello!", "   "), "pending")
 
 
+class ObjectiveReviewTest(unittest.TestCase):
+    """CUR-05: un objetivo débil lleva motivo, y solo entonces."""
+
+    def goal(self, text="Say hello", keywords=None, example="Hello"):
+        return {
+            "id": "g1",
+            "text": text,
+            "keywords": ["hello", "hi"] if keywords is None else keywords,
+            "examplePhrase": example,
+        }
+
+    def test_objetivo_sano_no_se_marca(self):
+        self.assertEqual(ic.objective_review_reasons(self.goal()), [])
+
+    def test_una_sola_palabra_clave_se_marca(self):
+        self.assertEqual(
+            ic.objective_review_reasons(self.goal(keywords=["name"])),
+            [ic.REVIEW_SINGLE_KEYWORD],
+        )
+
+    def test_ejemplo_igual_al_texto_se_marca(self):
+        self.assertEqual(
+            ic.objective_review_reasons(
+                self.goal(text="Order a coffee drink", example="Order a coffee drink")
+            ),
+            [ic.REVIEW_EXAMPLE_EQUALS_TEXT],
+        )
+
+    def test_los_dos_motivos_a_la_vez_conservan_el_orden(self):
+        self.assertEqual(
+            ic.objective_review_reasons(
+                self.goal(text="Order a pastry", keywords=["pastry"], example="Order a pastry")
+            ),
+            [ic.REVIEW_SINGLE_KEYWORD, ic.REVIEW_EXAMPLE_EQUALS_TEXT],
+        )
+
+    def test_ignora_mayusculas_y_espacios_al_comparar_el_ejemplo(self):
+        self.assertEqual(
+            ic.objective_review_reasons(
+                self.goal(text="Say hello", example="  say HELLO ")
+            ),
+            [ic.REVIEW_EXAMPLE_EQUALS_TEXT],
+        )
+
+    def test_un_ejemplo_vacio_no_cuenta_como_repetido(self):
+        self.assertEqual(ic.objective_review_reasons(self.goal(example="")), [])
+
+    def test_el_motivo_guardado_es_texto_y_no_lista(self):
+        plan = ic.build_plan(
+            [
+                {
+                    "id": "a1_00",
+                    "title": "t",
+                    "level": "A1",
+                    "category": "daily",
+                    "difficulty": 1,
+                    "goals": [self.goal(keywords=["name"])],
+                    "phrases": [],
+                }
+            ]
+        )
+        objective = plan["lessons"][0]["objectives"][0]
+        self.assertTrue(objective["needs_review"])
+        self.assertEqual(objective["review_reason"], ic.REVIEW_SINGLE_KEYWORD)
+
+
 class DigestTest(unittest.TestCase):
     def test_estable_ante_el_orden_de_claves(self):
         self.assertEqual(
@@ -138,6 +204,26 @@ class ExportedCatalogTest(unittest.TestCase):
         self.assertEqual(summary["objectives"], 540)
         self.assertEqual(summary["phrases"], 539)
         self.assertEqual(summary["identical"], 481)
+        self.assertEqual(summary["weak"], 519)
+
+    def test_motivos_de_los_objetivos_debiles(self):
+        from collections import Counter
+
+        reasons = Counter(
+            objective["review_reason"]
+            for row in self.plan["lessons"]
+            for objective in row["objectives"]
+            if objective["needs_review"]
+        )
+        self.assertEqual(reasons[ic.REVIEW_SINGLE_KEYWORD], 39)
+        self.assertEqual(reasons[ic.REVIEW_EXAMPLE_EQUALS_TEXT], 480)
+        self.assertEqual(sum(reasons.values()), 519)
+
+    def test_objetivos_sanos_no_llevan_motivo(self):
+        for row in self.plan["lessons"]:
+            for objective in row["objectives"]:
+                if not objective["needs_review"]:
+                    self.assertIsNone(objective["review_reason"])
 
     def test_siete_niveles_y_veintiocho_unidades(self):
         self.assertEqual(self.plan["levels"], ["a1", "a2", "b1", "b2", "c1", "c2", "pre_a1"])
