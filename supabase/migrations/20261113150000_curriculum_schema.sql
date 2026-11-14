@@ -54,7 +54,8 @@ create table if not exists public.lessons (
   unit_id           uuid references public.curriculum_units(id) on delete set null,
   title             text not null,
   category          text not null default 'daily',
-  difficulty        smallint check (difficulty between 1 and 5),
+  -- El catálogo real usa 1..6 (PRE-A1 y A1 comparten 1; C2 llega a 6).
+  difficulty        smallint check (difficulty between 1 and 6),
   order_index       integer not null default 0,
   estimated_minutes integer,
   main_objective    text,

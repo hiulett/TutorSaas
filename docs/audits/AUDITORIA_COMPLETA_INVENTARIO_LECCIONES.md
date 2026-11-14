@@ -74,7 +74,7 @@ cualquier cambio de contenido exige publicar una versión nueva del binario.
 | 13 | `prea1_food_words` | Food Words | PRE-A1 | cooking | 1 | 3 | 3 |
 | 14 | `prea1_one_water_please` | Ordering a Drink | PRE-A1 | travel | 1 | 3 | 3 |
 | 15 | `prea1_asking_for_help` | Asking for Help | PRE-A1 | daily | 1 | 3 | 3 |
-| 16 | `prea1_i_dont_understand` | None | PRE-A1 | daily | 1 | 3 | 2 |
+| 16 | `prea1_i_dont_understand` | I Don't Understand | PRE-A1 | daily | 1 | 3 | 2 |
 | 17 | `prea1_days_of_week` | Days of the Week | PRE-A1 | daily | 1 | 3 | 3 |
 | 18 | `prea1_weather_words` | Weather Words | PRE-A1 | daily | 1 | 3 | 3 |
 | 19 | `prea1_common_objects` | Common Objects | PRE-A1 | daily | 1 | 3 | 3 |
@@ -1432,14 +1432,14 @@ Variables que sí aporta esta lección: `scenarioContext`, `assistantRole`,
 
 ---
 
-### LECCIÓN prea1_i_dont_understand — None
+### LECCIÓN prea1_i_dont_understand — I Don't Understand
 
 **A. Identificación**
 
 | Campo | Valor |
 |---|---|
 | ID | `prea1_i_dont_understand` |
-| Título | None |
+| Título | I Don't Understand |
 | Nivel | PRE-A1 |
 | Categoría | daily |
 | Interés | daily |
@@ -11956,7 +11956,7 @@ evaluarlo ni resumirlo.
 | 13 | `prea1_food_words` | Food Words | Say water, bread, milk and apple. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |
 | 14 | `prea1_one_water_please` | Ordering a Drink | Ask for water or tea with one word. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |
 | 15 | `prea1_asking_for_help` | Asking for Help | Say help and please. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |
-| 16 | `prea1_i_dont_understand` | None | Say simple phrases to ask for repetition. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |
+| 16 | `prea1_i_dont_understand` | I Don't Understand | Say simple phrases to ask for repetition. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |
 | 17 | `prea1_days_of_week` | Days of the Week | Say Monday, Sunday and today. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |
 | 18 | `prea1_weather_words` | Weather Words | Say sun, rain and cold. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |
 | 19 | `prea1_common_objects` | Common Objects | Say book, phone and bag. | PRE-A1 | Speaking/Vocabulary | Nivel PRE-A1 | Cubrir 3 objetivos |

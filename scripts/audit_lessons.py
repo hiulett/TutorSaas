@@ -25,7 +25,12 @@ def norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 def field(block: str, name: str):
+    # El catálogo usa comillas simples, salvo los textos con apóstrofo
+    # (`title: "I Don't Understand"`). Sin el segundo intento, ese título se
+    # exportaba como null y `lessons.title` es NOT NULL (CUR-03).
     m = re.search(rf"{name}:\s*'((?:\\.|[^'\\])*)'", block)
+    if not m:
+        m = re.search(rf'{name}:\s*"((?:\\.|[^"\\])*)"', block)
     if not m:
         return None
     return m.group(1)
