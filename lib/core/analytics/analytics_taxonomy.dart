@@ -80,6 +80,7 @@ abstract final class AnalyticsEvent {
     aiError,
     correctionEval,
     paywallViewed,
+    upgradeCtaTapped,
     purchaseStarted,
     purchaseSucceeded,
     purchaseCancelled,
