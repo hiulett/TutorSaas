@@ -1593,6 +1593,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get go_pro => 'TRY FREE';
 
   @override
+  String get mana_upsell_title => 'You are running low on mana';
+
+  @override
+  String get mana_upsell_body =>
+      'With a plan you would get much more every month.';
+
+  @override
+  String get mana_upsell_cta => 'SEE PLANS';
+
+  @override
+  String get aura_upsell => 'Realeza includes exclusive cosmetics';
+
+  @override
+  String get splash_connecting_realm => 'CONNECTING TO THE GREAT KINGDOM';
+
+  @override
   String get logout_confirm_title => 'LOG OUT?';
 
   @override
@@ -1601,6 +1617,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get splash_system_hud => 'SYSTEM HUD · AWAKENING';
+
+  @override
+  String get splash_opening_portal => 'OPENING THE PORTAL';
 
   @override
   String splash_connecting(int pct) {

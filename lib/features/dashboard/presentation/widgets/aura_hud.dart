@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../economy/presentation/providers/economy_providers.dart';
+import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../../domain/models/aura_system.dart';
 import '../providers/dashboard_providers.dart';
 
@@ -66,10 +68,10 @@ class AuraHud extends ConsumerWidget {
 
     return aura.isAwakened
         ? _buildAwakenedCard(ref, l10n, aura, equippedAuraColor: equippedAuraColor)
-        : _buildLockedCard(l10n, aura);
+        : _buildLockedCard(context, ref, l10n, aura);
   }
 
-  Widget _buildLockedCard(AppLocalizations? l10n, AuraSnapshot aura) {
+  Widget _buildLockedCard(BuildContext context, WidgetRef ref, AppLocalizations? l10n, AuraSnapshot aura) {
     return GlassCard(
       blur: 12,
       opacity: AppColors.glassOpacity,
@@ -137,10 +139,45 @@ class AuraHud extends ConsumerWidget {
                   l10n?.aura_locked_desc ?? 'Supera la Etapa Básica (PRE-A1 + A1 + A2) para despertar tu poder.',
                   style: GoogleFonts.inter(fontSize: 10, color: AppColors.onSurfaceVariant),
                 ),
+                // #417: cross-sell en el candado. Es estética, nunca progreso:
+                // el plan no acelera la etapa, solo añade cosméticos.
+                if (!ref.watch(isPremiumProvider)) ...[
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => context.push('/paywall'),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.workspace_premium_rounded,
+                          size: 12,
+                          color: AppColors.royalGold,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            l10n?.aura_upsell ??
+                                'Realeza incluye cosméticos exclusivos',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.royalGold,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 14,
+                          color: AppColors.royalGold,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (aura.hasRankMismatch) ...[
                   const SizedBox(height: 4),
                   Text(
-                    l10n?.aura_rank_mismatch ?? '⚠ RANGO INCONSISTENTE CON CEFR',
+                    l10n?.aura_rank_mismatch ?? 'RANGO INCONSISTENTE CON CEFR',
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 8,
                       fontWeight: FontWeight.bold,
@@ -264,7 +301,7 @@ class AuraHud extends ConsumerWidget {
                 if (aura.hasRankMismatch) ...[
                   const SizedBox(height: 4),
                   Text(
-                    l10n?.aura_rank_mismatch ?? '⚠ RANGO INCONSISTENTE CON CEFR',
+                    l10n?.aura_rank_mismatch ?? 'RANGO INCONSISTENTE CON CEFR',
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 8,
                       fontWeight: FontWeight.bold,

@@ -3100,6 +3100,36 @@ abstract class AppLocalizations {
   /// **'TRY FREE'**
   String get go_pro;
 
+  /// No description provided for @mana_upsell_title.
+  ///
+  /// In en, this message translates to:
+  /// **'You are running low on mana'**
+  String get mana_upsell_title;
+
+  /// No description provided for @mana_upsell_body.
+  ///
+  /// In en, this message translates to:
+  /// **'With a plan you would get much more every month.'**
+  String get mana_upsell_body;
+
+  /// No description provided for @mana_upsell_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'SEE PLANS'**
+  String get mana_upsell_cta;
+
+  /// No description provided for @aura_upsell.
+  ///
+  /// In en, this message translates to:
+  /// **'Realeza includes exclusive cosmetics'**
+  String get aura_upsell;
+
+  /// No description provided for @splash_connecting_realm.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTING TO THE GREAT KINGDOM'**
+  String get splash_connecting_realm;
+
   /// No description provided for @logout_confirm_title.
   ///
   /// In en, this message translates to:
@@ -3117,6 +3147,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SYSTEM HUD · AWAKENING'**
   String get splash_system_hud;
+
+  /// No description provided for @splash_opening_portal.
+  ///
+  /// In en, this message translates to:
+  /// **'OPENING THE PORTAL'**
+  String get splash_opening_portal;
 
   /// No description provided for @splash_connecting.
   ///

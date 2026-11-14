@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/analytics/analytics_taxonomy.dart';
+import '../../../../core/services/retention_analytics.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -40,6 +42,18 @@ class DashboardScreen extends ConsumerWidget {
     final cosmetics = ref.watch(equippedCosmeticsProvider);
 
     final isPremium = ref.watch(isPremiumProvider);
+    // #417: disparador contextual de compra. En gratuito el cupo que importa es
+    // el DIARIO (`daily_remaining`); `remaining` es el saldo del ciclo.
+    final manaState = ref.watch(manaStateProvider).value ?? const {};
+    final manaRemaining =
+        (manaState['daily_remaining'] as int?) ??
+        (manaState['remaining'] as int?) ??
+        0;
+    final manaDailyLimit = (manaState['daily_limit'] as int?) ?? 200;
+    final showManaUpsell =
+        !isPremium &&
+        manaDailyLimit > 0 &&
+        manaRemaining < manaDailyLimit * 0.3;
     final dailyStateAsync = ref.watch(dailyStateProvider);
     final dailyClaimed =
         (dailyStateAsync.value?['daily_reward_claimed'] as bool?) ?? false;
@@ -308,6 +322,7 @@ class DashboardScreen extends ConsumerWidget {
                                             // (gestionar) de no premium (comprar).
                                             // Antes, siendo premium el toque no
                                             // hacía nada y el botón parecía muerto.
+                                            _trackUpgrade(ref, 'header');
                                             context.push('/paywall');
                                           },
                                           child: Center(
@@ -427,6 +442,13 @@ class DashboardScreen extends ConsumerWidget {
                                   ),
 
                                   const SizedBox(height: 28),
+
+                                  // #417: oferta contextual en el momento de
+                                  // fricción (maná bajo y plan gratuito).
+                                  if (showManaUpsell) ...[
+                                    _buildManaUpsellCard(context, ref, l10n),
+                                    const SizedBox(height: 16),
+                                  ],
 
                                   const SizedBox(
                                     height: 100,
@@ -551,6 +573,83 @@ class DashboardScreen extends ConsumerWidget {
     if (name.trim().isNotEmpty)
       return name.trim().substring(0, 1).toUpperCase();
     return 'H';
+  }
+
+  /// #417: medir el embudo de mejora de plan por origen.
+  void _trackUpgrade(WidgetRef ref, String source) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    RetentionAnalytics.instance.track(
+      user.id,
+      AnalyticsEvent.upgradeCtaTapped,
+      properties: {'source': source},
+    );
+  }
+
+  /// #417: oferta contextual cuando el maná diario está bajo.
+  Widget _buildManaUpsellCard(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations? l10n,
+  ) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        _trackUpgrade(ref, 'mana_card');
+        context.push('/paywall');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.royalGold.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: AppColors.royalGold.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.bolt_rounded,
+              color: AppColors.royalGold,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n?.mana_upsell_title ?? 'Te queda poco maná',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n?.mana_upsell_body ??
+                        'Con un plan tendrías mucho más cada mes.',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n?.mana_upsell_cta ?? 'VER PLANES',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.royalGold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildQuickAccess({

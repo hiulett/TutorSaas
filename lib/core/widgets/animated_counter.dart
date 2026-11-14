@@ -28,9 +28,15 @@ class _AnimatedCounterState extends State<AnimatedCounter>
   late AnimationController _controller;
   late Animation<double> _animation;
 
+  /// Valor desde el que se anima. Arranca en el objetivo (no en 0): si el
+  /// provider emite tarde o varias veces, el número debe mostrar la cifra real
+  /// y no quedarse a medio camino de una animación que empieza de cero.
+  late int _from;
+
   @override
   void initState() {
     super.initState();
+    _from = widget.previous ?? widget.target;
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     if (widget.autoStart) _controller.forward();
@@ -40,6 +46,7 @@ class _AnimatedCounterState extends State<AnimatedCounter>
   void didUpdateWidget(AnimatedCounter old) {
     super.didUpdateWidget(old);
     if (old.target != widget.target) {
+      _from = old.target;
       _controller.reset();
       _controller.forward();
     }
@@ -56,7 +63,7 @@ class _AnimatedCounterState extends State<AnimatedCounter>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        final start = (widget.previous ?? 0).toDouble();
+        final start = _from.toDouble();
         final value = start + (widget.target - start) * _animation.value;
         return Text(
           value.round().toString(),
