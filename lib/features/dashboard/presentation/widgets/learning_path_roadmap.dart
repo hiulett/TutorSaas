@@ -204,11 +204,15 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
     // en `dart` el provider devuelve el mismo catálogo y el mismo orden, así que
     // el comportamiento no cambia; mientras resuelve (o si falla) se usa el
     // catálogo directamente para no dejar la pantalla vacía.
+    final levelId = curriculumLevelIdForCefr(_selectedLevel);
     final remoteLessons = ref
-        .watch(curriculumLevelLessonsProvider(
-          curriculumLevelIdForCefr(_selectedLevel),
-        ))
+        .watch(curriculumLevelLessonsProvider(levelId))
         .value;
+    // CUR-18: con `db` los prerrequisitos llegan del pack; con `dart` el mapa
+    // está vacío y se mantiene la regla secuencial de siempre.
+    final requiredLessonIds =
+        ref.watch(curriculumLevelPrerequisitesProvider(levelId)).value ??
+        const <String, List<String>>{};
     final catalogLessons = LessonCatalog.catalog
         .where((l) => l.level.toUpperCase() == _selectedLevel)
         .toList();
@@ -397,6 +401,7 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                       userCefr: widget.activeUserLevel,
                       goalRows: completedGoalRows,
                       catalog: LessonCatalog.catalog,
+                      requiredLessonIds: requiredLessonIds,
                     );
                     final isCompleted =
                         state == LessonUnlockState.completedByPlayer;
@@ -497,6 +502,7 @@ class _LearningPathRoadmapState extends ConsumerState<LearningPathRoadmap> {
                       userCefr: widget.activeUserLevel,
                       goalRows: completedGoalRows,
                       catalog: LessonCatalog.catalog,
+                      requiredLessonIds: requiredLessonIds,
                     ) ==
                     LessonUnlockState.completedByPlayer,
               )

@@ -150,6 +150,28 @@ void main() {
       expect(pack.lessonById('a1_ordering_coffee_at_a_cafe'), isNotNull);
       expect(pack.lessonById('no_existe'), isNull);
     });
+
+    test('lee los prerrequisitos y separa required de recommended', () {
+      final pack = CurriculumPack.fromJson({
+        'level': {'id': 'a1'},
+        'units': [
+          {
+            'lessons': [
+              {
+                'id': 'a1_two',
+                'prerequisites': [
+                  {'lesson_id': 'a1_one', 'kind': 'required'},
+                  {'lesson_id': 'a1_extra', 'kind': 'recommended'},
+                ],
+              },
+            ],
+          },
+        ],
+      });
+      final lesson = pack.lessons.single;
+      expect(lesson.prerequisites, hasLength(2));
+      expect(lesson.requiredLessonIds, ['a1_one']);
+    });
   });
 
   group('CurriculumRepository con flag', () {

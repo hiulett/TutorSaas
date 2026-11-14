@@ -160,4 +160,25 @@ verificación en dispositivo de la Ruta con `db` en un build interno.
 La caché solo contiene currículo, nunca datos del alumno. Con el flag en `dart`
 ni se lee: el catálogo empaquetado sigue siendo el camino normal.
 
-Siguiente bloque recomendado: **CUR-18** (prerrequisitos y desbloqueo).
+Siguiente bloque recomendado tras CUR-17: **CUR-18** (prerrequisitos), cerrado en
+la sección 10.
+
+---
+
+## 10 · Cierre de CUR-18 (prerrequisitos y desbloqueo)
+
+| Pieza | Estado |
+|---|---|
+| `get_curriculum_pack` con `prerequisites` | ✅ migración `20261114044219`, aplicada y verificada en producción |
+| Siembra secuencial | ✅ 133 filas (cada lección requiere la anterior de su nivel) |
+| Checker | ✅ `scripts/check_curriculum_prerequisites.py`: cadena, filas, sin requisitos hacia delante ni de otro nivel |
+| Desbloqueo con datos | ✅ `LessonUnlockService` usa los requisitos del pack en el nivel actual; sin datos mantiene la regla secuencial |
+| Oráculo | ✅ el desbloqueo de niveles anteriores no lo pisa un requisito |
+| Suite | ✅ 824 pruebas en verde (+9), `flutter analyze` 137 infos |
+
+La migración se aplicó por el SQL Editor y quedó anotada en
+[MIGRATION_STATUS.md](../runbooks/MIGRATION_STATUS.md), como las otras 13 que no
+están en `schema_migrations`.
+
+Siguiente bloque: **CUR-19** (progreso por nivel), que también necesita esquema
+(`curriculum_progress`) y su checker.

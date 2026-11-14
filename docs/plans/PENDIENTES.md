@@ -15,12 +15,12 @@ sigue en la épica; esto es lo demás.
 - **Rotar las claves expuestas** en el chat (`sb_secret_…`, `sk_…` de RevenueCat
   y la de Stitch) y **actualizar el header del webhook** de RevenueCat en el
   mismo minuto. Queda para el final, a propósito.
-- **Registrar con su versión real las migraciones aplicadas a mano.** `20261113150000`
-  (currículo), `20261113163000` (`review_reason`) y `20261113170000`
-  (`get_curriculum_pack`) se aplicaron por el SQL Editor, así que
-  `supabase_migrations.schema_migrations` no las conoce. Hay que anotarlas en
-  [docs/runbooks/MIGRATION_STATUS.md](../runbooks/MIGRATION_STATUS.md) y
-  renombrar los archivos si la versión real difiere.
+- **Registrar con su versión real las migraciones aplicadas a mano.** Las 14 de
+  currículo (de `20261113150000` a `20261114044219`) ya están listadas en
+  [MIGRATION_STATUS.md](../runbooks/MIGRATION_STATUS.md) con su estado real: se
+  aplicaron por el SQL Editor y **no** están en
+  `supabase_migrations.schema_migrations`. Falta ejecutar `supabase migration
+  repair` con la contraseña de la base, que no está en el `.env`.
 
 ## Funcional, no bloquea
 
@@ -38,7 +38,8 @@ sigue en la épica; esto es lo demás.
 
 ## Currículo
 
-- Fase 6 cerrada (CUR-16 y CUR-17). Siguiente: **CUR-18** a **CUR-25**.
+- Fase 6 cerrada (CUR-16 y CUR-17) y **CUR-18** cerrada. Siguiente: **CUR-19** a
+  **CUR-23** y **CUR-25**.
 - Los renderers siguen en código: una lección creada **solo** en la base hace
   caer el nivel entero al catálogo (`unknown_pack`), a propósito, hasta que la
   app sepa renderizarla.
@@ -61,3 +62,6 @@ sigue en la épica; esto es lo demás.
   `content_version`; sin red se sirve el último pack bueno, y una copia que ya no
   se puede renderizar se descarta sola. En sesión, un nivel no se descarga dos
   veces.
+- **Prerrequisitos (CUR-18)**: `get_curriculum_pack` devuelve `prerequisites` y
+  la base tiene 133 filas encadenadas (una por lección salvo la primera de cada
+  nivel), verificadas con `scripts/check_curriculum_prerequisites.py`.

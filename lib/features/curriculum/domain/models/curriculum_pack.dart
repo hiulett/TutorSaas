@@ -106,6 +106,7 @@ class CurriculumLesson {
     required this.objectives,
     required this.phrases,
     required this.activities,
+    this.prerequisites = const [],
     this.mainObjective,
     this.scenarioContext,
     this.assistantRole,
@@ -122,6 +123,7 @@ class CurriculumLesson {
   final List<CurriculumObjective> objectives;
   final List<CurriculumPhrase> phrases;
   final List<CurriculumActivity> activities;
+  final List<CurriculumPrerequisite> prerequisites;
   final String? mainObjective;
   final String? scenarioContext;
   final String? assistantRole;
@@ -132,6 +134,7 @@ class CurriculumLesson {
     final objectivesJson = (json['objectives'] as List?) ?? const [];
     final phrasesJson = (json['phrases'] as List?) ?? const [];
     final activitiesJson = (json['activities'] as List?) ?? const [];
+    final prerequisitesJson = (json['prerequisites'] as List?) ?? const [];
     return CurriculumLesson(
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
@@ -156,8 +159,33 @@ class CurriculumLesson {
           .whereType<Map>()
           .map((item) => CurriculumActivity.fromJson(item.cast<String, dynamic>()))
           .toList(growable: false),
+      prerequisites: prerequisitesJson
+          .whereType<Map>()
+          .map((item) => CurriculumPrerequisite.fromJson(item.cast<String, dynamic>()))
+          .toList(growable: false),
     );
   }
+
+  /// Ids que la app debe exigir superados antes de abrir esta lección (CUR-18).
+  List<String> get requiredLessonIds => prerequisites
+      .where((prerequisite) => prerequisite.kind == 'required')
+      .map((prerequisite) => prerequisite.lessonId)
+      .toList(growable: false);
+}
+
+class CurriculumPrerequisite {
+  const CurriculumPrerequisite({required this.lessonId, required this.kind});
+
+  final String lessonId;
+
+  /// `required` bloquea; `recommended` solo se muestra.
+  final String kind;
+
+  factory CurriculumPrerequisite.fromJson(Map<String, dynamic> json) =>
+      CurriculumPrerequisite(
+        lessonId: json['lesson_id'] as String? ?? '',
+        kind: json['kind'] as String? ?? 'required',
+      );
 }
 
 class CurriculumObjective {

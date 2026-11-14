@@ -93,6 +93,22 @@ se descarta y se borra.
 - `invalidateSource()` la ignora al instante y olvida la memoria de sesión; la
   copia en disco se conserva y se revalida al usarla.
 
+### Prerrequisitos (CUR-18)
+
+`get_curriculum_pack` devuelve `prerequisites` por lección
+(`{lesson_id, kind}`). La migración `20261114044219_curriculum_prerequisites.sql`
+siembra la cadena secuencial que ya aplicaba la app (133 filas: 140 lecciones −
+los 7 primeros de cada nivel), así que encender `db` no cambia el desbloqueo; a
+partir de ahí el requisito es dato y no una convención de orden.
+
+- Con `db`, el nivel actual usa los requisitos del pack: si falta uno, la
+  lección queda bloqueada. Un requisito desconocido bloquea (no se puede
+  demostrar que se cumplió).
+- Con `dart` el mapa está vacío y se mantiene la regla secuencial de siempre.
+- El desbloqueo por el Oráculo de niveles anteriores no lo pisa un requisito.
+- Verificación: `python scripts/check_curriculum_prerequisites.py` (cadena,
+  filas y que ningún requisito apunte hacia delante ni a otro nivel).
+
 La Ruta que consume la app (`curriculumLevelLessonsProvider`) vuelve a
 comprobar que todas las lecciones del pack se pueden renderizar; si no, sirve
 el catálogo entero. Enseñar 19 de 20 es peor que repetir el catálogo.

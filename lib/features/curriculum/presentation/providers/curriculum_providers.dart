@@ -37,3 +37,23 @@ final curriculumLevelLessonsProvider =
   }
   return mapped;
 });
+
+/// Prerrequisitos por lección del nivel (CUR-18).
+///
+/// Con el flag en `dart` no hay datos y el mapa queda vacío: la Ruta sigue
+/// usando la regla secuencial de siempre. Con `db` el desbloqueo pasa a ser
+/// dato, no una convención de orden.
+final curriculumLevelPrerequisitesProvider =
+    FutureProvider.autoDispose.family<Map<String, List<String>>, String>((
+      ref,
+      levelId,
+    ) async {
+      final repository = ref.watch(curriculumRepositoryProvider);
+      final pack = await repository.getLevelPack(levelId);
+      final prerequisites = <String, List<String>>{};
+      for (final lesson in pack.lessons) {
+        final required = lesson.requiredLessonIds;
+        if (required.isNotEmpty) prerequisites[lesson.id] = required;
+      }
+      return prerequisites;
+    });
