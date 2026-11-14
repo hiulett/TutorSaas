@@ -344,6 +344,10 @@ class RestClient:
         """Actualiza solo las columnas del cuerpo, sin tocar el resto."""
         self._call("PATCH", table, params, body=body, prefer="return=minimal")
 
+    def rpc(self, name: str, body: dict):
+        """Llama a una función de PostgREST (`POST /rpc/<name>`)."""
+        return self._call("POST", f"rpc/{name}", {}, body=body)
+
 
 def lesson_row(row: dict, unit_id: str, version: int) -> dict:
     return {
