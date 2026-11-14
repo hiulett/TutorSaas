@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Boxes,
   PenLine,
+  Languages,
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -22,6 +23,7 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
     { id: 'curriculum', label: 'Currículo', icon: GraduationCap },
     { id: 'units', label: 'Unidades', icon: Boxes },
     { id: 'editor', label: 'Editor de lecciones', icon: PenLine },
+    { id: 'translations', label: 'Traducciones', icon: Languages },
     { id: 'overview', label: 'Panel Principal', icon: LayoutDashboard },
     { id: 'lessons', label: 'Lecciones y Escenarios', icon: BookOpen },
     { id: 'cefr', label: 'Niveles CEFR', icon: Layers },
