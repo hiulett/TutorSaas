@@ -8,6 +8,10 @@ sigue en la épica; esto es lo demás.
 
 ## Necesitan tu mano
 
+- **Conceder el primer `superadmin`**: `admin_users` está vacío a propósito, así
+  que hoy nadie puede entrar al portal.
+  `select public.admin_set_role('<tu-uuid>', 'superadmin');` — el uuid sale de
+  `select id from auth.users where email = '…';`
 - **Rotar las claves expuestas** en el chat (`sb_secret_…`, `sk_…` de RevenueCat
   y la de Stitch) y **actualizar el header del webhook** de RevenueCat en el
   mismo minuto. Queda para el final, a propósito.
