@@ -40,7 +40,11 @@ class _StubRepository extends CurriculumRepository {
 }
 
 /// Pack mínimo con las lecciones en el orden pedido (5 por unidad).
-Map<String, dynamic> packFromIds(String levelId, List<String> ids) {
+Map<String, dynamic> packFromIds(
+  String levelId,
+  List<String> ids, {
+  Map<String, List<String>> prerequisites = const {},
+}) {
   final units = <Map<String, dynamic>>[];
   for (var index = 0; index < ids.length; index += 5) {
     final slice = ids.skip(index).take(5).toList();
@@ -55,6 +59,10 @@ Map<String, dynamic> packFromIds(String levelId, List<String> ids) {
             'id': slice[offset],
             'title': LessonCatalog.getLessonById(slice[offset])?.title ?? slice[offset],
             'order_index': offset + 1,
+            'prerequisites': [
+              for (final required in prerequisites[slice[offset]] ?? const <String>[])
+                {'lesson_id': required, 'kind': 'required'},
+            ],
           },
       ],
     });
@@ -106,6 +114,25 @@ void main() {
   });
 
   group('encender db', () {
+    test('el pack expone los prerrequisitos de cada lección', () async {
+      final ids = catalogIds('a1');
+      final remote = _FakeRemote(
+        source: 'db',
+        pack: packFromIds('a1', ids, prerequisites: {ids[1]: [ids[0]]}),
+      );
+      final repository = CurriculumRepository(remote: remote);
+      final map = await _containerFor(repository)
+          .read(curriculumLevelPrerequisitesProvider('a1').future);
+      expect(map, {ids[1]: [ids[0]]});
+    });
+
+    test('con flag dart no hay prerrequisitos y manda la regla secuencial', () async {
+      final repository = CurriculumRepository(remote: _FakeRemote(source: 'dart'));
+      final map = await _containerFor(repository)
+          .read(curriculumLevelPrerequisitesProvider('a1').future);
+      expect(map, isEmpty);
+    });
+
     test('sirve el pack remoto con su orden', () async {
       final ids = catalogIds('a1').reversed.toList();
       final remote = _FakeRemote(source: 'db', pack: packFromIds('a1', ids));

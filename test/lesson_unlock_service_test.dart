@@ -189,4 +189,87 @@ void main() {
       expect(classify(catalog[2], 'A2'), LessonUnlockState.locked);
     });
   });
+
+  group('prerrequisitos del pack (CUR-18)', () {
+    LessonUnlockState withPrerequisites(
+      LessonData lesson,
+      String level,
+      Map<String, List<String>> prerequisites,
+      List<Map<String, dynamic>> goalRows,
+    ) =>
+        LessonUnlockService.classify(
+          lesson: lesson,
+          userCefr: level,
+          goalRows: goalRows,
+          catalog: catalog,
+          requiredLessonIds: prerequisites,
+        );
+
+    test('un requisito incompleto bloquea aunque no haya lección previa del nivel', () {
+      final state = withPrerequisites(
+        catalog[2],
+        'B1',
+        {
+          'b1_one': ['a1_one'],
+        },
+        const [],
+      );
+      expect(state, LessonUnlockState.locked);
+    });
+
+    test('con el requisito superado la lección se abre', () {
+      final state = withPrerequisites(
+        catalog[2],
+        'B1',
+        {
+          'b1_one': ['a1_one'],
+        },
+        doneGoals('a1_one', 4),
+      );
+      expect(state, LessonUnlockState.nextAvailable);
+    });
+
+    test('un requisito desconocido bloquea (no se puede demostrar)', () {
+      final state = withPrerequisites(
+        catalog[2],
+        'B1',
+        {
+          'b1_one': ['no_existe'],
+        },
+        doneGoals('a1_one', 4),
+      );
+      expect(state, LessonUnlockState.locked);
+    });
+
+    test('sin datos de prerrequisitos se mantiene la regla secuencial', () {
+      expect(withPrerequisites(catalog[2], 'B1', const {}, const []),
+          LessonUnlockState.nextAvailable);
+      expect(withPrerequisites(catalog[3], 'B1', const {}, const []),
+          LessonUnlockState.locked);
+    });
+
+    test('el desbloqueo por el Oráculo no lo pisa un requisito', () {
+      final state = withPrerequisites(
+        catalog[0],
+        'A2',
+        {
+          'a1_one': ['b1_two'],
+        },
+        const [],
+      );
+      expect(state, LessonUnlockState.unlockedByOracle);
+    });
+
+    test('los requisitos pueden encadenar varias lecciones', () {
+      final state = withPrerequisites(
+        catalog[2],
+        'B1',
+        {
+          'b1_one': ['a1_one', 'a1_two'],
+        },
+        doneGoals('a1_one', 4),
+      );
+      expect(state, LessonUnlockState.locked);
+    });
+  });
 }

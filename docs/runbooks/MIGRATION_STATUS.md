@@ -1,6 +1,6 @@
 # Estado de las migraciones (auditoría real)
 
-_Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día)._
+_Actualizado: 30-oct-2026 (recuento aplicado y desglose de archivos verificados ese día); 14-nov-2026 (tabla de migraciones de currículo aplicadas a mano)._
 
 > Estado actual verificado: **106 migraciones aplicadas**. La foto completa del
 > esquema esta en [SCHEMA_BASELINE.md](SCHEMA_BASELINE.md).
@@ -88,6 +88,41 @@ Con eso, un entorno nuevo se crea aplicando **un solo archivo**.
   ninguna de las dos está disponible en este entorno.
 - Generar el DDL a mano con `pg_catalog` produce un esquema incompleto
   (grants, secuencias, extensiones, ownership) y sería peor que no tenerlo.
+
+## Migraciones de currículo aplicadas a mano (13–14 nov 2026)
+
+Las 14 migraciones siguientes se aplicaron por el **SQL Editor** (o MCP), así que
+`supabase_migrations.schema_migrations` **no las conoce**. El nombre del archivo
+es la versión elegida para cuando se puedan registrar con `migration repair`; el
+`repair` necesita la contraseña de la base, que no está en este entorno.
+
+| Versión | Archivo | Aplicada | En `schema_migrations` |
+|---|---|---|---|
+| `20261113150000` | `curriculum_schema.sql` | sí | no |
+| `20261113163000` | `lesson_objective_review_reason.sql` | sí | no |
+| `20261113170000` | `get_curriculum_pack.sql` | sí | no |
+| `20261113173000` | `admin_roles.sql` | sí | no |
+| `20261113180000` | `admin_save_lesson.sql` | sí | no |
+| `20261113183000` | `admin_publish_lesson.sql` | sí | no |
+| `20261113190000` | `admin_curriculum_stats.sql` | sí | no |
+| `20261113192000` | `admin_units.sql` | sí | no |
+| `20261113200000` | `lesson_catalog_index_matview.sql` | sí | no |
+| `20261113201000` | `admin_lesson.sql` | sí | no |
+| `20261113203000` | `admin_translations.sql` | sí | no |
+| `20261113204000` | `admin_activities.sql` | sí | no |
+| `20261113205000` | `curriculum_source_flag.sql` | sí | no |
+| `20261114044219` | `curriculum_prerequisites.sql` | sí (verificado: el pack ya devuelve `prerequisites`) | no |
+
+Cuando haya contraseña de base:
+
+```sh
+supabase migration repair --status applied \
+  20261113150000 20261113163000 20261113170000 20261113173000 \
+  20261113180000 20261113183000 20261113190000 20261113192000 \
+  20261113200000 20261113201000 20261113203000 20261113204000 \
+  20261113205000 20261114044219 \
+  --project-ref sipiumfdpvnszthykyog
+```
 
 ## Mientras tanto
 

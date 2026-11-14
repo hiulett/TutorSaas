@@ -80,11 +80,18 @@ class LessonUnlockService {
   }
 
   /// Clasifica el estado de una lección según el nivel del usuario.
+  ///
+  /// [requiredLessonIds] son los prerrequisitos que llegan del pack (CUR-18).
+  /// Cuando hay datos, mandan ellos para el nivel actual: si falta un requisito
+  /// la lección queda bloqueada. Sin datos (flag `dart`) se usa la regla
+  /// secuencial de siempre. El desbloqueo por el Oráculo de niveles anteriores
+  /// no cambia: esos niveles ya se dan por demostrados.
   static LessonUnlockState classify({
     required LessonData lesson,
     required String userCefr,
     required List<Map<String, dynamic>> goalRows,
     required List<LessonData> catalog,
+    Map<String, List<String>>? requiredLessonIds,
   }) {
     if (_isCompleted(goalRows, lesson)) {
       return LessonUnlockState.completedByPlayer;
@@ -107,9 +114,17 @@ class LessonUnlockService {
       return LessonUnlockState.locked;
     }
 
-    // Nivel actual: la primera lección no completada del nivel está disponible.
-    // Solo las lecciones del MISMO nivel que aparecen ANTES en el catálogo
-    // deben estar superadas para desbloquear la actual.
+    // Nivel actual: si el pack trae prerrequisitos, mandan ellos.
+    final required = requiredLessonIds?[lesson.id];
+    if (required != null && required.isNotEmpty) {
+      return _prerequisitesMet(required, catalog, goalRows)
+          ? LessonUnlockState.nextAvailable
+          : LessonUnlockState.locked;
+    }
+
+    // Nivel actual sin datos: la primera lección no completada del nivel está
+    // disponible. Solo las lecciones del MISMO nivel que aparecen ANTES en el
+    // catálogo deben estar superadas para desbloquear la actual.
     final lessonCatalogIdx = catalog.indexWhere((l) => l.id == lesson.id);
     final priorSameLevel = <LessonData>[];
     for (int i = 0; i < lessonCatalogIdx; i++) {
@@ -124,6 +139,27 @@ class LessonUnlockService {
     return allPriorCompleted
         ? LessonUnlockState.nextAvailable
         : LessonUnlockState.locked;
+  }
+
+  /// ¿Están superados todos los requisitos? Un requisito desconocido bloquea:
+  /// la app no puede demostrar que se cumplió.
+  static bool _prerequisitesMet(
+    List<String> required,
+    List<LessonData> catalog,
+    List<Map<String, dynamic>> goalRows,
+  ) {
+    for (final id in required) {
+      LessonData? prerequisite;
+      for (final candidate in catalog) {
+        if (candidate.id == id) {
+          prerequisite = candidate;
+          break;
+        }
+      }
+      if (prerequisite == null) return false;
+      if (!_isCompleted(goalRows, prerequisite)) return false;
+    }
+    return true;
   }
 
   /// Fallback secuencial global (usado si el nivel no se reconoce).
