@@ -153,6 +153,19 @@ def check(client: ic.RestClient) -> list:
     finally:
         if lesson_created:
             client.delete("lessons", {"id": f"eq.{PROBE_LESSON}"})
+            # Borrar deja un hueco en el orden de la unidad: se recoloca la
+            # primera lección en su sitio, que renumera la unidad entera.
+            for unit in unit_state(client)[0]:
+                orders_actual = [item["order_index"] for item in unit["lessons"]]
+                if orders_actual and orders_actual != list(range(1, len(orders_actual) + 1)):
+                    client.rpc(
+                        "admin_move_lesson",
+                        {
+                            "p_lesson_id": unit["lessons"][0]["id"],
+                            "p_unit_id": unit["id"],
+                            "p_order_index": 1,
+                        },
+                    )
         if created_unit:
             try:
                 client.rpc("admin_delete_unit", {"p_id": created_unit})

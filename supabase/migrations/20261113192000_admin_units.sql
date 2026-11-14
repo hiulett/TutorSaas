@@ -137,12 +137,12 @@ begin
      where id = v_id;
   end if;
 
-  -- Orden pedido (1..n+1), con la unidad dentro en esa posición.
-  -- `id <> v_id` no vale cuando la unidad es nueva: comparar con NULL no
-  -- descarta la fila, la elimina del resultado y dejaría el nivel vacío.
+  -- Orden final del nivel, sin la unidad que se está colocando (que se
+  -- inserta en su posición). `v_id` nunca es nulo aquí: en el alta ya se
+  -- asignó, porque la fila tiene que existir para poder reordenarla.
   select coalesce(array_agg(id order by order_index), '{}') into v_ids
     from public.curriculum_units
-   where level_id = v_level and (v_id is null or id <> v_id);
+   where level_id = v_level and id <> v_id;
 
   v_count := coalesce(array_length(v_ids, 1), 0);
   v_order := coalesce((p_unit->>'order_index')::integer, v_count + 1);
@@ -271,9 +271,12 @@ begin
     raise exception 'unidad inexistente: %', p_unit_id using errcode = '22023';
   end if;
 
+  -- Se incluyen las lecciones archivadas a propósito: si quedaran fuera de la
+  -- renumeración, conservarían su `order_index` y chocarían con las posiciones
+  -- que se asignan aquí (unique `(unit_id, order_index)`).
   select coalesce(array_agg(id order by order_index), '{}') into v_ids
     from public.lessons
-   where unit_id = p_unit_id and id <> p_lesson_id and status <> 'archived';
+   where unit_id = p_unit_id and id <> p_lesson_id;
 
   v_count := coalesce(array_length(v_ids, 1), 0);
   v_order := coalesce(p_order_index, v_count + 1);
@@ -310,7 +313,7 @@ begin
   if v_lesson.unit_id is not null and v_lesson.unit_id <> p_unit_id then
     select coalesce(array_agg(id order by order_index), '{}') into v_origin
       from public.lessons
-     where unit_id = v_lesson.unit_id and status <> 'archived';
+     where unit_id = v_lesson.unit_id;
 
     v_position := 0;
     foreach v_item in array v_origin loop
