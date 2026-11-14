@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tutorsaas/features/curriculum/data/repositories/curriculum_repository.dart';
 import 'package:tutorsaas/features/curriculum/domain/models/curriculum_pack.dart';
+import 'package:tutorsaas/features/dashboard/data/models/lesson_catalog.dart';
 
 class _FakeRemote implements CurriculumRemoteDataSource {
   _FakeRemote({this.source = 'db', this.pack, this.failSource = false, this.failPack = false});
@@ -70,6 +71,43 @@ Map<String, dynamic> _pack({List<Map<String, dynamic>>? units}) => {
           ],
     };
 
+/// Pack completo de A1: la activación exige las 20 lecciones del catálogo.
+Map<String, dynamic> _completePack() {
+  final ids = LessonCatalog.catalog
+      .where((lesson) => lesson.level == 'A1')
+      .map((lesson) => lesson.id)
+      .toList();
+  final units = <Map<String, dynamic>>[];
+  for (var index = 0; index < ids.length; index += 5) {
+    final slice = ids.skip(index).take(5).toList();
+    units.add({
+      'id': 'u${index ~/ 5 + 1}',
+      'slug': 'a1-u${index ~/ 5 + 1}',
+      'title': 'A1 · Unidad ${index ~/ 5 + 1}',
+      'order_index': index ~/ 5 + 1,
+      'lessons': [
+        for (var offset = 0; offset < slice.length; offset++)
+          {
+            'id': slice[offset],
+            'title': LessonCatalog.getLessonById(slice[offset])?.title ?? slice[offset],
+            'category': 'daily',
+            'difficulty': 1,
+            'order_index': offset + 1,
+            'version': 1,
+            'objectives': const [],
+            'phrases': const [],
+            'activities': const [],
+          },
+      ],
+    });
+  }
+  return {
+    'level': {'id': 'a1', 'cefr': 'A1', 'name': 'Aprendiz', 'order_index': 2},
+    'content_version': 1794000000,
+    'units': units,
+  };
+}
+
 void main() {
   group('CurriculumPack.fromJson', () {
     test('lee nivel, versión, unidades y lección', () {
@@ -116,7 +154,7 @@ void main() {
 
   group('CurriculumRepository con flag', () {
     test('con fuente db lee el pack remoto', () async {
-      final remote = _FakeRemote();
+      final remote = _FakeRemote(pack: _completePack());
       final repository = CurriculumRepository(remote: remote);
       final pack = await repository.getLevelPack('a1');
       expect(pack.source, 'db');
@@ -166,10 +204,13 @@ void main() {
     });
 
     test('getLesson busca dentro del pack del nivel', () async {
-      final repository = CurriculumRepository(remote: _FakeRemote());
+      final repository = CurriculumRepository(remote: _FakeRemote(pack: _completePack()));
       final lesson = await repository.getLesson('a1', 'a1_ordering_coffee_at_a_cafe');
       expect(lesson, isNotNull);
-      expect(lesson!.title, 'Ordering Coffee');
+      expect(
+        lesson!.title,
+        LessonCatalog.getLessonById('a1_ordering_coffee_at_a_cafe')!.title,
+      );
     });
   });
 
