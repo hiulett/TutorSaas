@@ -13,6 +13,7 @@ import {
   Activity,
   GraduationCap,
   Boxes,
+  PenLine,
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -20,6 +21,7 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
   const navItems = [
     { id: 'curriculum', label: 'Currículo', icon: GraduationCap },
     { id: 'units', label: 'Unidades', icon: Boxes },
+    { id: 'editor', label: 'Editor de lecciones', icon: PenLine },
     { id: 'overview', label: 'Panel Principal', icon: LayoutDashboard },
     { id: 'lessons', label: 'Lecciones y Escenarios', icon: BookOpen },
     { id: 'cefr', label: 'Niveles CEFR', icon: Layers },
