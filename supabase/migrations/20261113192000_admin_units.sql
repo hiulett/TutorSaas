@@ -258,6 +258,14 @@ begin
 
   v_new := v_ids[1:v_order - 1] || p_lesson_id || v_ids[v_order:];
 
+  -- Primero se saca la lección de su unidad actual a una posición temporal
+  -- negativa. Si se renumerara con la lección todavía en el origen, el hueco
+  -- negativo chocaría con la posición 1 de la unidad de origen (unique
+  -- `(unit_id, order_index)`), que es justo el fallo que apareció al probarlo.
+  update public.lessons
+     set unit_id = p_unit_id, order_index = -1000000
+   where id = p_lesson_id;
+
   -- Dos pasadas, igual que en las unidades.
   foreach v_item in array v_new loop
     v_position := v_position + 1;
@@ -269,9 +277,9 @@ begin
     update public.lessons set order_index = v_position where id = v_item;
   end loop;
 
-  update public.lessons
-     set unit_id = p_unit_id, order_index = v_order, updated_at = now()
-   where id = p_lesson_id;
+  -- Mover cambia el paquete del nivel, así que sube la marca de contenido
+  -- (el etag de `get_curriculum_pack`) sin tocar el orden ya asignado.
+  update public.lessons set updated_at = now() where id = p_lesson_id;
 
   -- Compacta la unidad de origen si la lección venía de otra.
   if v_lesson.unit_id is not null and v_lesson.unit_id <> p_unit_id then
