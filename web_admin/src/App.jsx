@@ -9,6 +9,7 @@ import SubscriptionPlansManager from './pages/SubscriptionPlansManager';
 import EconomyConfig from './pages/EconomyConfig';
 import AiSettings from './pages/AiSettings';
 import RetentionDashboard from './pages/RetentionDashboard';
+import CurriculumDashboard from './pages/CurriculumDashboard';
 import Login from './pages/Login';
 import { supabase } from './lib/supabaseClient';
 import { adminService } from './services/adminService';
@@ -28,29 +29,46 @@ export default function App() {
   const [retentionMetrics, setRetentionMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = (s) => s?.user?.app_metadata?.role === 'admin';
+  const [adminRole, setAdminRole] = useState(null);
+
+  // Autoridad única: los roles de `admin_users` (CUR-10). Antes se miraba
+  // `app_metadata.role`, que era un segundo sitio donde revocar acceso y
+  // desincronizaba con las capacidades que usan los RPC.
+  const resolveAdmin = async () => {
+    const { data, error } = await supabase.rpc('admin_session');
+    if (error || !data) return null;
+    return data;
+  };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      if (s && !isAdmin(s)) {
-        supabase.auth.signOut();
+    let active = true;
+
+    const apply = async (s) => {
+      const info = s ? await resolveAdmin() : null;
+      if (!active) return;
+      if (s && !info) {
+        setAdminRole(null);
+        setSession(null);
         setUnauthorized(true);
+        await supabase.auth.signOut();
+      } else {
+        setAdminRole(info);
+        setUnauthorized(false);
+        setSession(s);
       }
       setAuthLoading(false);
-    });
+    };
+
+    supabase.auth.getSession().then(({ data: { session: s } }) => apply(s));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      if (s && !isAdmin(s)) {
-        supabase.auth.signOut();
-        setUnauthorized(true);
-      } else if (s && isAdmin(s)) {
-        setUnauthorized(false);
-      }
+      apply(s);
     });
 
-    return () => subscription?.unsubscribe();
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const loadAllData = async () => {
@@ -200,13 +218,7 @@ export default function App() {
     return (
       <Login
         onLogin={(s) => {
-          if (isAdmin(s)) {
-            setUnauthorized(false);
-            setSession(s);
-          } else {
-            supabase.auth.signOut();
-            setUnauthorized(true);
-          }
+          setSession(s);
         }}
       />
     );
@@ -252,6 +264,7 @@ export default function App() {
             </div>
           ) : (
             <>
+              {activeTab === 'curriculum' && <CurriculumDashboard />}
               {activeTab === 'overview' && (
                 <AdminOverview lessons={lessons} cefrLevels={cefrLevels} cefrDistribution={cefrDistribution} metrics={overviewMetrics} setActiveTab={setActiveTab} />
               )}
