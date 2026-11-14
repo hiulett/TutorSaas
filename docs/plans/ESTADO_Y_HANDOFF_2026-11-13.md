@@ -143,3 +143,21 @@ Dos hallazgos que conviene no repetir:
 
 Pendiente para el siguiente bloque: **CUR-17** (caché y offline) y la
 verificación en dispositivo de la Ruta con `db` en un build interno.
+
+---
+
+## 9 · Cierre de CUR-17 (caché y offline)
+
+| Pieza | Estado |
+|---|---|
+| Caché por nivel | ✅ `SharedPreferences`, clave `curriculum_pack_v1_<nivel>` con `content_version` |
+| Invalidación por versión | ✅ `since_version` sin cambios sirve la caché (`not_modified`) sin descargar el nivel |
+| Sin red | ✅ último pack bueno (`offline_cache`); si no hay caché válida, catálogo |
+| Caché inservible | ✅ se revalida contra el catálogo y se borra si le faltan lecciones o trae ids desconocidos |
+| Memoria de sesión | ✅ un nivel no se descarga dos veces (`memory`) |
+| Suite | ✅ 815 pruebas en verde (+10 de caché), `flutter analyze` 137 infos |
+
+La caché solo contiene currículo, nunca datos del alumno. Con el flag en `dart`
+ni se lee: el catálogo empaquetado sigue siendo el camino normal.
+
+Siguiente bloque recomendado: **CUR-18** (prerrequisitos y desbloqueo).

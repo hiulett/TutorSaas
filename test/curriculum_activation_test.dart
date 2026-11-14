@@ -163,13 +163,11 @@ void main() {
       expect(repository.lastSourceReason, 'network');
     });
 
-    test('since_version no exige completitud (devuelve solo lo cambiado)', () async {
-      final ids = catalogIds('a2').take(2).toList();
-      final remote = _FakeRemote(source: 'db', pack: packFromIds('a2', ids));
-      final repository = CurriculumRepository(remote: remote);
+    test('sin caché, since_version cae a la descarga completa', () async {
+      final repository = CurriculumRepository(remote: _FakeRemote(source: 'db'));
       final pack = await repository.getLevelPack('a2', sinceVersion: 1794000000);
       expect(pack.source, 'db');
-      expect(pack.lessons, hasLength(2));
+      expect(pack.lessons, hasLength(20));
     });
   });
 

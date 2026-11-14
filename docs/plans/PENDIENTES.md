@@ -38,11 +38,10 @@ sigue en la épica; esto es lo demás.
 
 ## Currículo
 
-- Fase 6: **CUR-17** (caché y offline) es la siguiente pieza para que las
-  lecciones nuevas creadas solo en la base se puedan renderizar. Mientras tanto,
-  un pack con ids que la app no conoce cae al catálogo entero (`unknown_pack`), a
-  propósito.
-- Fase 7 en adelante: **CUR-18** a **CUR-25**.
+- Fase 6 cerrada (CUR-16 y CUR-17). Siguiente: **CUR-18** a **CUR-25**.
+- Los renderers siguen en código: una lección creada **solo** en la base hace
+  caer el nivel entero al catálogo (`unknown_pack`), a propósito, hasta que la
+  app sepa renderizarla.
 - **Deuda editorial**: 481 traducciones idénticas y 519 objetivos débiles ya
   marcados. Corregirlos es **CUR-15**; las marcas existen para poder priorizar.
 
@@ -58,3 +57,7 @@ sigue en la épica; esto es lo demás.
 - Flag `curriculum_source`: conmutado `dart → db → dart` contra producción el
   13-nov-2026, auditado y restaurado a `dart`. Ver
   [CURRICULUM_ACTIVATION.md](../runbooks/CURRICULUM_ACTIVATION.md).
+- **Caché por nivel (CUR-17)**: el pack se guarda en `SharedPreferences` con su
+  `content_version`; sin red se sirve el último pack bueno, y una copia que ya no
+  se puede renderizar se descarta sola. En sesión, un nivel no se descarga dos
+  veces.

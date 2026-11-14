@@ -68,12 +68,30 @@ cualquiera de estos casos, y deja el motivo en `lastSourceReason`:
 |---|---|
 | `flag_dart` | el flag está apagado (comportamiento normal) |
 | `remote_disabled` | interruptor local de emergencia |
+| `memory` | el nivel ya se descargó en esta sesión |
+| `not_modified` | `since_version` dice que no hay cambios y la caché vale |
+| `offline_cache` | sin red, se sirve el último pack bueno del nivel |
 | `empty_pack` | el nivel llegó sin unidades |
 | `incomplete_pack` | le faltan lecciones que la app ya conoce |
 | `unknown_pack` | trae lecciones que la app todavía no sabe renderizar |
 | `duplicated_pack` | la misma lección aparece dos veces |
 | `wrong_level` | el pack es de otro nivel |
-| `network` | RPC caído, sin sesión o error de red |
+| `network` | RPC caído, sin sesión o error de red sin caché disponible |
+
+### Caché local (CUR-17)
+
+Cada nivel se guarda en `SharedPreferences` (`curriculum_pack_v1_<nivel>`) con su
+`content_version`. Al leerla se vuelve a validar contra el catálogo, así que una
+caché de una versión anterior de la app que ya no sepa renderizar ese contenido
+se descarta y se borra.
+
+- Dentro de la sesión, un nivel no se descarga dos veces (`memory`).
+- Con `since_version` (etag) y sin cambios, se sirve la caché (`not_modified`).
+- Sin red, se sirve el último pack bueno (`offline_cache`); si no hay caché o no
+  es válida, el catálogo empaquetado.
+- La caché contiene **solo currículo**, nunca datos del alumno.
+- `invalidateSource()` la ignora al instante y olvida la memoria de sesión; la
+  copia en disco se conserva y se revalida al usarla.
 
 La Ruta que consume la app (`curriculumLevelLessonsProvider`) vuelve a
 comprobar que todas las lecciones del pack se pueden renderizar; si no, sirve
@@ -107,11 +125,13 @@ curriculum_source: db -> dart (auditado en content_audit_logs)
 Estado final del flag: `dart`, a propósito, hasta que el build con el
 repositorio conectado esté en producción.
 
-Pruebas de la app (`flutter test`, 805 en verde):
+Pruebas de la app (`flutter test`, 815 en verde):
 
 - con flag `dart`, la Ruta recibe el catálogo exacto (ids y orden) en los 7
   niveles: conectar el repositorio no cambia el comportamiento;
 - con flag `db`, recibe el pack y su orden;
 - pack caído, vacío, incompleto, duplicado o con ids desconocidos → catálogo;
 - rollback: `db → dart` tras la ventana de caché, e inmediato con
-  `invalidateSource()`.
+  `invalidateSource()`;
+- caché: se guarda con su versión, sirve sin red, se invalida por
+  `content_version` y una copia que ya no es renderizable se descarta.
