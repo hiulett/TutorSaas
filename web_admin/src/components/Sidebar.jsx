@@ -15,6 +15,7 @@ import {
   Boxes,
   PenLine,
   Languages,
+  Puzzle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -24,6 +25,7 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
     { id: 'units', label: 'Unidades', icon: Boxes },
     { id: 'editor', label: 'Editor de lecciones', icon: PenLine },
     { id: 'translations', label: 'Traducciones', icon: Languages },
+    { id: 'activities', label: 'Actividades', icon: Puzzle },
     { id: 'overview', label: 'Panel Principal', icon: LayoutDashboard },
     { id: 'lessons', label: 'Lecciones y Escenarios', icon: BookOpen },
     { id: 'cefr', label: 'Niveles CEFR', icon: Layers },
