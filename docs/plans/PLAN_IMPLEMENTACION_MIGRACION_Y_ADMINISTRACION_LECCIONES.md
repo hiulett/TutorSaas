@@ -632,3 +632,111 @@ tocar la lógica de evaluación que hoy funciona.
 13. Fases 0–9 con esfuerzos S/M/L.
 14. Riesgos en la matriz; dependencias en la sección 23.
 15. Esquema → migración → backend → portal → Flutter → currículo → jefes → despliegue.
+
+---
+
+## 26 · Decisiones tomadas (2026-11-13)
+
+| # | Decisión | Respuesta |
+|---|---|---|
+| 1 | Composición del jefe | **40 % conversación · 20 % comprensión · 20 % construcción · 20 % vocabulario** |
+| 2 | Aprobación | **70 % · 3 intentos · espera 24 h**, más **remediación automática** (ver 26.1) |
+| 3 | 481 traducciones | **Cola editorial paralela**; no bloquea la migración |
+| 4 | Nivel inicial | **Oráculo del onboarding** con rúbrica reforzada (ver 26.2) |
+| 5 | Repetir lecciones | **Sí, para practicar, sin recompensa de moneda** |
+| 6 | Portal | **React Router + TanStack Query** |
+
+Estas decisiones **sustituyen** los puntos correspondientes de las secciones 9, 13, 18 y 23.
+
+### 26.1 · Remediation engine (nuevo alcance)
+
+Al fallar el jefe, el sistema **genera automáticamente un plan de refuerzo** adaptado a las
+competencias más débiles. Es contenido generado con IA, por lo que **solo está disponible
+para planes `noble` y `realeza`**; el coste lo cubre la suscripción.
+
+**Flujo**
+1. `submit_assessment` devuelve `result='failed'` + `competency_scores`.
+2. El servidor invoca `generate_remediation_plan(attempt_id)`.
+3. Se calcula el déficit por competencia (peso × brecha) y se eligen hasta **3 objetivos**
+   diana (los de menor puntuación con `is_required=true`).
+4. `lesson-generator` (Edge Function ya existente) produce **mini-actividades** con el
+   esquema de actividad vigente: 3–5 actividades por objetivo, dificultad un paso por
+   debajo del nivel evaluado.
+5. Se guardan como plan con estado `ready` y se muestra en la pantalla de derrota.
+6. Al completar el plan, se habilita el reintento **sin consumir intento** (una vez).
+
+**Modelo de datos**
+
+| Tabla | Campos |
+|---|---|
+| `remediation_plans` | `id`, `user_id`, `attempt_id`, `status` (`pending|ready|failed|completed`), `model`, `tokens_in/out`, `cost_estimate numeric`, `created_at`, `expires_at` |
+| `remediation_items` | `id`, `plan_id`, `objective_code`, `competency`, `activity_type`, `payload jsonb`, `order_index` |
+
+**Guardarraíles de coste**
+- Máximo **1 plan por intento fallido** y **2 planes al mes** por usuario.
+- Presupuesto por plan declarado en `curriculum_settings` (tokens); si se excede, el plan
+  se degrada a **recomendación estática** (lista de lecciones del nivel).
+- El plan caduca a los 14 días.
+- Se registra `cost_estimate` para poder medir coste real por suscriptor.
+- Si la generación falla o el JSON no valida: fallback estático, sin reintento en bucle.
+
+**Gratuito:** recibe recomendación estática (lecciones del mismo nivel y competencia) sin IA.
+No es una degradación del aprendizaje: es la misma lista, sin generación personalizada.
+
+**Por qué en servidor y con cupo:** el coste es real y variable; además, generar en cliente
+permitiría fabricar planes ilimitados con la clave del proxy.
+
+### 26.2 · Colocación evaluada por el Oráculo (refuerzo)
+
+El nivel inicial lo decide el **Oráculo del onboarding**, no una pregunta de autopercepción.
+
+**Rúbrica de colocación** (salida JSON validada en servidor)
+
+```json
+{
+  "cefr_estimate": "A2",
+  "confidence": 0.0,
+  "dimensions": {
+    "vocabulary_range": 0,
+    "grammatical_accuracy": 0,
+    "comprehension": 0,
+    "fluency_response": 0
+  },
+  "evidence": ["..."],
+  "insufficient_evidence": false
+}
+```
+
+**Reglas**
+- Evidencia mínima: **≥ 5 turnos** con producción del estudiante; si no, `insufficient_evidence=true`
+  y el sistema coloca en **PRE-A1** con opción de repetir la evaluación.
+- El modelo **no puede** asignar un CEFR sin `evidence` no vacía y `confidence ≥ 0.6`.
+- Mapeo CEFR ⇄ dimensiones en `curriculum_settings`, editable desde el portal.
+- Anti-juego: tareas variadas (describir imagen, responder pregunta, completar frase) y no se
+  permite subir de nivel más de uno por reevaluación.
+- Se guarda `placement_result` (snapshot) y `curriculum_progress` se inicializa con el nivel
+  resultante; el usuario puede **bajar** manualmente pero no subir sin nueva evaluación.
+
+**Qué hay que reforzar en el Oráculo actual**
+1. Devolver JSON con esquema fijo y rechazo si no valida (hoy la evaluación es por turno).
+2. Introducir la noción de **evidencia mínima** y `confidence`.
+3. Documentar el mapeo puntuación → CEFR y testearlo con casos límite (A1/A2, B1/B2).
+4. Registrar cada colocación para auditar sesgos.
+
+### 26.3 · Historias adicionales
+
+| ID | Historia | Fase | Prioridad | Criterios |
+|---|---|---|---|---|
+| CUR-25 | Rúbrica de colocación del Oráculo | 7 | P0 | JSON validado, evidencia mínima, confidence ≥ 0.6, casos límite testeados |
+| CUR-26 | Plan de remediación automático | 8 | P0 | 1 plan/intento, ≤3 objetivos, 3–5 actividades, fallback estático |
+| CUR-27 | Cupo y coste de remediación | 8 | P0 | Solo noble/realeza; 2 planes/mes; `cost_estimate` registrado; tope de tokens |
+
+### 26.4 · Riesgos añadidos
+
+| Riesgo | Mitigación |
+|---|---|
+| Coste de IA descontrolado en remediación | Cupo por plan/mes + presupuesto de tokens + fallback estático |
+| Remediación de baja calidad pedagógica | Reutiliza el generador y el esquema existente; revisión muestral desde el portal |
+| Colocación con poca evidencia | `insufficient_evidence` fuerza PRE-A1 y permite reevaluar |
+| Percepción de pago por aprobar | El plan **no da puntos ni salta el examen**: solo entrena y habilita un reintento gratis |
+
