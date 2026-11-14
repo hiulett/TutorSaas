@@ -13,6 +13,7 @@ import CurriculumDashboard from './pages/CurriculumDashboard';
 import UnitsManager from './pages/UnitsManager';
 import LessonEditor from './pages/LessonEditor';
 import TranslationQueue from './pages/TranslationQueue';
+import ActivityBuilder from './pages/ActivityBuilder';
 import Login from './pages/Login';
 import { supabase } from './lib/supabaseClient';
 import { adminService } from './services/adminService';
@@ -271,6 +272,7 @@ export default function App() {
               {activeTab === 'units' && <UnitsManager />}
               {activeTab === 'editor' && <LessonEditor />}
               {activeTab === 'translations' && <TranslationQueue />}
+              {activeTab === 'activities' && <ActivityBuilder />}
               {activeTab === 'overview' && (
                 <AdminOverview lessons={lessons} cefrLevels={cefrLevels} cefrDistribution={cefrDistribution} metrics={overviewMetrics} setActiveTab={setActiveTab} />
               )}
