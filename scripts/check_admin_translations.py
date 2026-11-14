@@ -40,15 +40,15 @@ def check(client: ic.RestClient) -> list:
     if any(not row["phrase"] or row["phrase"] != row["translation"] for row in rows):
         problems.append("una fila idéntica no repite la frase")
 
-    # Filtro por nivel y coherencia con el pack.
+    # Filtro por nivel y coherencia con el total: hay que recorrer los 7.
     per_level = {}
-    for level in ("pre_a1", "a1", "c2"):
+    for level in ("pre_a1", "a1", "a2", "b1", "b2", "c1", "c2"):
         filtered = client.rpc("admin_translations", {"p_level": level, "p_limit": 500})
         per_level[level] = filtered["totals"]["identical"]
         if any(row["level_id"] != level for row in filtered["rows"]):
             problems.append(f"{level}: la cola trae filas de otro nivel")
     if sum(per_level.values()) != totals["identical"]:
-        problems.append(f"los niveles no suman el total: {per_level}")
+        problems.append(f"los niveles no suman el total: {per_level} = {sum(per_level.values())} != {totals['identical']}")
 
     # El estado no válido se rechaza.
     try:
