@@ -74,6 +74,13 @@ create table if not exists public.lessons (
 create index if not exists idx_lessons_unit on public.lessons (unit_id, order_index);
 create index if not exists idx_lessons_status on public.lessons (status);
 
+-- `create table if not exists` no corrige una tabla que ya existe: si la
+-- primera aplicación usó el check 1..5, este bloque lo normaliza al rango real
+-- del catálogo (20 lecciones de C2 tienen difficulty 6). Es reejecutable.
+alter table public.lessons drop constraint if exists lessons_difficulty_check;
+alter table public.lessons
+  add constraint lessons_difficulty_check check (difficulty between 1 and 6);
+
 -- ── Versiones (snapshot publicado) ──────────────────────────────────────────
 create table if not exists public.lesson_versions (
   id           uuid primary key default gen_random_uuid(),
