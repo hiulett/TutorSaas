@@ -114,3 +114,32 @@ Después, **CUR-07** ([#426](https://github.com/hiulett/TutorSaas/issues/426)).
 
 Sigue pendiente la sección 2.4 y 2.5: rotar las claves expuestas y actualizar el
 header del webhook.
+
+---
+
+## 8 · Cierre de CUR-24 (activación progresiva y rollback)
+
+| Pieza | Estado |
+|---|---|
+| Orden de A1 reparado | ✅ 8 lecciones fuera de sitio, causas y reparación en [CURRICULUM_ACTIVATION.md](../runbooks/CURRICULUM_ACTIVATION.md) |
+| `check_curriculum_activation.py` | ✅ puerta: pack idéntico al catálogo en los 7 niveles y flag reversible |
+| `set_curriculum_source.py` | ✅ enciende con la puerta en verde; `dart` es rollback sin comprobaciones |
+| Ruta conectada al repositorio | ✅ `curriculumLevelLessonsProvider`; con `dart` sirve el catálogo exacto |
+| Red de seguridad | ✅ pack vacío/incompleto/duplicado/desconocido/red caída → catálogo completo |
+| Rollback probado | ✅ `dart → db → dart` contra producción, auditado; estado final `dart` |
+| Suite | ✅ 805 pruebas en verde, `flutter analyze` 137 infos (línea base) |
+
+Dos hallazgos que conviene no repetir:
+
+1. **Un checker puede corromper producción sin fallar.** El de unidades movió
+   una lección real de A1 y no la restauró; el daño no rompía ninguna prueba.
+   Ahora las pruebas de reordenación usan solo datos de prueba y existe
+   `fix_curriculum_order.py` para recomponer el orden desde la exportación.
+2. **`LessonCatalog.getLessonById` fabrica una lección genérica** para ids
+   desconocidos, así que no sirve para decidir si el pack es completo. La
+   comprobación compara contra el conjunto de ids del catálogo: una lección
+   nueva solo en la base cae al catálogo entero (`unknown_pack`) hasta que los
+   renderers lean el pack (CUR-17).
+
+Pendiente para el siguiente bloque: **CUR-17** (caché y offline) y la
+verificación en dispositivo de la Ruta con `db` en un build interno.
