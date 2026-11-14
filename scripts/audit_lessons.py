@@ -372,6 +372,15 @@ add("")
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+# CUR-02: exportación canónica para la importación a PostgreSQL.
+EXPORT = ROOT / "build/curriculum/lessons.json"
+EXPORT.parent.mkdir(parents=True, exist_ok=True)
+EXPORT.write_text(
+    json.dumps({"lessons": lessons}, ensure_ascii=False, indent=2),
+    encoding="utf-8",
+)
+
 print(json.dumps({
     "lessons": total,
     "goals": total_goals,
