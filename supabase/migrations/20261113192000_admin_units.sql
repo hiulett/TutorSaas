@@ -125,11 +125,12 @@ begin
 
   if v_id is null then
     v_id := gen_random_uuid();
-    -- Se inserta al final y la renumeración de abajo la coloca donde toque.
-    select coalesce(count(*), 0) + 1 into v_count
-      from public.curriculum_units where level_id = v_level;
+    -- Posición temporal negativa: el nivel puede tener huecos (una unidad
+    -- borrada no renumeraba antes), así que `count(*)+1` no garantiza estar
+    -- libre y chocaba con `unique (level_id, order_index)`. La renumeración de
+    -- abajo le da la posición definitiva.
     insert into public.curriculum_units (id, level_id, slug, title, description, order_index)
-    values (v_id, v_level, v_slug, v_title, v_desc, v_count);
+    values (v_id, v_level, v_slug, v_title, v_desc, -1000000);
   else
     update public.curriculum_units
        set level_id = v_level, slug = v_slug, title = v_title, description = v_desc
@@ -184,9 +185,12 @@ security definer
 set search_path = public
 as $$
 declare
-  v_actor   uuid := auth.uid();
-  v_unit    public.curriculum_units;
-  v_lessons integer;
+  v_actor    uuid := auth.uid();
+  v_unit     public.curriculum_units;
+  v_lessons  integer;
+  v_ids      uuid[];
+  v_item     uuid;
+  v_position integer := 0;
 begin
   if not (public.admin_can('edit_draft') or auth.role() = 'service_role') then
     raise exception 'se requiere la capacidad edit_draft' using errcode = '42501';
@@ -204,6 +208,24 @@ begin
   end if;
 
   delete from public.curriculum_units where id = p_id;
+
+  -- Compacta el orden del nivel: borrar sin renumerar dejaba huecos (1,3,4,5)
+  -- y la siguiente alta chocaba con el índice único. Los ids se capturan antes
+  -- de tocar el orden: tras la pasada negativa, `order by order_index` los
+  -- devolvería al revés (-3 < -2 < -1).
+  select coalesce(array_agg(id order by order_index), '{}') into v_ids
+    from public.curriculum_units
+   where level_id = v_unit.level_id;
+
+  foreach v_item in array v_ids loop
+    v_position := v_position + 1;
+    update public.curriculum_units set order_index = -v_position where id = v_item;
+  end loop;
+  v_position := 0;
+  foreach v_item in array v_ids loop
+    v_position := v_position + 1;
+    update public.curriculum_units set order_index = v_position where id = v_item;
+  end loop;
 
   insert into public.content_audit_logs (actor_id, entity, entity_id, action, diff)
   values (v_actor, 'unit', p_id::text, 'delete_unit',
@@ -230,6 +252,7 @@ declare
   v_unit    public.curriculum_units;
   v_ids     text[];
   v_new     text[];
+  v_origin  text[];
   v_count   integer;
   v_order   integer;
   v_item    text;
@@ -281,23 +304,21 @@ begin
   -- (el etag de `get_curriculum_pack`) sin tocar el orden ya asignado.
   update public.lessons set updated_at = now() where id = p_lesson_id;
 
-  -- Compacta la unidad de origen si la lección venía de otra.
+  -- Compacta la unidad de origen si la lección venía de otra. Igual que antes:
+  -- los ids se capturan antes de tocar el orden, porque tras la pasada negativa
+  -- `order by order_index` los devuelve invertidos.
   if v_lesson.unit_id is not null and v_lesson.unit_id <> p_unit_id then
+    select coalesce(array_agg(id order by order_index), '{}') into v_origin
+      from public.lessons
+     where unit_id = v_lesson.unit_id and status <> 'archived';
+
     v_position := 0;
-    for v_item in
-      select id from public.lessons
-       where unit_id = v_lesson.unit_id and status <> 'archived'
-       order by order_index
-    loop
+    foreach v_item in array v_origin loop
       v_position := v_position + 1;
       update public.lessons set order_index = -v_position where id = v_item;
     end loop;
     v_position := 0;
-    for v_item in
-      select id from public.lessons
-       where unit_id = v_lesson.unit_id and status <> 'archived'
-       order by order_index
-    loop
+    foreach v_item in array v_origin loop
       v_position := v_position + 1;
       update public.lessons set order_index = v_position where id = v_item;
     end loop;
