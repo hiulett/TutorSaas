@@ -97,6 +97,24 @@ class ObjectiveReviewTest(unittest.TestCase):
         self.assertEqual(objective["review_reason"], ic.REVIEW_SINGLE_KEYWORD)
 
 
+class PortalProtectionTest(unittest.TestCase):
+    """El importador no pisa lo publicado desde el portal (CUR-09)."""
+
+    def test_publicado_desde_el_portal_protege(self):
+        self.assertTrue(ic.is_portal_published({"snapshot": {"source": "portal"}}))
+
+    def test_con_published_by_protege(self):
+        self.assertTrue(
+            ic.is_portal_published({"snapshot": {}, "published_by": "00000000-0000-0000-0000-000000000001"})
+        )
+
+    def test_importado_no_protege(self):
+        self.assertFalse(ic.is_portal_published({"snapshot": {"id": "a1_x"}, "published_by": None}))
+
+    def test_snapshot_vacio_no_protege(self):
+        self.assertFalse(ic.is_portal_published({"snapshot": None}))
+
+
 class DigestTest(unittest.TestCase):
     def test_estable_ante_el_orden_de_claves(self):
         self.assertEqual(

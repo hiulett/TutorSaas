@@ -115,6 +115,18 @@ def normalize_text(value) -> str:
     return " ".join((value or "").split()).casefold()
 
 
+def is_portal_published(version_row: dict) -> bool:
+    """¿La última versión la publicó el portal y no esta importación?
+
+    El importador no debe pisar contenido editado a mano: si la versión vigente
+    salió del portal, se salta la lección salvo `--force`.
+    """
+    snapshot = version_row.get("snapshot") or {}
+    if version_row.get("published_by") is not None:
+        return True
+    return isinstance(snapshot, dict) and snapshot.get("source") == "portal"
+
+
 def objective_review_reasons(goal: dict) -> list:
     """Motivos por los que el objetivo no es verificable tal cual (CUR-05).
 
@@ -378,7 +390,7 @@ def lesson_row(row: dict, unit_id: str, version: int) -> dict:
     }
 
 
-def apply_plan(plan: dict, client: RestClient) -> dict:
+def apply_plan(plan: dict, client: RestClient, force: bool = False) -> dict:
     """Upsert idempotente. Devuelve el recuento de lo escrito y lo omitido."""
     stats = {"created": 0, "new_versions": 0, "unchanged": 0}
 
@@ -405,16 +417,34 @@ def apply_plan(plan: dict, client: RestClient) -> dict:
     # Hash de la última versión guardada, por lección.
     last_hash: dict = {}
     last_version: dict = {}
-    for row in client.select("lesson_versions", "lesson_id,version,snapshot", order="lesson_id,version"):
+    last_portal: dict = {}
+    for row in client.select(
+        "lesson_versions",
+        "lesson_id,version,snapshot,published_by",
+        order="lesson_id,version",
+    ):
         lesson_id = row["lesson_id"]
         if row["version"] >= last_version.get(lesson_id, 0):
             last_version[lesson_id] = row["version"]
             last_hash[lesson_id] = sha256_of(row["snapshot"])
+            snapshot = row["snapshot"] or {}
+            last_portal[lesson_id] = row["published_by"] is not None or (
+                isinstance(snapshot, dict) and snapshot.get("source") == "portal"
+            )
+
+    # Una lección editada desde el portal no se pisa: si el importador la
+    # sobrescribiera, el trabajo editorial desaparecería en la siguiente
+    # ejecución sin avisar.
+    protected = {row["id"] for row in plan["lessons"] if last_portal.get(row["id"])}
+    stats["protected"] = len(protected)
 
     pending = [
-        row for row in plan["lessons"] if last_hash.get(row["id"]) != row["hash"]
+        row
+        for row in plan["lessons"]
+        if last_hash.get(row["id"]) != row["hash"]
+        and (force or row["id"] not in protected)
     ]
-    stats["unchanged"] = len(plan["lessons"]) - len(pending)
+    stats["unchanged"] = len(plan["lessons"]) - len(pending) - len(protected)
     if not pending:
         return stats
 
@@ -655,6 +685,11 @@ def main(argv: list) -> int:
     group.add_argument("--apply", action="store_true", help="escribe en Supabase")
     group.add_argument("--verify", action="store_true", help="comprueba la base contra el origen")
     parser.add_argument("--source", type=Path, default=SOURCE, help="JSON de entrada (CUR-02)")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="sobrescribe también las lecciones publicadas desde el portal",
+    )
     args = parser.parse_args(argv)
 
     plan = build_plan(load_source(args.source))
@@ -680,7 +715,7 @@ def main(argv: list) -> int:
             print_summary("plan", summary)
             print("no se escribe: el origen no coincide con el inventario", file=sys.stderr)
             return 1
-        stats = apply_plan(plan, client)
+        stats = apply_plan(plan, client, force=args.force)
         # CUR-05: el motivo de revisión es metadato, no contenido; se sincroniza
         # aparte para no crear versiones nuevas.
         stats["review_updated"] = sync_objective_review(plan, client)
