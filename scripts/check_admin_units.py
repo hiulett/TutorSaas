@@ -5,6 +5,12 @@ El criterio de la historia es «reordenar y asignar lecciones», y lo que puede
 romperse es el índice único `(level_id, order_index)` / `(unit_id, order_index)`:
 por eso se comprueba que tras mover y borrar no quedan huecos ni duplicados.
 
+Desde CUR-24 la prueba trabaja **solo con unidades de prueba**: la primera
+versión movía una lección real de A1 y la dejaba fuera de su sitio al fallar la
+restauración (8 lecciones desplazadas, reparadas por
+`fix_curriculum_order.py`). Verificar el índice único no necesita tocar el
+contenido del alumno.
+
     python scripts/check_admin_units.py
 """
 from __future__ import annotations
@@ -18,6 +24,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import import_curriculum as ic  # noqa: E402
 
 PROBE_UNIT_SLUG = "zz-probe-unit"
+PROBE_UNIT_2_SLUG = "zz-probe-unit-2"
 PROBE_LESSON = "zz_probe_unit_lesson"
 
 
@@ -41,13 +48,25 @@ def expect_error(client: ic.RestClient, name: str, args: dict, needle: str) -> l
     return [f"{name}: se esperaba error «{needle}»"]
 
 
+def save_unit(client: ic.RestClient, slug: str, order_index: int, title: str) -> str:
+    created = client.rpc(
+        "admin_save_unit",
+        {
+            "p_unit": {
+                "level_id": "a1",
+                "slug": slug,
+                "title": title,
+                "order_index": order_index,
+            }
+        },
+    )
+    return created["id"]
+
+
 def check(client: ic.RestClient) -> list:
     problems: list = []
-    created_unit = None
+    created_units: list[str] = []
     lesson_created = False
-    # El estado inicial se restaura al final: la prueba mueve unidades reales y
-    # dejar el nivel reordenado sería tocar producción desde un checker.
-    original_order = [(unit["slug"], unit["id"]) for unit in unit_state(client)[0]]
 
     try:
         units, slugs = unit_state(client)
@@ -55,50 +74,37 @@ def check(client: ic.RestClient) -> list:
             problems.append(f"A1 empieza con {len(units)} unidades != 4")
         if orders(units) != [1, 2, 3, 4]:
             problems.append(f"orden inicial {orders(units)}")
+        real_slugs = list(slugs)
 
-        # 1 · Crear en medio y que el orden quede 1..5 sin huecos
-        created = client.rpc(
-            "admin_save_unit",
-            {
-                "p_unit": {
-                    "level_id": "a1",
-                    "slug": PROBE_UNIT_SLUG,
-                    "title": "Unidad de prueba",
-                    "order_index": 2,
-                }
-            },
-        )
-        created_unit = created["id"]
+        # 1 · Crear en medio y que el orden quede compacto
+        probe1 = save_unit(client, PROBE_UNIT_SLUG, 2, "Unidad de prueba")
+        created_units.append(probe1)
         units, slugs = unit_state(client)
         if orders(units) != [1, 2, 3, 4, 5]:
             problems.append(f"tras crear en 2, el orden es {orders(units)}")
         if units[1]["slug"] != PROBE_UNIT_SLUG:
             problems.append(f"la unidad nueva no quedó en la posición 2: {slugs}")
 
-        # 2 · Reordenar la última a la primera
-        last = units[-1]
-        client.rpc("admin_save_unit", {"p_unit": {"id": last["id"], "level_id": "a1", "order_index": 1}})
+        # 2 · Reordenar la última de las de prueba a la primera
+        probe2 = save_unit(client, PROBE_UNIT_2_SLUG, 3, "Unidad de prueba 2")
+        created_units.append(probe2)
+        client.rpc(
+            "admin_save_unit",
+            {"p_unit": {"id": probe2, "level_id": "a1", "order_index": 1}},
+        )
         units, slugs = unit_state(client)
-        if orders(units) != [1, 2, 3, 4, 5]:
+        if orders(units) != [1, 2, 3, 4, 5, 6]:
             problems.append(f"tras reordenar, el orden es {orders(units)}")
-        if units[0]["id"] != last["id"]:
+        if units[0]["id"] != probe2:
             problems.append("la unidad movida no quedó la primera")
 
         # 3 · Borrar una unidad con lecciones se rechaza
-        occupier = next(unit for unit in units if unit["lessons"])
-        problems += expect_error(
-            client,
-            "admin_delete_unit",
-            {"p_id": occupier["id"]},
-            "tiene",
-        )
-
-        # 4 · Mover una lección de unidad y devolverla
-        draft = client.rpc(            "admin_save_lesson",
+        client.rpc(
+            "admin_save_lesson",
             {
                 "p_lesson": {
                     "id": PROBE_LESSON,
-                    "unit_id": units[0]["id"],
+                    "unit_id": probe1,
                     "title": "Lección de prueba de unidades",
                     "category": "daily",
                     "difficulty": 1,
@@ -110,38 +116,55 @@ def check(client: ic.RestClient) -> list:
             },
         )
         lesson_created = True
+        problems += expect_error(
+            client,
+            "admin_delete_unit",
+            {"p_id": probe1},
+            "tiene",
+        )
 
-        target = next(unit for unit in units if unit["id"] != units[0]["id"])
+        # 4 · Mover la lección de prueba entre las dos unidades de prueba
         moved = client.rpc(
             "admin_move_lesson",
-            {"p_lesson_id": PROBE_LESSON, "p_unit_id": target["id"], "p_order_index": 1},
+            {"p_lesson_id": PROBE_LESSON, "p_unit_id": probe2, "p_order_index": 1},
         )
         if moved["order_index"] != 1:
             problems.append(f"la lección no quedó en 1: {moved}")
         units, _ = unit_state(client)
-        target_orders = [lesson["order_index"] for lesson in next(u for u in units if u["id"] == target["id"])["lessons"]]
+        target_orders = [
+            lesson["order_index"]
+            for lesson in next(u for u in units if u["id"] == probe2)["lessons"]
+        ]
         if target_orders != list(range(1, len(target_orders) + 1)):
             problems.append(f"lecciones del destino sin orden compacto: {target_orders}")
 
         back = client.rpc(
             "admin_move_lesson",
-            {"p_lesson_id": PROBE_LESSON, "p_unit_id": units[0]["id"], "p_order_index": 1},
+            {"p_lesson_id": PROBE_LESSON, "p_unit_id": probe1, "p_order_index": 1},
         )
         units, _ = unit_state(client)
-        first_orders = [lesson["order_index"] for lesson in units[0]["lessons"]]
+        first_orders = [
+            lesson["order_index"]
+            for lesson in next(u for u in units if u["id"] == probe1)["lessons"]
+        ]
         if first_orders != list(range(1, len(first_orders) + 1)):
             problems.append(f"lecciones al volver sin orden compacto: {first_orders}")
-        if back["previous_unit"] != target["id"]:
+        if back["previous_unit"] != probe2:
             problems.append("el movimiento de vuelta no recuerda el origen")
 
-        # 5 · Borrar la unidad de prueba vacía sí funciona
-        client.rpc("admin_delete_unit", {"p_id": created_unit})
-        created_unit = None
+        # 5 · Borrar las unidades de prueba (ya vacías) no deja huecos
+        client.delete("lessons", {"id": f"eq.{PROBE_LESSON}"})
+        lesson_created = False
+        for unit_id in created_units:
+            client.rpc("admin_delete_unit", {"p_id": unit_id})
+        created_units = []
         units, slugs = unit_state(client)
-        if PROBE_UNIT_SLUG in slugs:
-            problems.append("la unidad de prueba sigue ahí tras borrarla")
+        if any(slug.startswith("zz-probe") for slug in slugs):
+            problems.append(f"quedan unidades de prueba: {slugs}")
         if orders(units) != [1, 2, 3, 4]:
             problems.append(f"tras borrar, el orden es {orders(units)}")
+        if slugs != real_slugs:
+            problems.append(f"el contenido real cambió de orden: {slugs}")
 
         # 6 · Auditoría
         logs = client.select(
@@ -155,34 +178,15 @@ def check(client: ic.RestClient) -> list:
                 problems.append(f"sin registro de auditoría para {expected}")
     finally:
         if lesson_created:
-            client.delete("lessons", {"id": f"eq.{PROBE_LESSON}"})
-            # Borrar deja un hueco en el orden de la unidad: se recoloca la
-            # primera lección en su sitio, que renumera la unidad entera.
-            for unit in unit_state(client)[0]:
-                orders_actual = [item["order_index"] for item in unit["lessons"]]
-                if orders_actual and orders_actual != list(range(1, len(orders_actual) + 1)):
-                    client.rpc(
-                        "admin_move_lesson",
-                        {
-                            "p_lesson_id": unit["lessons"][0]["id"],
-                            "p_unit_id": unit["id"],
-                            "p_order_index": 1,
-                        },
-                    )
-        if created_unit:
             try:
-                client.rpc("admin_delete_unit", {"p_id": created_unit})
+                client.delete("lessons", {"id": f"eq.{PROBE_LESSON}"})
             except SystemExit:
                 pass
-        # Restaura el orden original de las unidades reales del nivel.
-        for position, (_slug, unit_id) in enumerate(original_order, start=1):
+        for unit_id in created_units:
             try:
-                client.rpc(
-                    "admin_save_unit",
-                    {"p_unit": {"id": unit_id, "level_id": "a1", "order_index": position}},
-                )
+                client.rpc("admin_delete_unit", {"p_id": unit_id})
             except SystemExit as error:
-                problems.append(f"no se pudo restaurar el orden: {error}")
+                problems.append(f"no se pudo borrar la unidad de prueba: {error}")
 
     return problems
 
