@@ -45,6 +45,9 @@ def check(client: ic.RestClient) -> list:
     problems: list = []
     created_unit = None
     lesson_created = False
+    # El estado inicial se restaura al final: la prueba mueve unidades reales y
+    # dejar el nivel reordenado sería tocar producción desde un checker.
+    original_order = [(unit["slug"], unit["id"]) for unit in unit_state(client)[0]]
 
     try:
         units, slugs = unit_state(client)
@@ -171,6 +174,15 @@ def check(client: ic.RestClient) -> list:
                 client.rpc("admin_delete_unit", {"p_id": created_unit})
             except SystemExit:
                 pass
+        # Restaura el orden original de las unidades reales del nivel.
+        for position, (_slug, unit_id) in enumerate(original_order, start=1):
+            try:
+                client.rpc(
+                    "admin_save_unit",
+                    {"p_unit": {"id": unit_id, "level_id": "a1", "order_index": position}},
+                )
+            except SystemExit as error:
+                problems.append(f"no se pudo restaurar el orden: {error}")
 
     return problems
 
