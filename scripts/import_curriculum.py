@@ -314,13 +314,20 @@ class RestClient:
             detail = error.read().decode("utf-8", "replace")
             raise SystemExit(f"{method} {table}: HTTP {error.code}\n{detail}") from error
 
-    def select(self, table: str, select: str, order: str | None = None) -> list:
+    def select(
+        self,
+        table: str,
+        select: str,
+        order: str | None = None,
+        filters: dict | None = None,
+    ) -> list:
         rows: list = []
         offset = 0
         while True:
             params = {"select": select, "limit": PAGE, "offset": offset}
             if order:
                 params["order"] = order
+            params.update(filters or {})
             page = self._call("GET", table, params) or []
             rows.extend(page)
             if len(page) < PAGE:
@@ -347,6 +354,10 @@ class RestClient:
     def rpc(self, name: str, body: dict):
         """Llama a una función de PostgREST (`POST /rpc/<name>`)."""
         return self._call("POST", f"rpc/{name}", {}, body=body)
+
+    def delete(self, table: str, params: dict) -> None:
+        """Borra las filas que cumplen el filtro (`?col=eq.valor`)."""
+        self._call("DELETE", table, params, prefer="return=minimal")
 
 
 def lesson_row(row: dict, unit_id: str, version: int) -> dict:
