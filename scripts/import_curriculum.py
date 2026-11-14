@@ -340,6 +340,10 @@ class RestClient:
                 prefer="resolution=merge-duplicates,return=minimal",
             )
 
+    def patch(self, table: str, params: dict, body: dict) -> None:
+        """Actualiza solo las columnas del cuerpo, sin tocar el resto."""
+        self._call("PATCH", table, params, body=body, prefer="return=minimal")
+
 
 def lesson_row(row: dict, unit_id: str, version: int) -> dict:
     return {
@@ -487,7 +491,23 @@ def sync_objective_review(plan: dict, client: RestClient) -> int:
                     }
                 )
 
-    client.upsert("lesson_objectives", updates, "lesson_id,version,code")
+    # PATCH y no upsert: `lesson_objectives` tiene columnas NOT NULL sin valor
+    # por defecto (`description`, `competency`), así que un upsert parcial
+    # falla al construir la fila antes de resolver el conflicto. Un PATCH toca
+    # solo el metadato y deja el contenido como esté en el portal.
+    for row in updates:
+        client.patch(
+            "lesson_objectives",
+            {
+                "lesson_id": f"eq.{row['lesson_id']}",
+                "version": f"eq.{row['version']}",
+                "code": f"eq.{row['code']}",
+            },
+            {
+                "needs_review": row["needs_review"],
+                "review_reason": row["review_reason"],
+            },
+        )
     return len(updates)
 
 
